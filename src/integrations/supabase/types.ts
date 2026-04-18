@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_account_managers: {
+        Row: {
+          am_user_id: string
+          client_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          am_user_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          am_user_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_account_managers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           assigned_am_id: string | null
