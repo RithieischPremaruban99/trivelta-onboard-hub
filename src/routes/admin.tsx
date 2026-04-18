@@ -68,26 +68,27 @@ function AdminPage() {
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amsRes, tasksRes] = await Promise.all([
+    const [clientsRes, amRolesRes, tasksRes] = await Promise.all([
       supabase
         .from("clients")
         .select("id, name, country, status, drive_link, primary_contact_email, assigned_am_id, created_at")
         .order("created_at", { ascending: false }),
-      supabase
-        .from("user_roles")
-        .select("user_id, profiles!inner(email, name)")
-        .eq("role", "account_manager"),
+      supabase.from("user_roles").select("user_id").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
     ]);
     setClients((clientsRes.data ?? []) as ClientRow[]);
-    const amList: AmProfile[] = ((amsRes.data ?? []) as Array<{
-      user_id: string;
-      profiles: { email: string; name: string | null };
-    }>).map((r) => ({
-      user_id: r.user_id,
-      email: r.profiles.email,
-      name: r.profiles.name,
-    }));
+
+    const amUserIds = ((amRolesRes.data ?? []) as Array<{ user_id: string }>).map((r) => r.user_id);
+    let amList: AmProfile[] = [];
+    if (amUserIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, email, name")
+        .in("user_id", amUserIds);
+      amList = ((profiles ?? []) as Array<{ user_id: string; email: string; name: string | null }>).map(
+        (p) => ({ user_id: p.user_id, email: p.email, name: p.name }),
+      );
+    }
     setAms(amList);
 
     const counts: Record<string, { total: number; done: number }> = {};
