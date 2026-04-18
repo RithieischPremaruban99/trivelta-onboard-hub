@@ -72,7 +72,7 @@ function AdminPage() {
     const [clientsRes, amRolesRes, tasksRes] = await Promise.all([
       supabase
         .from("clients")
-        .select("id, name, country, status, drive_link, primary_contact_email, assigned_am_id, created_at")
+        .select("id, name, country, status, drive_link, platform_url, primary_contact_email, assigned_am_id, created_at")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
