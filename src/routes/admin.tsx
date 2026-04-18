@@ -31,6 +31,7 @@ import {
   Percent,
   Copy,
   ExternalLink,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/onboarding-schema";
