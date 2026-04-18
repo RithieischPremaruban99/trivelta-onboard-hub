@@ -15,9 +15,9 @@ function MyOnboardingRedirect() {
   useEffect(() => {
     if (authLoading || !user) return;
     (async () => {
-      // Look up via client_memberships so both owners and members are redirected correctly
+      // Look up via team_members so both owners and members are redirected correctly
       const { data } = await supabase
-        .from("client_memberships")
+        .from("team_members")
         .select("client_id")
         .eq("email", user.email!)
         .order("created_at", { ascending: false })

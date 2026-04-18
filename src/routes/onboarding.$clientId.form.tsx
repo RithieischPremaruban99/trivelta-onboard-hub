@@ -142,11 +142,16 @@ function FormScreen() {
     if (!isFormComplete(form) || !isOwner) return;
     setSubmitting(true);
 
-    // 1. Persist to Supabase (marks submitted_at, writes onboarding_submissions row)
-    const { error } = await supabase.rpc("submit_onboarding_form", {
-      _client_id: clientId,
-      _data: form as unknown as never,
-    });
+    // 1. Persist to Supabase — upsert form data and mark submitted_at
+    //    (log_form_submission trigger writes the audit row in form_submissions)
+    const { error } = await supabase.from("onboarding_forms").upsert(
+      [{
+        client_id: clientId,
+        data: form as unknown as never,
+        submitted_at: new Date().toISOString(),
+      }],
+      { onConflict: "client_id" }
+    );
     if (error) { toast.error(error.message); setSubmitting(false); return; }
 
     // 2. Create Notion page + SOP checklist (fire-and-forget — don't block navigation)
