@@ -115,7 +115,9 @@ function AdminPage() {
     );
   }
   if (!user) return <Navigate to="/login" />;
-  if (role !== "admin") return <Navigate to="/" />;
+  if (role !== "admin" && role !== "account_executive" && role !== "account_manager") {
+    return <Navigate to="/" />;
+  }
 
   const stats = {
     total: clients.length,
