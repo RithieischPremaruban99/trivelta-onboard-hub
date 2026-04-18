@@ -62,39 +62,32 @@ function AdminPage() {
     Record<string, { total: number; done: number }>
   >({});
   const [ams, setAms] = useState<AmLite[]>([]);
+  // clientId -> list of AM emails
   const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amRolesRes, tasksRes, camRes] = await Promise.all([
+    const [clientsRes, amAssignmentsRes, tasksRes, camRes] = await Promise.all([
       supabase
         .from("clients")
         .select("id, name, country, status, drive_link, platform_url, primary_contact_email, created_at")
         .order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("user_id").eq("role", "account_manager"),
+      supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
-      supabase.from("client_account_managers").select("client_id, am_user_id"),
+      supabase.from("client_account_managers").select("client_id, am_email"),
     ]);
     setClients((clientsRes.data ?? []) as ClientRow[]);
 
-    const amUserIds = ((amRolesRes.data ?? []) as Array<{ user_id: string }>).map((r) => r.user_id);
-    let amList: AmLite[] = [];
-    if (amUserIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, email, name")
-        .in("user_id", amUserIds);
-      amList = ((profiles ?? []) as Array<{ user_id: string; email: string; name: string | null }>).map(
-        (p) => ({ user_id: p.user_id, email: p.email, name: p.name }),
-      );
-    }
+    const amList: AmLite[] = ((amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>)
+      .map((r) => ({ email: r.email, name: r.name }))
+      .sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email));
     setAms(amList);
 
     const camMap: Record<string, string[]> = {};
-    ((camRes.data ?? []) as Array<{ client_id: string; am_user_id: string }>).forEach((r) => {
-      (camMap[r.client_id] ??= []).push(r.am_user_id);
+    ((camRes.data ?? []) as Array<{ client_id: string; am_email: string | null }>).forEach((r) => {
+      if (r.am_email) (camMap[r.client_id] ??= []).push(r.am_email);
     });
     setClientAms(camMap);
 
@@ -197,8 +190,10 @@ function AdminPage() {
                   {clients.map((c) => {
                     const t = taskCounts[c.id];
                     const pct = t && t.total > 0 ? Math.round((t.done / t.total) * 100) : 0;
-                    const assignedIds = clientAms[c.id] ?? [];
-                    const assignedAms = ams.filter((a) => assignedIds.includes(a.user_id));
+                    const assignedEmails = clientAms[c.id] ?? [];
+                    const assignedAms: AmLite[] = assignedEmails.map(
+                      (email) => ams.find((a) => a.email === email) ?? { email, name: null },
+                    );
                     const onboardingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding/${c.id}`;
                     return (
                       <tr key={c.id} className="border-b border-border/60 transition-colors hover:bg-accent/40">
@@ -308,24 +303,24 @@ function ClientAmCell({
 }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [selected, setSelected] = useState<string[]>(assignedAms.map((a) => a.user_id));
+  const [selected, setSelected] = useState<string[]>(assignedAms.map((a) => a.email));
 
   useEffect(() => {
-    setSelected(assignedAms.map((a) => a.user_id));
-  }, [assignedAms.map((a) => a.user_id).join(",")]);
+    setSelected(assignedAms.map((a) => a.email));
+  }, [assignedAms.map((a) => a.email).join(",")]);
 
   const save = async () => {
     setSaving(true);
-    const current = assignedAms.map((a) => a.user_id);
-    const toAdd = selected.filter((id) => !current.includes(id));
-    const toRemove = current.filter((id) => !selected.includes(id));
+    const current = assignedAms.map((a) => a.email);
+    const toAdd = selected.filter((e) => !current.includes(e));
+    const toRemove = current.filter((e) => !selected.includes(e));
 
     if (toRemove.length > 0) {
       const { error } = await supabase
         .from("client_account_managers")
         .delete()
         .eq("client_id", clientId)
-        .in("am_user_id", toRemove);
+        .in("am_email", toRemove);
       if (error) {
         setSaving(false);
         toast.error(error.message);
@@ -335,7 +330,7 @@ function ClientAmCell({
     if (toAdd.length > 0) {
       const { error } = await supabase
         .from("client_account_managers")
-        .insert(toAdd.map((am_user_id) => ({ client_id: clientId, am_user_id })));
+        .insert(toAdd.map((am_email) => ({ client_id: clientId, am_email })));
       if (error) {
         setSaving(false);
         toast.error(error.message);
@@ -419,7 +414,7 @@ function NewClientDialog({
     if (amIds.length > 0) {
       const { error: camErr } = await supabase
         .from("client_account_managers")
-        .insert(amIds.map((am_user_id) => ({ client_id: data.id, am_user_id })));
+        .insert(amIds.map((am_email) => ({ client_id: data.id, am_email })));
       if (camErr) {
         toast.error(`Client created, but AM assignment failed: ${camErr.message}`);
       }
