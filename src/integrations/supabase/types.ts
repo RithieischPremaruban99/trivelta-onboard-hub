@@ -347,8 +347,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_assigned_am: { Args: { _client_id: string }; Returns: boolean }
       is_client_owner: { Args: { _client_id: string }; Returns: boolean }
+      is_client_primary_contact: {
+        Args: { _client_id: string }
+        Returns: boolean
+      }
       is_client_team_member: { Args: { _client_id: string }; Returns: boolean }
+      is_legacy_assigned_am: { Args: { _client_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "account_manager" | "client" | "account_executive"
