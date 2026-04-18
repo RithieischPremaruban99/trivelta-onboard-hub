@@ -19,6 +19,7 @@ export type Database = {
           assigned_am_id: string | null
           country: string | null
           created_at: string
+          created_by: string | null
           drive_link: string | null
           id: string
           name: string
@@ -31,6 +32,7 @@ export type Database = {
           assigned_am_id?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           drive_link?: string | null
           id?: string
           name: string
@@ -43,6 +45,7 @@ export type Database = {
           assigned_am_id?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           drive_link?: string | null
           id?: string
           name?: string
@@ -316,7 +319,7 @@ export type Database = {
       is_client_team_member: { Args: { _client_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "account_manager" | "client"
+      app_role: "admin" | "account_manager" | "client" | "account_executive"
       client_member_role: "client_owner" | "client_member"
       client_status: "onboarding" | "active" | "churned"
     }
@@ -446,7 +449,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "account_manager", "client"],
+      app_role: ["admin", "account_manager", "client", "account_executive"],
       client_member_role: ["client_owner", "client_member"],
       client_status: ["onboarding", "active", "churned"],
     },

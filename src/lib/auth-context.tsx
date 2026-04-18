@@ -2,7 +2,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "account_manager" | "client";
+export type AppRole = "admin" | "account_manager" | "account_executive" | "client";
+
+const ROLE_PRIORITY: AppRole[] = ["admin", "account_executive", "account_manager", "client"];
 
 interface AuthState {
   session: Session | null;
@@ -47,12 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .order("role", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    // Priority: admin > account_manager > client (alphabetical works since 'a' < 'c')
-    setRole((data?.role as AppRole) ?? null);
+      .eq("user_id", userId);
+    const roles = (data ?? []).map((r) => r.role as AppRole);
+    const best = ROLE_PRIORITY.find((r) => roles.includes(r)) ?? null;
+    setRole(best);
   };
 
   const signOut = async () => {

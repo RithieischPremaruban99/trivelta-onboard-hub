@@ -31,6 +31,7 @@ import {
   Percent,
   Copy,
   ExternalLink,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/onboarding-schema";
@@ -115,7 +116,9 @@ function AdminPage() {
     );
   }
   if (!user) return <Navigate to="/login" />;
-  if (role !== "admin") return <Navigate to="/" />;
+  if (role !== "admin" && role !== "account_executive" && role !== "account_manager") {
+    return <Navigate to="/" />;
+  }
 
   const stats = {
     total: clients.length,
@@ -345,7 +348,7 @@ function NewClientDialog({
   const [contactEmail, setContactEmail] = useState("");
   const [amId, setAmId] = useState<string>("unassigned");
   const [submitting, setSubmitting] = useState(false);
-  const [createdClient, setCreatedClient] = useState<{ id: string; name: string } | null>(null);
+  const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const reset = () => {
     setName(""); setCountry(""); setPlatformUrl(""); setDriveLink("");
@@ -375,7 +378,7 @@ function NewClientDialog({
       return;
     }
     toast.success(`Client "${data.name}" created`);
-    setCreatedClient({ id: data.id, name: data.name });
+    setCreatedClient({ id: data.id, name: data.name, email: contactEmail.trim().toLowerCase() });
     onCreated();
   };
 
@@ -415,8 +418,21 @@ function NewClientDialog({
             </div>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:justify-between">
           <Button variant="outline" onClick={reset}>Create another</Button>
+          <Button
+            onClick={() => {
+              const subject = encodeURIComponent(
+                `Welcome to Trivelta — your onboarding portal for ${createdClient.name}`,
+              );
+              const body = encodeURIComponent(
+                `Hi,\n\nWelcome aboard! Your Trivelta onboarding portal for ${createdClient.name} is ready.\n\nOpen it here: ${onboardingUrl}\n\nSign in with this email address (${createdClient.email}) and we'll send a magic link — no password required.\n\nTalk soon,\nThe Trivelta Team`,
+              );
+              window.location.href = `mailto:${createdClient.email}?subject=${subject}&body=${body}`;
+            }}
+          >
+            <Mail className="h-4 w-4" /> Send via Email
+          </Button>
         </DialogFooter>
       </DialogContent>
     );
