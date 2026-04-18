@@ -120,7 +120,7 @@ function OnboardingFormPage() {
     const { error } = await supabase
       .from("onboarding_forms")
       .upsert(
-        { client_id: clientId, data: form as unknown as Record<string, unknown>, submitted_at: submittedAt },
+        [{ client_id: clientId, data: form as unknown as Record<string, unknown>, submitted_at: submittedAt }],
         { onConflict: "client_id" },
       );
 
