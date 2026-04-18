@@ -49,12 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .order("role", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    // Priority: admin > account_manager > client (alphabetical works since 'a' < 'c')
-    setRole((data?.role as AppRole) ?? null);
+      .eq("user_id", userId);
+    const roles = (data ?? []).map((r) => r.role as AppRole);
+    const best = ROLE_PRIORITY.find((r) => roles.includes(r)) ?? null;
+    setRole(best);
   };
 
   const signOut = async () => {
