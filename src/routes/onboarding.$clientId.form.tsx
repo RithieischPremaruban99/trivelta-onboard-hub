@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { TriveltaNav } from "@/components/TriveltaNav";
 
 export const Route = createFileRoute("/onboarding/$clientId/form")({
   component: FormScreen,
@@ -185,57 +186,46 @@ function FormScreen() {
 
   if (authLoading || loading || loadingPublic || loadingAuth) {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#0a0d14]">
-        <Loader2 className="h-6 w-6 animate-spin text-[#3b82f6]" />
+      <div className="min-h-screen grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
   if (!user) return null;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0d14]">
-      {/* Fixed top bar */}
-      <header className="flex-none border-b border-[#1f2937] bg-[#0a0d14]/95 backdrop-blur-md">
-        <div className="mx-auto flex h-[60px] max-w-[1000px] items-center justify-between px-5">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="grid h-7 w-7 place-items-center rounded-md bg-[#3b82f6]/15 ring-1 ring-[#3b82f6]/30">
-              <span className="font-mono text-xs font-bold text-[#3b82f6]">T</span>
-            </div>
-            <div className="hidden sm:block">
-              <div className="text-[11px] font-bold tracking-widest text-[#f9fafb]">TRIVELTA</div>
-              <div className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#9ca3af]">Onboarding Hub</div>
-            </div>
-          </div>
-
-          {/* Center title */}
-          <div className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold text-[#f9fafb]">
-            {welcomeInfo?.clientName} Onboarding
-          </div>
-
-          {/* Fields counter */}
+    <div className="flex min-h-screen flex-col">
+      {/* Sticky brand nav with progress bar underneath */}
+      <TriveltaNav
+        right={
           <div className="text-right">
-            <div className="font-mono text-[11px] text-[#9ca3af]">
-              <span className="text-[#f9fafb] font-semibold">{filled}</span>
-              <span> / {total} required fields</span>
+            <div className="text-[13px] font-semibold text-foreground">
+              {welcomeInfo?.clientName ?? "Onboarding"}
+            </div>
+            <div className="font-mono text-[10px] text-muted-foreground">
+              <span className="text-foreground">{filled}</span>
+              <span> / {total} fields complete</span>
             </div>
           </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="h-[3px] w-full bg-[#1f2937]">
-          <div
-            className="h-full bg-[#3b82f6] transition-all duration-500"
-            style={{ width: `${completion}%` }}
-          />
-        </div>
-      </header>
+        }
+        bottomSlot={
+          <div className="h-[3px] w-full bg-border/40">
+            <div
+              className={cn(
+                "h-full transition-all duration-500",
+                completion >= 100 ? "bg-success" : "progress-shimmer",
+              )}
+              style={{ width: `${completion}%` }}
+            />
+          </div>
+        }
+      />
 
       {/* Scrollable content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[800px] px-4 py-6 sm:px-6 pb-32">
+        <div className="mx-auto max-w-[860px] px-4 py-8 sm:px-6 pb-32">
           {/* Section pills */}
-          <div className="mb-5 flex flex-wrap gap-2">
+          <div className="mb-6 flex flex-wrap gap-2">
             {[
               { id: "1", label: "01 Team Contacts" },
               { id: "2", label: "02 Media & Branding" },
@@ -247,12 +237,16 @@ function FormScreen() {
               return (
                 <button
                   key={s.id}
-                  onClick={() => setOpen((prev) => prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
+                  onClick={() =>
+                    setOpen((prev) =>
+                      prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id],
+                    )
+                  }
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-mono transition-colors",
+                    "flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] transition-colors",
                     done
-                      ? "border-[#22c55e]/40 bg-[#22c55e]/10 text-[#22c55e]"
-                      : "border-[#1f2937] bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb]",
+                      ? "border-success/40 bg-success/10 text-success"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {done ? <CheckCircle2 className="h-3 w-3" /> : null}
@@ -264,24 +258,54 @@ function FormScreen() {
 
           {/* Accordion */}
           <Accordion type="multiple" value={open} onValueChange={setOpen} className="space-y-3">
-            <SectionShell id="1" num="01" title="Team Contacts" icon={Phone} done={sectionDone["1"]}
-              desc="Sportsbook, operational & compliance leads + Slack team emails">
+            <SectionShell
+              id="1"
+              num="01"
+              title="Team Contacts"
+              icon={Phone}
+              done={sectionDone["1"]}
+              desc="Sportsbook, operational & compliance leads + Slack team emails"
+            >
               <SectionContacts form={form} updateContact={updateContact} update={update} />
             </SectionShell>
-            <SectionShell id="2" num="02" title="Media & Branding" icon={Upload} done={sectionDone["2"]}
-              desc="Logo, icon and animation assets — upload directly or via Google Drive">
+            <SectionShell
+              id="2"
+              num="02"
+              title="Media & Branding"
+              icon={Upload}
+              done={sectionDone["2"]}
+              desc="Logo, icon and animation assets — upload directly or via Google Drive"
+            >
               <SectionMedia form={form} update={update} clientId={clientId} />
             </SectionShell>
-            <SectionShell id="3" num="03" title="Platform Setup" icon={Palette} done={sectionDone["3"]}
-              desc="URL, country, DNS access and full brand colour system">
+            <SectionShell
+              id="3"
+              num="03"
+              title="Platform Setup"
+              icon={Palette}
+              done={sectionDone["3"]}
+              desc="URL, country, DNS access and full brand colour system"
+            >
               <SectionPlatform form={form} update={update} />
             </SectionShell>
-            <SectionShell id="4" num="04" title="Legal & Policies" icon={ScrollText} done={sectionDone["4"]}
-              desc="Footer requirements, landing page and policy URLs">
+            <SectionShell
+              id="4"
+              num="04"
+              title="Legal & Policies"
+              icon={ScrollText}
+              done={sectionDone["4"]}
+              desc="Footer requirements, landing page and policy URLs"
+            >
               <SectionLegal form={form} update={update} />
             </SectionShell>
-            <SectionShell id="5" num="05" title="3rd Party Integrations" icon={Plug} done={sectionDone["5"]}
-              desc="PSP, KYC, SMS, DUNS, Zendesk and analytics">
+            <SectionShell
+              id="5"
+              num="05"
+              title="3rd Party Integrations"
+              icon={Plug}
+              done={sectionDone["5"]}
+              desc="PSP, KYC, SMS, DUNS, Zendesk and analytics"
+            >
               <SectionThirdParty form={form} update={update} />
             </SectionShell>
           </Accordion>
@@ -289,14 +313,18 @@ function FormScreen() {
       </main>
 
       {/* Fixed bottom submit bar */}
-      <footer className="flex-none border-t border-[#1f2937] bg-[#0a0d14]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[800px] items-center justify-between gap-4 px-5 py-4">
+      <footer className="sticky bottom-0 z-20 border-t border-border bg-background/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[860px] items-center justify-between gap-4 px-5 py-4">
           <div>
-            <div className="text-sm font-medium text-[#f9fafb]">
-              {isFormComplete(form) ? "All sections complete — ready to submit" : `${total - filled} required field(s) remaining`}
+            <div className="text-sm font-medium text-foreground">
+              {isFormComplete(form)
+                ? "All sections complete — ready to submit"
+                : `Complete all required fields to submit (${total - filled} remaining)`}
             </div>
-            <div className="mt-0.5 text-[12px] text-[#6b7280]">
-              {isOwner ? "Progress is saved automatically." : `Only ${ownerEmail ?? "the account owner"} can submit.`}
+            <div className="mt-0.5 text-[12px] text-muted-foreground">
+              {isOwner
+                ? "Progress is saved automatically."
+                : `Only ${ownerEmail ?? "the account owner"} can submit.`}
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -305,24 +333,28 @@ function FormScreen() {
                 onClick={handleSubmit}
                 disabled={!isFormComplete(form) || submitting}
                 className={cn(
-                  "h-11 min-w-[200px] rounded-xl px-6 font-medium transition-all",
+                  "h-11 min-w-[200px] px-6 font-medium",
                   isFormComplete(form)
-                    ? "bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/20 hover:bg-[#2563eb]"
-                    : "bg-[#1f2937] text-[#4b5563] cursor-not-allowed"
+                    ? "btn-trivelta"
+                    : "rounded-full bg-secondary text-muted-foreground cursor-not-allowed",
                 )}
               >
                 {submitting ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Submitting…
+                  </>
                 ) : (
-                  <>Submit to Trivelta <Send className="ml-1 h-4 w-4" /></>
+                  <>
+                    Submit to Trivelta <Send className="ml-1 h-4 w-4" />
+                  </>
                 )}
               </Button>
             ) : (
-              <div className="flex items-center gap-2 rounded-xl border border-[#1f2937] bg-[#111827] px-4 py-2.5">
-                <div className="grid h-7 w-7 place-items-center rounded-full bg-[#1f2937] font-mono text-[11px] text-[#9ca3af]">
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
+                <div className="grid h-7 w-7 place-items-center rounded-full bg-secondary font-mono text-[11px] text-muted-foreground">
                   {initials(ownerEmail)}
                 </div>
-                <div className="text-[12px] text-[#9ca3af]">
+                <div className="text-[12px] text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <LockKeyhole className="h-3 w-3" />
                     Only {ownerEmail ?? "the owner"} can submit
