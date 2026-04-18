@@ -380,7 +380,7 @@ function NewClientDialog({
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [platformUrl, setPlatformUrl] = useState("");
-  const [driveLink, setDriveLink] = useState("");
+  const [driveLink, setDriveLink] = useState(DEFAULT_DRIVE_LINK);
   const [contactEmail, setContactEmail] = useState("");
   const [amIds, setAmIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
