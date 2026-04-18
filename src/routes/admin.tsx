@@ -42,6 +42,8 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
+const DEFAULT_DRIVE_LINK = "https://drive.google.com/drive/folders/0ACsQEvOAQlgrUk9PVA";
+
 interface ClientRow {
   id: string;
   name: string;
