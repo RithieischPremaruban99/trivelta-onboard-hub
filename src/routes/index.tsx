@@ -20,6 +20,7 @@ function IndexGateway() {
   if (!user) return <Navigate to="/login" />;
 
   if (role === "admin") return <Navigate to="/admin" />;
+  if (role === "account_executive") return <Navigate to="/admin" />;
   if (role === "account_manager") return <Navigate to="/dashboard" />;
   if (role === "client") return <Navigate to="/my-onboarding" />;
 
