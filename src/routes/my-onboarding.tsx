@@ -15,14 +15,15 @@ function MyOnboardingRedirect() {
   useEffect(() => {
     if (authLoading || !user) return;
     (async () => {
+      // Look up via client_memberships so both owners and members are redirected correctly
       const { data } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("primary_contact_email", user.email!)
+        .from("client_memberships")
+        .select("client_id")
+        .eq("email", user.email!)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      setTarget(data?.id ?? "none");
+      setTarget(data?.client_id ?? "none");
     })();
   }, [user, authLoading]);
 
@@ -48,5 +49,5 @@ function MyOnboardingRedirect() {
       </div>
     );
   }
-  return <Navigate to="/onboarding/$clientId" params={{ clientId: target }} />;
+  return <Navigate to="/onboarding/$clientId/form" params={{ clientId: target }} />;
 }

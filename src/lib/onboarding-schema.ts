@@ -1,9 +1,8 @@
 // All field-level definitions for the onboarding form, in one place.
 
 export const COUNTRIES = [
-  "Nigeria", "Kenya", "Ghana", "South Africa", "Tanzania", "Uganda",
-  "Cameroon", "Senegal", "Ivory Coast", "Brazil", "Mexico", "Colombia",
-  "Peru", "Argentina", "Other",
+  "Nigeria", "Ghana", "Kenya", "Tanzania", "South Africa",
+  "Brazil", "Mexico", "United States", "United Kingdom", "Other",
 ];
 
 export type ContactBlock = { name: string; email: string; phone: string };
@@ -148,3 +147,31 @@ export const validators: Record<number, (f: FormShape) => boolean> = {
 
 export const isFormComplete = (f: FormShape) =>
   validators[1](f) && validators[2](f) && validators[3](f) && validators[4](f) && validators[5](f);
+
+export function countRequiredFields(f: FormShape): { filled: number; total: number } {
+  const checks = [
+    // 3 contact blocks
+    !!(f.contact_sportsbook.name && f.contact_sportsbook.email && f.contact_sportsbook.phone),
+    !!(f.contact_operational.name && f.contact_operational.email && f.contact_operational.phone),
+    !!(f.contact_compliance.name && f.contact_compliance.email && f.contact_compliance.phone),
+    // 2 media
+    !!f.logo_drive_link,
+    !!f.icon_drive_link,
+    // 4 platform
+    !!f.platform_url,
+    !!f.country,
+    !!f.dns_provider,
+    !!f.dns_access,
+    // 3 legal URLs
+    !!f.terms_url,
+    !!f.privacy_url,
+    !!f.rg_url,
+    // 5 third party
+    !!(f.psp_opay || f.psp_palmpay || f.psp_paystack),
+    !!f.kyc_surt,
+    !!f.sms_provider,
+    !!f.duns_status,
+    !!f.zendesk,
+  ];
+  return { filled: checks.filter(Boolean).length, total: checks.length };
+}

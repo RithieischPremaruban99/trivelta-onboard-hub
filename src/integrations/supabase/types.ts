@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_memberships: {
+        Row: {
+          id: string
+          client_id: string
+          email: string
+          client_role: Database["public"]["Enums"]["client_role"]
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          email: string
+          client_role?: Database["public"]["Enums"]["client_role"]
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          email?: string
+          client_role?: Database["public"]["Enums"]["client_role"]
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_memberships_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           assigned_am_id: string | null
@@ -298,10 +330,11 @@ export type Database = {
       get_client_welcome_info: {
         Args: { _client_id: string }
         Returns: {
-          am_email: string
-          am_name: string
-          am_title: string
+          am_email: string | null
+          am_name: string | null
+          am_title: string | null
           client_name: string
+          drive_link: string | null
           progress_pct: number
         }[]
       }
@@ -312,12 +345,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_client_member: {
+        Args: { _client_id: string }
+        Returns: boolean
+      }
       is_client_owner: { Args: { _client_id: string }; Returns: boolean }
       is_client_team_member: { Args: { _client_id: string }; Returns: boolean }
+      get_client_role: {
+        Args: { _client_id: string }
+        Returns: Database["public"]["Enums"]["client_role"] | null
+      }
+      submit_onboarding_form: {
+        Args: { _client_id: string; _data: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "account_manager" | "client"
-      client_member_role: "client_owner" | "client_member"
+      client_role: "client_owner" | "client_member"
       client_status: "onboarding" | "active" | "churned"
     }
     CompositeTypes: {
@@ -447,7 +492,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "account_manager", "client"],
-      client_member_role: ["client_owner", "client_member"],
+      client_role: ["client_owner", "client_member"],
       client_status: ["onboarding", "active", "churned"],
     },
   },

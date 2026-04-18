@@ -120,3 +120,34 @@
     border-radius: var(--radius-lg);
   }
 }
+
+/* Onboarding animated gradient orbs */
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  25% { transform: translate(40px, -60px) scale(1.08); }
+  50% { transform: translate(-30px, 30px) scale(0.95); }
+  75% { transform: translate(50px, 40px) scale(1.03); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  25% { transform: translate(-50px, 40px) scale(1.05); }
+  50% { transform: translate(30px, -40px) scale(0.97); }
+  75% { transform: translate(-20px, 50px) scale(1.02); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(35px, 50px) scale(1.04); }
+  66% { transform: translate(-40px, -30px) scale(0.96); }
+}
+@keyframes check-scale-in {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@layer components {
+  .orb-1 { animation: orb-drift-1 20s ease-in-out infinite; }
+  .orb-2 { animation: orb-drift-2 26s ease-in-out infinite; }
+  .orb-3 { animation: orb-drift-3 32s ease-in-out infinite; }
+  .check-anim { animation: check-scale-in 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+}
