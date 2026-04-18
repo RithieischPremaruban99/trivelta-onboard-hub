@@ -389,7 +389,7 @@ function NewClientDialog({
   const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const reset = () => {
-    setName(""); setCountry(""); setPlatformUrl(""); setDriveLink("");
+    setName(""); setCountry(""); setPlatformUrl(""); setDriveLink(DEFAULT_DRIVE_LINK);
     setContactEmail(""); setAmIds([]); setCreatedClient(null);
   };
 
