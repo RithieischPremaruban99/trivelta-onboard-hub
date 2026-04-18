@@ -35,6 +35,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/onboarding-schema";
+import { AmAvatars, type AmLite } from "@/components/AmAvatars";
+import { AmMultiSelect } from "@/components/AmMultiSelect";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -48,14 +50,7 @@ interface ClientRow {
   drive_link: string | null;
   platform_url: string | null;
   primary_contact_email: string | null;
-  assigned_am_id: string | null;
   created_at: string;
-}
-
-interface AmProfile {
-  user_id: string;
-  email: string;
-  name: string | null;
 }
 
 function AdminPage() {
@@ -64,24 +59,26 @@ function AdminPage() {
   const [taskCounts, setTaskCounts] = useState<
     Record<string, { total: number; done: number }>
   >({});
-  const [ams, setAms] = useState<AmProfile[]>([]);
+  const [ams, setAms] = useState<AmLite[]>([]);
+  const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amRolesRes, tasksRes] = await Promise.all([
+    const [clientsRes, amRolesRes, tasksRes, camRes] = await Promise.all([
       supabase
         .from("clients")
-        .select("id, name, country, status, drive_link, platform_url, primary_contact_email, assigned_am_id, created_at")
+        .select("id, name, country, status, drive_link, platform_url, primary_contact_email, created_at")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
+      supabase.from("client_account_managers").select("client_id, am_user_id"),
     ]);
     setClients((clientsRes.data ?? []) as ClientRow[]);
 
     const amUserIds = ((amRolesRes.data ?? []) as Array<{ user_id: string }>).map((r) => r.user_id);
-    let amList: AmProfile[] = [];
+    let amList: AmLite[] = [];
     if (amUserIds.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
@@ -92,6 +89,12 @@ function AdminPage() {
       );
     }
     setAms(amList);
+
+    const camMap: Record<string, string[]> = {};
+    ((camRes.data ?? []) as Array<{ client_id: string; am_user_id: string }>).forEach((r) => {
+      (camMap[r.client_id] ??= []).push(r.am_user_id);
+    });
+    setClientAms(camMap);
 
     const counts: Record<string, { total: number; done: number }> = {};
     ((tasksRes.data ?? []) as Array<{ client_id: string; completed: boolean }>).forEach((t) => {
@@ -181,7 +184,7 @@ function AdminPage() {
                   <tr className="border-b border-border bg-secondary/40 text-left">
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Client</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Country</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">AM</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Account Managers</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Status</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Progress</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Created</th>
@@ -192,7 +195,8 @@ function AdminPage() {
                   {clients.map((c) => {
                     const t = taskCounts[c.id];
                     const pct = t && t.total > 0 ? Math.round((t.done / t.total) * 100) : 0;
-                    const am = ams.find((a) => a.user_id === c.assigned_am_id);
+                    const assignedIds = clientAms[c.id] ?? [];
+                    const assignedAms = ams.filter((a) => assignedIds.includes(a.user_id));
                     const onboardingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding/${c.id}`;
                     return (
                       <tr key={c.id} className="border-b border-border/60 transition-colors hover:bg-accent/40">
@@ -206,10 +210,10 @@ function AdminPage() {
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{c.country ?? "—"}</td>
                         <td className="px-4 py-3">
-                          <AmAssignSelect
+                          <ClientAmCell
                             clientId={c.id}
-                            currentId={c.assigned_am_id}
                             ams={ams}
+                            assignedAms={assignedAms}
                             onChanged={refresh}
                           />
                         </td>
@@ -289,48 +293,80 @@ function StatCard({
   );
 }
 
-function AmAssignSelect({
+function ClientAmCell({
   clientId,
-  currentId,
   ams,
+  assignedAms,
   onChanged,
 }: {
   clientId: string;
-  currentId: string | null;
-  ams: AmProfile[];
+  ams: AmLite[];
+  assignedAms: AmLite[];
   onChanged: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  return (
-    <Select
-      value={currentId ?? "unassigned"}
-      onValueChange={async (v) => {
-        setSaving(true);
-        const newId = v === "unassigned" ? null : v;
-        const { error } = await supabase
-          .from("clients")
-          .update({ assigned_am_id: newId })
-          .eq("id", clientId);
+  const [selected, setSelected] = useState<string[]>(assignedAms.map((a) => a.user_id));
+
+  useEffect(() => {
+    setSelected(assignedAms.map((a) => a.user_id));
+  }, [assignedAms.map((a) => a.user_id).join(",")]);
+
+  const save = async () => {
+    setSaving(true);
+    const current = assignedAms.map((a) => a.user_id);
+    const toAdd = selected.filter((id) => !current.includes(id));
+    const toRemove = current.filter((id) => !selected.includes(id));
+
+    if (toRemove.length > 0) {
+      const { error } = await supabase
+        .from("client_account_managers")
+        .delete()
+        .eq("client_id", clientId)
+        .in("am_user_id", toRemove);
+      if (error) {
         setSaving(false);
-        if (error) toast.error(error.message);
-        else {
-          toast.success("AM updated");
-          onChanged();
-        }
-      }}
-    >
-      <SelectTrigger className="h-8 min-w-[140px] text-xs" disabled={saving}>
-        <SelectValue placeholder="Unassigned" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="unassigned">Unassigned</SelectItem>
-        {ams.map((a) => (
-          <SelectItem key={a.user_id} value={a.user_id}>
-            {a.name ?? a.email}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+        toast.error(error.message);
+        return;
+      }
+    }
+    if (toAdd.length > 0) {
+      const { error } = await supabase
+        .from("client_account_managers")
+        .insert(toAdd.map((am_user_id) => ({ client_id: clientId, am_user_id })));
+      if (error) {
+        setSaving(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+    setSaving(false);
+    setOpen(false);
+    toast.success("AMs updated");
+    onChanged();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="cursor-pointer rounded p-1 -m-1 hover:bg-accent/60 transition-colors">
+          <AmAvatars ams={assignedAms} />
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Assign account managers</DialogTitle>
+        </DialogHeader>
+        <AmMultiSelect ams={ams} value={selected} onChange={setSelected} />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+          <Button onClick={save} disabled={saving}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -338,7 +374,7 @@ function NewClientDialog({
   ams,
   onCreated,
 }: {
-  ams: AmProfile[];
+  ams: AmLite[];
   onCreated: () => void;
 }) {
   const [name, setName] = useState("");
@@ -346,13 +382,13 @@ function NewClientDialog({
   const [platformUrl, setPlatformUrl] = useState("");
   const [driveLink, setDriveLink] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [amId, setAmId] = useState<string>("unassigned");
+  const [amIds, setAmIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const reset = () => {
     setName(""); setCountry(""); setPlatformUrl(""); setDriveLink("");
-    setContactEmail(""); setAmId("unassigned"); setCreatedClient(null);
+    setContactEmail(""); setAmIds([]); setCreatedClient(null);
   };
 
   const create = async () => {
@@ -367,16 +403,27 @@ function NewClientDialog({
           platform_url: platformUrl.trim() || null,
           drive_link: driveLink.trim() || null,
           primary_contact_email: contactEmail.trim().toLowerCase(),
-          assigned_am_id: amId === "unassigned" ? null : amId,
         },
       ])
       .select("id, name")
       .single();
-    setSubmitting(false);
+
     if (error || !data) {
+      setSubmitting(false);
       toast.error(error?.message ?? "Failed to create client");
       return;
     }
+
+    if (amIds.length > 0) {
+      const { error: camErr } = await supabase
+        .from("client_account_managers")
+        .insert(amIds.map((am_user_id) => ({ client_id: data.id, am_user_id })));
+      if (camErr) {
+        toast.error(`Client created, but AM assignment failed: ${camErr.message}`);
+      }
+    }
+
+    setSubmitting(false);
     toast.success(`Client "${data.name}" created`);
     setCreatedClient({ id: data.id, name: data.name, email: contactEmail.trim().toLowerCase() });
     onCreated();
@@ -470,16 +517,11 @@ function NewClientDialog({
           </p>
         </div>
         <div className="space-y-1.5">
-          <Label>Assign account manager</Label>
-          <Select value={amId} onValueChange={setAmId}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unassigned">Unassigned</SelectItem>
-              {ams.map((a) => (
-                <SelectItem key={a.user_id} value={a.user_id}>{a.name ?? a.email}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label>Assign account managers</Label>
+          <AmMultiSelect ams={ams} value={amIds} onChange={setAmIds} />
+          <p className="text-[11px] text-muted-foreground">
+            You can assign multiple AMs. They'll all see this client in their dashboard.
+          </p>
         </div>
         <div className="space-y-1.5">
           <Label>Platform URL</Label>
