@@ -53,6 +53,41 @@ export type Database = {
         }
         Relationships: []
       }
+      form_submissions: {
+        Row: {
+          client_id: string
+          data_snapshot: Json
+          id: string
+          submitted_at: string
+          submitted_by: string | null
+          submitted_by_email: string | null
+        }
+        Insert: {
+          client_id: string
+          data_snapshot?: Json
+          id?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          submitted_by_email?: string | null
+        }
+        Update: {
+          client_id?: string
+          data_snapshot?: Json
+          id?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          submitted_by_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_forms: {
         Row: {
           client_id: string
