@@ -2,7 +2,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface AmLite {
-  user_id: string;
   email: string;
   name: string | null;
 }
@@ -24,7 +23,7 @@ export function AmAvatars({ ams, max = 4 }: { ams: AmLite[]; max?: number }) {
     <TooltipProvider delayDuration={150}>
       <div className="flex -space-x-2">
         {visible.map((am) => (
-          <Tooltip key={am.user_id}>
+          <Tooltip key={am.email}>
             <TooltipTrigger asChild>
               <Avatar className="h-7 w-7 ring-2 ring-background">
                 <AvatarFallback className="text-[10px] font-medium bg-primary/15 text-primary">
