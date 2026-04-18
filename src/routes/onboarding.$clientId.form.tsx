@@ -169,7 +169,6 @@ function FormScreen() {
           drive_link:      welcomeInfo.driveLink ?? null,
           am_name:         welcomeInfo.amName ?? null,
           am_email:        welcomeInfo.amEmail ?? null,
-          am_notion_ids:   [], // populated once AM Notion user IDs are stored in the DB
           sportsbook_name:  form.contact_sportsbook.name,
           sportsbook_email: form.contact_sportsbook.email,
           platform_url:    form.platform_url,

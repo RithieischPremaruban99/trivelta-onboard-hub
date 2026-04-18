@@ -2,6 +2,8 @@
 // Fires after a client submits their onboarding form.
 // Creates a Notion page in the client tracker database with full SOP checklist.
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
 const NOTION_API   = "https://api.notion.com/v1/pages";
 const NOTION_VER   = "2022-06-28";
@@ -55,19 +57,25 @@ interface FormData {
 }
 
 interface Payload {
-  client_id:      string;
-  client_name:    string;
-  drive_link:     string | null;
-  am_name:        string | null;
-  am_email:       string | null;
-  am_notion_ids:  string[];          // Notion user UUIDs for AM(s); may be empty
+  client_id:       string;
+  client_name:     string;
+  drive_link:      string | null;
+  am_name:         string | null;
+  am_email:        string | null;
   sportsbook_name:  string;
   sportsbook_email: string;
-  platform_url:   string;
-  country:        string;
-  psps:           string[];          // e.g. ["Opay", "Paystack"]
-  form_data:      FormData;
+  platform_url:    string;
+  country:         string;
+  psps:            string[];          // e.g. ["Opay", "Paystack"]
+  form_data:       FormData;
 }
+
+// Static map: AM email → Notion user ID
+const AM_NOTION_IDS: Record<string, string> = {
+  "aidan.kidd@trivelta.com":   "318d872b-594c-816c-802b-00020900bb8f",
+  "davi.sirohi@trivelta.com":  "318d872b-594c-81bf-a1fd-00026792dc67",
+  "alex.serrato@trivelta.com": "318d872b-594c-815c-a2b2-00020f6b69d4",
+};
 
 // ─── Notion block helpers ─────────────────────────────────────────────────────
 
@@ -225,15 +233,28 @@ Deno.serve(async (req) => {
 
     const payload: Payload = await req.json();
     const {
+      client_id,
       client_name,
       drive_link,
-      am_notion_ids,
       sportsbook_name,
       sportsbook_email,
       platform_url,
       country,
       psps,
     } = payload;
+
+    // Look up all AMs assigned to this client and map to Notion user IDs
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: camRows } = await supabase
+      .from("client_account_managers")
+      .select("am_email")
+      .eq("client_id", client_id);
+    const am_notion_ids: string[] = (camRows ?? [])
+      .map((r: { am_email: string | null }) => r.am_email && AM_NOTION_IDS[r.am_email])
+      .filter(Boolean) as string[];
 
     const notionHeaders = {
       Authorization: `Bearer ${NOTION_TOKEN}`,
