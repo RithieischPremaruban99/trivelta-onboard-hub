@@ -276,7 +276,7 @@ function FormScreen() {
               done={sectionDone["2"]}
               desc="Logo, icon and animation assets — upload directly or via Google Drive"
             >
-              <SectionMedia form={form} update={update} clientId={clientId} />
+              <SectionMedia form={form} update={update} driveLink={welcomeInfo?.driveLink ?? null} />
             </SectionShell>
             <SectionShell
               id="3"
@@ -479,99 +479,61 @@ function SectionContacts({ form, updateContact, update }: {
 /* ─── Section 2: Media & Branding ────────────────────────────── */
 
 function FileUploadZone({
-  label, value, onChange, required, accept, acceptLabel, storagePath,
+  label, value, onChange, required, driveLink,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
-  accept: string;
-  acceptLabel: string;
-  storagePath: string;
+  driveLink: string | null;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [dragOver, setDragOver] = useState(false);
-
-  const isStorageUrl = value.includes("supabase") && value.includes("onboarding-media");
-  const isDriveLink = value.startsWith("https://drive.google.com");
-  const hasFile = isStorageUrl || isDriveLink;
-
-  const uploadFile = async (file: File) => {
-    setUploading(true);
-    setUploadError(null);
-    const { data, error } = await supabase.storage
-      .from("onboarding-media")
-      .upload(storagePath, file, { upsert: true });
-    setUploading(false);
-    if (error) { setUploadError(error.message); return; }
-    const { data: urlData } = supabase.storage.from("onboarding-media").getPublicUrl(data.path);
-    onChange(urlData.publicUrl);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) uploadFile(file);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadFile(file);
+  const handleOpenDrive = () => {
+    if (driveLink) {
+      window.open(driveLink, "_blank", "noopener,noreferrer");
+    }
   };
 
   return (
     <div className="space-y-2">
-      <Label className="text-foreground/85">
-        {label}{required && <span className="text-primary ml-0.5">*</span>}
+      <Label className="text-xs font-medium">
+        {label}{required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
 
-      {/* Drop zone */}
-      <div
-        onClick={() => !uploading && inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
+      {/* Drive folder zone */}
+      <button
+        type="button"
+        onClick={handleOpenDrive}
+        disabled={!driveLink}
         className={cn(
-          "cursor-pointer rounded-lg border border-dashed p-5 text-center transition-colors",
-          dragOver
-            ? "border-primary bg-primary/10"
-            : "border-border bg-background/50 hover:border-primary/40",
+          "w-full rounded-lg border-2 border-dashed p-4 transition-colors",
+          driveLink
+            ? "border-border bg-card hover:border-primary/50 hover:bg-accent/40 cursor-pointer"
+            : "border-border bg-muted/30 cursor-not-allowed opacity-60",
         )}
       >
-        <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleFileChange} />
-        {uploading ? (
-          <div className="flex flex-col items-center gap-1.5">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <p className="text-xs text-muted-foreground">Uploading…</p>
-          </div>
-        ) : isStorageUrl ? (
-          <div className="flex flex-col items-center gap-1.5">
-            <CheckCircle2 className="h-5 w-5 text-success" />
-            <p className="text-xs text-success">Uploaded</p>
-            <p className="text-[10px] text-muted-foreground">Click to replace</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-1.5">
-            <Upload className="h-5 w-5 text-muted-foreground" />
-            <p className="text-xs text-foreground">Drop or click to upload</p>
-            <p className="text-[10px] text-muted-foreground">{acceptLabel}</p>
-          </div>
-        )}
-      </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <Upload className="h-5 w-5 text-muted-foreground" />
+          <p className="text-xs text-foreground">
+            {driveLink ? "Open Google Drive folder" : "No Drive folder set"}
+          </p>
+          <p className="text-[10px] text-muted-foreground">Upload your file there</p>
+        </div>
+      </button>
 
-      {uploadError && <p className="text-[11px] text-destructive">{uploadError}</p>}
+      <p className="text-[10px] text-muted-foreground leading-snug">
+        Click to open your Google Drive folder → upload your files there
+      </p>
 
-      {/* Drive link fallback */}
-      <div className="space-y-1">
-        <p className="text-[10px] text-muted-foreground">Or add to your Google Drive folder and paste the link:</p>
+      {/* Optional paste-back link */}
+      <div className="space-y-1 pt-1">
+        <Label className="text-[10px] text-muted-foreground font-normal">
+          Paste the file link from Drive (optional)
+        </Label>
         <div className="flex items-center gap-2">
           <LinkIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Input
             placeholder="https://drive.google.com/…"
-            value={isDriveLink ? value : ""}
+            value={value}
             onChange={(e) => onChange(e.target.value)}
             className="font-mono text-xs"
           />
@@ -581,26 +543,26 @@ function FileUploadZone({
   );
 }
 
-function SectionMedia({ form, update, clientId }: {
+function SectionMedia({ form, update, driveLink }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
-  clientId: string;
+  driveLink: string | null;
 }) {
   return (
     <div className="grid gap-5 md:grid-cols-3">
       <FileUploadZone
-        label="Logo" required accept="image/png,image/jpeg,image/webp" acceptLabel="PNG / JPG recommended"
-        storagePath={`${clientId}/logo.png`} value={form.logo_drive_link}
+        label="Logo" required driveLink={driveLink}
+        value={form.logo_drive_link}
         onChange={(v) => update("logo_drive_link", v)}
       />
       <FileUploadZone
-        label="Icon" required accept="image/png,image/jpeg,image/webp" acceptLabel="PNG / JPG recommended"
-        storagePath={`${clientId}/icon.png`} value={form.icon_drive_link}
+        label="Icon" required driveLink={driveLink}
+        value={form.icon_drive_link}
         onChange={(v) => update("icon_drive_link", v)}
       />
       <FileUploadZone
-        label="Animation" accept="application/json" acceptLabel="JSON (Lottie)"
-        storagePath={`${clientId}/animation.json`} value={form.animation_drive_link}
+        label="Animation" driveLink={driveLink}
+        value={form.animation_drive_link}
         onChange={(v) => update("animation_drive_link", v)}
       />
     </div>
