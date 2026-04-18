@@ -31,12 +31,15 @@ export function OnboardingProvider({ clientId, children }: { clientId: string; c
   useEffect(() => {
     (async () => {
       setLoadingPublic(true);
-      const { data } = await supabase.rpc("get_client_welcome_info", { _client_id: clientId });
-      if (data && data.length > 0) {
-        const row = data[0];
+      const [welcomeRes, clientRes] = await Promise.all([
+        supabase.rpc("get_client_welcome_info", { _client_id: clientId }),
+        supabase.from("clients").select("drive_link").eq("id", clientId).maybeSingle(),
+      ]);
+      if (welcomeRes.data && welcomeRes.data.length > 0) {
+        const row = welcomeRes.data[0];
         setWelcomeInfo({
           clientName: row.client_name,
-          driveLink: row.drive_link,
+          driveLink: clientRes.data?.drive_link ?? null,
           amName: row.am_name,
           amEmail: row.am_email,
         });
@@ -55,13 +58,13 @@ export function OnboardingProvider({ clientId, children }: { clientId: string; c
       setLoadingAuth(true);
       const [memberRes, ownerRes] = await Promise.all([
         supabase
-          .from("client_memberships")
+          .from("team_members")
           .select("client_role")
           .eq("client_id", clientId)
           .eq("email", user.email!)
           .maybeSingle(),
         supabase
-          .from("client_memberships")
+          .from("team_members")
           .select("email")
           .eq("client_id", clientId)
           .eq("client_role", "client_owner")
