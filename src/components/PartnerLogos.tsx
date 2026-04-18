@@ -1,9 +1,21 @@
 /**
- * Partner logo strip — mirrors the "Our Partners and Clients" row on trivelta.com.
- * Placeholder text chips for now; swap each <span> for an <img> once the
- * real partner SVGs are uploaded to /src/assets/partners/*.
+ * Partner logo strip — official brand SVGs sourced from each company's
+ * public website / press materials. Rendered monochrome via CSS filter
+ * (brightness-0 invert) so they sit cleanly on the dark navy background.
  */
-const PARTNERS = ["Evolution", "Sportradar", "Zendesk", "SEON", "Spribe"];
+import evolutionLogo from "@/assets/partners/evolution.svg";
+import sportradarLogo from "@/assets/partners/sportradar.svg";
+import zendeskLogo from "@/assets/partners/zendesk.svg";
+import seonLogo from "@/assets/partners/seon.svg";
+import spribeLogo from "@/assets/partners/spribe.svg";
+
+const PARTNERS: Array<{ name: string; src: string; height: number }> = [
+  { name: "Evolution", src: evolutionLogo, height: 22 },
+  { name: "Sportradar", src: sportradarLogo, height: 20 },
+  { name: "Zendesk", src: zendeskLogo, height: 20 },
+  { name: "SEON", src: seonLogo, height: 22 },
+  { name: "Spribe", src: spribeLogo, height: 22 },
+];
 
 export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: string }) {
   return (
@@ -14,14 +26,16 @@ export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: s
       >
         {label}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4">
-        {PARTNERS.map((name) => (
-          <span
-            key={name}
-            className="text-[16px] font-medium text-[#6b7280] transition-colors hover:text-foreground"
-          >
-            {name}
-          </span>
+      <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-5">
+        {PARTNERS.map((p) => (
+          <img
+            key={p.name}
+            src={p.src}
+            alt={p.name}
+            loading="lazy"
+            className="opacity-50 brightness-0 invert transition-opacity hover:opacity-90"
+            style={{ height: p.height, width: "auto" }}
+          />
         ))}
       </div>
     </div>
