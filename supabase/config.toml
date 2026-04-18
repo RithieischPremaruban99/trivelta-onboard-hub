@@ -1,1 +1,4 @@
 project_id = "mityzsdqonwfhlahvkiw"
+
+[functions.notify-submission]
+verify_jwt = true
