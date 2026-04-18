@@ -375,24 +375,33 @@ function SectionShell({ id, num, title, icon: Icon, done, desc, children }: {
   id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; children: React.ReactNode;
 }) {
   return (
-    <AccordionItem value={id} className={cn("overflow-hidden rounded-xl border border-[#1f2937] bg-[#111827]", done && "ring-1 ring-[#22c55e]/25")}>
-      <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-[#1f2937]/50 transition-colors [&[data-state=open]]:border-b [&[data-state=open]]:border-[#1f2937]">
+    <AccordionItem
+      value={id}
+      className={cn(
+        "overflow-hidden rounded-xl border border-border bg-card transition-colors",
+        done && "ring-1 ring-success/25",
+      )}
+    >
+      <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-secondary/40 transition-colors [&[data-state=open]]:border-b [&[data-state=open]]:border-border">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className={cn("grid h-8 w-8 place-items-center rounded-lg shrink-0", done ? "bg-[#22c55e]/15 text-[#22c55e]" : "bg-[#3b82f6]/10 text-[#3b82f6]")}>
+          <div
+            className={cn(
+              "grid h-8 w-8 place-items-center rounded-lg shrink-0",
+              done ? "bg-success/15 text-success" : "bg-primary/10 text-primary",
+            )}
+          >
             {done ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
           </div>
           <div className="text-left min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] text-[#4b5563]">{num}</span>
-              <span className="text-sm font-semibold text-[#f9fafb]">{title}</span>
+              <span className={cn("font-mono text-[10px]", done ? "text-success" : "text-primary")}>{num}</span>
+              <span className="text-sm font-semibold text-foreground">{title}</span>
             </div>
-            <div className="text-[11px] text-[#6b7280] mt-0.5 truncate">{desc}</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{desc}</div>
           </div>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-5 pt-5 pb-6">
-        {children}
-      </AccordionContent>
+      <AccordionContent className="px-5 pt-5 pb-6">{children}</AccordionContent>
     </AccordionItem>
   );
 }
@@ -402,7 +411,10 @@ function SectionShell({ id, num, title, icon: Icon, done, desc, children }: {
 function FieldGroup({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[#d1d5db]">{label}{required && <span className="text-[#3b82f6] ml-0.5">*</span>}</Label>
+      <Label className="text-foreground/85">
+        {label}
+        {required && <span className="text-primary ml-0.5">*</span>}
+      </Label>
       {children}
     </div>
   );
@@ -411,16 +423,22 @@ function FieldGroup({ label, required, children }: { label: string; required?: b
 function YesNo({ value, onChange, idPrefix }: { value: "yes" | "no" | ""; onChange: (v: "yes" | "no") => void; idPrefix: string }) {
   return (
     <RadioGroup value={value} onValueChange={(v) => onChange(v as "yes" | "no")} className="flex gap-6 pt-1">
-      <div className="flex items-center gap-2"><RadioGroupItem id={`${idPrefix}-yes`} value="yes" /><Label htmlFor={`${idPrefix}-yes`} className="cursor-pointer font-normal text-[#d1d5db]">Yes</Label></div>
-      <div className="flex items-center gap-2"><RadioGroupItem id={`${idPrefix}-no`} value="no" /><Label htmlFor={`${idPrefix}-no`} className="cursor-pointer font-normal text-[#d1d5db]">No</Label></div>
+      <div className="flex items-center gap-2">
+        <RadioGroupItem id={`${idPrefix}-yes`} value="yes" />
+        <Label htmlFor={`${idPrefix}-yes`} className="cursor-pointer font-normal text-foreground/85">Yes</Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <RadioGroupItem id={`${idPrefix}-no`} value="no" />
+        <Label htmlFor={`${idPrefix}-no`} className="cursor-pointer font-normal text-foreground/85">No</Label>
+      </div>
     </RadioGroup>
   );
 }
 
 function SubCard({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-[#1f2937] bg-[#0a0d14]/60 p-4">
-      {title && <div className="mb-3 text-sm font-medium text-[#f9fafb]">{title}</div>}
+    <div className="rounded-lg border border-border bg-background/50 p-4">
+      {title && <div className="mb-3 text-sm font-medium text-foreground">{title}</div>}
       {children}
     </div>
   );
@@ -432,9 +450,9 @@ function ContactBlockEditor({ title, value, onChange }: { title: string; value: 
   return (
     <SubCard title={title}>
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="space-y-1.5"><Label className="text-xs text-[#9ca3af]">Full name *</Label><Input value={value.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Jane Smith" /></div>
-        <div className="space-y-1.5"><Label className="text-xs text-[#9ca3af]">Email *</Label><Input type="email" value={value.email} onChange={(e) => onChange("email", e.target.value)} placeholder="jane@company.com" /></div>
-        <div className="space-y-1.5"><Label className="text-xs text-[#9ca3af]">Phone *</Label><Input value={value.phone} onChange={(e) => onChange("phone", e.target.value)} placeholder="+234 800 000 0000" /></div>
+        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Full name *</Label><Input value={value.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Jane Smith" /></div>
+        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Email *</Label><Input type="email" value={value.email} onChange={(e) => onChange("email", e.target.value)} placeholder="jane@company.com" /></div>
+        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Phone *</Label><Input value={value.phone} onChange={(e) => onChange("phone", e.target.value)} placeholder="+234 800 000 0000" /></div>
       </div>
     </SubCard>
   );
@@ -452,7 +470,7 @@ function SectionContacts({ form, updateContact, update }: {
       <ContactBlockEditor title="Compliance contact" value={form.contact_compliance} onChange={(f, v) => updateContact("contact_compliance", f, v)} />
       <FieldGroup label="Slack team member emails">
         <Textarea placeholder="one email per line" value={form.slack_team_emails} onChange={(e) => update("slack_team_emails", e.target.value)} rows={4} />
-        <p className="text-xs text-[#6b7280]">We'll invite these emails to the shared Slack channel.</p>
+        <p className="text-xs text-muted-foreground">We'll invite these emails to the shared Slack channel.</p>
       </FieldGroup>
     </div>
   );
@@ -506,8 +524,8 @@ function FileUploadZone({
 
   return (
     <div className="space-y-2">
-      <Label className="text-[#d1d5db]">
-        {label}{required && <span className="text-[#3b82f6] ml-0.5">*</span>}
+      <Label className="text-foreground/85">
+        {label}{required && <span className="text-primary ml-0.5">*</span>}
       </Label>
 
       {/* Drop zone */}
@@ -518,37 +536,39 @@ function FileUploadZone({
         onDrop={handleDrop}
         className={cn(
           "cursor-pointer rounded-lg border border-dashed p-5 text-center transition-colors",
-          dragOver ? "border-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f2937] bg-[#0a0d14]/60 hover:border-[#374151]",
+          dragOver
+            ? "border-primary bg-primary/10"
+            : "border-border bg-background/50 hover:border-primary/40",
         )}
       >
         <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleFileChange} />
         {uploading ? (
           <div className="flex flex-col items-center gap-1.5">
-            <Loader2 className="h-5 w-5 animate-spin text-[#3b82f6]" />
-            <p className="text-xs text-[#6b7280]">Uploading…</p>
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <p className="text-xs text-muted-foreground">Uploading…</p>
           </div>
         ) : isStorageUrl ? (
           <div className="flex flex-col items-center gap-1.5">
-            <CheckCircle2 className="h-5 w-5 text-[#22c55e]" />
-            <p className="text-xs text-[#22c55e]">Uploaded</p>
-            <p className="text-[10px] text-[#4b5563]">Click to replace</p>
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <p className="text-xs text-success">Uploaded</p>
+            <p className="text-[10px] text-muted-foreground">Click to replace</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1.5">
-            <Upload className="h-5 w-5 text-[#4b5563]" />
-            <p className="text-xs text-[#f9fafb]">Drop or click to upload</p>
-            <p className="text-[10px] text-[#4b5563]">{acceptLabel}</p>
+            <Upload className="h-5 w-5 text-muted-foreground" />
+            <p className="text-xs text-foreground">Drop or click to upload</p>
+            <p className="text-[10px] text-muted-foreground">{acceptLabel}</p>
           </div>
         )}
       </div>
 
-      {uploadError && <p className="text-[11px] text-red-400">{uploadError}</p>}
+      {uploadError && <p className="text-[11px] text-destructive">{uploadError}</p>}
 
       {/* Drive link fallback */}
       <div className="space-y-1">
-        <p className="text-[10px] text-[#4b5563]">Or add to your Google Drive folder and paste the link:</p>
+        <p className="text-[10px] text-muted-foreground">Or add to your Google Drive folder and paste the link:</p>
         <div className="flex items-center gap-2">
-          <LinkIcon className="h-3.5 w-3.5 text-[#4b5563] shrink-0" />
+          <LinkIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Input
             placeholder="https://drive.google.com/…"
             value={isDriveLink ? value : ""}
