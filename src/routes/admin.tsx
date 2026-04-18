@@ -45,6 +45,7 @@ interface ClientRow {
   country: string | null;
   status: "onboarding" | "active" | "churned";
   drive_link: string | null;
+  platform_url: string | null;
   primary_contact_email: string | null;
   assigned_am_id: string | null;
   created_at: string;
