@@ -276,7 +276,7 @@ function FormScreen() {
               done={sectionDone["2"]}
               desc="Logo, icon and animation assets — upload directly or via Google Drive"
             >
-              <SectionMedia form={form} update={update} clientId={clientId} />
+              <SectionMedia form={form} update={update} driveLink={welcomeInfo?.driveLink ?? null} />
             </SectionShell>
             <SectionShell
               id="3"
