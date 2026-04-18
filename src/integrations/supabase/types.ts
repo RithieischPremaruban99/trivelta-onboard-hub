@@ -19,6 +19,7 @@ export type Database = {
           assigned_am_id: string | null
           country: string | null
           created_at: string
+          created_by: string | null
           drive_link: string | null
           id: string
           name: string
@@ -31,6 +32,7 @@ export type Database = {
           assigned_am_id?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           drive_link?: string | null
           id?: string
           name: string
@@ -43,6 +45,7 @@ export type Database = {
           assigned_am_id?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           drive_link?: string | null
           id?: string
           name?: string
