@@ -340,32 +340,87 @@ function NewClientDialog({
 }) {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
+  const [platformUrl, setPlatformUrl] = useState("");
   const [driveLink, setDriveLink] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [amId, setAmId] = useState<string>("unassigned");
   const [submitting, setSubmitting] = useState(false);
+  const [createdClient, setCreatedClient] = useState<{ id: string; name: string } | null>(null);
+
+  const reset = () => {
+    setName(""); setCountry(""); setPlatformUrl(""); setDriveLink("");
+    setContactEmail(""); setAmId("unassigned"); setCreatedClient(null);
+  };
 
   const create = async () => {
-    if (!name) return;
+    if (!name || !contactEmail.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("clients").insert([
-      {
-        name: name.trim(),
-        country: country || null,
-        drive_link: driveLink || null,
-        primary_contact_email: contactEmail.trim().toLowerCase() || null,
-        assigned_am_id: amId === "unassigned" ? null : amId,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("clients")
+      .insert([
+        {
+          name: name.trim(),
+          country: country || null,
+          platform_url: platformUrl.trim() || null,
+          drive_link: driveLink.trim() || null,
+          primary_contact_email: contactEmail.trim().toLowerCase(),
+          assigned_am_id: amId === "unassigned" ? null : amId,
+        },
+      ])
+      .select("id, name")
+      .single();
     setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
+    if (error || !data) {
+      toast.error(error?.message ?? "Failed to create client");
       return;
     }
-    toast.success(`Client "${name}" created`);
-    setName(""); setCountry(""); setDriveLink(""); setContactEmail(""); setAmId("unassigned");
+    toast.success(`Client "${data.name}" created`);
+    setCreatedClient({ id: data.id, name: data.name });
     onCreated();
   };
+
+  if (createdClient) {
+    const onboardingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding/${createdClient.id}`;
+    return (
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Client created</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 rounded-md border border-success/30 bg-success/10 p-3">
+            <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <div className="font-medium">{createdClient.name} is ready.</div>
+              <div className="text-muted-foreground text-xs">
+                Share the onboarding link below with the primary contact.
+              </div>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Onboarding link</Label>
+            <div className="flex gap-2">
+              <Input readOnly value={onboardingUrl} className="font-mono text-xs" />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(onboardingUrl);
+                  toast.success("Link copied");
+                }}
+              >
+                <Copy className="h-4 w-4" /> Copy
+              </Button>
+              <Button variant="ghost" onClick={() => window.open(onboardingUrl, "_blank")}>
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={reset}>Create another</Button>
+        </DialogFooter>
+      </DialogContent>
+    );
+  }
 
   return (
     <DialogContent>
@@ -387,7 +442,7 @@ function NewClientDialog({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Primary contact email</Label>
+          <Label>Primary contact email *</Label>
           <Input
             type="email"
             value={contactEmail}
@@ -395,11 +450,11 @@ function NewClientDialog({
             placeholder="contact@client.com"
           />
           <p className="text-[11px] text-muted-foreground">
-            Used to grant the client user access when they sign in via magic link.
+            This person receives the magic link and acts as the client owner.
           </p>
         </div>
         <div className="space-y-1.5">
-          <Label>Assign AM</Label>
+          <Label>Assign account manager</Label>
           <Select value={amId} onValueChange={setAmId}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -411,7 +466,16 @@ function NewClientDialog({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Drive link</Label>
+          <Label>Platform URL</Label>
+          <Input
+            value={platformUrl}
+            onChange={(e) => setPlatformUrl(e.target.value)}
+            placeholder="https://platform.client.com"
+            className="font-mono text-xs"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Google Drive link</Label>
           <Input
             value={driveLink}
             onChange={(e) => setDriveLink(e.target.value)}
@@ -421,7 +485,7 @@ function NewClientDialog({
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={create} disabled={submitting || !name}>
+        <Button onClick={create} disabled={submitting || !name || !contactEmail.trim()}>
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Create client
         </Button>
