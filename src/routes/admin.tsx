@@ -181,6 +181,7 @@ function AdminPage() {
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">AM</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Status</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Progress</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Created</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Onboarding link</th>
                   </tr>
                 </thead>
