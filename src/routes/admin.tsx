@@ -378,7 +378,7 @@ function NewClientDialog({
       return;
     }
     toast.success(`Client "${data.name}" created`);
-    setCreatedClient({ id: data.id, name: data.name });
+    setCreatedClient({ id: data.id, name: data.name, email: contactEmail.trim().toLowerCase() });
     onCreated();
   };
 
