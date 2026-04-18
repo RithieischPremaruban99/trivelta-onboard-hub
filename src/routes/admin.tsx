@@ -42,6 +42,8 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
+const DEFAULT_DRIVE_LINK = "https://drive.google.com/drive/folders/0ACsQEvOAQlgrUk9PVA";
+
 interface ClientRow {
   id: string;
   name: string;
@@ -380,14 +382,14 @@ function NewClientDialog({
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [platformUrl, setPlatformUrl] = useState("");
-  const [driveLink, setDriveLink] = useState("");
+  const [driveLink, setDriveLink] = useState(DEFAULT_DRIVE_LINK);
   const [contactEmail, setContactEmail] = useState("");
   const [amIds, setAmIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const reset = () => {
-    setName(""); setCountry(""); setPlatformUrl(""); setDriveLink("");
+    setName(""); setCountry(""); setPlatformUrl(""); setDriveLink(DEFAULT_DRIVE_LINK);
     setContactEmail(""); setAmIds([]); setCreatedClient(null);
   };
 
