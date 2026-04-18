@@ -219,6 +219,9 @@ function AdminPage() {
                             <span className="font-mono text-xs text-muted-foreground">{pct}%</span>
                           </div>
                         </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground font-mono whitespace-nowrap">
+                          {new Date(c.created_at).toLocaleDateString()}
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <Button
