@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, LayoutDashboard, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { TriveltaNav } from "@/components/TriveltaNav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, role, signOut } = useAuth();
@@ -14,22 +15,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between px-6">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-md bg-primary/15 ring-1 ring-primary/30 grid place-items-center">
-                <span className="font-mono text-xs text-primary">T</span>
-              </div>
-              <div className="leading-tight">
-                <div className="text-sm font-semibold">Trivelta</div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Onboarding Hub
-                </div>
-              </div>
-            </Link>
+      <TriveltaNav
+        right={
+          <div className="flex items-center gap-3">
             {role && (
-              <nav className="flex items-center gap-1">
+              <nav className="hidden items-center gap-1 sm:flex">
                 {(role === "admin" || role === "account_manager") && (
                   <Link
                     to="/dashboard"
@@ -50,14 +40,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
               </nav>
             )}
-          </div>
-          <div className="flex items-center gap-3">
             {user && (
               <>
                 <div className="text-right leading-tight">
-                  <div className="text-xs">{user.email}</div>
+                  <div className="text-xs text-foreground">{user.email}</div>
                   {role && (
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                    <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                       {role.replace("_", " ")}
                     </div>
                   )}
@@ -68,8 +56,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             )}
           </div>
-        </div>
-      </header>
+        }
+      />
       <main className="flex-1">{children}</main>
     </div>
   );

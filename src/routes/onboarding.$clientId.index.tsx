@@ -2,8 +2,10 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
-import { ArrowRight, Lock, Loader2 } from "lucide-react";
+import { ArrowRight, Lock, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TriveltaNav } from "@/components/TriveltaNav";
+import { PartnerLogos } from "@/components/PartnerLogos";
 
 export const Route = createFileRoute("/onboarding/$clientId/")({
   component: WelcomeGate,
@@ -11,7 +13,12 @@ export const Route = createFileRoute("/onboarding/$clientId/")({
 
 function initials(name: string | null | undefined) {
   if (!name) return "AM";
-  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function WelcomeGate() {
@@ -29,105 +36,148 @@ function WelcomeGate() {
 
   if (loadingPublic) {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#0a0d14]">
-        <Loader2 className="h-6 w-6 animate-spin text-[#3b82f6]" />
+      <div className="min-h-screen grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!welcomeInfo) {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#0a0d14] px-6">
+      <div className="min-h-screen grid place-items-center px-6">
         <div className="text-center">
-          <h1 className="text-xl font-semibold text-[#f9fafb]">Onboarding not found</h1>
-          <p className="mt-2 text-sm text-[#9ca3af]">This onboarding link is invalid or has expired.</p>
+          <h1 className="text-xl font-semibold text-foreground">Onboarding not found</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This onboarding link is invalid or has expired.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0a0d14]">
-      {/* Animated orbs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="orb-1 absolute left-[10%] top-[15%] h-[600px] w-[600px] rounded-full bg-[#3b82f6] opacity-[0.07] blur-[100px]" />
-        <div className="orb-2 absolute right-[5%] top-[8%] h-[450px] w-[450px] rounded-full bg-[#06b6d4] opacity-[0.06] blur-[120px]" />
-        <div className="orb-3 absolute bottom-[10%] left-[25%] h-[400px] w-[400px] rounded-full bg-[#6366f1] opacity-[0.05] blur-[110px]" />
-      </div>
+    <div className="relative flex min-h-screen flex-col">
+      <TriveltaNav
+        right={
+          <span className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex">
+            <span className="text-primary">●</span> Platform Onboarding
+          </span>
+        }
+      />
 
-      {/* Logo */}
-      <header className="relative z-10 px-8 pt-8">
-        <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#3b82f6]/15 ring-1 ring-[#3b82f6]/30">
-            <span className="font-mono text-sm font-bold text-[#3b82f6]">T</span>
-          </div>
-          <div>
-            <div className="text-sm font-bold tracking-widest text-[#f9fafb]">TRIVELTA</div>
-            <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-[#9ca3af]">Onboarding Hub</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-        {/* Badge */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#1f2937] bg-[#111827]/60 px-4 py-1.5 backdrop-blur-sm">
-          <span className="text-[#3b82f6]">✦</span>
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#9ca3af]">Platform Onboarding</span>
+      {/* Hero — two-column layout like trivelta.com */}
+      <main className="relative flex-1 overflow-hidden">
+        {/* Soft orbs for atmosphere */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="orb-1 absolute left-[5%] top-[10%] h-[520px] w-[520px] rounded-full bg-primary opacity-[0.08] blur-[120px]" />
+          <div className="orb-2 absolute right-[5%] top-[20%] h-[420px] w-[420px] rounded-full bg-primary opacity-[0.06] blur-[120px]" />
         </div>
 
-        {/* Heading */}
-        <h1 className="max-w-[680px] text-[44px] font-semibold leading-[1.12] tracking-tight text-[#f9fafb] sm:text-[56px]">
-          Welcome to Trivelta,
-          <br />
-          <span className="text-[#3b82f6]">{welcomeInfo.clientName}.</span>
-        </h1>
+        <div className="relative mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
+          {/* LEFT — headline + CTA */}
+          <div className="flex flex-col justify-center">
+            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 backdrop-blur-sm">
+              <span className="text-primary">✦</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                Premium iGaming · B2B Turnkey
+              </span>
+            </div>
 
-        {/* Sub */}
-        <p className="mt-6 max-w-[500px] text-[18px] leading-relaxed text-[#9ca3af]">
-          Your premium iGaming B2B turnkey solution.
-          <br className="hidden sm:block" />
-          Built for your market, live in weeks.
-        </p>
+            <h1 className="text-[44px] font-semibold leading-[1.05] tracking-tight text-foreground sm:text-[60px] lg:text-[68px]">
+              Welcome to Trivelta,
+              <br />
+              <span className="text-primary">{welcomeInfo.clientName}.</span>
+            </h1>
 
-        {/* Body */}
-        <p className="mt-4 max-w-[460px] text-[14px] leading-relaxed text-[#6b7280]">
-          We're excited to partner with you. This onboarding form captures everything we need to build and launch your platform. It takes approximately 15 minutes to complete.
-        </p>
+            <p className="mt-6 max-w-[520px] text-[18px] leading-relaxed text-muted-foreground">
+              Your premium iGaming B2B turnkey solution is ready to be built.
+            </p>
+            <p className="mt-3 max-w-[520px] text-[15px] leading-relaxed text-muted-foreground/85">
+              We're excited to partner with you. Let's get your platform configured and live.
+            </p>
 
-        {/* CTA */}
-        <div className="mt-10 flex flex-col items-center gap-3">
-          <Button
-            size="lg"
-            onClick={() => navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })}
-            className="h-12 w-full max-w-[320px] rounded-xl bg-[#3b82f6] px-8 text-base font-medium text-white shadow-lg shadow-[#3b82f6]/20 transition-all duration-200 hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30"
-          >
-            Begin Onboarding <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
-            <Lock className="h-3 w-3" />
-            Secure access · Invited users only
+            <div className="mt-10 flex flex-col items-start gap-3">
+              <Button
+                size="lg"
+                onClick={() =>
+                  navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })
+                }
+                className="btn-trivelta h-12 px-8 text-[15px]"
+              >
+                Begin Onboarding <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+              <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                <Lock className="h-3 w-3" />
+                Secure access · Invited users only
+              </div>
+            </div>
+
+            <div className="mt-14">
+              <PartnerLogos />
+            </div>
+          </div>
+
+          {/* RIGHT — AM card */}
+          <div className="flex flex-col justify-center">
+            <div className="surface-card relative overflow-hidden p-7 shadow-2xl">
+              {/* subtle inner glow */}
+              <div
+                className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/15 blur-3xl"
+                aria-hidden="true"
+              />
+              <div className="relative">
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  Your Account Manager
+                </div>
+
+                <div className="mt-5 flex items-start gap-4">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-base text-primary ring-1 ring-primary/30">
+                    {initials(welcomeInfo.amName)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[18px] font-semibold text-foreground">
+                      {welcomeInfo.amName ?? "Account Manager"}
+                    </div>
+                    <div className="text-[13px] text-muted-foreground">Account Manager</div>
+                  </div>
+                </div>
+
+                {welcomeInfo.amEmail && (
+                  <a
+                    href={`mailto:${welcomeInfo.amEmail}`}
+                    className="mt-5 flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3.5 py-2.5 font-mono text-[13px] text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                  >
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                    {welcomeInfo.amEmail}
+                  </a>
+                )}
+
+                <div className="mt-6 border-t border-border pt-5">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    What we'll build together
+                  </div>
+                  <ul className="mt-3 space-y-2 text-[13px] text-foreground/85">
+                    {[
+                      "Branded sportsbook platform",
+                      "Integrated PSPs, KYC & SMS",
+                      "Live launch in weeks, not months",
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
 
-      {/* AM footer */}
-      {(welcomeInfo.amName || welcomeInfo.amEmail) && (
-        <footer className="relative z-10 border-t border-[#1f2937] px-8 py-5">
-          <div className="mx-auto flex max-w-[520px] items-center gap-4">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#3b82f6]/15 font-semibold text-sm text-[#3b82f6] ring-1 ring-[#3b82f6]/30">
-              {initials(welcomeInfo.amName)}
-            </div>
-            <div>
-              <div className="mb-0.5 font-mono text-[10px] uppercase tracking-wider text-[#6b7280]">Your Account Manager</div>
-              <div className="text-sm font-medium text-[#f9fafb]">{welcomeInfo.amName ?? "Account Manager"}</div>
-              {welcomeInfo.amEmail && (
-                <div className="font-mono text-[12px] text-[#9ca3af]">{welcomeInfo.amEmail}</div>
-              )}
-            </div>
-          </div>
-        </footer>
-      )}
+      <footer className="border-t border-border px-6 py-4 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        © {new Date().getFullYear()} Trivelta · iGaming B2B Turnkey
+      </footer>
     </div>
   );
 }
