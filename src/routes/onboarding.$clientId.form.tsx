@@ -141,16 +141,39 @@ function FormScreen() {
   const handleSubmit = async () => {
     if (!isFormComplete(form) || !isOwner) return;
     setSubmitting(true);
+
+    // 1. Persist to Supabase (marks submitted_at, writes onboarding_submissions row)
     const { error } = await supabase.rpc("submit_onboarding_form", {
       _client_id: clientId,
       _data: form as unknown as never,
     });
     if (error) { toast.error(error.message); setSubmitting(false); return; }
+
+    // 2. Create Notion page + SOP checklist (fire-and-forget — don't block navigation)
     if (welcomeInfo) {
-      supabase.functions.invoke("notify-submission", {
-        body: { client_id: clientId, client_name: welcomeInfo.clientName, submitted_at: new Date().toISOString(), data: form },
+      const psps: string[] = [
+        ...(form.psp_opay     ? ["Opay"]     : []),
+        ...(form.psp_palmpay  ? ["Palmpay"]  : []),
+        ...(form.psp_paystack ? ["Paystack"] : []),
+      ];
+      supabase.functions.invoke("handle-submission", {
+        body: {
+          client_id:       clientId,
+          client_name:     welcomeInfo.clientName,
+          drive_link:      welcomeInfo.driveLink ?? null,
+          am_name:         welcomeInfo.amName ?? null,
+          am_email:        welcomeInfo.amEmail ?? null,
+          am_notion_ids:   [], // populated once AM Notion user IDs are stored in the DB
+          sportsbook_name:  form.contact_sportsbook.name,
+          sportsbook_email: form.contact_sportsbook.email,
+          platform_url:    form.platform_url,
+          country:         form.country,
+          psps,
+          form_data:       form,
+        },
       });
     }
+
     navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
     setSubmitting(false);
   };
