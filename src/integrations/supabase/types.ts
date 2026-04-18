@@ -16,19 +16,22 @@ export type Database = {
     Tables: {
       client_account_managers: {
         Row: {
-          am_user_id: string
+          am_email: string | null
+          am_user_id: string | null
           client_id: string
           created_at: string
           id: string
         }
         Insert: {
-          am_user_id: string
+          am_email?: string | null
+          am_user_id?: string | null
           client_id: string
           created_at?: string
           id?: string
         }
         Update: {
-          am_user_id?: string
+          am_email?: string | null
+          am_user_id?: string | null
           client_id?: string
           created_at?: string
           id?: string
