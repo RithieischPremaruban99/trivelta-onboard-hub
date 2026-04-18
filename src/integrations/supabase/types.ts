@@ -204,6 +204,7 @@ export type Database = {
       team_members: {
         Row: {
           client_id: string
+          client_role: Database["public"]["Enums"]["client_member_role"]
           created_at: string
           email: string
           id: string
@@ -211,6 +212,7 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          client_role?: Database["public"]["Enums"]["client_member_role"]
           created_at?: string
           email: string
           id?: string
@@ -218,6 +220,7 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          client_role?: Database["public"]["Enums"]["client_member_role"]
           created_at?: string
           email?: string
           id?: string
@@ -257,6 +260,16 @@ export type Database = {
     }
     Functions: {
       current_user_email: { Args: never; Returns: string }
+      get_client_welcome_info: {
+        Args: { _client_id: string }
+        Returns: {
+          am_email: string
+          am_name: string
+          am_title: string
+          client_name: string
+          progress_pct: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -264,9 +277,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_client_owner: { Args: { _client_id: string }; Returns: boolean }
+      is_client_team_member: { Args: { _client_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "account_manager" | "client"
+      client_member_role: "client_owner" | "client_member"
       client_status: "onboarding" | "active" | "churned"
     }
     CompositeTypes: {
@@ -396,6 +412,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "account_manager", "client"],
+      client_member_role: ["client_owner", "client_member"],
       client_status: ["onboarding", "active", "churned"],
     },
   },
