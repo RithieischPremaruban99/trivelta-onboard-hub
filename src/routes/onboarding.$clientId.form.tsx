@@ -633,7 +633,7 @@ function SectionPlatform({ form, update }: { form: FormShape; update: <K extends
         </div>
       </SubCard>
       <div className="space-y-3">
-        <div className="text-sm font-medium text-[#f9fafb]">Gradients</div>
+        <div className="text-sm font-medium text-foreground">Gradients</div>
         {[
           { label: "Button gradient", a: "btn_gradient_a", b: "btn_gradient_b" },
           { label: "Box gradient", a: "box_gradient_a", b: "box_gradient_b" },
@@ -642,8 +642,8 @@ function SectionPlatform({ form, update }: { form: FormShape; update: <K extends
         ].map((g) => (
           <SubCard key={g.label}>
             <div className="mb-3 flex items-center justify-between gap-4">
-              <div className="text-sm font-medium text-[#f9fafb]">{g.label}</div>
-              <div className="h-5 w-28 rounded-md ring-1 ring-[#1f2937]" style={{ background: `linear-gradient(90deg, ${form[g.a as keyof FormShape] as string}, ${form[g.b as keyof FormShape] as string})` }} />
+              <div className="text-sm font-medium text-foreground">{g.label}</div>
+              <div className="h-5 w-28 rounded-md ring-1 ring-border" style={{ background: `linear-gradient(90deg, ${form[g.a as keyof FormShape] as string}, ${form[g.b as keyof FormShape] as string})` }} />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <ColorField label="Start" value={form[g.a as keyof FormShape] as string} onChange={(v) => update(g.a as keyof FormShape, v as never)} />
@@ -685,43 +685,43 @@ function SectionThirdParty({ form, update }: { form: FormShape; update: <K exten
       <SubCard title="Payment service providers *">
         <div className="flex flex-wrap gap-5">
           {[{ k: "psp_opay", label: "Opay" }, { k: "psp_palmpay", label: "PalmPay" }, { k: "psp_paystack", label: "Paystack" }].map((p) => (
-            <label key={p.k} className="flex cursor-pointer items-center gap-2 text-sm text-[#d1d5db]">
+            <label key={p.k} className="flex cursor-pointer items-center gap-2 text-sm text-foreground/85">
               <Checkbox checked={form[p.k as keyof FormShape] as boolean} onCheckedChange={(c) => update(p.k as keyof FormShape, !!c as never)} />{p.label}
             </label>
           ))}
         </div>
         <div className="mt-4 space-y-1.5">
-          <Label className="text-xs text-[#9ca3af]">Routing priority</Label>
+          <Label className="text-xs text-muted-foreground">Routing priority</Label>
           <Textarea placeholder="e.g. Paystack first, fallback to Opay…" value={form.psp_priority} onChange={(e) => update("psp_priority", e.target.value)} rows={2} />
         </div>
       </SubCard>
       <SubCard title="KYC SURT integration *">
         <YesNo value={form.kyc_surt} onChange={(v) => update("kyc_surt", v)} idPrefix="kyc" />
-        <div className="mt-4 space-y-1.5"><Label className="text-xs text-[#9ca3af]">Notes</Label><Textarea value={form.kyc_notes} onChange={(e) => update("kyc_notes", e.target.value)} rows={2} /></div>
+        <div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Notes</Label><Textarea value={form.kyc_notes} onChange={(e) => update("kyc_notes", e.target.value)} rows={2} /></div>
       </SubCard>
       <SubCard title="SMS provider *">
         <RadioGroup value={form.sms_provider} onValueChange={(v) => update("sms_provider", v as FormShape["sms_provider"])} className="flex gap-6">
-          <div className="flex items-center gap-2"><RadioGroupItem id="sms-infobip" value="infobip" /><Label htmlFor="sms-infobip" className="cursor-pointer font-normal text-[#d1d5db]">Infobip</Label></div>
-          <div className="flex items-center gap-2"><RadioGroupItem id="sms-other" value="other" /><Label htmlFor="sms-other" className="cursor-pointer font-normal text-[#d1d5db]">Other</Label></div>
+          <div className="flex items-center gap-2"><RadioGroupItem id="sms-infobip" value="infobip" /><Label htmlFor="sms-infobip" className="cursor-pointer font-normal text-foreground/85">Infobip</Label></div>
+          <div className="flex items-center gap-2"><RadioGroupItem id="sms-other" value="other" /><Label htmlFor="sms-other" className="cursor-pointer font-normal text-foreground/85">Other</Label></div>
         </RadioGroup>
-        {form.sms_provider === "other" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-[#9ca3af]">Provider name</Label><Input value={form.sms_provider_other} onChange={(e) => update("sms_provider_other", e.target.value)} /></div>)}
+        {form.sms_provider === "other" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Provider name</Label><Input value={form.sms_provider_other} onChange={(e) => update("sms_provider_other", e.target.value)} /></div>)}
       </SubCard>
       <SubCard title="DUNS number *">
         <RadioGroup value={form.duns_status} onValueChange={(v) => update("duns_status", v as FormShape["duns_status"])} className="flex flex-wrap gap-6">
           {[{ v: "have", label: "We have one" }, { v: "in_progress", label: "In progress" }, { v: "none", label: "Not yet" }].map((o) => (
-            <div key={o.v} className="flex items-center gap-2"><RadioGroupItem id={`duns-${o.v}`} value={o.v} /><Label htmlFor={`duns-${o.v}`} className="cursor-pointer font-normal text-[#d1d5db]">{o.label}</Label></div>
+            <div key={o.v} className="flex items-center gap-2"><RadioGroupItem id={`duns-${o.v}`} value={o.v} /><Label htmlFor={`duns-${o.v}`} className="cursor-pointer font-normal text-foreground/85">{o.label}</Label></div>
           ))}
         </RadioGroup>
-        {form.duns_status === "have" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-[#9ca3af]">DUNS number</Label><Input value={form.duns_number} onChange={(e) => update("duns_number", e.target.value)} className="font-mono" /></div>)}
+        {form.duns_status === "have" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">DUNS number</Label><Input value={form.duns_number} onChange={(e) => update("duns_number", e.target.value)} className="font-mono" /></div>)}
       </SubCard>
       <SubCard title="Zendesk widget *">
         <YesNo value={form.zendesk} onChange={(v) => update("zendesk", v)} idPrefix="zendesk" />
-        {form.zendesk === "yes" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-[#9ca3af]">Embed script</Label><Textarea placeholder="<script>…</script>" value={form.zendesk_script} onChange={(e) => update("zendesk_script", e.target.value)} rows={3} className="font-mono text-xs" /></div>)}
+        {form.zendesk === "yes" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Embed script</Label><Textarea placeholder="<script>…</script>" value={form.zendesk_script} onChange={(e) => update("zendesk_script", e.target.value)} rows={3} className="font-mono text-xs" /></div>)}
       </SubCard>
       <SubCard title="Analytics tags">
         <div className="flex flex-wrap gap-5">
           {[{ k: "analytics_meta", label: "Meta Pixel" }, { k: "analytics_ga", label: "Google Analytics" }, { k: "analytics_gtm", label: "GTM" }, { k: "analytics_snapchat", label: "Snapchat Pixel" }, { k: "analytics_reddit", label: "Reddit Pixel" }].map((p) => (
-            <label key={p.k} className="flex cursor-pointer items-center gap-2 text-sm text-[#d1d5db]">
+            <label key={p.k} className="flex cursor-pointer items-center gap-2 text-sm text-foreground/85">
               <Checkbox checked={form[p.k as keyof FormShape] as boolean} onCheckedChange={(c) => update(p.k as keyof FormShape, !!c as never)} />{p.label}
             </label>
           ))}
