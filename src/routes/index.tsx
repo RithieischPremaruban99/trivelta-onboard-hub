@@ -1,26 +1,38 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth-context";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: IndexGateway,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function IndexGateway() {
+  const { loading, user, role } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" />;
+
+  if (role === "admin") return <Navigate to="/admin" />;
+  if (role === "account_manager") return <Navigate to="/dashboard" />;
+  if (role === "client") return <Navigate to="/my-onboarding" />;
+
+  // Authenticated but no role assigned
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen grid place-items-center px-6">
+      <div className="surface-card max-w-md p-8 text-center">
+        <h1 className="text-lg font-semibold">Awaiting access</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your account is signed in but no role is assigned yet. Ask an admin to add{" "}
+          <span className="font-mono text-foreground">{user.email}</span> to the access list.
+        </p>
+      </div>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
