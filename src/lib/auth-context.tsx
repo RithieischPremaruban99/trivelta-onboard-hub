@@ -2,7 +2,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "account_manager" | "client";
+export type AppRole = "admin" | "account_manager" | "account_executive" | "client";
+
+const ROLE_PRIORITY: AppRole[] = ["admin", "account_executive", "account_manager", "client"];
 
 interface AuthState {
   session: Session | null;
