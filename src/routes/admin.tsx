@@ -418,8 +418,21 @@ function NewClientDialog({
             </div>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:justify-between">
           <Button variant="outline" onClick={reset}>Create another</Button>
+          <Button
+            onClick={() => {
+              const subject = encodeURIComponent(
+                `Welcome to Trivelta — your onboarding portal for ${createdClient.name}`,
+              );
+              const body = encodeURIComponent(
+                `Hi,\n\nWelcome aboard! Your Trivelta onboarding portal for ${createdClient.name} is ready.\n\nOpen it here: ${onboardingUrl}\n\nSign in with this email address (${createdClient.email}) and we'll send a magic link — no password required.\n\nTalk soon,\nThe Trivelta Team`,
+              );
+              window.location.href = `mailto:${createdClient.email}?subject=${subject}&body=${body}`;
+            }}
+          >
+            <Mail className="h-4 w-4" /> Send via Email
+          </Button>
         </DialogFooter>
       </DialogContent>
     );
