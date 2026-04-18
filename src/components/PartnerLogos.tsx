@@ -3,7 +3,7 @@
  * Placeholder text chips for now; swap each <span> for an <img> once the
  * real partner SVGs are uploaded to /src/assets/partners/*.
  */
-const PARTNERS = ["Evolution", "Sportradar", "Zendesk", "SEON"];
+const PARTNERS = ["Evolution", "Sportradar", "Zendesk", "SEON", "Spribe"];
 
 export function PartnerLogos({ label = "Trusted infrastructure" }: { label?: string }) {
   return (

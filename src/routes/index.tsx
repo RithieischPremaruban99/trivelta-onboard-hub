@@ -11,7 +11,7 @@ function IndexGateway() {
 
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center">
+      <div className="min-h-screen grid place-items-center" suppressHydrationWarning>
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
