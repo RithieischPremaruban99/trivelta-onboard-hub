@@ -348,7 +348,7 @@ function NewClientDialog({
   const [contactEmail, setContactEmail] = useState("");
   const [amId, setAmId] = useState<string>("unassigned");
   const [submitting, setSubmitting] = useState(false);
-  const [createdClient, setCreatedClient] = useState<{ id: string; name: string } | null>(null);
+  const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const reset = () => {
     setName(""); setCountry(""); setPlatformUrl(""); setDriveLink("");
