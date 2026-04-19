@@ -134,7 +134,7 @@ function FormScreen() {
     if (!isFormComplete(form) || !isOwner) return;
     setSubmitting(true);
 
-    // 1. Submit via RPC — enforces ownership, marks submitted_at, and writes
+    // 1. Submit via RPC - enforces ownership, marks submitted_at, and writes
     //    an immutable audit record to onboarding_submissions.
     //    The log_form_submission trigger also writes form_submissions.
     const { error } = await supabase
@@ -149,7 +149,7 @@ function FormScreen() {
       );
     if (error) { toast.error(error.message); setSubmitting(false); return; }
 
-    // 2. Create Notion page + SOP checklist (fire-and-forget — don't block navigation)
+    // 2. Create Notion page + SOP checklist (fire-and-forget - don't block navigation)
     if (welcomeInfo) {
       const psps: string[] = [
         ...(form.psp_opay     ? ["Opay"]     : []),
@@ -316,7 +316,7 @@ function FormScreen() {
           <div>
             <div className="text-sm font-medium text-foreground">
               {isFormComplete(form)
-                ? "All sections complete — ready to submit"
+                ? "All sections complete - ready to submit"
                 : `Complete all required fields to submit (${total - filled} remaining)`}
             </div>
             <div className="mt-0.5 text-[12px] text-muted-foreground">

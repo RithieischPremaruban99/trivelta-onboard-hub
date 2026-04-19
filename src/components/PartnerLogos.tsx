@@ -1,5 +1,5 @@
 /**
- * Partner logo strip — official brand SVGs sourced from each company's
+ * Partner logo strip - official brand SVGs sourced from each company's
  * public website / press materials. Rendered monochrome via CSS filter
  * (brightness-0 invert) so they sit cleanly on the dark navy background.
  */

@@ -285,6 +285,50 @@ function ImageMessage({
 
 /* ── Lock confirmation modal ─────────────────────────────────────────────── */
 
+function SaveConfirmModal({
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="w-[420px] rounded-2xl border border-border bg-card p-7 shadow-2xl">
+        <div className="mb-1 flex items-center gap-2.5">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-success/15">
+            <Lock className="h-4 w-4 text-success" />
+          </div>
+          <span className="text-[16px] font-semibold text-foreground">Lock your design?</span>
+        </div>
+        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+          Once saved, your design will be sent to your Account Manager for implementation.
+          You won't be able to make changes after this point - contact your AM if adjustments are needed.
+        </p>
+        <div className="mt-6 flex justify-end gap-2.5">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="rounded-xl border border-border px-5 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:bg-secondary disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex items-center gap-2 rounded-xl bg-success px-5 py-2.5 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+            Lock &amp; Submit Design
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LockModal({
   onConfirm,
   onCancel,
@@ -345,6 +389,7 @@ function StudioInner({
   const [locked, setLocked] = useState(initialLocked);
   const [lockedAt, setLockedAt] = useState<string | null>(initialLockedAt);
   const [lockModalOpen, setLockModalOpen] = useState(false);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [locking, setLocking] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(() => {
@@ -405,13 +450,11 @@ function StudioInner({
   }, [themeColors, appIcons, scheduleAutoSave]);
 
   /* ── Save & Continue ── */
-  const handleSaveAndContinue = async () => {
-    setSaving(true);
-    try {
-      if (!locked) await saveNow();
+  const handleSaveAndContinue = () => {
+    if (locked) {
       navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
-    } finally {
-      setSaving(false);
+    } else {
+      setSaveConfirmOpen(true);
     }
   };
 
@@ -435,6 +478,32 @@ function StudioInner({
       toast.success("Design locked! Your Trivelta team has been notified.");
     } catch {
       toast.error("Failed to lock design - try again.");
+    } finally {
+      setLocking(false);
+    }
+  };
+
+  /* -- Lock & submit (from Save & Continue modal) -- */
+  const handleLockAndSubmit = async () => {
+    setLocking(true);
+    try {
+      const now = new Date().toISOString();
+      await supabase.from("onboarding_forms").upsert(
+        {
+          client_id: clientId,
+          studio_config: { colors: themeColors, icons: appIcons } as never,
+          studio_locked: true,
+          studio_locked_at: now,
+        },
+        { onConflict: "client_id" },
+      );
+      setLocked(true);
+      setLockedAt(now);
+      setSaveConfirmOpen(false);
+      toast.success("Design locked and submitted!");
+      navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+    } catch {
+      toast.error("Failed to submit design - try again.");
     } finally {
       setLocking(false);
     }
@@ -552,17 +621,34 @@ function StudioInner({
           </span>
         </div>
         <div className="flex w-[35%] shrink-0 items-center justify-end">
-          <button
-            onClick={handleSaveAndContinue}
-            disabled={saving}
-            className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-[12px] font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
-          >
-            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            Save & Continue
-            {!saving && <ArrowRight className="h-3.5 w-3.5 text-primary" />}
-          </button>
+          {locked ? (
+            <button
+              onClick={() => navigate({ to: "/onboarding/$clientId/success", params: { clientId } })}
+              className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-2 text-[12px] font-semibold text-success transition-colors hover:bg-success/15"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Design Submitted
+            </button>
+          ) : (
+            <button
+              onClick={handleSaveAndContinue}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-[12px] font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
+            >
+              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              Save &amp; Continue
+              {!saving && <ArrowRight className="h-3.5 w-3.5 text-primary" />}
+            </button>
+          )}
         </div>
       </header>
+
+      {locked && (
+        <div className="shrink-0 flex items-center justify-center gap-2 border-b border-success/20 bg-success/8 px-5 py-2 text-[12px] font-semibold text-success">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+          Design locked on {lockedDate} - Your Account Manager will be in touch
+        </div>
+      )}
 
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
@@ -835,6 +921,14 @@ function StudioInner({
         <LockModal
           onConfirm={handleLock}
           onCancel={() => setLockModalOpen(false)}
+          loading={locking}
+        />
+      )}
+
+      {saveConfirmOpen && (
+        <SaveConfirmModal
+          onConfirm={handleLockAndSubmit}
+          onCancel={() => setSaveConfirmOpen(false)}
           loading={locking}
         />
       )}

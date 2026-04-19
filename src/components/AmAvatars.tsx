@@ -15,7 +15,7 @@ function initials(am: AmLite): string {
 
 export function AmAvatars({ ams, max = 4 }: { ams: AmLite[]; max?: number }) {
   if (ams.length === 0) {
-    return <span className="text-xs text-muted-foreground">—</span>;
+    return <span className="text-xs text-muted-foreground">-</span>;
   }
   const visible = ams.slice(0, max);
   const overflow = ams.length - visible.length;

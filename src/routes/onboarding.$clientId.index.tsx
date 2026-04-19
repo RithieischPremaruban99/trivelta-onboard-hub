@@ -65,7 +65,7 @@ function WelcomeGate() {
         }
       />
 
-      {/* Hero — two-column layout like trivelta.com */}
+      {/* Hero - two-column layout like trivelta.com */}
       <main className="relative flex-1 overflow-hidden">
         {/* Soft orbs for atmosphere */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -74,7 +74,7 @@ function WelcomeGate() {
         </div>
 
         <div className="relative mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
-          {/* LEFT — headline + CTA */}
+          {/* LEFT - headline + CTA */}
           <div className="flex flex-col justify-center">
             <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 backdrop-blur-sm">
               <span className="text-primary">✦</span>
@@ -117,7 +117,7 @@ function WelcomeGate() {
             </div>
           </div>
 
-          {/* RIGHT — AM card */}
+          {/* RIGHT - AM card */}
           <div className="flex flex-col justify-center">
             <div className="surface-card relative overflow-hidden p-7 shadow-2xl">
               {/* subtle inner glow */}

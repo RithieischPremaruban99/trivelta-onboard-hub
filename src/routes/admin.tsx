@@ -229,7 +229,7 @@ function AdminPage() {
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{c.country ?? "—"}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{c.country ?? "-"}</td>
                         <td className="px-4 py-3">
                           <ClientAmCell
                             clientId={c.id}
@@ -427,7 +427,7 @@ function buildTcmText(
 ): string {
   const colors: StudioThemeColors = { ...defaultStudioColors, ...(data.config?.colors ?? {}) };
   const lines: string[] = [
-    `=== STUDIO CONFIG — ${clientName} ===`,
+    `=== STUDIO CONFIG - ${clientName} ===`,
     data.locked && data.lockedAt
       ? `Locked: ${new Date(data.lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
       : "Status: Not locked",
@@ -452,7 +452,7 @@ function StudioConfigCell({
   const [open, setOpen] = useState(false);
 
   if (!data || !data.config) {
-    return <span className="text-xs text-muted-foreground/50">—</span>;
+    return <span className="text-xs text-muted-foreground/50">-</span>;
   }
 
   return (
@@ -476,7 +476,7 @@ function StudioConfigCell({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Studio Config
-            <span className="text-muted-foreground font-normal">— {clientName}</span>
+            <span className="text-muted-foreground font-normal">- {clientName}</span>
             {data.locked && <Lock className="h-3.5 w-3.5 text-success" />}
           </DialogTitle>
         </DialogHeader>
@@ -646,10 +646,10 @@ function NewClientDialog({
           <Button
             onClick={() => {
               const subject = encodeURIComponent(
-                `Welcome to Trivelta — your onboarding portal for ${createdClient.name}`,
+                `Welcome to Trivelta - your onboarding portal for ${createdClient.name}`,
               );
               const body = encodeURIComponent(
-                `Hi,\n\nWelcome aboard! Your Trivelta onboarding portal for ${createdClient.name} is ready.\n\nOpen it here: ${onboardingUrl}\n\nSign in with this email address (${createdClient.email}) and we'll send a magic link — no password required.\n\nTalk soon,\nThe Trivelta Team`,
+                `Hi,\n\nWelcome aboard! Your Trivelta onboarding portal for ${createdClient.name} is ready.\n\nOpen it here: ${onboardingUrl}\n\nSign in with this email address (${createdClient.email}) and we'll send a magic link - no password required.\n\nTalk soon,\nThe Trivelta Team`,
               );
               window.location.href = `mailto:${createdClient.email}?subject=${subject}&body=${body}`;
             }}

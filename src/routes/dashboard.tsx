@@ -108,7 +108,7 @@ function DashboardPage() {
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-medium">{c.name}</div>
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          {c.country ?? "—"}
+                          {c.country ?? "-"}
                         </div>
                       </div>
                       <StatusBadge status={c.status} />
@@ -214,7 +214,7 @@ function ClientDetail({ client }: { client: ClientLite }) {
               <h2 className="text-2xl font-semibold">{client.name}</h2>
               <StatusBadge status={client.status} />
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">{client.country ?? "—"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{client.country ?? "-"}</p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link to="/onboarding/$clientId" params={{ clientId: client.id }}>
@@ -361,13 +361,13 @@ function ClientDetail({ client }: { client: ClientLite }) {
 
 function FormDataSummary({ data }: { data: FormShape }) {
   const items: Array<[string, string]> = [
-    ["Platform URL", data.platform_url || "—"],
-    ["Country", data.country || "—"],
-    ["DNS Provider", data.dns_provider || "—"],
-    ["DNS Access", data.dns_access || "—"],
-    ["Sportsbook contact", data.contact_sportsbook?.name || "—"],
-    ["Operational contact", data.contact_operational?.name || "—"],
-    ["Compliance contact", data.contact_compliance?.name || "—"],
+    ["Platform URL", data.platform_url || "-"],
+    ["Country", data.country || "-"],
+    ["DNS Provider", data.dns_provider || "-"],
+    ["DNS Access", data.dns_access || "-"],
+    ["Sportsbook contact", data.contact_sportsbook?.name || "-"],
+    ["Operational contact", data.contact_operational?.name || "-"],
+    ["Compliance contact", data.contact_compliance?.name || "-"],
     [
       "PSPs",
       [
@@ -376,14 +376,14 @@ function FormDataSummary({ data }: { data: FormShape }) {
         data.psp_paystack && "Paystack",
       ]
         .filter(Boolean)
-        .join(", ") || "—",
+        .join(", ") || "-",
     ],
-    ["KYC SURT", data.kyc_surt || "—"],
+    ["KYC SURT", data.kyc_surt || "-"],
     [
       "SMS",
-      data.sms_provider === "other" ? data.sms_provider_other || "Other" : data.sms_provider || "—",
+      data.sms_provider === "other" ? data.sms_provider_other || "Other" : data.sms_provider || "-",
     ],
-    ["Zendesk", data.zendesk || "—"],
+    ["Zendesk", data.zendesk || "-"],
     [
       "Analytics",
       [
@@ -394,7 +394,7 @@ function FormDataSummary({ data }: { data: FormShape }) {
         data.analytics_reddit && "Reddit",
       ]
         .filter(Boolean)
-        .join(", ") || "—",
+        .join(", ") || "-",
     ],
   ];
   return (

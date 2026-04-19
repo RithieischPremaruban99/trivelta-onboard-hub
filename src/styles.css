@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Trivelta design system — premium dark navy theme matching trivelta.com.
+ * Trivelta design system - premium dark navy theme matching trivelta.com.
  * Background: #080d1a · Cards: #0d1525 · Borders: rgba(255,255,255,0.07)
  * Primary: #2563eb · Text: #ffffff · Muted: #8896ab · Font: Inter
  */
@@ -54,7 +54,7 @@
   --radius: 0.75rem;
 
   /* Trivelta palette (oklch equivalents of the spec'd hex) */
-  --background: oklch(0.158 0.022 261);             /* #080d1a — deep navy */
+  --background: oklch(0.158 0.022 261);             /* #080d1a - deep navy */
   --foreground: oklch(1 0 0);                       /* #ffffff */
   --card: oklch(0.193 0.024 261);                   /* #0d1525 */
   --card-foreground: oklch(1 0 0);
@@ -75,7 +75,7 @@
   --warning: oklch(0.78 0.16 75);
   --warning-foreground: oklch(0.158 0.022 261);
 
-  /* Borders use rgba(255,255,255,0.07) per spec — kept as srgb for fidelity */
+  /* Borders use rgba(255,255,255,0.07) per spec - kept as srgb for fidelity */
   --border: oklch(1 0 0 / 0.07);
   --input: oklch(1 0 0 / 0.06);
   --ring: oklch(0.578 0.214 263);

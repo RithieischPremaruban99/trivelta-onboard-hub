@@ -83,9 +83,9 @@ function SuccessScreen() {
           <div className="orb-2 absolute right-[10%] bottom-[20%] h-[400px] w-[400px] rounded-full bg-primary opacity-[0.05] blur-[120px]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-[820px]">
+        <div className="relative z-10 mx-auto max-w-[900px]">
           {/* Success hero */}
-          <div className="mb-12 text-center">
+          <div className="mb-10 text-center">
             <div className="check-anim mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full bg-success/15 ring-2 ring-success/30">
               <CheckCircle2 className="h-10 w-10 text-success" />
             </div>
@@ -98,10 +98,10 @@ function SuccessScreen() {
             </p>
           </div>
 
-          {/* Info cards */}
-          <div className="mb-4 grid gap-4 sm:grid-cols-3">
+          {/* Info cards - equal width, equal height */}
+          <div className="mb-4 grid items-stretch gap-4 sm:grid-cols-3">
             {/* Slack */}
-            <div className="surface-card group flex flex-col p-6 transition-colors hover:border-primary/30">
+            <div className="flex flex-col rounded-xl border border-border/60 bg-card p-6 transition-colors hover:border-primary/30">
               <div className="mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
                 <MessagesSquare className="h-5 w-5" />
               </div>
@@ -125,7 +125,7 @@ function SuccessScreen() {
             </div>
 
             {/* Drive */}
-            <div className="surface-card group flex flex-col p-6 transition-colors hover:border-primary/30">
+            <div className="flex flex-col rounded-xl border border-border/60 bg-card p-6 transition-colors hover:border-primary/30">
               <div className="mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
                 <FolderOpen className="h-5 w-5" />
               </div>
@@ -152,23 +152,19 @@ function SuccessScreen() {
             </div>
 
             {/* AM */}
-            <div className="surface-card group flex flex-col p-6 transition-colors hover:border-primary/30">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
-                  {initials(welcomeInfo.amName)}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                    Account Manager
-                  </div>
-                  <div className="truncate text-sm font-medium text-foreground">
-                    {welcomeInfo.amName ?? "Account Manager"}
-                  </div>
-                </div>
+            <div className="flex flex-col rounded-xl border border-border/60 bg-card p-6 transition-colors hover:border-primary/30">
+              <div className="mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
+                {initials(welcomeInfo.amName)}
+              </div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                Account Manager
+              </div>
+              <div className="mt-1 truncate text-sm font-medium text-foreground">
+                {welcomeInfo.amName ?? "Account Manager"}
               </div>
               {welcomeInfo.amEmail ? (
                 <>
-                  <div className="flex-1 break-all font-mono text-[12px] text-muted-foreground">
+                  <div className="mt-2 flex-1 break-all font-mono text-[12px] text-muted-foreground">
                     {welcomeInfo.amEmail}
                   </div>
                   <Button
@@ -181,7 +177,7 @@ function SuccessScreen() {
                   </Button>
                 </>
               ) : (
-                <div className="flex-1 text-[12px] text-muted-foreground/60">
+                <div className="mt-2 flex-1 text-[12px] text-muted-foreground/60">
                   Contact details will be shared shortly.
                 </div>
               )}
@@ -193,21 +189,24 @@ function SuccessScreen() {
             {clientRole === "client_owner" ? (
               <button
                 onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
-                className="surface-card group flex w-full items-center justify-between gap-3 px-6 py-4 text-left transition-colors hover:border-primary/40"
+                className="group flex w-full items-start gap-5 rounded-xl border border-border/60 bg-card px-6 py-5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.02]"
               >
-                <div className="flex items-center gap-3">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25 transition-colors group-hover:bg-primary/20">
-                    <Palette className="h-4.5 w-4.5" />
+                <div className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25 transition-colors group-hover:bg-primary/20">
+                  <Palette className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-semibold text-foreground">Customize Your Platform</div>
+                  <div className="mt-1 text-[13px] text-muted-foreground">
+                    Set your colors, upload your logo, and preview your platform live before it goes live.
                   </div>
-                  <div>
-                    <div className="text-[14px] font-semibold text-foreground">Customize Your Platform</div>
-                    <div className="text-[12px] text-muted-foreground">Set colors, upload brand assets, and preview your platform</div>
+                  <div className="mt-2 text-[11px] text-muted-foreground/60">
+                    You can customize until you lock your design. Changes after locking require your Account Manager.
                   </div>
                 </div>
-                <span className="text-muted-foreground/50 transition-colors group-hover:text-primary">→</span>
+                <span className="mt-1 shrink-0 text-[18px] leading-none text-muted-foreground/40 transition-colors group-hover:text-primary">&rarr;</span>
               </button>
             ) : (
-              <div className="surface-card flex items-center gap-3 px-5 py-4 text-[13px] text-muted-foreground">
+              <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-5 py-4 text-[13px] text-muted-foreground">
                 <Palette className="h-4 w-4 shrink-0" />
                 Platform customization is available to the account owner.
               </div>
@@ -218,35 +217,52 @@ function SuccessScreen() {
           <div className="my-8 border-t border-border/60" />
 
           {/* Timeline */}
-          <div className="surface-card p-7">
-            <div className="mb-5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          <div className="rounded-xl border border-border/60 bg-card p-8">
+            <div className="mb-7 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
               What happens next?
             </div>
-            <div className="flex flex-col gap-0 sm:flex-row">
+
+            {/* Desktop: horizontal with connecting line */}
+            <div className="hidden sm:block">
+              <div className="relative">
+                <div
+                  className="absolute top-[18px] left-[calc(16.67%+18px)] right-[calc(16.67%+18px)] h-px bg-border"
+                  aria-hidden="true"
+                />
+                <div className="grid grid-cols-3 gap-6">
+                  {[
+                    { step: "1", label: "AM reviews submission", sub: "Within 24 hours" },
+                    { step: "2", label: "Platform configuration begins", sub: "Technical setup starts" },
+                    { step: "3", label: "MVP ready for your review", sub: "Preview & feedback round" },
+                  ].map((item) => (
+                    <div key={item.step} className="flex flex-col items-center text-center">
+                      <div className="relative z-10 mb-4 grid h-9 w-9 place-items-center rounded-full bg-card font-mono text-xs font-semibold text-primary ring-2 ring-primary/30">
+                        {item.step}
+                      </div>
+                      <div className="text-[13px] font-semibold text-foreground">{item.label}</div>
+                      <div className="mt-1 text-[12px] text-muted-foreground">{item.sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile: vertical */}
+            <div className="flex flex-col gap-0 sm:hidden">
               {[
                 { step: "1", label: "AM reviews submission", sub: "Within 24 hours" },
                 { step: "2", label: "Platform configuration begins", sub: "Technical setup starts" },
                 { step: "3", label: "MVP ready for your review", sub: "Preview & feedback round" },
               ].map((item, i, arr) => (
-                <div
-                  key={item.step}
-                  className="flex flex-1 items-start gap-4 sm:flex-col sm:items-center sm:gap-0"
-                >
-                  <div className="flex items-center gap-4 sm:w-full sm:flex-col sm:gap-0">
-                    <div className="mb-0 flex shrink-0 sm:mb-3 sm:w-full sm:justify-center">
-                      <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/15 font-mono text-xs font-semibold text-primary ring-1 ring-primary/30">
-                        {item.step}
-                      </div>
+                <div key={item.step} className="flex items-start gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 font-mono text-xs font-semibold text-primary ring-1 ring-primary/30">
+                      {item.step}
                     </div>
-                    {i < arr.length - 1 && (
-                      <div className="h-8 w-px bg-border sm:hidden" />
-                    )}
-                    {i < arr.length - 1 && (
-                      <div className="my-4 mx-2 hidden h-px w-full flex-1 bg-border sm:block" />
-                    )}
+                    {i < arr.length - 1 && <div className="my-1 h-8 w-px bg-border" />}
                   </div>
-                  <div className="pb-6 sm:pb-0 sm:text-center">
-                    <div className="text-sm font-medium text-foreground">{item.label}</div>
+                  <div className={i < arr.length - 1 ? "pb-6" : ""}>
+                    <div className="mt-1.5 text-[13px] font-semibold text-foreground">{item.label}</div>
                     <div className="mt-0.5 text-[12px] text-muted-foreground">{item.sub}</div>
                   </div>
                 </div>

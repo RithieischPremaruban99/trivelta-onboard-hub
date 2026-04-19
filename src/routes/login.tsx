@@ -15,17 +15,17 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
   head: () => ({
     meta: [
-      { title: "Sign in — Trivelta Onboarding Hub" },
+      { title: "Sign in - Trivelta Onboarding Hub" },
       {
         name: "description",
         content:
-          "Sign in to the Trivelta Onboarding Hub — the premium iGaming B2B turnkey platform.",
+          "Sign in to the Trivelta Onboarding Hub - the premium iGaming B2B turnkey platform.",
       },
-      { property: "og:title", content: "Sign in — Trivelta Onboarding Hub" },
+      { property: "og:title", content: "Sign in - Trivelta Onboarding Hub" },
       {
         property: "og:description",
         content:
-          "Sign in to the Trivelta Onboarding Hub — the premium iGaming B2B turnkey platform.",
+          "Sign in to the Trivelta Onboarding Hub - the premium iGaming B2B turnkey platform.",
       },
     ],
   }),
@@ -79,7 +79,7 @@ function LoginPage() {
 
         <div className="relative mx-auto w-full max-w-[1200px] px-6 py-10 lg:px-12">
           <div className="grid w-full grid-cols-1 items-start gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* LEFT — headline */}
+            {/* LEFT - headline */}
             <div className="flex w-full max-w-[520px] flex-col">
               <h1
                 className="font-bold tracking-tight text-white"
@@ -102,7 +102,7 @@ function LoginPage() {
                 className="text-[14px] font-normal leading-relaxed"
                 style={{ color: "#6b7280", marginTop: "12px" }}
               >
-                Track contracts, branding, integrations, and go-live tasks — from kickoff to
+                Track contracts, branding, integrations, and go-live tasks - from kickoff to
                 post-launch.
               </p>
 
@@ -117,7 +117,7 @@ function LoginPage() {
               </div>
             </div>
 
-            {/* RIGHT — sign-in card */}
+            {/* RIGHT - sign-in card */}
             <div className="flex w-full justify-center lg:justify-end">
               <div
                 id="signin-card"
