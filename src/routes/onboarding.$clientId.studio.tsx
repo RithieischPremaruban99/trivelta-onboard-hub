@@ -567,16 +567,22 @@ function StudioInner({
         return;
       }
 
-      const { text: responseText, config, imageUrl, imageType } = data as {
+      const { text: responseText, config, imageUrl, imageType, imageError } = data as {
         text: string;
         config: Partial<StudioThemeColors> | null;
         imageUrl: string | null;
         imageType: "logo" | "icon" | null;
+        imageError: string | null;
       };
+
+      // If image was requested but failed, append an error note to the message
+      const displayText = imageError && !imageUrl
+        ? `${responseText}\n\nImage generation failed - please try again. If this keeps happening, contact support.`
+        : responseText;
 
       setDisplayMessages((prev) => [...prev, {
         role: "assistant",
-        content: responseText,
+        content: displayText,
         ...(imageUrl && { imageUrl, imageType: imageType ?? "logo", sourcePrompt: trimmed }),
       }]);
       setApiHistory((prev) => [...prev, { role: "assistant", content: responseText }]);
@@ -726,20 +732,13 @@ function StudioInner({
           {/* ── AI chat expanded content ─────────────────────────────────── */}
           {chatOpen && (
             <>
-              {/* Model badge + locked status */}
-              <div className="shrink-0 border-b border-border px-4 py-2">
-                <div className="inline-flex items-center rounded-md bg-primary/8 px-2.5 py-1">
-                  <span className="font-mono text-[9px] font-semibold text-primary">
-                    Colors &amp; Text: Claude&nbsp;&nbsp;·&nbsp;&nbsp;Logos &amp; Icons: DALL-E 3
-                  </span>
+              {/* Locked status bar (only shown when design is locked) */}
+              {locked && (
+                <div className="shrink-0 flex items-center gap-1.5 border-b border-border px-4 py-2 text-[11px] font-semibold text-success">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
                 </div>
-                {locked && (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-success">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Chat messages */}
               <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3">

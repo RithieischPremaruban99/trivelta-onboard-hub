@@ -76,43 +76,59 @@ async function generateImage(
   userPrompt: string,
   kind: "logo" | "icon",
   openaiKey: string,
-): Promise<string | null> {
+): Promise<{ url: string | null; error: string | null }> {
   const styled =
     kind === "logo"
       ? `Modern, clean vector-style brand logo for an iGaming/sports betting app. ${userPrompt}. Horizontal wordmark composition, solid dark background, bold and memorable, professional brand mark, high contrast, no text artifacts, no watermark.`
       : `Modern app icon for an iGaming/sports betting mobile app. ${userPrompt}. Square format, rounded composition, bold iconic shape, vibrant colors, professional, glossy finish, no text, suitable for iOS/Android home screen.`;
 
-  // Logo: wide 1792×1024 — Icon: square 1024×1024
+  // Logo: wide 1792x1024 - Icon: square 1024x1024
   const size = kind === "logo" ? "1792x1024" : "1024x1024";
 
-  const resp = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${openaiKey}`,
-    },
-    body: JSON.stringify({
-      model: "dall-e-3",
-      prompt: styled,
-      n: 1,
-      size,
-      quality: "hd",
-      style: "vivid",
-      // b64_json avoids OpenAI CDN URLs that expire in ~1 hour.
-      // We return a permanent data: URL instead.
-      response_format: "b64_json",
-    }),
-  });
+  console.log(`[studio-chat] Generating ${kind} via DALL-E 3, size=${size}`);
+
+  let resp: Response;
+  try {
+    resp = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${openaiKey}`,
+      },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt: styled,
+        n: 1,
+        size,
+        quality: "hd",
+        style: "vivid",
+        // Use url format - b64_json returns 5-10 MB of base64 in JSON
+        // which causes edge function response timeouts.
+        response_format: "url",
+      }),
+    });
+  } catch (fetchErr) {
+    const msg = `Network error calling DALL-E: ${String(fetchErr)}`;
+    console.error("[studio-chat]", msg);
+    return { url: null, error: msg };
+  }
 
   if (!resp.ok) {
-    console.error("DALL-E error:", await resp.text());
-    return null;
+    const body = await resp.text();
+    console.error(`[studio-chat] DALL-E ${resp.status} error:`, body);
+    return { url: null, error: `Image generation failed (${resp.status}): ${body.slice(0, 200)}` };
   }
 
   const data = await resp.json();
-  const b64: string | undefined = data.data?.[0]?.b64_json;
-  if (!b64) return null;
-  return `data:image/png;base64,${b64}`;
+  console.log("[studio-chat] DALL-E response keys:", Object.keys(data));
+  const imageUrl: string | undefined = data.data?.[0]?.url;
+  if (!imageUrl) {
+    console.error("[studio-chat] DALL-E response missing url:", JSON.stringify(data).slice(0, 500));
+    return { url: null, error: "Image generation succeeded but no URL was returned." };
+  }
+
+  console.log("[studio-chat] DALL-E image URL received (length:", imageUrl.length, ")");
+  return { url: imageUrl, error: null };
 }
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
@@ -165,9 +181,11 @@ Deno.serve(async (req) => {
 
     const imagePromise = imageReq && openaiKey
       ? generateImage(imageReq.prompt, imageReq.kind, openaiKey)
-      : Promise.resolve(null);
+      : Promise.resolve({ url: null, error: null });
 
-    const [claudeResp, imageUrl] = await Promise.all([claudePromise, imagePromise]);
+    const [claudeResp, imageResult] = await Promise.all([claudePromise, imagePromise]);
+    const imageUrl = imageResult.url;
+    const imageError = imageResult.error;
 
     if (!claudeResp.ok) {
       const err = await claudeResp.text();
@@ -200,12 +218,14 @@ Deno.serve(async (req) => {
     // Strip the JSON block from the displayed text
     const cleanText = rawText.replace(/```json[\s\S]*?```/, "").trim();
 
+    console.log(`[studio-chat] Responding: text=${cleanText.length}chars, imageUrl=${imageUrl ? "yes" : "null"}, imageError=${imageError ?? "none"}`);
     return new Response(
       JSON.stringify({
         text: cleanText,
         config,
         imageUrl: imageUrl ?? null,
         imageType: imageUrl ? (imageReq?.kind ?? "logo") : null,
+        imageError: imageError ?? null,
         requiredSize: imageUrl ? (imageReq?.kind === "logo" ? "1792x1024" : "1024x1024") : null,
       }),
       {
