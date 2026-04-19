@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   Send, Loader2, Smartphone, Monitor, Sparkles,
   RefreshCw, CheckCircle2, Upload, ArrowRight,
-  Lock, Palette, ChevronDown, ChevronUp,
+  Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -347,7 +347,15 @@ function StudioInner({
   const [lockModalOpen, setLockModalOpen] = useState(false);
   const [locking, setLocking] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(() => {
+    try { return localStorage.getItem("studio-chat-open") !== "false"; } catch { return true; }
+  });
   const [saving, setSaving] = useState(false);
+
+  // Persist chat panel open/close state
+  useEffect(() => {
+    try { localStorage.setItem("studio-chat-open", String(chatOpen)); } catch { /* ignore */ }
+  }, [chatOpen]);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
     {
@@ -519,6 +527,7 @@ function StudioInner({
   ];
 
   const canLock = !!appIcons.appNameLogo;
+  const bothCollapsed = !chatOpen && !controlsOpen;
   const lockedDate = lockedAt
     ? new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : null;
@@ -558,83 +567,144 @@ function StudioInner({
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ══ LEFT PANEL - AI Chat (35%) ═══════════════════════════════ */}
-        <div className="flex w-[35%] min-w-[300px] max-w-[440px] flex-col overflow-hidden border-r border-border bg-card">
+        {/* ══ LEFT PANEL ═══════════════════════════════════════════════ */}
+        <div className={cn(
+          "flex flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200",
+          bothCollapsed
+            ? "w-[210px] min-w-[210px] max-w-[210px]"
+            : "w-[35%] min-w-[300px] max-w-[440px]",
+        )}>
 
-          {/* Panel identity header */}
-          <div className="shrink-0 border-b border-border px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+          {/* Always-visible identity strip + collapse-all button */}
+          <div className="shrink-0 flex items-center justify-between border-b border-border px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/15">
+                <Sparkles className="h-3 w-3 text-primary" />
               </div>
-              <div>
-                <div className="text-[13px] font-bold text-foreground">Trivelta Studio</div>
-                {welcomeInfo && (
-                  <div className="text-[11px] text-muted-foreground">{welcomeInfo.clientName}</div>
-                )}
-              </div>
-            </div>
-            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary/8 px-2.5 py-1">
-              <span className="font-mono text-[9px] font-semibold text-primary">
-                Colors &amp; Text: Claude&nbsp;&nbsp;·&nbsp;&nbsp;Logos &amp; Icons: DALL-E 3
+              <span className="truncate text-[11px] font-bold text-foreground">
+                {welcomeInfo?.clientName ?? "Studio"}
               </span>
             </div>
-            {locked && (
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-success">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
-              </div>
-            )}
+            <button
+              onClick={() => {
+                if (bothCollapsed) { setChatOpen(true); }
+                else { setChatOpen(false); setControlsOpen(false); }
+              }}
+              className="ml-2 flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              title={bothCollapsed ? "Expand panels" : "Collapse all"}
+            >
+              {bothCollapsed
+                ? <><ChevronsDown className="h-3 w-3" /> Expand</>
+                : <><ChevronsUp className="h-3 w-3" /> Collapse</>
+              }
+            </button>
           </div>
 
-          {/* ── Chat messages ──────────────────────────────────────────── */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-            {displayMessages.map((msg, i) => (
-              <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-                <div className={cn(
-                  "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-tr-sm"
-                    : "bg-secondary text-secondary-foreground rounded-tl-sm",
-                )}>
-                  {msg.role === "assistant" && msg.imageUrl ? (
-                    <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
-                  ) : (
-                    <span className="whitespace-pre-wrap">{msg.content}</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          {/* ── AI Assistant toggle ──────────────────────────────────────── */}
+          <button
+            type="button"
+            onClick={() => setChatOpen((v) => !v)}
+            className="shrink-0 flex w-full items-center justify-between border-b border-border px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="text-[11px] font-semibold text-foreground">AI Assistant</span>
+              {!chatOpen && locked && (
+                <CheckCircle2 className="h-3 w-3 text-success" />
+              )}
+            </div>
+            {chatOpen
+              ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            }
+          </button>
 
-            {/* Thinking / generating indicator */}
-            {thinking && (
-              <div className="flex justify-start">
-                {pendingIsImage ? (
-                  <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-                    <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
-                      <span className="animate-pulse">🎨</span>
-                      <span>Generating your logo… this takes 10–15 seconds</span>
-                    </div>
-                    <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
-                      <div
-                        className="h-full rounded-full bg-primary/60 animate-pulse"
-                        style={{ width: "65%" }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+          {/* ── AI chat expanded content ─────────────────────────────────── */}
+          {chatOpen && (
+            <>
+              {/* Model badge + locked status */}
+              <div className="shrink-0 border-b border-border px-4 py-2">
+                <div className="inline-flex items-center rounded-md bg-primary/8 px-2.5 py-1">
+                  <span className="font-mono text-[9px] font-semibold text-primary">
+                    Colors &amp; Text: Claude&nbsp;&nbsp;·&nbsp;&nbsp;Logos &amp; Icons: DALL-E 3
+                  </span>
+                </div>
+                {locked && (
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-success">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
                   </div>
                 )}
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {/* ── Manual Controls (collapsible) ──────────────────────────── */}
+              {/* Chat messages */}
+              <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3">
+                {displayMessages.map((msg, i) => (
+                  <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
+                    <div className={cn(
+                      "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                        : "bg-secondary text-secondary-foreground rounded-tl-sm",
+                    )}>
+                      {msg.role === "assistant" && msg.imageUrl ? (
+                        <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
+                      ) : (
+                        <span className="whitespace-pre-wrap">{msg.content}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Thinking / generating indicator */}
+                {thinking && (
+                  <div className="flex justify-start">
+                    {pendingIsImage ? (
+                      <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
+                        <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
+                          <span className="animate-pulse">🎨</span>
+                          <span>Generating your logo... this takes 10-15 seconds</span>
+                        </div>
+                        <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
+                          <div className="h-full rounded-full bg-primary/60 animate-pulse" style={{ width: "65%" }} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Chat input */}
+              <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
+                <input
+                  ref={chatInputRef}
+                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  placeholder="Describe your brand colors... or ask for a logo"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
+                  }}
+                />
+                <button
+                  onClick={() => sendMessage(input)}
+                  disabled={!input.trim() || thinking}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
+                >
+                  {thinking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── Fine-tune manually (collapsible) ────────────────────────── */}
           <div className="shrink-0 border-t border-border">
             <button
               type="button"
@@ -646,8 +716,8 @@ function StudioInner({
                 <span className="text-[11px] font-semibold text-foreground">Fine-tune manually</span>
               </div>
               {controlsOpen
-                ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                : <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               }
             </button>
 
@@ -695,27 +765,6 @@ function StudioInner({
                 </div>
               </div>
             )}
-          </div>
-
-          {/* ── Chat input ─────────────────────────────────────────────── */}
-          <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
-            <input
-              ref={chatInputRef}
-              className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              placeholder="Describe your brand colors… or ask for a logo"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
-              }}
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || thinking}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
-            >
-              {thinking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-            </button>
           </div>
 
           {/* ── Lock Design (always visible) ───────────────────────────── */}
