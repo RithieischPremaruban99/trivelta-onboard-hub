@@ -70,12 +70,6 @@ interface Payload {
   form_data:       FormData;
 }
 
-// Static map: AM email → Notion user ID
-const AM_NOTION_IDS: Record<string, string> = {
-  "aidan.kidd@trivelta.com":   "318d872b-594c-816c-802b-00020900bb8f",
-  "davi.sirohi@trivelta.com":  "318d872b-594c-81bf-a1fd-00026792dc67",
-  "alex.serrato@trivelta.com": "318d872b-594c-815c-a2b2-00020f6b69d4",
-};
 
 // ─── Notion block helpers ─────────────────────────────────────────────────────
 
@@ -243,17 +237,34 @@ Deno.serve(async (req) => {
       psps,
     } = payload;
 
-    // Look up all AMs assigned to this client and map to Notion user IDs
+    // Build AM email → Notion user ID map dynamically from role_assignments table,
+    // then look up which AMs are assigned to this client.
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
-    const { data: camRows } = await supabase
-      .from("client_account_managers")
-      .select("am_email")
-      .eq("client_id", client_id);
+
+    const [{ data: raRows }, { data: camRows }] = await Promise.all([
+      supabase
+        .from("role_assignments")
+        .select("email, notion_user_id")
+        .eq("role", "account_manager"),
+      supabase
+        .from("client_account_managers")
+        .select("am_email")
+        .eq("client_id", client_id),
+    ]);
+
+    // Cache for this invocation: email → notion_user_id
+    const notionIdByEmail: Record<string, string> = {};
+    for (const row of raRows ?? []) {
+      if (row.email && row.notion_user_id) {
+        notionIdByEmail[row.email] = row.notion_user_id;
+      }
+    }
+
     const am_notion_ids: string[] = (camRows ?? [])
-      .map((r: { am_email: string | null }) => r.am_email && AM_NOTION_IDS[r.am_email])
+      .map((r: { am_email: string | null }) => r.am_email && notionIdByEmail[r.am_email])
       .filter(Boolean) as string[];
 
     const notionHeaders = {
