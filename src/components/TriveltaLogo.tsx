@@ -1,27 +1,33 @@
 /**
- * Trivelta logo: official horizontal color mark + wordmark.
+ * Trivelta logo lockup: official horizontal color mark + "STUDIO" wordmark.
+ * Used consistently across the entire platform (login, app shell, onboarding nav).
  * Source asset: src/assets/trivelta-logo.png
  */
 import { cn } from "@/lib/utils";
 import logoUrl from "@/assets/trivelta-logo.png";
 
+type Size = "sm" | "md" | "lg";
+
+const SIZE_MAP: Record<Size, { h: string; text: string; pl: string }> = {
+  sm: { h: "h-5", text: "text-[12px]", pl: "pl-3" },
+  md: { h: "h-7", text: "text-[15px]", pl: "pl-4" },
+  lg: { h: "h-9", text: "text-[18px]", pl: "pl-5" },
+};
+
 export function TriveltaLogo({
   size = "md",
-  withSubtitle = false,
+  withSubtitle = true,
   className,
 }: {
-  size?: "sm" | "md" | "lg";
+  size?: Size;
+  /** Show the "STUDIO" lockup divider + wordmark. Defaults to true. */
   withSubtitle?: boolean;
   className?: string;
 }) {
-  const dims = {
-    sm: { h: "h-5", sub: "text-[8px]" },
-    md: { h: "h-7", sub: "text-[9px]" },
-    lg: { h: "h-9", sub: "text-[10px]" },
-  }[size];
+  const dims = SIZE_MAP[size];
 
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("flex items-center gap-3", className)}>
       <img
         src={logoUrl}
         alt="Trivelta"
@@ -29,16 +35,19 @@ export function TriveltaLogo({
         draggable={false}
       />
       {withSubtitle && (
-        <div
+        <span
           className={cn(
-            "border-l border-border pl-2.5 font-mono uppercase tracking-[0.22em] text-muted-foreground leading-none",
-            dims.sub,
+            "font-semibold uppercase text-white leading-none",
+            dims.text,
+            dims.pl,
           )}
+          style={{
+            letterSpacing: "0.24em",
+            borderLeft: "2px solid rgba(255,255,255,0.85)",
+          }}
         >
-          Onboarding
-          <br />
-          Hub
-        </div>
+          Studio
+        </span>
       )}
     </div>
   );

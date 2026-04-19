@@ -63,17 +63,8 @@ function LoginPage() {
     <div className="relative flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-[60px] w-full max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
-          <Link to="/login" className="flex items-center gap-3">
-            <TriveltaLogo size="md" />
-            <span
-              className="pl-4 text-[15px] font-semibold uppercase text-white"
-              style={{
-                letterSpacing: "0.24em",
-                borderLeft: "2px solid rgba(255,255,255,0.85)",
-              }}
-            >
-              Studio
-            </span>
+          <Link to="/login" className="flex items-center">
+            <TriveltaLogo size="md" withSubtitle />
           </Link>
         </div>
       </header>
