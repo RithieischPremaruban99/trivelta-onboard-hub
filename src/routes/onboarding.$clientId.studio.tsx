@@ -597,6 +597,19 @@ function StudioInner({
       setLockedAt(now);
       setSaveConfirmOpen(false);
       toast.success("Design locked and submitted!");
+
+      // Fire-and-forget: notify Notion (non-blocking)
+      const { data: { session } } = await supabase.auth.getSession();
+      fetch(`${SUPABASE_URL}/functions/v1/design-locked`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ client_id: clientId }),
+      }).catch((e) => console.warn("[studio] design-locked call failed:", e));
+
       navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
     } catch {
       toast.error("Failed to submit design - try again.");
