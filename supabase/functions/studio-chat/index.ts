@@ -1,71 +1,87 @@
 // Edge Function: studio-chat
-// Sends messages to Claude for theme configuration, and calls DALL-E 3
-// when Claude signals a logo or icon should be generated.
+// Sends messages to Claude for theme config changes,
+// and detects logo/icon generation requests to call DALL-E 3.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are a platform design configurator for Trivelta iGaming. Help the user design their platform's visual theme and branding.
+const SYSTEM_PROMPT = `You are a platform design configurator for Trivelta iGaming. Help the user design their platform's visual theme.
 
-== COLOR CHANGES ==
-When colors change, output a JSON block at the very end of your message in this exact format:
+When colors change, output a JSON block at the very end of your message (after your text) in this exact format:
 \`\`\`json
 {
   "primaryBg": "rgba(...)",
   "primary": "rgba(...)"
 }
 \`\`\`
-Only include keys that actually changed. Valid color keys:
-primaryBg, primary, secondary, primaryButton, primaryButtonGradient,
-wonGradient1, wonGradient2, boxGradient1, boxGradient2,
-headerBorder1, headerBorder2, lightText, placeholder, inactiveButton.
-All color values must be valid rgba() strings.
 
-Understand natural language: "green buttons" → rgba(34,197,94,1) for primaryButton, etc.
+Only include the keys that actually changed. Valid keys are:
+- primaryBg (main background color)
+- primary (main brand/accent color)
+- secondary (secondary accent, often used for live indicators)
+- primaryButton (button background)
+- primaryButtonGradient (button gradient end color)
+- wonGradient1 (win/success green start)
+- wonGradient2 (win/success green end, can be semi-transparent)
+- boxGradient1 (box highlight gradient start)
+- boxGradient2 (box highlight gradient end)
+- headerBorder1 (card/panel background)
+- headerBorder2 (deeper panel background)
+- lightText (primary text color)
+- placeholder (muted/secondary text color)
+- inactiveButton (inactive state color)
 
-== LOGO / ICON GENERATION ==
-When the user asks to generate, create, design, or make a logo OR an app icon, include a JSON block like this (instead of a color block):
-\`\`\`json
-{
-  "_generateImage": "logo",
-  "_brandPrompt": "A professional sports betting platform logo for [brand name]. Bold modern wordmark, [color] accent, dark background. Clean minimal design, no cluttered elements."
-}
-\`\`\`
-- Use "_generateImage": "logo" for logos/wordmarks (wide format)
-- Use "_generateImage": "icon" for app icons/favicons (square format)
-- "_brandPrompt" must be a detailed DALL-E 3 prompt. Include brand name if mentioned, color scheme from context, and style direction from user.
-- For logos: emphasize horizontal wordmark, bold typography, iGaming aesthetic
-- For icons: emphasize square composition, single bold symbol or letter, works at small size
-- DALL-E 3 cannot produce true transparency, so suggest the user can remove the background after downloading.
+All values must be valid rgba() strings, e.g. "rgba(253, 111, 39, 1)".
 
-== RESTRICTIONS ==
-NEVER suggest layout changes, feature additions, or navigation changes.
-If asked about layout or features: "Layout is optimized by Trivelta's design team for maximum conversion — I can help with colors and branding!"
+Understand natural language color descriptions:
+- "green buttons" → use a vivid green like rgba(34, 197, 94, 1) for primaryButton
+- "blue theme" → set primary to something like rgba(59, 130, 246, 1)
+- "dark purple background" → set primaryBg to rgba(15, 10, 30, 1)
+- If the user gives a hex color like #ff6b35, convert it to rgba format
 
-If nothing changes (just chatting), omit the JSON block entirely.`;
+Be conversational, enthusiastic, and explain what you changed and why it looks good.
 
-interface ApiMessage {
+NEVER suggest layout changes, feature additions, navigation changes, or anything outside colors and branding.
+If asked about layout or features, say: "Layout is optimized by Trivelta's design team for maximum conversion. I can help you customize the colors and branding to match your vision!"
+
+LOGO/ICON GENERATION:
+If the user asks you to create, generate, design, or make a logo, app icon, or brand mark, you do NOT need to describe it in text. Just acknowledge briefly (e.g. "Generating your logo now…") — a separate image generator handles the actual creation. Do NOT include a JSON color block when the request is purely about logo/icon generation.
+
+If the user's request doesn't require any color changes (e.g., they're just chatting), omit the JSON block entirely.`;
+
+interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
 interface RequestBody {
-  messages: ApiMessage[];
+  messages: Message[];
   clientId: string;
 }
 
-interface ImageResult {
-  url: string;
+/* ── Image-request detection ─────────────────────────────────────────────── */
+
+function detectImageRequest(text: string): { kind: "logo" | "icon"; prompt: string } | null {
+  const lower = text.toLowerCase();
+  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
+  const isLogo = /\blogo\b|\bbrand mark\b|\bwordmark\b/.test(lower);
+  const isIcon = /\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
+  if (!wantsCreate || (!isLogo && !isIcon)) return null;
+  return { kind: isLogo ? "logo" : "icon", prompt: text };
 }
 
-async function generateImage(
-  prompt: string,
-  size: "1024x1024" | "1792x1024",
-  openaiKey: string,
-): Promise<string> {
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
+async function generateImage(userPrompt: string, kind: "logo" | "icon"): Promise<string | null> {
+  const openaiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!openaiKey) return null;
+
+  const styled =
+    kind === "logo"
+      ? `Modern, clean vector-style brand logo for an iGaming/sports betting app. ${userPrompt}. Centered composition, solid contrasting background, bold and memorable, professional brand mark, high contrast, no text artifacts, no watermark.`
+      : `Modern app icon for an iGaming/sports betting mobile app. ${userPrompt}. Square format, rounded composition, bold iconic shape, vibrant colors, professional, glossy finish, no text, suitable for iOS/Android home screen.`;
+
+  const resp = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -73,24 +89,24 @@ async function generateImage(
     },
     body: JSON.stringify({
       model: "dall-e-3",
-      prompt,
+      prompt: styled,
       n: 1,
-      size,
+      size: "1024x1024",
       quality: "hd",
-      response_format: "url",
+      style: "vivid",
     }),
   });
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`DALL-E 3 error: ${err}`);
+  if (!resp.ok) {
+    console.error("DALL-E error:", await resp.text());
+    return null;
   }
 
-  const data = await response.json();
-  const result = data.data?.[0] as ImageResult | undefined;
-  if (!result?.url) throw new Error("No image URL returned from DALL-E 3");
-  return result.url;
+  const data = await resp.json();
+  return data.data?.[0]?.url ?? null;
 }
+
+/* ── Handler ─────────────────────────────────────────────────────────────── */
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -100,20 +116,24 @@ Deno.serve(async (req) => {
   try {
     const { messages }: RequestBody = await req.json();
 
-    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!anthropicKey) {
+    const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!apiKey) {
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ── 1. Call Claude ───────────────────────────────────────────────────────
-    const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
+    // Detect image request from latest user message
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    const imageReq = lastUser ? detectImageRequest(lastUser.content) : null;
+
+    // Run Claude + (optionally) DALL-E in parallel
+    const claudePromise = fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": anthropicKey,
+        "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
@@ -124,69 +144,44 @@ Deno.serve(async (req) => {
       }),
     });
 
-    if (!claudeRes.ok) {
-      const err = await claudeRes.text();
+    const imagePromise = imageReq ? generateImage(imageReq.prompt, imageReq.kind) : Promise.resolve(null);
+
+    const [claudeResp, imageUrl] = await Promise.all([claudePromise, imagePromise]);
+
+    if (!claudeResp.ok) {
+      const err = await claudeResp.text();
       return new Response(JSON.stringify({ error: err }), {
-        status: claudeRes.status,
+        status: claudeResp.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const claudeData = await claudeRes.json();
-    const rawText: string = claudeData.content?.[0]?.text ?? "";
+    const data = await claudeResp.json();
+    const text: string = data.content?.[0]?.text ?? "";
 
-    // ── 2. Parse JSON config block ───────────────────────────────────────────
-    let parsedConfig: Record<string, string> | null = null;
-    const jsonMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/);
+    // Extract JSON config block from the response
+    let config: Record<string, string> | null = null;
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       try {
-        parsedConfig = JSON.parse(jsonMatch[1]);
+        config = JSON.parse(jsonMatch[1]);
       } catch {
-        parsedConfig = null;
+        config = null;
       }
     }
 
-    // Strip the JSON block from displayed text
-    const cleanText = rawText.replace(/```json[\s\S]*?```/, "").trim();
-
-    // ── 3. Handle image generation request ──────────────────────────────────
-    let imageUrl: string | null = null;
-    let imageType: "logo" | "icon" | null = null;
-    let colorConfig: Record<string, string> | null = null;
-
-    if (parsedConfig && parsedConfig._generateImage) {
-      imageType = parsedConfig._generateImage as "logo" | "icon";
-      const brandPrompt = parsedConfig._brandPrompt ?? "A professional iGaming sports betting platform logo. Bold modern typography, dark background, vibrant accent colors.";
-
-      const openaiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!openaiKey) {
-        return new Response(
-          JSON.stringify({ error: "OPENAI_API_KEY not configured — add it in Supabase Edge Function secrets" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-
-      const size = imageType === "logo" ? "1792x1024" : "1024x1024";
-      imageUrl = await generateImage(brandPrompt, size, openaiKey);
-
-      // Don't pass _generateImage keys as color config
-      colorConfig = null;
-    } else if (parsedConfig) {
-      // Regular color config — filter out any accidental _ keys
-      colorConfig = Object.fromEntries(
-        Object.entries(parsedConfig).filter(([k]) => !k.startsWith("_")),
-      );
-      if (Object.keys(colorConfig).length === 0) colorConfig = null;
-    }
+    // Strip the JSON block from the displayed text
+    const cleanText = text.replace(/```json[\s\S]*?```/, "").trim();
 
     return new Response(
       JSON.stringify({
         text: cleanText,
-        config: colorConfig,
-        imageUrl,
-        imageType,
+        config,
+        image: imageUrl ? { url: imageUrl, kind: imageReq?.kind ?? "logo" } : null,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (err) {
     return new Response(JSON.stringify({ error: String(err) }), {
