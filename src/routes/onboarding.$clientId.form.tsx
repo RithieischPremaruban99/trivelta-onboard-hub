@@ -36,6 +36,109 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TriveltaNav } from "@/components/TriveltaNav";
 
+/* ─── Presence types & helpers ───────────────────────────────── */
+
+interface PresencePayload {
+  user_email: string;
+  name: string;
+  current_section: string;
+  last_active: string; // ISO string
+}
+
+interface PresenceUser extends PresencePayload {
+  color: string;
+  initials: string;
+}
+
+const PRESENCE_COLORS = [
+  "#6366f1", "#8b5cf6", "#ec4899", "#f59e0b",
+  "#10b981", "#3b82f6", "#ef4444", "#14b8a6",
+];
+
+const SECTION_LABELS: Record<string, string> = {
+  "1": "Team Contacts",
+  "2": "Media & Branding",
+  "3": "Platform Setup",
+  "4": "Legal & Policies",
+  "5": "3rd Party",
+};
+
+function presenceColor(email: string): string {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) hash = (hash * 31 + email.charCodeAt(i)) >>> 0;
+  return PRESENCE_COLORS[hash % PRESENCE_COLORS.length];
+}
+
+function presenceInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function emailToName(email: string): string {
+  const local = email.split("@")[0];
+  return local
+    .replace(/[._-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function parseOtherUsers(
+  raw: Record<string, unknown[]>,
+  myEmail: string,
+): PresenceUser[] {
+  const cutoff = Date.now() - 2 * 60 * 1000;
+  const users: PresenceUser[] = [];
+  for (const [key, presences] of Object.entries(raw)) {
+    if (key === myEmail) continue;
+    const p = presences[0] as PresencePayload | undefined;
+    if (!p) continue;
+    if (new Date(p.last_active).getTime() < cutoff) continue;
+    users.push({
+      ...p,
+      color: presenceColor(p.user_email),
+      initials: presenceInitials(p.name),
+    });
+  }
+  return users;
+}
+
+function PresenceAvatars({ users }: { users: PresenceUser[] }) {
+  if (!users.length) return null;
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex -space-x-2">
+        {users.slice(0, 4).map((u) => {
+          const isActive = Date.now() - new Date(u.last_active).getTime() < 30_000;
+          return (
+            <div key={u.user_email} className="relative group" title={`${u.name} — Section ${SECTION_LABELS[u.current_section] ?? u.current_section}`}>
+              <div
+                className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-background ring-1 ring-black/10"
+                style={{ backgroundColor: u.color }}
+              >
+                {u.initials}
+              </div>
+              <span
+                className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${isActive ? "bg-success" : "bg-muted-foreground"}`}
+              />
+              {/* Tooltip */}
+              <div className="pointer-events-none absolute bottom-9 right-0 hidden group-hover:flex flex-col items-end z-50">
+                <div className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] text-foreground shadow-lg whitespace-nowrap">
+                  <div className="font-semibold">{u.name}</div>
+                  <div className="text-muted-foreground">{SECTION_LABELS[u.current_section] ?? `Section ${u.current_section}`}</div>
+                </div>
+                <div className="w-2 h-1 bg-card border-b border-r border-border" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {users.length > 4 && (
+        <span className="text-[11px] text-muted-foreground">+{users.length - 4} more</span>
+      )}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/onboarding/$clientId/form")({
   component: FormScreen,
 });
@@ -52,6 +155,12 @@ function FormScreen() {
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const isRemoteUpdate = useRef(false);
+
+  // Presence
+  const [otherUsers, setOtherUsers] = useState<PresenceUser[]>([]);
+  const [currentSection, setCurrentSection] = useState("1");
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const myPresenceRef = useRef<PresencePayload | null>(null);
 
   // Redirect unauthenticated users to auth screen
   useEffect(() => {
@@ -114,6 +223,50 @@ function FormScreen() {
     return () => clearTimeout(timer);
   }, [form, user, clientId, submitted]);
 
+  // Presence: join channel
+  useEffect(() => {
+    if (!user) return;
+    const myEmail = user.email ?? "";
+    const myName = emailToName(myEmail);
+    const initial: PresencePayload = {
+      user_email: myEmail,
+      name: myName,
+      current_section: "1",
+      last_active: new Date().toISOString(),
+    };
+    myPresenceRef.current = initial;
+    const ch = supabase.channel(`onboarding-form:${clientId}`, {
+      config: { presence: { key: myEmail } },
+    });
+    ch.on("presence", { event: "sync" }, () => {
+      setOtherUsers(parseOtherUsers(ch.presenceState<PresencePayload>(), myEmail));
+    });
+    ch.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await ch.track(myPresenceRef.current!);
+      }
+    });
+    presenceChannelRef.current = ch;
+    return () => {
+      supabase.removeChannel(ch);
+      presenceChannelRef.current = null;
+    };
+  }, [user, clientId]);
+
+  // Presence: heartbeat on form changes (debounced 800ms)
+  useEffect(() => {
+    if (!user || !myPresenceRef.current) return;
+    const t = setTimeout(async () => {
+      const updated: PresencePayload = {
+        ...myPresenceRef.current!,
+        last_active: new Date().toISOString(),
+      };
+      myPresenceRef.current = updated;
+      await presenceChannelRef.current?.track(updated);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [form, user]);
+
   const sectionDone = useMemo(
     () => Object.fromEntries([1, 2, 3, 4, 5].map((n) => [String(n), validators[n](form)])),
     [form],
@@ -130,6 +283,22 @@ function FormScreen() {
     field: keyof ContactBlock,
     value: string,
   ) => setForm((f) => ({ ...f, [key]: { ...f[key], [field]: value } }));
+
+  const handleSectionToggle = async (next: string[]) => {
+    setOpen(next);
+    const added = next.find((id) => !open.includes(id));
+    if (!added) return;
+    setCurrentSection(added);
+    if (myPresenceRef.current && presenceChannelRef.current) {
+      const updated: PresencePayload = {
+        ...myPresenceRef.current,
+        current_section: added,
+        last_active: new Date().toISOString(),
+      };
+      myPresenceRef.current = updated;
+      await presenceChannelRef.current.track(updated);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!isFormComplete(form) || !isOwner) return;
@@ -192,13 +361,16 @@ function FormScreen() {
       {/* Sticky brand nav with progress bar underneath */}
       <TriveltaNav
         right={
-          <div className="text-right">
+          <div className="flex items-center gap-3">
+            <PresenceAvatars users={otherUsers} />
+            <div className="text-right">
             <div className="text-[13px] font-semibold text-foreground">
               {welcomeInfo?.clientName ?? "Onboarding"}
             </div>
             <div className="font-mono text-[10px] text-muted-foreground">
               <span className="text-foreground">{filled}</span>
               <span> / {total} fields complete</span>
+            </div>
             </div>
           </div>
         }
@@ -251,7 +423,7 @@ function FormScreen() {
           </div>
 
           {/* Accordion */}
-          <Accordion type="multiple" value={open} onValueChange={setOpen} className="space-y-3">
+          <Accordion type="multiple" value={open} onValueChange={handleSectionToggle} className="space-y-3">
             <SectionShell
               id="1"
               num="01"
@@ -260,6 +432,7 @@ function FormScreen() {
               done={sectionDone["1"]}
               desc="Sportsbook, operational & compliance leads + Slack team emails"
               sectionDesc="We'll use these contacts to set up your Slack channel and coordinate the onboarding."
+              presenceUsers={otherUsers}
             >
               <SectionContacts form={form} updateContact={updateContact} update={update} />
             </SectionShell>
@@ -271,6 +444,7 @@ function FormScreen() {
               done={sectionDone["2"]}
               desc="Confirm logo, icon and animation uploads to Drive"
               sectionDesc="Upload your brand assets to Drive. You can also create assets in Trivelta Studio after submitting."
+              presenceUsers={otherUsers}
             >
               <SectionMedia form={form} update={update} driveLink={welcomeInfo?.driveLink ?? null} />
             </SectionShell>
@@ -282,6 +456,7 @@ function FormScreen() {
               done={sectionDone["3"]}
               desc="URL, country and DNS access"
               sectionDesc="Configure your platform URL, country, and DNS access. Colors are set in Trivelta Studio."
+              presenceUsers={otherUsers}
             >
               <SectionPlatform form={form} update={update} />
             </SectionShell>
@@ -293,6 +468,7 @@ function FormScreen() {
               done={sectionDone["4"]}
               desc="Footer requirements, landing page and policy URLs"
               sectionDesc="These pages are required by law in most jurisdictions. Trivelta can help if you don't have them yet."
+              presenceUsers={otherUsers}
             >
               <SectionLegal form={form} update={update} />
             </SectionShell>
@@ -304,6 +480,7 @@ function FormScreen() {
               done={sectionDone["5"]}
               desc="PSP, KYC, SMS, DUNS, Zendesk and analytics"
               sectionDesc="Select your payment providers and integrations. Your AM will contact each provider on your behalf."
+              presenceUsers={otherUsers}
             >
               <SectionThirdParty form={form} update={update} />
             </SectionShell>
@@ -369,9 +546,12 @@ function FormScreen() {
 
 /* ─── Section shell ───────────────────────────────────────────── */
 
-function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, children }: {
-  id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; sectionDesc?: string; children: React.ReactNode;
+function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, presenceUsers = [], children }: {
+  id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; sectionDesc?: string; presenceUsers?: PresenceUser[]; children: React.ReactNode;
 }) {
+  const here = presenceUsers.filter((u) => u.current_section === id);
+  const isTyping = here.some((u) => Date.now() - new Date(u.last_active).getTime() < 8_000);
+
   return (
     <AccordionItem
       value={id}
@@ -390,16 +570,68 @@ function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, chi
           >
             {done ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
           </div>
-          <div className="text-left min-w-0">
+          <div className="text-left min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className={cn("font-mono text-[10px]", done ? "text-success" : "text-primary")}>{num}</span>
               <span className="text-sm font-semibold text-foreground">{title}</span>
             </div>
             <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{desc}</div>
           </div>
+          {/* Mini presence avatars in trigger */}
+          {here.length > 0 && (
+            <div className="flex items-center gap-1.5 mr-2 shrink-0">
+              <div className="flex -space-x-1.5">
+                {here.slice(0, 3).map((u) => (
+                  <div
+                    key={u.user_email}
+                    className="h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white border border-background"
+                    style={{ backgroundColor: u.color }}
+                    title={u.name}
+                  >
+                    {u.initials}
+                  </div>
+                ))}
+              </div>
+              <span className="text-[10px] text-muted-foreground">
+                {here.length === 1 ? `${here[0].name.split(" ")[0]} is here` : `${here.length} here`}
+              </span>
+            </div>
+          )}
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-5 pt-5 pb-6">
+        {/* "X is here" banner + typing indicator */}
+        {here.length > 0 && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg bg-primary/8 border border-primary/15 px-3 py-2">
+            <div className="flex -space-x-1.5">
+              {here.map((u) => (
+                <div
+                  key={u.user_email}
+                  className="h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white border border-background"
+                  style={{ backgroundColor: u.color }}
+                >
+                  {u.initials}
+                </div>
+              ))}
+            </div>
+            <span className="text-[12px] text-primary/80">
+              {here.length === 1
+                ? `${here[0].name} is viewing this section`
+                : `${here.map((u) => u.name.split(" ")[0]).join(" & ")} are viewing this section`}
+            </span>
+            {isTyping && (
+              <span className="ml-auto flex items-end gap-0.5 pb-0.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="inline-block h-1 w-1 rounded-full bg-primary/60"
+                    style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                  />
+                ))}
+              </span>
+            )}
+          </div>
+        )}
         {sectionDesc && (
           <p className="mb-4 text-[13px] text-muted-foreground leading-relaxed border-b border-border pb-4">{sectionDesc}</p>
         )}
