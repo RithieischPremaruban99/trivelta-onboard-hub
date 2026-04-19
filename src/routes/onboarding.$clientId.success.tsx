@@ -27,7 +27,7 @@ function initials(name: string | null | undefined) {
 
 function SuccessScreen() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/success" });
-  const { welcomeInfo, loadingPublic, clientRole } = useOnboardingCtx();
+  const { welcomeInfo, loadingPublic, loadingAuth, clientRole } = useOnboardingCtx();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
@@ -52,7 +52,7 @@ function SuccessScreen() {
     })();
   }, [user, authLoading]);
 
-  if (authLoading || loadingPublic || !verified || !welcomeInfo) {
+  if (authLoading || loadingPublic || loadingAuth || !verified || !welcomeInfo) {
     return (
       <div className="min-h-screen grid place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
