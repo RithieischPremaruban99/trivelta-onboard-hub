@@ -26,7 +26,6 @@ import {
   CheckCircle2,
   Send,
   Upload,
-  Link as LinkIcon,
   Phone,
   Palette,
   ScrollText,
@@ -259,6 +258,7 @@ function FormScreen() {
               icon={Phone}
               done={sectionDone["1"]}
               desc="Sportsbook, operational & compliance leads + Slack team emails"
+              sectionDesc="We'll use these contacts to set up your Slack channel and coordinate the onboarding."
             >
               <SectionContacts form={form} updateContact={updateContact} update={update} />
             </SectionShell>
@@ -268,7 +268,8 @@ function FormScreen() {
               title="Media & Branding"
               icon={Upload}
               done={sectionDone["2"]}
-              desc="Logo, icon and animation assets — upload directly or via Google Drive"
+              desc="Confirm logo, icon and animation uploads to Drive"
+              sectionDesc="Upload your brand assets to Drive. You can also create assets in Trivelta Studio after submitting."
             >
               <SectionMedia form={form} update={update} driveLink={welcomeInfo?.driveLink ?? null} />
             </SectionShell>
@@ -279,6 +280,7 @@ function FormScreen() {
               icon={Palette}
               done={sectionDone["3"]}
               desc="URL, country, DNS access and full brand colour system"
+              sectionDesc="Configure your platform URL, country, and color scheme."
             >
               <SectionPlatform form={form} update={update} />
             </SectionShell>
@@ -289,6 +291,7 @@ function FormScreen() {
               icon={ScrollText}
               done={sectionDone["4"]}
               desc="Footer requirements, landing page and policy URLs"
+              sectionDesc="These pages are required by law in most jurisdictions. Trivelta can help if you don't have them yet."
             >
               <SectionLegal form={form} update={update} />
             </SectionShell>
@@ -299,6 +302,7 @@ function FormScreen() {
               icon={Plug}
               done={sectionDone["5"]}
               desc="PSP, KYC, SMS, DUNS, Zendesk and analytics"
+              sectionDesc="Select your payment providers and integrations. Your AM will contact each provider on your behalf."
             >
               <SectionThirdParty form={form} update={update} />
             </SectionShell>
@@ -364,8 +368,8 @@ function FormScreen() {
 
 /* ─── Section shell ───────────────────────────────────────────── */
 
-function SectionShell({ id, num, title, icon: Icon, done, desc, children }: {
-  id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; children: React.ReactNode;
+function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, children }: {
+  id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; sectionDesc?: string; children: React.ReactNode;
 }) {
   return (
     <AccordionItem
@@ -394,7 +398,12 @@ function SectionShell({ id, num, title, icon: Icon, done, desc, children }: {
           </div>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-5 pt-5 pb-6">{children}</AccordionContent>
+      <AccordionContent className="px-5 pt-5 pb-6">
+        {sectionDesc && (
+          <p className="mb-4 text-[13px] text-muted-foreground leading-relaxed border-b border-border pb-4">{sectionDesc}</p>
+        )}
+        {children}
+      </AccordionContent>
     </AccordionItem>
   );
 }
@@ -437,15 +446,95 @@ function SubCard({ title, children }: { title?: string; children: React.ReactNod
   );
 }
 
+function ValidatedInput({
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  pattern,
+  errorMessage,
+}: {
+  type?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+  pattern?: RegExp;
+  errorMessage?: string;
+}) {
+  const [touched, setTouched] = useState(false);
+  const invalid = touched && !!value && !!pattern && !pattern.test(value);
+  return (
+    <div>
+      <Input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => setTouched(true)}
+        className={invalid ? "border-destructive focus-visible:ring-destructive/50" : ""}
+      />
+      {invalid && errorMessage && (
+        <p className="mt-1 text-[11px] text-destructive">{errorMessage}</p>
+      )}
+    </div>
+  );
+}
+
+function YesNoSkip({ value, onChange, idPrefix }: {
+  value: "yes" | "no" | "skip" | "";
+  onChange: (v: "yes" | "no" | "skip") => void;
+  idPrefix: string;
+}) {
+  return (
+    <RadioGroup value={value} onValueChange={(v) => onChange(v as "yes" | "no" | "skip")} className="flex gap-6 pt-1">
+      <div className="flex items-center gap-2">
+        <RadioGroupItem id={`${idPrefix}-yes`} value="yes" />
+        <Label htmlFor={`${idPrefix}-yes`} className="cursor-pointer font-normal text-foreground/85">Yes</Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <RadioGroupItem id={`${idPrefix}-no`} value="no" />
+        <Label htmlFor={`${idPrefix}-no`} className="cursor-pointer font-normal text-foreground/85">No</Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <RadioGroupItem id={`${idPrefix}-skip`} value="skip" />
+        <Label htmlFor={`${idPrefix}-skip`} className="cursor-pointer font-normal text-foreground/85">Skip</Label>
+      </div>
+    </RadioGroup>
+  );
+}
+
 /* ─── Section 1: Contacts ─────────────────────────────────────── */
 
 function ContactBlockEditor({ title, value, onChange }: { title: string; value: ContactBlock; onChange: (field: keyof ContactBlock, v: string) => void }) {
   return (
     <SubCard title={title}>
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Full name *</Label><Input value={value.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Jane Smith" /></div>
-        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Email *</Label><Input type="email" value={value.email} onChange={(e) => onChange("email", e.target.value)} placeholder="jane@company.com" /></div>
-        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Phone *</Label><Input value={value.phone} onChange={(e) => onChange("phone", e.target.value)} placeholder="+234 800 000 0000" /></div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Full name *</Label>
+          <Input value={value.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Jane Smith" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Email *</Label>
+          <ValidatedInput
+            type="email"
+            value={value.email}
+            onChange={(v) => onChange("email", v)}
+            placeholder="name@company.com"
+            pattern={/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/}
+            errorMessage="Please enter a valid email address"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Phone *</Label>
+          <ValidatedInput
+            type="tel"
+            value={value.phone}
+            onChange={(v) => onChange("phone", v)}
+            placeholder="+234 801 234 5678"
+            pattern={/^\+?[0-9\s\-()\u200b]{7,20}$/}
+            errorMessage="Please enter a valid phone number"
+          />
+        </div>
       </div>
     </SubCard>
   );
@@ -471,93 +560,57 @@ function SectionContacts({ form, updateContact, update }: {
 
 /* ─── Section 2: Media & Branding ────────────────────────────── */
 
-function FileUploadZone({
-  label, value, onChange, required, driveLink,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  required?: boolean;
-  driveLink: string | null;
-}) {
-  const handleOpenDrive = () => {
-    if (driveLink) {
-      window.open(driveLink, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      <Label className="text-xs font-medium">
-        {label}{required && <span className="text-destructive ml-0.5">*</span>}
-      </Label>
-
-      {/* Drive folder zone */}
-      <button
-        type="button"
-        onClick={handleOpenDrive}
-        disabled={!driveLink}
-        className={cn(
-          "w-full rounded-lg border-2 border-dashed p-4 transition-colors",
-          driveLink
-            ? "border-border bg-card hover:border-primary/50 hover:bg-accent/40 cursor-pointer"
-            : "border-border bg-muted/30 cursor-not-allowed opacity-60",
-        )}
-      >
-        <div className="flex flex-col items-center gap-1.5">
-          <Upload className="h-5 w-5 text-muted-foreground" />
-          <p className="text-xs text-foreground">
-            {driveLink ? "Open Google Drive folder" : "No Drive folder set"}
-          </p>
-          <p className="text-[10px] text-muted-foreground">Upload your file there</p>
-        </div>
-      </button>
-
-      <p className="text-[10px] text-muted-foreground leading-snug">
-        Click to open your Google Drive folder → upload your files there
-      </p>
-
-      {/* Optional paste-back link */}
-      <div className="space-y-1 pt-1">
-        <Label className="text-[10px] text-muted-foreground font-normal">
-          Paste the file link from Drive (optional)
-        </Label>
-        <div className="flex items-center gap-2">
-          <LinkIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Input
-            placeholder="https://drive.google.com/…"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="font-mono text-xs"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SectionMedia({ form, update, driveLink }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   driveLink: string | null;
 }) {
   return (
-    <div className="grid gap-5 md:grid-cols-3">
-      <FileUploadZone
-        label="Logo" required driveLink={driveLink}
-        value={form.logo_drive_link}
-        onChange={(v) => update("logo_drive_link", v)}
-      />
-      <FileUploadZone
-        label="Icon" required driveLink={driveLink}
-        value={form.icon_drive_link}
-        onChange={(v) => update("icon_drive_link", v)}
-      />
-      <FileUploadZone
-        label="Animation" driveLink={driveLink}
-        value={form.animation_drive_link}
-        onChange={(v) => update("animation_drive_link", v)}
-      />
+    <div className="space-y-5">
+      {/* Info banner */}
+      <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
+        <div className="flex gap-2.5">
+          <span className="shrink-0 text-base">📁</span>
+          <div>
+            <button
+              type="button"
+              onClick={() => driveLink && window.open(driveLink, "_blank", "noopener,noreferrer")}
+              disabled={!driveLink}
+              className={cn(
+                "font-medium text-primary underline-offset-2 hover:underline",
+                !driveLink && "cursor-not-allowed opacity-50",
+              )}
+            >
+              Click the upload zones to open your shared Google Drive folder
+            </button>
+            {" "}and upload your files there.
+            <p className="mt-1 text-muted-foreground">
+              After submitting this form, you'll get access to Trivelta Studio where you can generate logos, customize colors, and preview your platform live.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Logo */}
+      <SubCard>
+        <FieldGroup label="Have you uploaded your logo to the Google Drive folder?" required>
+          <YesNo value={form.logo_uploaded} onChange={(v) => update("logo_uploaded", v)} idPrefix="logo-uploaded" />
+        </FieldGroup>
+      </SubCard>
+
+      {/* Icon */}
+      <SubCard>
+        <FieldGroup label="Have you uploaded your app icon to the Google Drive folder?" required>
+          <YesNo value={form.icon_uploaded} onChange={(v) => update("icon_uploaded", v)} idPrefix="icon-uploaded" />
+        </FieldGroup>
+      </SubCard>
+
+      {/* Animation (optional) */}
+      <SubCard>
+        <FieldGroup label="Have you uploaded your animation files? (optional)">
+          <YesNoSkip value={form.animation_uploaded} onChange={(v) => update("animation_uploaded", v)} idPrefix="animation-uploaded" />
+        </FieldGroup>
+      </SubCard>
     </div>
   );
 }
@@ -568,7 +621,7 @@ function SectionPlatform({ form, update }: { form: FormShape; update: <K extends
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldGroup label="Platform URL" required><Input placeholder="https://yourbrand.com" value={form.platform_url} onChange={(e) => update("platform_url", e.target.value)} /></FieldGroup>
+        <FieldGroup label="Platform URL" required><Input placeholder="https://yourwebsite.com" value={form.platform_url} onChange={(e) => update("platform_url", e.target.value)} /></FieldGroup>
         <FieldGroup label="Country" required>
           <Select value={form.country} onValueChange={(v) => update("country", v)}>
             <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
@@ -621,11 +674,11 @@ function SectionLegal({ form, update }: { form: FormShape; update: <K extends ke
         <FieldGroup label="Landing page needed?" required><YesNo value={form.landing_page} onChange={(v) => update("landing_page", v)} idPrefix="landing" /></FieldGroup>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldGroup label="Terms & Conditions URL" required><Input placeholder="https://" value={form.terms_url} onChange={(e) => update("terms_url", e.target.value)} /></FieldGroup>
-        <FieldGroup label="Privacy Policy URL" required><Input placeholder="https://" value={form.privacy_url} onChange={(e) => update("privacy_url", e.target.value)} /></FieldGroup>
-        <FieldGroup label="Responsible Gaming URL" required><Input placeholder="https://" value={form.rg_url} onChange={(e) => update("rg_url", e.target.value)} /></FieldGroup>
+        <FieldGroup label="Terms & Conditions URL" required><Input placeholder="https://yourwebsite.com/terms" value={form.terms_url} onChange={(e) => update("terms_url", e.target.value)} /></FieldGroup>
+        <FieldGroup label="Privacy Policy URL" required><Input placeholder="https://yourwebsite.com/privacy" value={form.privacy_url} onChange={(e) => update("privacy_url", e.target.value)} /></FieldGroup>
+        <FieldGroup label="Responsible Gaming URL" required><Input placeholder="https://yourwebsite.com/responsible-gaming" value={form.rg_url} onChange={(e) => update("rg_url", e.target.value)} /></FieldGroup>
         {form.landing_page === "yes" && (
-          <FieldGroup label="Landing page URL" required><Input placeholder="https://" value={form.landing_page_url} onChange={(e) => update("landing_page_url", e.target.value)} /></FieldGroup>
+          <FieldGroup label="Landing page URL" required><Input placeholder="https://yourwebsite.com" value={form.landing_page_url} onChange={(e) => update("landing_page_url", e.target.value)} /></FieldGroup>
         )}
       </div>
     </div>
