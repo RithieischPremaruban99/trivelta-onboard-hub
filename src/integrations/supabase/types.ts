@@ -130,6 +130,8 @@ export type Database = {
           data: Json
           id: string
           studio_config: Json
+          studio_locked: boolean
+          studio_locked_at: string | null
           submitted_at: string | null
           updated_at: string
         }
@@ -139,6 +141,8 @@ export type Database = {
           data?: Json
           id?: string
           studio_config?: Json
+          studio_locked?: boolean
+          studio_locked_at?: string | null
           submitted_at?: string | null
           updated_at?: string
         }
@@ -148,6 +152,8 @@ export type Database = {
           data?: Json
           id?: string
           studio_config?: Json
+          studio_locked?: boolean
+          studio_locked_at?: string | null
           submitted_at?: string | null
           updated_at?: string
         }
