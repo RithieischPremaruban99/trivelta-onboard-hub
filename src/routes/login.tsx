@@ -61,27 +61,33 @@ function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <TriveltaNav
-        homeHref="/login"
-        right={
+      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-[60px] w-full max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
+          <Link to="/login" className="flex items-center gap-3">
+            <TriveltaLogo size="md" />
+            <span
+              className="border-l border-border pl-3 text-[13px] font-semibold uppercase text-white"
+              style={{ letterSpacing: "0.22em" }}
+            >
+              Trivelta Studio
+            </span>
+          </Link>
           <span className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex">
             <span className="text-primary">●</span> Onboarding Portal
           </span>
-        }
-      />
+        </div>
+      </header>
 
       {/* Hero */}
-      <main className="relative flex-1 overflow-hidden">
+      <main className="relative flex flex-1 items-center overflow-hidden">
         {/* Atmospheric orbs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="orb-1 absolute left-[5%] top-[8%] h-[560px] w-[560px] rounded-full bg-primary opacity-[0.09] blur-[130px]" />
           <div className="orb-2 absolute right-[5%] top-[18%] h-[460px] w-[460px] rounded-full bg-primary opacity-[0.07] blur-[130px]" />
         </div>
 
-        <div
-          className="relative mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-[1200px] items-center px-6 py-16 lg:px-12"
-        >
-          <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="relative mx-auto w-full max-w-[1200px] px-6 py-10 lg:px-12">
+          <div className="grid w-full grid-cols-1 items-start gap-12 lg:grid-cols-2 lg:gap-16">
             {/* LEFT — headline */}
             <div className="flex w-full max-w-[520px] flex-col">
               <h1
@@ -108,35 +114,6 @@ function LoginPage() {
                 Track contracts, branding, integrations, and go-live tasks — from kickoff to
                 post-launch.
               </p>
-
-              <div style={{ marginTop: "32px" }}>
-                <Button
-                  onClick={() => {
-                    document.getElementById("signin-card")?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "center",
-                    });
-                    document.getElementById("signin-email")?.focus();
-                  }}
-                  className="btn-trivelta inline-flex items-center"
-                  style={{
-                    height: "48px",
-                    padding: "0 28px",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    fontWeight: 600,
-                  }}
-                >
-                  Begin Onboarding <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
-                <div
-                  className="flex items-center gap-1.5 text-[13px]"
-                  style={{ color: "#6b7280", marginTop: "12px" }}
-                >
-                  <Lock className="h-3 w-3" />
-                  Secure access · Invited users only
-                </div>
-              </div>
 
               <div
                 style={{
