@@ -31,10 +31,50 @@ import {
   Plug,
   ExternalLink,
   Info,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TriveltaNav } from "@/components/TriveltaNav";
+
+/* ─── Per-section field progress ─────────────────────────────── */
+
+function sectionFieldStats(id: string, f: FormShape): { filled: number; total: number } {
+  switch (id) {
+    case "1": {
+      const checks = [
+        !!f.contact_sportsbook.name, !!f.contact_sportsbook.email, !!f.contact_sportsbook.phone,
+        !!f.contact_operational.name, !!f.contact_operational.email, !!f.contact_operational.phone,
+        !!f.contact_compliance.name, !!f.contact_compliance.email, !!f.contact_compliance.phone,
+      ];
+      return { filled: checks.filter(Boolean).length, total: 9 };
+    }
+    case "2": {
+      const checks = [f.asset_company_logo, f.asset_app_name_logo, f.asset_top_left_icon];
+      return { filled: checks.filter(Boolean).length, total: 3 };
+    }
+    case "3": {
+      const checks = [!!f.platform_url, !!f.country, !!f.dns_provider, !!f.dns_access];
+      return { filled: checks.filter(Boolean).length, total: checks.length };
+    }
+    case "4": {
+      const needsLP = f.landing_page === "yes";
+      const checks = [
+        !!f.footer_required, !!f.landing_page,
+        !!f.terms_url, !!f.privacy_url, !!f.rg_url,
+        ...(needsLP ? [!!f.landing_page_url] : []),
+      ];
+      return { filled: checks.filter(Boolean).length, total: checks.length };
+    }
+    case "5": {
+      const pspOk = f.psp_opay || f.psp_palmpay || f.psp_paystack;
+      const smsOk = f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
+      const checks = [pspOk, !!f.kyc_surt, smsOk, !!f.duns_status, !!f.zendesk];
+      return { filled: checks.filter(Boolean).length, total: 5 };
+    }
+    default: return { filled: 0, total: 0 };
+  }
+}
 
 /* ─── Presence types & helpers ───────────────────────────────── */
 
@@ -275,6 +315,8 @@ function FormScreen() {
   const { filled, total } = useMemo(() => countRequiredFields(form), [form]);
   const completion = useMemo(() => Math.round((filled / total) * 100), [filled, total]);
   const isOwner = clientRole === "client_owner";
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [shakeErrors, setShakeErrors] = useState(false);
 
   const update = <K extends keyof FormShape>(key: K, value: FormShape[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -300,7 +342,7 @@ function FormScreen() {
     }
   };
 
-  const handleSubmit = async () => {
+  const executeSubmit = async () => {
     if (!isFormComplete(form) || !isOwner) return;
     setSubmitting(true);
 
@@ -345,6 +387,52 @@ function FormScreen() {
 
     navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
     setSubmitting(false);
+  };
+
+  const handleSubmit = () => {
+    if (!isOwner) return;
+    if (isFormComplete(form)) {
+      executeSubmit();
+      return;
+    }
+
+    // Mark as attempted — triggers red borders + error messages in all sections
+    setSubmitAttempted(true);
+    setShakeErrors(true);
+    setTimeout(() => setShakeErrors(false), 500);
+
+    // Find incomplete sections
+    const SECTION_NAMES: Record<string, string> = {
+      "1": "Team Contacts",
+      "2": "Media & Branding",
+      "3": "Platform Setup",
+      "4": "Legal & Policies",
+      "5": "3rd Party",
+    };
+    const incomplete = ["1", "2", "3", "4", "5"].filter((id) => !sectionDone[id]);
+    const firstIncomplete = incomplete[0];
+
+    // Open the first incomplete section
+    if (firstIncomplete && !open.includes(firstIncomplete)) {
+      setOpen((prev) => [...prev, firstIncomplete]);
+    }
+
+    // Scroll to first incomplete section after opening
+    setTimeout(() => {
+      const el = document.querySelector(`[data-section-id="${firstIncomplete}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+
+    // Build summary of missing fields per section
+    const missingParts = incomplete.map((id) => {
+      const { filled, total } = sectionFieldStats(id, form);
+      return `Section ${id.padStart(2, "0")} — ${SECTION_NAMES[id]}: ${total - filled} field${total - filled !== 1 ? "s" : ""} missing`;
+    });
+
+    toast.error(
+      `Please complete all required fields before submitting.\n${missingParts.join("\n")}`,
+      { duration: 6000, style: { whiteSpace: "pre-line" } },
+    );
   };
 
   if (authLoading || loading || loadingPublic || loadingAuth) {
@@ -400,6 +488,12 @@ function FormScreen() {
               { id: "5", label: "05 3rd Party" },
             ].map((s) => {
               const done = sectionDone[s.id];
+              const { filled } = sectionFieldStats(s.id, form);
+              const hasError = submitAttempted && !done;
+              const status = done ? "complete"
+                : hasError ? "error"
+                : filled > 0 ? "progress"
+                : "empty";
               return (
                 <button
                   key={s.id}
@@ -410,12 +504,16 @@ function FormScreen() {
                   }
                   className={cn(
                     "flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] transition-colors",
-                    done
-                      ? "border-success/40 bg-success/10 text-success"
-                      : "border-border bg-card text-muted-foreground hover:text-foreground",
+                    status === "complete" && "border-success/40 bg-success/10 text-success",
+                    status === "error"    && "border-destructive/40 bg-destructive/10 text-destructive",
+                    status === "progress" && "border-primary/40 bg-primary/10 text-primary",
+                    status === "empty"    && "border-border bg-card text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {done ? <CheckCircle2 className="h-3 w-3" /> : null}
+                  {status === "complete" && <CheckCircle2 className="h-3 w-3" />}
+                  {status === "error"    && <AlertTriangle className="h-3 w-3" />}
+                  {status === "progress" && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                  {status === "empty"    && <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />}
                   {s.label}
                 </button>
               );
@@ -433,8 +531,11 @@ function FormScreen() {
               desc="Sportsbook, operational & compliance leads + Slack team emails"
               sectionDesc="We'll use these contacts to set up your Slack channel and coordinate the onboarding."
               presenceUsers={otherUsers}
+              fieldCount={sectionFieldStats("1", form)}
+              hasError={submitAttempted && !sectionDone["1"]}
+              shakeErrors={shakeErrors}
             >
-              <SectionContacts form={form} updateContact={updateContact} update={update} />
+              <SectionContacts form={form} updateContact={updateContact} update={update} showErrors={submitAttempted} />
             </SectionShell>
             <SectionShell
               id="2"
@@ -445,8 +546,11 @@ function FormScreen() {
               desc="Confirm logo, icon and animation uploads to Drive"
               sectionDesc="Upload your brand assets to Drive. You can also create assets in Trivelta Studio after submitting."
               presenceUsers={otherUsers}
+              fieldCount={sectionFieldStats("2", form)}
+              hasError={submitAttempted && !sectionDone["2"]}
+              shakeErrors={shakeErrors}
             >
-              <SectionMedia form={form} update={update} driveLink={welcomeInfo?.driveLink ?? null} />
+              <SectionMedia form={form} update={update} driveLink={welcomeInfo?.driveLink ?? null} showErrors={submitAttempted} />
             </SectionShell>
             <SectionShell
               id="3"
@@ -457,8 +561,11 @@ function FormScreen() {
               desc="URL, country and DNS access"
               sectionDesc="Configure your platform URL, country, and DNS access. Colors are set in Trivelta Studio."
               presenceUsers={otherUsers}
+              fieldCount={sectionFieldStats("3", form)}
+              hasError={submitAttempted && !sectionDone["3"]}
+              shakeErrors={shakeErrors}
             >
-              <SectionPlatform form={form} update={update} />
+              <SectionPlatform form={form} update={update} showErrors={submitAttempted} />
             </SectionShell>
             <SectionShell
               id="4"
@@ -469,8 +576,11 @@ function FormScreen() {
               desc="Footer requirements, landing page and policy URLs"
               sectionDesc="These pages are required by law in most jurisdictions. Trivelta can help if you don't have them yet."
               presenceUsers={otherUsers}
+              fieldCount={sectionFieldStats("4", form)}
+              hasError={submitAttempted && !sectionDone["4"]}
+              shakeErrors={shakeErrors}
             >
-              <SectionLegal form={form} update={update} />
+              <SectionLegal form={form} update={update} showErrors={submitAttempted} />
             </SectionShell>
             <SectionShell
               id="5"
@@ -481,8 +591,11 @@ function FormScreen() {
               desc="PSP, KYC, SMS, DUNS, Zendesk and analytics"
               sectionDesc="Select your payment providers and integrations. Your AM will contact each provider on your behalf."
               presenceUsers={otherUsers}
+              fieldCount={sectionFieldStats("5", form)}
+              hasError={submitAttempted && !sectionDone["5"]}
+              shakeErrors={shakeErrors}
             >
-              <SectionThirdParty form={form} update={update} />
+              <SectionThirdParty form={form} update={update} showErrors={submitAttempted} />
             </SectionShell>
           </Accordion>
         </div>
@@ -494,8 +607,8 @@ function FormScreen() {
           <div>
             <div className="text-sm font-medium text-foreground">
               {isFormComplete(form)
-                ? "All sections complete - ready to submit"
-                : `Complete all required fields to submit (${total - filled} remaining)`}
+                ? "All sections complete — ready to submit"
+                : `${filled} of ${total} required fields complete`}
             </div>
             <div className="mt-0.5 text-[12px] text-muted-foreground">
               {isOwner
@@ -507,12 +620,12 @@ function FormScreen() {
             {isOwner ? (
               <Button
                 onClick={handleSubmit}
-                disabled={!isFormComplete(form) || submitting}
+                disabled={submitting}
                 className={cn(
                   "h-11 min-w-[200px] px-6 font-medium",
                   isFormComplete(form)
                     ? "btn-trivelta"
-                    : "rounded-full bg-secondary text-muted-foreground cursor-not-allowed",
+                    : "rounded-full bg-secondary text-muted-foreground hover:bg-secondary/80",
                 )}
               >
                 {submitting ? (
@@ -546,18 +659,22 @@ function FormScreen() {
 
 /* ─── Section shell ───────────────────────────────────────────── */
 
-function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, presenceUsers = [], children }: {
-  id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; sectionDesc?: string; presenceUsers?: PresenceUser[]; children: React.ReactNode;
+function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, presenceUsers = [], fieldCount, hasError, shakeErrors, children }: {
+  id: string; num: string; title: string; icon: React.ElementType; done: boolean; desc: string; sectionDesc?: string; presenceUsers?: PresenceUser[]; fieldCount?: { filled: number; total: number }; hasError?: boolean; shakeErrors?: boolean; children: React.ReactNode;
 }) {
   const here = presenceUsers.filter((u) => u.current_section === id);
   const isTyping = here.some((u) => Date.now() - new Date(u.last_active).getTime() < 8_000);
+  const pct = fieldCount && fieldCount.total > 0 ? Math.round((fieldCount.filled / fieldCount.total) * 100) : 0;
 
   return (
     <AccordionItem
       value={id}
+      data-section-id={id}
       className={cn(
         "overflow-hidden rounded-xl border border-border bg-card transition-colors",
         done && "ring-1 ring-success/25",
+        hasError && shakeErrors && "field-error-shake",
+        hasError && !done && "border-destructive/30",
       )}
     >
       <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-secondary/40 transition-colors [&[data-state=open]]:border-b [&[data-state=open]]:border-border">
@@ -565,16 +682,36 @@ function SectionShell({ id, num, title, icon: Icon, done, desc, sectionDesc, pre
           <div
             className={cn(
               "grid h-8 w-8 place-items-center rounded-lg shrink-0",
-              done ? "bg-success/15 text-success" : "bg-primary/10 text-primary",
+              done ? "bg-success/15 text-success" : hasError ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary",
             )}
           >
-            {done ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+            {done ? <CheckCircle2 className="h-4 w-4" /> : hasError ? <AlertTriangle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
           </div>
           <div className="text-left min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className={cn("font-mono text-[10px]", done ? "text-success" : "text-primary")}>{num}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={cn("font-mono text-[10px]", done ? "text-success" : hasError ? "text-destructive" : "text-primary")}>{num}</span>
               <span className="text-sm font-semibold text-foreground">{title}</span>
+              {fieldCount && fieldCount.total > 0 && (
+                <span className={cn(
+                  "ml-auto font-mono text-[10px]",
+                  done ? "text-success" : hasError ? "text-destructive" : pct > 0 ? "text-primary" : "text-muted-foreground",
+                )}>
+                  {fieldCount.filled}/{fieldCount.total} fields
+                </span>
+              )}
             </div>
+            {/* Mini progress bar */}
+            {fieldCount && fieldCount.total > 0 && (
+              <div className="mt-1.5 h-[3px] w-full rounded-full bg-border/60">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-300",
+                    done ? "bg-success" : hasError ? "bg-destructive/60" : pct > 0 ? "bg-primary" : "bg-border",
+                  )}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            )}
             <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{desc}</div>
           </div>
           {/* Mini presence avatars in trigger */}
@@ -686,6 +823,8 @@ function ValidatedInput({
   onChange,
   pattern,
   errorMessage,
+  forceError,
+  requiredMessage,
 }: {
   type?: string;
   placeholder?: string;
@@ -693,9 +832,13 @@ function ValidatedInput({
   onChange: (v: string) => void;
   pattern?: RegExp;
   errorMessage?: string;
+  forceError?: boolean;
+  requiredMessage?: string;
 }) {
   const [touched, setTouched] = useState(false);
-  const invalid = touched && !!value && !!pattern && !pattern.test(value);
+  const patternInvalid = touched && !!value && !!pattern && !pattern.test(value);
+  const showEmpty = !!forceError && !value;
+  const isInvalid = patternInvalid || showEmpty;
   return (
     <div>
       <Input
@@ -704,9 +847,12 @@ function ValidatedInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => setTouched(true)}
-        className={invalid ? "border-destructive focus-visible:ring-destructive/50" : ""}
+        className={isInvalid ? "border-destructive focus-visible:ring-destructive/50" : ""}
       />
-      {invalid && errorMessage && (
+      {showEmpty && requiredMessage && (
+        <p className="mt-1 text-[11px] text-destructive">{requiredMessage}</p>
+      )}
+      {patternInvalid && !showEmpty && errorMessage && (
         <p className="mt-1 text-[11px] text-destructive">{errorMessage}</p>
       )}
     </div>
@@ -738,13 +884,20 @@ function YesNoSkip({ value, onChange, idPrefix }: {
 
 /* ─── Section 1: Contacts ─────────────────────────────────────── */
 
-function ContactBlockEditor({ title, value, onChange }: { title: string; value: ContactBlock; onChange: (field: keyof ContactBlock, v: string) => void }) {
+function ContactBlockEditor({ title, value, onChange, showErrors }: { title: string; value: ContactBlock; onChange: (field: keyof ContactBlock, v: string) => void; showErrors?: boolean }) {
+  const reqErr = (v: string) => showErrors && !v ? "This field is required" : undefined;
   return (
     <SubCard title={title}>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Full name *</Label>
-          <Input value={value.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Jane Smith" />
+          <Input
+            value={value.name}
+            onChange={(e) => onChange("name", e.target.value)}
+            placeholder="Jane Smith"
+            className={cn(showErrors && !value.name ? "border-destructive focus-visible:ring-destructive/50" : "")}
+          />
+          {reqErr(value.name) && <p className="text-[11px] text-destructive">{reqErr(value.name)}</p>}
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Email *</Label>
@@ -755,6 +908,8 @@ function ContactBlockEditor({ title, value, onChange }: { title: string; value: 
             placeholder="name@company.com"
             pattern={/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/}
             errorMessage="Please enter a valid email address"
+            forceError={showErrors && !value.email}
+            requiredMessage="This field is required"
           />
         </div>
         <div className="space-y-1.5">
@@ -766,6 +921,8 @@ function ContactBlockEditor({ title, value, onChange }: { title: string; value: 
             placeholder="+234 801 234 5678"
             pattern={/^\+?[0-9\s\-()\u200b]{7,20}$/}
             errorMessage="Please enter a valid phone number"
+            forceError={showErrors && !value.phone}
+            requiredMessage="This field is required"
           />
         </div>
       </div>
@@ -773,16 +930,17 @@ function ContactBlockEditor({ title, value, onChange }: { title: string; value: 
   );
 }
 
-function SectionContacts({ form, updateContact, update }: {
+function SectionContacts({ form, updateContact, update, showErrors }: {
   form: FormShape;
   updateContact: (key: "contact_sportsbook" | "contact_operational" | "contact_compliance", field: keyof ContactBlock, value: string) => void;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
+  showErrors?: boolean;
 }) {
   return (
     <div className="space-y-4">
-      <ContactBlockEditor title="Sportsbook contact" value={form.contact_sportsbook} onChange={(f, v) => updateContact("contact_sportsbook", f, v)} />
-      <ContactBlockEditor title="Operational contact" value={form.contact_operational} onChange={(f, v) => updateContact("contact_operational", f, v)} />
-      <ContactBlockEditor title="Compliance contact" value={form.contact_compliance} onChange={(f, v) => updateContact("contact_compliance", f, v)} />
+      <ContactBlockEditor title="Sportsbook contact" value={form.contact_sportsbook} onChange={(f, v) => updateContact("contact_sportsbook", f, v)} showErrors={showErrors} />
+      <ContactBlockEditor title="Operational contact" value={form.contact_operational} onChange={(f, v) => updateContact("contact_operational", f, v)} showErrors={showErrors} />
+      <ContactBlockEditor title="Compliance contact" value={form.contact_compliance} onChange={(f, v) => updateContact("contact_compliance", f, v)} showErrors={showErrors} />
       <FieldGroup label="Slack team member emails">
         <Textarea placeholder="one email per line" value={form.slack_team_emails} onChange={(e) => update("slack_team_emails", e.target.value)} rows={4} />
         <p className="text-xs text-muted-foreground">We'll invite these emails to the shared Slack channel.</p>
@@ -817,6 +975,7 @@ function AssetRow({
   onChange,
   driveLink,
   required,
+  hasError,
 }: {
   label: string;
   spec: string;
@@ -824,9 +983,10 @@ function AssetRow({
   onChange: (v: boolean) => void;
   driveLink: string | null;
   required?: boolean;
+  hasError?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/30 px-4 py-3">
+    <div className={cn("flex items-center gap-3 rounded-lg border bg-background/30 px-4 py-3", hasError ? "border-destructive/50 bg-destructive/5" : "border-border/50")}>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-[13px] font-medium text-foreground">
           {label}
@@ -856,10 +1016,11 @@ function AssetGroup({ title, children }: { title: string; children: React.ReactN
   );
 }
 
-function SectionMedia({ form, update, driveLink }: {
+function SectionMedia({ form, update, driveLink, showErrors }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   driveLink: string | null;
+  showErrors?: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -880,6 +1041,7 @@ function SectionMedia({ form, update, driveLink }: {
           onChange={(v) => update("asset_company_logo", v)}
           driveLink={driveLink}
           required
+          hasError={showErrors && !form.asset_company_logo}
         />
         <AssetRow
           label="App Name Logo"
@@ -888,6 +1050,7 @@ function SectionMedia({ form, update, driveLink }: {
           onChange={(v) => update("asset_app_name_logo", v)}
           driveLink={driveLink}
           required
+          hasError={showErrors && !form.asset_app_name_logo}
         />
       </AssetGroup>
 
@@ -907,6 +1070,7 @@ function SectionMedia({ form, update, driveLink }: {
           onChange={(v) => update("asset_top_left_icon", v)}
           driveLink={driveLink}
           required
+          hasError={showErrors && !form.asset_top_left_icon}
         />
         <AssetRow
           label="Website Favicon"
@@ -973,19 +1137,40 @@ function SectionMedia({ form, update, driveLink }: {
 
 /* ─── Section 3: Platform Setup ──────────────────────────────── */
 
-function SectionPlatform({ form, update }: { form: FormShape; update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void }) {
+function SectionPlatform({ form, update, showErrors }: { form: FormShape; update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void; showErrors?: boolean }) {
+  const fe = (v: string | boolean) => showErrors && !v;
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldGroup label="Platform URL" required><Input placeholder="https://yourwebsite.com" value={form.platform_url} onChange={(e) => update("platform_url", e.target.value)} /></FieldGroup>
+        <FieldGroup label="Platform URL" required>
+          <Input
+            placeholder="https://yourwebsite.com"
+            value={form.platform_url}
+            onChange={(e) => update("platform_url", e.target.value)}
+            className={cn(fe(form.platform_url) ? "border-destructive focus-visible:ring-destructive/50" : "")}
+          />
+          {fe(form.platform_url) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
         <FieldGroup label="Country" required>
           <Select value={form.country} onValueChange={(v) => update("country", v)}>
-            <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+            <SelectTrigger className={cn(fe(form.country) ? "border-destructive" : "")}><SelectValue placeholder="Select country" /></SelectTrigger>
             <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
           </Select>
+          {fe(form.country) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
         </FieldGroup>
-        <FieldGroup label="DNS provider" required><Input placeholder="Cloudflare, GoDaddy, …" value={form.dns_provider} onChange={(e) => update("dns_provider", e.target.value)} /></FieldGroup>
-        <FieldGroup label="Grant DNS access?" required><YesNo value={form.dns_access} onChange={(v) => update("dns_access", v)} idPrefix="dns" /></FieldGroup>
+        <FieldGroup label="DNS provider" required>
+          <Input
+            placeholder="Cloudflare, GoDaddy, …"
+            value={form.dns_provider}
+            onChange={(e) => update("dns_provider", e.target.value)}
+            className={cn(fe(form.dns_provider) ? "border-destructive focus-visible:ring-destructive/50" : "")}
+          />
+          {fe(form.dns_provider) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
+        <FieldGroup label="Grant DNS access?" required>
+          <YesNo value={form.dns_access} onChange={(v) => update("dns_access", v)} idPrefix="dns" />
+          {fe(form.dns_access) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
       </div>
       <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.05] px-4 py-3.5">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -1002,19 +1187,58 @@ function SectionPlatform({ form, update }: { form: FormShape; update: <K extends
 
 /* ─── Section 4: Legal & Policies ────────────────────────────── */
 
-function SectionLegal({ form, update }: { form: FormShape; update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void }) {
+function SectionLegal({ form, update, showErrors }: { form: FormShape; update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void; showErrors?: boolean }) {
+  const fe = (v: string | boolean) => showErrors && !v;
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldGroup label="Footer required?" required><YesNo value={form.footer_required} onChange={(v) => update("footer_required", v)} idPrefix="footer" /></FieldGroup>
-        <FieldGroup label="Landing page needed?" required><YesNo value={form.landing_page} onChange={(v) => update("landing_page", v)} idPrefix="landing" /></FieldGroup>
+        <FieldGroup label="Footer required?" required>
+          <YesNo value={form.footer_required} onChange={(v) => update("footer_required", v)} idPrefix="footer" />
+          {fe(form.footer_required) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
+        <FieldGroup label="Landing page needed?" required>
+          <YesNo value={form.landing_page} onChange={(v) => update("landing_page", v)} idPrefix="landing" />
+          {fe(form.landing_page) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldGroup label="Terms & Conditions URL" required><Input placeholder="https://yourwebsite.com/terms" value={form.terms_url} onChange={(e) => update("terms_url", e.target.value)} /></FieldGroup>
-        <FieldGroup label="Privacy Policy URL" required><Input placeholder="https://yourwebsite.com/privacy" value={form.privacy_url} onChange={(e) => update("privacy_url", e.target.value)} /></FieldGroup>
-        <FieldGroup label="Responsible Gaming URL" required><Input placeholder="https://yourwebsite.com/responsible-gaming" value={form.rg_url} onChange={(e) => update("rg_url", e.target.value)} /></FieldGroup>
+        <FieldGroup label="Terms & Conditions URL" required>
+          <Input
+            placeholder="https://yourwebsite.com/terms"
+            value={form.terms_url}
+            onChange={(e) => update("terms_url", e.target.value)}
+            className={cn(fe(form.terms_url) ? "border-destructive focus-visible:ring-destructive/50" : "")}
+          />
+          {fe(form.terms_url) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
+        <FieldGroup label="Privacy Policy URL" required>
+          <Input
+            placeholder="https://yourwebsite.com/privacy"
+            value={form.privacy_url}
+            onChange={(e) => update("privacy_url", e.target.value)}
+            className={cn(fe(form.privacy_url) ? "border-destructive focus-visible:ring-destructive/50" : "")}
+          />
+          {fe(form.privacy_url) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
+        <FieldGroup label="Responsible Gaming URL" required>
+          <Input
+            placeholder="https://yourwebsite.com/responsible-gaming"
+            value={form.rg_url}
+            onChange={(e) => update("rg_url", e.target.value)}
+            className={cn(fe(form.rg_url) ? "border-destructive focus-visible:ring-destructive/50" : "")}
+          />
+          {fe(form.rg_url) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+        </FieldGroup>
         {form.landing_page === "yes" && (
-          <FieldGroup label="Landing page URL" required><Input placeholder="https://yourwebsite.com" value={form.landing_page_url} onChange={(e) => update("landing_page_url", e.target.value)} /></FieldGroup>
+          <FieldGroup label="Landing page URL" required>
+            <Input
+              placeholder="https://yourwebsite.com"
+              value={form.landing_page_url}
+              onChange={(e) => update("landing_page_url", e.target.value)}
+              className={cn(fe(form.landing_page_url) ? "border-destructive focus-visible:ring-destructive/50" : "")}
+            />
+            {fe(form.landing_page_url) && <p className="mt-1 text-[11px] text-destructive">This field is required</p>}
+          </FieldGroup>
         )}
       </div>
     </div>
@@ -1023,17 +1247,20 @@ function SectionLegal({ form, update }: { form: FormShape; update: <K extends ke
 
 /* ─── Section 5: 3rd Party ───────────────────────────────────── */
 
-function SectionThirdParty({ form, update }: { form: FormShape; update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void }) {
+function SectionThirdParty({ form, update, showErrors }: { form: FormShape; update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void; showErrors?: boolean }) {
+  const pspOk = form.psp_opay || form.psp_palmpay || form.psp_paystack;
+  const smsOk = form.sms_provider === "infobip" || (form.sms_provider === "other" && !!form.sms_provider_other);
   return (
     <div className="space-y-4">
       <SubCard title="Payment service providers *">
-        <div className="flex flex-wrap gap-5">
+        <div className={cn("flex flex-wrap gap-5 rounded-lg p-2 -m-2", showErrors && !pspOk ? "ring-1 ring-destructive/50 bg-destructive/5" : "")}>
           {[{ k: "psp_opay", label: "Opay" }, { k: "psp_palmpay", label: "PalmPay" }, { k: "psp_paystack", label: "Paystack" }].map((p) => (
             <label key={p.k} className="flex cursor-pointer items-center gap-2 text-sm text-foreground/85">
               <Checkbox checked={form[p.k as keyof FormShape] as boolean} onCheckedChange={(c) => update(p.k as keyof FormShape, !!c as never)} />{p.label}
             </label>
           ))}
         </div>
+        {showErrors && !pspOk && <p className="mt-2 text-[11px] text-destructive">Select at least one payment provider</p>}
         <div className="mt-4 space-y-1.5">
           <Label className="text-xs text-muted-foreground">Routing priority</Label>
           <Textarea placeholder="e.g. Paystack first, fallback to Opay…" value={form.psp_priority} onChange={(e) => update("psp_priority", e.target.value)} rows={2} />
@@ -1041,6 +1268,7 @@ function SectionThirdParty({ form, update }: { form: FormShape; update: <K exten
       </SubCard>
       <SubCard title="KYC SURT integration *">
         <YesNo value={form.kyc_surt} onChange={(v) => update("kyc_surt", v)} idPrefix="kyc" />
+        {showErrors && !form.kyc_surt && <p className="mt-2 text-[11px] text-destructive">This field is required</p>}
         <div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Notes</Label><Textarea value={form.kyc_notes} onChange={(e) => update("kyc_notes", e.target.value)} rows={2} /></div>
       </SubCard>
       <SubCard title="SMS provider *">
@@ -1048,7 +1276,8 @@ function SectionThirdParty({ form, update }: { form: FormShape; update: <K exten
           <div className="flex items-center gap-2"><RadioGroupItem id="sms-infobip" value="infobip" /><Label htmlFor="sms-infobip" className="cursor-pointer font-normal text-foreground/85">Infobip</Label></div>
           <div className="flex items-center gap-2"><RadioGroupItem id="sms-other" value="other" /><Label htmlFor="sms-other" className="cursor-pointer font-normal text-foreground/85">Other</Label></div>
         </RadioGroup>
-        {form.sms_provider === "other" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Provider name</Label><Input value={form.sms_provider_other} onChange={(e) => update("sms_provider_other", e.target.value)} /></div>)}
+        {showErrors && !smsOk && <p className="mt-2 text-[11px] text-destructive">This field is required</p>}
+        {form.sms_provider === "other" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Provider name</Label><Input value={form.sms_provider_other} onChange={(e) => update("sms_provider_other", e.target.value)} className={cn(showErrors && !form.sms_provider_other ? "border-destructive" : "")} /></div>)}
       </SubCard>
       <SubCard title="DUNS number *">
         <RadioGroup value={form.duns_status} onValueChange={(v) => update("duns_status", v as FormShape["duns_status"])} className="flex flex-wrap gap-6">
@@ -1056,10 +1285,12 @@ function SectionThirdParty({ form, update }: { form: FormShape; update: <K exten
             <div key={o.v} className="flex items-center gap-2"><RadioGroupItem id={`duns-${o.v}`} value={o.v} /><Label htmlFor={`duns-${o.v}`} className="cursor-pointer font-normal text-foreground/85">{o.label}</Label></div>
           ))}
         </RadioGroup>
+        {showErrors && !form.duns_status && <p className="mt-2 text-[11px] text-destructive">This field is required</p>}
         {form.duns_status === "have" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">DUNS number</Label><Input value={form.duns_number} onChange={(e) => update("duns_number", e.target.value)} className="font-mono" /></div>)}
       </SubCard>
       <SubCard title="Zendesk widget *">
         <YesNo value={form.zendesk} onChange={(v) => update("zendesk", v)} idPrefix="zendesk" />
+        {showErrors && !form.zendesk && <p className="mt-2 text-[11px] text-destructive">This field is required</p>}
         {form.zendesk === "yes" && (<div className="mt-4 space-y-1.5"><Label className="text-xs text-muted-foreground">Embed script</Label><Textarea placeholder="<script>…</script>" value={form.zendesk_script} onChange={(e) => update("zendesk_script", e.target.value)} rows={3} className="font-mono text-xs" /></div>)}
       </SubCard>
       <SubCard title="Analytics tags">
