@@ -95,14 +95,20 @@ export interface StudioAppIcons {
   appNameLogo: string | null;
 }
 
+export const defaultStudioAppIcons: StudioAppIcons = {
+  topLeftAppIcon: null,
+  appNameLogo: null,
+};
+
 export interface StudioState {
   themeColors: StudioThemeColors;
   setThemeColors: React.Dispatch<React.SetStateAction<StudioThemeColors>>;
   appLabels: StudioAppLabels;
+  appIcons: StudioAppIcons;
+  setAppIcons: React.Dispatch<React.SetStateAction<StudioAppIcons>>;
   previewMode: 'mobile' | 'website';
   setPreviewMode: (mode: 'mobile' | 'website') => void;
   headingFont: string;
-  appIcons: StudioAppIcons;
 }
 
 const StudioCtx = createContext<StudioState | null>(null);
@@ -113,11 +119,18 @@ export const useStudio = () => {
   return ctx;
 };
 
-export const StudioProvider: React.FC<{ children: React.ReactNode; initialColors?: StudioThemeColors }> = ({
-  children,
-  initialColors,
-}) => {
+export interface StudioSavedConfig {
+  colors?: Partial<StudioThemeColors>;
+  icons?: Partial<StudioAppIcons>;
+}
+
+export const StudioProvider: React.FC<{
+  children: React.ReactNode;
+  initialColors?: StudioThemeColors;
+  initialIcons?: StudioAppIcons;
+}> = ({ children, initialColors, initialIcons }) => {
   const [themeColors, setThemeColors] = useState<StudioThemeColors>(initialColors ?? defaultStudioColors);
+  const [appIcons, setAppIcons] = useState<StudioAppIcons>(initialIcons ?? defaultStudioAppIcons);
   const [previewMode, setPreviewMode] = useState<'mobile' | 'website'>('mobile');
 
   return (
@@ -126,10 +139,11 @@ export const StudioProvider: React.FC<{ children: React.ReactNode; initialColors
         themeColors,
         setThemeColors,
         appLabels: defaultAppLabels,
+        appIcons,
+        setAppIcons,
         previewMode,
         setPreviewMode,
         headingFont: 'Sora',
-        appIcons: { topLeftAppIcon: null, appNameLogo: null },
       }}
     >
       {children}
