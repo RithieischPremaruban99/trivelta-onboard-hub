@@ -66,15 +66,12 @@ function LoginPage() {
           <Link to="/login" className="flex items-center gap-3">
             <TriveltaLogo size="md" />
             <span
-              className="border-l border-border pl-3 text-[13px] font-semibold uppercase text-white"
-              style={{ letterSpacing: "0.22em" }}
+              className="border-l border-border pl-3 text-[15px] font-semibold uppercase text-white"
+              style={{ letterSpacing: "0.24em" }}
             >
-              Trivelta Studio
+              Studio
             </span>
           </Link>
-          <span className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex">
-            <span className="text-primary">●</span> Onboarding Portal
-          </span>
         </div>
       </header>
 
