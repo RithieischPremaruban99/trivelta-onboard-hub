@@ -66,8 +66,11 @@ function LoginPage() {
           <Link to="/login" className="flex items-center gap-3">
             <TriveltaLogo size="md" />
             <span
-              className="border-l border-border pl-3 text-[15px] font-semibold uppercase text-white"
-              style={{ letterSpacing: "0.24em" }}
+              className="pl-4 text-[15px] font-semibold uppercase text-white"
+              style={{
+                letterSpacing: "0.24em",
+                borderLeft: "2px solid rgba(255,255,255,0.85)",
+              }}
             >
               Studio
             </span>
