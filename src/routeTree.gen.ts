@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingClientIdRouteImport } from './routes/onboarding.$clientId'
 import { Route as OnboardingClientIdIndexRouteImport } from './routes/onboarding.$clientId.index'
 import { Route as OnboardingClientIdSuccessRouteImport } from './routes/onboarding.$clientId.success'
+import { Route as OnboardingClientIdStudioRouteImport } from './routes/onboarding.$clientId.studio'
 import { Route as OnboardingClientIdFormRouteImport } from './routes/onboarding.$clientId.form'
 import { Route as OnboardingClientIdAuthRouteImport } from './routes/onboarding.$clientId.auth'
 
@@ -61,6 +62,12 @@ const OnboardingClientIdSuccessRoute =
     path: '/success',
     getParentRoute: () => OnboardingClientIdRoute,
   } as any)
+const OnboardingClientIdStudioRoute =
+  OnboardingClientIdStudioRouteImport.update({
+    id: '/studio',
+    path: '/studio',
+    getParentRoute: () => OnboardingClientIdRoute,
+  } as any)
 const OnboardingClientIdFormRoute = OnboardingClientIdFormRouteImport.update({
   id: '/form',
   path: '/form',
@@ -81,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/$clientId': typeof OnboardingClientIdRouteWithChildren
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
+  '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
 }
@@ -92,6 +100,7 @@ export interface FileRoutesByTo {
   '/my-onboarding': typeof MyOnboardingRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
+  '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId': typeof OnboardingClientIdIndexRoute
 }
@@ -105,6 +114,7 @@ export interface FileRoutesById {
   '/onboarding/$clientId': typeof OnboardingClientIdRouteWithChildren
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
+  '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
 }
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId'
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
+    | '/onboarding/$clientId/studio'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/'
   fileRoutesByTo: FileRoutesByTo
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/my-onboarding'
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
+    | '/onboarding/$clientId/studio'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId'
   id:
@@ -142,6 +154,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId'
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
+    | '/onboarding/$clientId/studio'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/'
   fileRoutesById: FileRoutesById
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingClientIdSuccessRouteImport
       parentRoute: typeof OnboardingClientIdRoute
     }
+    '/onboarding/$clientId/studio': {
+      id: '/onboarding/$clientId/studio'
+      path: '/studio'
+      fullPath: '/onboarding/$clientId/studio'
+      preLoaderRoute: typeof OnboardingClientIdStudioRouteImport
+      parentRoute: typeof OnboardingClientIdRoute
+    }
     '/onboarding/$clientId/form': {
       id: '/onboarding/$clientId/form'
       path: '/form'
@@ -233,6 +253,7 @@ declare module '@tanstack/react-router' {
 interface OnboardingClientIdRouteChildren {
   OnboardingClientIdAuthRoute: typeof OnboardingClientIdAuthRoute
   OnboardingClientIdFormRoute: typeof OnboardingClientIdFormRoute
+  OnboardingClientIdStudioRoute: typeof OnboardingClientIdStudioRoute
   OnboardingClientIdSuccessRoute: typeof OnboardingClientIdSuccessRoute
   OnboardingClientIdIndexRoute: typeof OnboardingClientIdIndexRoute
 }
@@ -240,6 +261,7 @@ interface OnboardingClientIdRouteChildren {
 const OnboardingClientIdRouteChildren: OnboardingClientIdRouteChildren = {
   OnboardingClientIdAuthRoute: OnboardingClientIdAuthRoute,
   OnboardingClientIdFormRoute: OnboardingClientIdFormRoute,
+  OnboardingClientIdStudioRoute: OnboardingClientIdStudioRoute,
   OnboardingClientIdSuccessRoute: OnboardingClientIdSuccessRoute,
   OnboardingClientIdIndexRoute: OnboardingClientIdIndexRoute,
 }

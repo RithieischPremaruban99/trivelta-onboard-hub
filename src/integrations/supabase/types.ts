@@ -129,6 +129,7 @@ export type Database = {
           created_at: string
           data: Json
           id: string
+          studio_config: Json | null
           submitted_at: string | null
           updated_at: string
         }
@@ -137,6 +138,7 @@ export type Database = {
           created_at?: string
           data?: Json
           id?: string
+          studio_config?: Json | null
           submitted_at?: string | null
           updated_at?: string
         }
@@ -145,6 +147,7 @@ export type Database = {
           created_at?: string
           data?: Json
           id?: string
+          studio_config?: Json | null
           submitted_at?: string | null
           updated_at?: string
         }

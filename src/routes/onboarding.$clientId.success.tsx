@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Copy, ExternalLink, Mail, Loader2, MessagesSquare, FolderOpen } from "lucide-react";
+import { CheckCircle2, Copy, ExternalLink, Mail, Loader2, MessagesSquare, FolderOpen, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { TriveltaNav } from "@/components/TriveltaNav";
 
@@ -27,7 +27,7 @@ function initials(name: string | null | undefined) {
 
 function SuccessScreen() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/success" });
-  const { welcomeInfo, loadingPublic } = useOnboardingCtx();
+  const { welcomeInfo, loadingPublic, clientRole } = useOnboardingCtx();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
@@ -182,6 +182,25 @@ function SuccessScreen() {
                 </>
               )}
             </div>
+          </div>
+
+          {/* Platform Studio CTA */}
+          <div className="mb-6">
+            {clientRole === "client_owner" ? (
+              <button
+                onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
+                className="btn-trivelta flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-[15px] font-semibold shadow-lg transition-all hover:opacity-90"
+              >
+                <Palette className="h-5 w-5" />
+                Customize Your Platform
+                <span className="ml-1 opacity-70">→</span>
+              </button>
+            ) : (
+              <div className="surface-card flex items-center gap-3 px-5 py-4 text-[13px] text-muted-foreground">
+                <Palette className="h-4 w-4 flex-shrink-0" />
+                Platform customization is available to the account owner.
+              </div>
+            )}
           </div>
 
           {/* Timeline */}
