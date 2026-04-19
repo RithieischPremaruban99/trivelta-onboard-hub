@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Loader2, ExternalLink, Hash, FolderOpen, Globe, FileText, Inbox,
   Palette, Lock, CheckCircle2, Copy, Download, Clock, AlertCircle,
+  ShieldCheck, ShieldAlert, Unlock, Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ interface ClientLite {
   country: string | null;
   platform_url: string | null;
   drive_link: string | null;
+  studio_access_locked: boolean;
 }
 
 interface TaskRow {
@@ -139,7 +141,7 @@ function DashboardPage() {
       setLoading(true);
       const { data } = await supabase
         .from("clients")
-        .select("id, name, status, country, platform_url, drive_link")
+        .select("id, name, status, country, platform_url, drive_link, studio_access_locked")
         .order("created_at", { ascending: false });
       setClients((data ?? []) as ClientLite[]);
       if (data?.length) setSelectedId((data[0] as ClientLite).id);
@@ -210,6 +212,11 @@ function DashboardPage() {
               <ClientDetail
                 client={clients.find((c) => c.id === selectedId)!}
                 key={selectedId}
+                onStudioAccessChange={(clientId, locked) =>
+                  setClients((prev) =>
+                    prev.map((c) => c.id === clientId ? { ...c, studio_access_locked: locked } : c)
+                  )
+                }
               />
             ) : (
               <div className="surface-card grid place-items-center p-16 text-center text-sm text-muted-foreground">
@@ -225,13 +232,18 @@ function DashboardPage() {
 
 /* ── Client detail ──────────────────────────────────────────────────────── */
 
-function ClientDetail({ client }: { client: ClientLite }) {
+function ClientDetail({ client, onStudioAccessChange }: {
+  client: ClientLite;
+  onStudioAccessChange: (clientId: string, locked: boolean) => void;
+}) {
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [formData, setFormData] = useState<FormShape | null>(null);
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
   const [studioConfig, setStudioConfig] = useState<StudioSavedConfig | null>(null);
   const [studioLocked, setStudioLocked] = useState(false);
   const [studioLockedAt, setStudioLockedAt] = useState<string | null>(null);
+  const [studioAccessLocked, setStudioAccessLocked] = useState(client.studio_access_locked);
+  const [togglingAccess, setTogglingAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const slackChannel = `#client-${client.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-onboarding`;
@@ -288,6 +300,27 @@ function ClientDetail({ client }: { client: ClientLite }) {
   const copySlack = () => {
     navigator.clipboard.writeText(slackChannel);
     toast.success("Slack channel copied");
+  };
+
+  const toggleStudioAccess = async () => {
+    setTogglingAccess(true);
+    const next = !studioAccessLocked;
+    const { error } = await supabase
+      .from("clients")
+      .update({ studio_access_locked: next })
+      .eq("id", client.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setStudioAccessLocked(next);
+      onStudioAccessChange(client.id, next);
+      toast.success(
+        next
+          ? `Studio locked for ${client.name}`
+          : `Studio unlocked for ${client.name}`,
+      );
+    }
+    setTogglingAccess(false);
   };
 
   if (loading) {
@@ -358,6 +391,59 @@ function ClientDetail({ client }: { client: ClientLite }) {
               <div className="truncate text-xs">{client.platform_url ?? "Not set"}</div>
             </div>
           </a>
+        </div>
+      </div>
+
+      {/* Studio Access Control */}
+      <div className="surface-card p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10">
+              <Palette className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider">Studio Access</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Control whether the client can access Trivelta Studio.
+              </p>
+            </div>
+          </div>
+          {studioAccessLocked ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-[11px] font-medium text-destructive">
+              <ShieldAlert className="h-3 w-3" />
+              Studio Locked — client cannot access
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-[11px] font-medium text-success">
+              <ShieldCheck className="h-3 w-3" />
+              Studio Open — client can edit
+            </span>
+          )}
+        </div>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          {studioAccessLocked ? (
+            <button
+              onClick={toggleStudioAccess}
+              disabled={togglingAccess}
+              className="inline-flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-60"
+            >
+              {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
+              Unlock Studio Access
+            </button>
+          ) : (
+            <button
+              onClick={toggleStudioAccess}
+              disabled={togglingAccess}
+              className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-60"
+            >
+              {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+              Lock Studio Access
+            </button>
+          )}
+          <div className="flex items-start gap-1.5 rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+            <Info className="mt-0.5 h-3 w-3 shrink-0" />
+            Lock while implementing in TCM to prevent conflicting changes.
+          </div>
         </div>
       </div>
 
