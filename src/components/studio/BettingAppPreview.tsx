@@ -151,7 +151,7 @@ const LiveDot = () => (
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-function WebPreview({ appName }: { appName: string }) {
+function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
   const [activeNav, setActiveNav] = useState(1); // Sports
   const [activeSport, setActiveSport] = useState(0);
   const [activeLeague, setActiveLeague] = useState(0);
@@ -176,12 +176,16 @@ function WebPreview({ appName }: { appName: string }) {
         style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
       >
         <div className="flex items-center gap-1">
-          <div
-            className="h-6 w-6 rounded-full grid place-items-center mr-2 text-[9px] font-black"
-            style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
-          >
-            {appName.slice(0, 1)}
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="h-6 mr-2 object-contain max-w-[100px]" />
+          ) : (
+            <div
+              className="h-6 w-6 rounded-full grid place-items-center mr-2 text-[9px] font-black"
+              style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+            >
+              {appName.slice(0, 1)}
+            </div>
+          )}
           {NAV.map((n, i) => {
             const Icon = n.icon;
             const active = activeNav === i;
@@ -622,7 +626,7 @@ function WebPreview({ appName }: { appName: string }) {
 
 /* ─── MOBILE VERSION ──────────────────────────────────────────────────── */
 
-function MobilePreview({ appName, currencySymbol }: { appName: string; currencySymbol: string }) {
+function MobilePreview({ appName, currencySymbol, logoUrl }: { appName: string; currencySymbol: string; logoUrl?: string | null }) {
   const [activeNav, setActiveNav] = useState(1);
   const [activeSport, setActiveSport] = useState(0);
   const [activeLeague, setActiveLeague] = useState(0);
@@ -643,12 +647,16 @@ function MobilePreview({ appName, currencySymbol }: { appName: string; currencyS
     >
       {/* Top bar */}
       <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
-        <div
-          className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
-          style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
-        >
-          {appName.slice(0, 1)}
-        </div>
+        {logoUrl ? (
+          <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
+        ) : (
+          <div
+            className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
+            style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+          >
+            {appName.slice(0, 1)}
+          </div>
+        )}
         <div
           className="flex items-center gap-1.5 px-2.5 h-6 rounded-full"
           style={{ background: "var(--p-card)" }}
@@ -919,7 +927,7 @@ function MobilePreview({ appName, currencySymbol }: { appName: string; currencyS
 /* ─── Main exported component ─────────────────────────────────────────── */
 
 const BettingAppPreview = () => {
-  const { themeColors, appLabels, previewMode, headingFont } = useStudio();
+  const { themeColors, appLabels, appIcons, previewMode, headingFont } = useStudio();
   const isMobile = previewMode === "mobile";
 
   const previewVars = {
@@ -961,7 +969,7 @@ const BettingAppPreview = () => {
             background: "var(--p-bg)",
           }}
         >
-          <MobilePreview appName={appLabels.appName} currencySymbol={appLabels.currencySymbol} />
+          <MobilePreview appName={appLabels.appName} currencySymbol={appLabels.currencySymbol} logoUrl={appIcons.appNameLogo} />
         </div>
       ) : (
         <div
@@ -973,7 +981,7 @@ const BettingAppPreview = () => {
             background: "var(--p-bg)",
           }}
         >
-          <WebPreview appName={appLabels.appName} />
+          <WebPreview appName={appLabels.appName} logoUrl={appIcons.appNameLogo} />
         </div>
       )}
     </div>

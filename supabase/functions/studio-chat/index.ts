@@ -204,9 +204,9 @@ Deno.serve(async (req) => {
       JSON.stringify({
         text: cleanText,
         config,
-        // Flat shape matching what studio.tsx destructures: { imageUrl, imageType }
         imageUrl: imageUrl ?? null,
         imageType: imageUrl ? (imageReq?.kind ?? "logo") : null,
+        requiredSize: imageUrl ? (imageReq?.kind === "logo" ? "1792x1024" : "1024x1024") : null,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

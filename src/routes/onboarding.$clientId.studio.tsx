@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   Send, Loader2, Smartphone, Monitor, Sparkles,
   RefreshCw, CheckCircle2, Upload, ArrowRight,
-  Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown,
+  Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown, Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -218,6 +218,16 @@ function AssetUploadZone({
           </div>
         )}
       </button>
+      {currentUrl && !readOnly && (
+        <a
+          href={currentUrl}
+          download={type === "logo" ? "logo.png" : "app-icon.png"}
+          onClick={(e) => e.stopPropagation()}
+          className="mt-1.5 flex items-center justify-center gap-1.5 rounded-lg border border-border/50 px-3 py-1 text-[10px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+        >
+          <Download className="h-3 w-3" /> Download
+        </a>
+      )}
     </div>
   );
 }
@@ -278,6 +288,14 @@ function ImageMessage({
             <RefreshCw className="h-3 w-3" /> Try again
           </button>
         )}
+        <a
+          href={msg.imageUrl}
+          download="trivelta-logo.png"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
+          style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <Download className="h-3 w-3" /> Download PNG
+        </a>
       </div>
     </div>
   );
