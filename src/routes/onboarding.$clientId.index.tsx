@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { ArrowRight, Lock, Loader2, Mail } from "lucide-react";
@@ -23,21 +22,12 @@ function initials(name: string | null | undefined) {
 
 function WelcomeGate() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/" });
-  const { welcomeInfo, clientRole, loadingPublic, loadingAuth } = useOnboardingCtx();
-  const { user, loading: authLoading } = useAuth();
+  const { welcomeInfo, loadingPublic } = useOnboardingCtx();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (authLoading || loadingAuth) return;
-    if (user && clientRole) {
-      navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
-    }
-  }, [user, clientRole, authLoading, loadingAuth]);
-
-  // Show spinner while: public data loading, auth resolving, or logged-in user
-  // waiting for role check (prevents welcome gate flash before redirect fires)
-  const stillResolving = loadingPublic || authLoading || (!!user && loadingAuth);
-  if (stillResolving) {
+  // Only block while the public welcome data is loading (needed to render the page)
+  if (loadingPublic) {
     return (
       <div className="min-h-screen grid place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -103,7 +93,9 @@ function WelcomeGate() {
               <Button
                 size="lg"
                 onClick={() =>
-                  navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })
+                  user
+                    ? navigate({ to: "/onboarding/$clientId/form", params: { clientId } })
+                    : navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })
                 }
                 className="btn-trivelta h-12 px-8 text-[15px]"
               >
