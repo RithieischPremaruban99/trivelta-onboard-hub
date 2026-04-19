@@ -32,7 +32,13 @@ import {
   Copy,
   ExternalLink,
   Mail,
+  Lock,
 } from "lucide-react";
+import {
+  defaultStudioColors,
+  type StudioThemeColors,
+  type StudioSavedConfig,
+} from "@/contexts/StudioContext";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/onboarding-schema";
 import { AmAvatars, type AmLite } from "@/components/AmAvatars";
@@ -64,12 +70,17 @@ function AdminPage() {
   const [ams, setAms] = useState<AmLite[]>([]);
   // clientId -> list of AM emails
   const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
+  const [studioData, setStudioData] = useState<Record<string, {
+    config: StudioSavedConfig | null;
+    locked: boolean;
+    lockedAt: string | null;
+  }>>({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amAssignmentsRes, tasksRes, camRes] = await Promise.all([
+    const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes] = await Promise.all([
       supabase
         .from("clients")
         .select("id, name, country, status, drive_link, platform_url, primary_contact_email, created_at")
@@ -77,8 +88,20 @@ function AdminPage() {
       supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
       supabase.from("client_account_managers").select("client_id, am_email"),
+      supabase.from("onboarding_forms").select("client_id, studio_config, studio_locked, studio_locked_at"),
     ]);
     setClients((clientsRes.data ?? []) as ClientRow[]);
+
+    const sdMap: Record<string, { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null }> = {};
+    ((studioRes.data ?? []) as Array<{ client_id: string; studio_config: unknown; studio_locked: boolean | null; studio_locked_at: string | null }>)
+      .forEach((r) => {
+        sdMap[r.client_id] = {
+          config: (r.studio_config as StudioSavedConfig | null) ?? null,
+          locked: r.studio_locked ?? false,
+          lockedAt: r.studio_locked_at ?? null,
+        };
+      });
+    setStudioData(sdMap);
 
     const amList: AmLite[] = ((amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>)
       .map((r) => ({ email: r.email, name: r.name }))
@@ -183,6 +206,7 @@ function AdminPage() {
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Status</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Progress</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Created</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Studio</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Onboarding link</th>
                   </tr>
                 </thead>
@@ -225,6 +249,12 @@ function AdminPage() {
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground font-mono whitespace-nowrap">
                           {new Date(c.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StudioConfigCell
+                            clientName={c.name}
+                            data={studioData[c.id] ?? null}
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -362,6 +392,155 @@ function ClientAmCell({
             Save
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Studio Config helpers ───────────────────────────────────────────────── */
+
+function rgbaToHex(rgba: string): string {
+  const m = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) return "#000000";
+  return "#" + [m[1], m[2], m[3]].map((n) => parseInt(n).toString(16).padStart(2, "0")).join("");
+}
+
+const STUDIO_COLOR_LABELS: { label: string; key: keyof StudioThemeColors }[] = [
+  { label: "Background", key: "primaryBg" },
+  { label: "Primary", key: "primary" },
+  { label: "Secondary", key: "secondary" },
+  { label: "Light Text", key: "lightText" },
+  { label: "Placeholder", key: "placeholder" },
+  { label: "Btn Start", key: "primaryButton" },
+  { label: "Btn End", key: "primaryButtonGradient" },
+  { label: "Box Start", key: "boxGradient1" },
+  { label: "Box End", key: "boxGradient2" },
+  { label: "Header Start", key: "headerBorder1" },
+  { label: "Header End", key: "headerBorder2" },
+  { label: "Won Start", key: "wonGradient1" },
+  { label: "Won End", key: "wonGradient2" },
+];
+
+function buildTcmText(
+  clientName: string,
+  data: { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null },
+): string {
+  const colors: StudioThemeColors = { ...defaultStudioColors, ...(data.config?.colors ?? {}) };
+  const lines: string[] = [
+    `=== STUDIO CONFIG — ${clientName} ===`,
+    data.locked && data.lockedAt
+      ? `Locked: ${new Date(data.lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
+      : "Status: Not locked",
+    "",
+    "COLORS",
+    ...STUDIO_COLOR_LABELS.map(({ label, key }) => `${label.padEnd(15)} ${rgbaToHex(colors[key])}  (${colors[key]})`),
+    "",
+    "BRAND ASSETS",
+    `Logo:  ${data.config?.icons?.appNameLogo ? (data.config.icons.appNameLogo.startsWith("data:") ? "(embedded file)" : data.config.icons.appNameLogo) : "Not uploaded"}`,
+    `Icon:  ${data.config?.icons?.topLeftAppIcon ? (data.config.icons.topLeftAppIcon.startsWith("data:") ? "(embedded file)" : data.config.icons.topLeftAppIcon) : "Not uploaded"}`,
+  ];
+  return lines.join("\n");
+}
+
+function StudioConfigCell({
+  clientName,
+  data,
+}: {
+  clientName: string;
+  data: { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null } | null;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!data || !data.config) {
+    return <span className="text-xs text-muted-foreground/50">—</span>;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-accent/60">
+          {data.locked ? (
+            <>
+              <Lock className="h-3.5 w-3.5 text-success" />
+              <span className="font-medium text-success">Locked</span>
+            </>
+          ) : (
+            <>
+              <div className="h-3 w-3 rounded-sm border border-border/60" style={{ background: data.config.colors?.primary ?? "#888" }} />
+              <span className="text-muted-foreground">View</span>
+            </>
+          )}
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            Studio Config
+            <span className="text-muted-foreground font-normal">— {clientName}</span>
+            {data.locked && <Lock className="h-3.5 w-3.5 text-success" />}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          {data.locked && data.lockedAt && (
+            <div className="flex items-center gap-2 rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-[12px] font-semibold text-success">
+              <Lock className="h-3.5 w-3.5" />
+              Locked on {new Date(data.lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            </div>
+          )}
+
+          {/* Color grid */}
+          <div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Colors</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {STUDIO_COLOR_LABELS.map(({ label, key }) => {
+                const colors: StudioThemeColors = { ...defaultStudioColors, ...(data.config?.colors ?? {}) };
+                const hex = rgbaToHex(colors[key]);
+                return (
+                  <button
+                    key={key}
+                    onClick={() => { navigator.clipboard.writeText(hex); toast.success(`Copied ${hex}`); }}
+                    className="flex items-center gap-2 rounded-md border border-border/60 px-2.5 py-1.5 text-left transition-colors hover:bg-accent/40"
+                    title={`Copy ${hex}`}
+                  >
+                    <div className="h-5 w-5 shrink-0 rounded-sm shadow-sm" style={{ background: colors[key] }} />
+                    <div className="min-w-0">
+                      <div className="text-[10px] text-muted-foreground leading-none">{label}</div>
+                      <div className="font-mono text-[11px] font-semibold text-foreground">{hex}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Brand assets */}
+          {(data.config.icons?.appNameLogo || data.config.icons?.topLeftAppIcon) && (
+            <div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Brand Assets</div>
+              <div className="flex gap-4">
+                {data.config.icons?.appNameLogo && (
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground">Logo</div>
+                    <img src={data.config.icons.appNameLogo} alt="Logo" className="h-8 max-w-[120px] rounded object-contain border border-border/40 p-1" />
+                  </div>
+                )}
+                {data.config.icons?.topLeftAppIcon && (
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground">Icon</div>
+                    <img src={data.config.icons.topLeftAppIcon} alt="Icon" className="h-10 w-10 rounded-lg object-contain border border-border/40 p-0.5" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end pt-2">
+          <Button
+            onClick={() => { navigator.clipboard.writeText(buildTcmText(clientName, data)); toast.success("Copied for TCM"); }}
+          >
+            <Copy className="h-4 w-4" /> Copy for TCM
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
