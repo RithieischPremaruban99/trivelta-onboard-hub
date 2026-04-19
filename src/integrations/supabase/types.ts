@@ -355,6 +355,10 @@ export type Database = {
       }
       is_client_team_member: { Args: { _client_id: string }; Returns: boolean }
       is_legacy_assigned_am: { Args: { _client_id: string }; Returns: boolean }
+      register_onboarding_visitor: {
+        Args: { _client_id: string }
+        Returns: undefined
+      }
       submit_onboarding_form: {
         Args: { _client_id: string; _data: Json }
         Returns: undefined

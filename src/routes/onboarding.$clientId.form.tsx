@@ -31,7 +31,6 @@ import {
   Palette,
   ScrollText,
   Plug,
-  LockKeyhole,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -40,13 +39,6 @@ import { TriveltaNav } from "@/components/TriveltaNav";
 export const Route = createFileRoute("/onboarding/$clientId/form")({
   component: FormScreen,
 });
-
-function initials(email: string | null | undefined) {
-  if (!email) return "?";
-  const name = email.split("@")[0];
-  const parts = name.split(/[._-]/);
-  return parts.map((p) => p[0]).slice(0, 2).join("").toUpperCase();
-}
 
 function FormScreen() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/form" });
@@ -349,17 +341,16 @@ function FormScreen() {
                 )}
               </Button>
             ) : (
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
-                <div className="grid h-7 w-7 place-items-center rounded-full bg-secondary font-mono text-[11px] text-muted-foreground">
-                  {initials(ownerEmail)}
-                </div>
-                <div className="text-[12px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <LockKeyhole className="h-3 w-3" />
-                    Only {ownerEmail ?? "the owner"} can submit
-                  </span>
-                </div>
-              </div>
+              <p className="max-w-[280px] text-right text-sm text-muted-foreground">
+                Only{" "}
+                <span className="font-medium text-foreground">
+                  {ownerEmail ?? "the account owner"}
+                </span>{" "}
+                can submit this form.
+                <span className="mt-0.5 block text-[12px]">
+                  You can still fill in any fields.
+                </span>
+              </p>
             )}
           </div>
         </div>

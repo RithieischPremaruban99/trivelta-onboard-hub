@@ -502,7 +502,7 @@ function NewClientDialog({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Primary contact email *</Label>
+          <Label>Primary Contact Email (this person will be able to submit the form) *</Label>
           <Input
             type="email"
             value={contactEmail}
@@ -510,7 +510,7 @@ function NewClientDialog({
             placeholder="contact@client.com"
           />
           <p className="text-[11px] text-muted-foreground">
-            This person receives the magic link and acts as the client owner.
+            They'll receive the onboarding link and be the only one who can hit Submit. Other team members can still fill in fields.
           </p>
         </div>
         <div className="space-y-1.5">

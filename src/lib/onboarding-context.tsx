@@ -56,6 +56,9 @@ export function OnboardingProvider({ clientId, children }: { clientId: string; c
     }
     (async () => {
       setLoadingAuth(true);
+      // Auto-register this visitor as client_member if they have no row yet.
+      // No-op if they're already the client_owner.
+      await supabase.rpc("register_onboarding_visitor", { _client_id: clientId });
       const [memberRes, ownerRes] = await Promise.all([
         supabase
           .from("team_members")
