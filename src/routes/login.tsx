@@ -284,7 +284,7 @@ function LoginPage() {
       </main>
 
       <footer className="border-t border-border px-6 py-5 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-        © 2026 Trivelta — Internal use only.
+        © 2026 Trivelta - Internal use only.
       </footer>
     </div>
   );
