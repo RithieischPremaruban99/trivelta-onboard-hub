@@ -359,10 +359,6 @@ export type Database = {
         Args: { _client_id: string }
         Returns: undefined
       }
-      submit_onboarding_form: {
-        Args: { _client_id: string; _data: Json }
-        Returns: undefined
-      }
     }
     Enums: {
       app_role: "admin" | "account_manager" | "client" | "account_executive"
