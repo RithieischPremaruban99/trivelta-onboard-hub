@@ -14,10 +14,17 @@ export type FormShape = {
   contact_compliance: ContactBlock;
   slack_team_emails: string;
 
-  // Section 2
-  logo_uploaded: "yes" | "no" | "";
-  icon_uploaded: "yes" | "no" | "";
-  animation_uploaded: "yes" | "no" | "skip" | "";
+  // Section 2 - per-asset upload confirmations
+  asset_company_logo: boolean;
+  asset_app_name_logo: boolean;
+  asset_currency_icon: boolean;
+  asset_top_left_icon: boolean;
+  asset_favicon: boolean;
+  asset_ios_icon: boolean;
+  asset_android_icon: boolean;
+  asset_loading_anim: boolean;
+  asset_splash_anim: boolean;
+  asset_live_icon_anim: boolean;
 
   // Section 3
   platform_url: string;
@@ -73,9 +80,16 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   contact_operational: emptyContact(),
   contact_compliance: emptyContact(),
   slack_team_emails: "",
-  logo_uploaded: "",
-  icon_uploaded: "",
-  animation_uploaded: "",
+  asset_company_logo: false,
+  asset_app_name_logo: false,
+  asset_currency_icon: false,
+  asset_top_left_icon: false,
+  asset_favicon: false,
+  asset_ios_icon: false,
+  asset_android_icon: false,
+  asset_loading_anim: false,
+  asset_splash_anim: false,
+  asset_live_icon_anim: false,
   platform_url: "",
   country: "",
   dns_provider: "",
@@ -127,7 +141,7 @@ export const validators: Record<number, (f: FormShape) => boolean> = {
     isContactComplete(f.contact_sportsbook) &&
     isContactComplete(f.contact_operational) &&
     isContactComplete(f.contact_compliance),
-  2: (f) => f.logo_uploaded === "yes" && f.icon_uploaded === "yes",
+  2: (f) => f.asset_company_logo && f.asset_app_name_logo && f.asset_top_left_icon,
   3: (f) => !!(f.platform_url && f.country && f.dns_provider && f.dns_access),
   4: (f) =>
     !!(
@@ -154,9 +168,10 @@ export function countRequiredFields(f: FormShape): { filled: number; total: numb
     !!(f.contact_sportsbook.name && f.contact_sportsbook.email && f.contact_sportsbook.phone),
     !!(f.contact_operational.name && f.contact_operational.email && f.contact_operational.phone),
     !!(f.contact_compliance.name && f.contact_compliance.email && f.contact_compliance.phone),
-    // 2 media
-    f.logo_uploaded === "yes",
-    f.icon_uploaded === "yes",
+    // 3 required media assets
+    f.asset_company_logo,
+    f.asset_app_name_logo,
+    f.asset_top_left_icon,
     // 4 platform
     !!f.platform_url,
     !!f.country,

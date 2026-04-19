@@ -30,6 +30,8 @@ import {
   Palette,
   ScrollText,
   Plug,
+  ExternalLink,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -560,57 +562,180 @@ function SectionContacts({ form, updateContact, update }: {
 
 /* ─── Section 2: Media & Branding ────────────────────────────── */
 
+function DriveButton({ driveLink }: { driveLink: string | null }) {
+  return (
+    <button
+      type="button"
+      onClick={() => driveLink && window.open(driveLink, "_blank", "noopener,noreferrer")}
+      disabled={!driveLink}
+      className={cn(
+        "flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5",
+        !driveLink && "cursor-not-allowed opacity-40",
+      )}
+    >
+      <ExternalLink className="h-3.5 w-3.5 text-primary" />
+      Upload to Drive
+    </button>
+  );
+}
+
+function AssetRow({
+  label,
+  spec,
+  checked,
+  onChange,
+  driveLink,
+  required,
+}: {
+  label: string;
+  spec: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  driveLink: string | null;
+  required?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/30 px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-[13px] font-medium text-foreground">
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </div>
+        <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">{spec}</div>
+      </div>
+      <DriveButton driveLink={driveLink} />
+      <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[12px] text-muted-foreground select-none">
+        <Checkbox
+          checked={checked}
+          onCheckedChange={(v) => onChange(!!v)}
+          className="h-4 w-4"
+        />
+        Uploaded
+      </label>
+    </div>
+  );
+}
+
+function AssetGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">{title}</div>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
 function SectionMedia({ form, update, driveLink }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   driveLink: string | null;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Info banner */}
-      <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
-        <div className="flex gap-2.5">
-          <span className="shrink-0 text-base">📁</span>
-          <div>
-            <button
-              type="button"
-              onClick={() => driveLink && window.open(driveLink, "_blank", "noopener,noreferrer")}
-              disabled={!driveLink}
-              className={cn(
-                "font-medium text-primary underline-offset-2 hover:underline",
-                !driveLink && "cursor-not-allowed opacity-50",
-              )}
-            >
-              Click the upload zones to open your shared Google Drive folder
-            </button>
-            {" "}and upload your files there.
-            <p className="mt-1 text-muted-foreground">
-              After submitting this form, you'll get access to Trivelta Studio where you can generate logos, customize colors, and preview your platform live.
-            </p>
-          </div>
-        </div>
+      <div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <span>
+          Click 'Upload to Drive' to open your shared Google Drive folder and upload each file. After submitting, you'll access Trivelta Studio to generate or refine assets with AI.
+        </span>
       </div>
 
-      {/* Logo */}
-      <SubCard>
-        <FieldGroup label="Have you uploaded your logo to the Google Drive folder?" required>
-          <YesNo value={form.logo_uploaded} onChange={(v) => update("logo_uploaded", v)} idPrefix="logo-uploaded" />
-        </FieldGroup>
-      </SubCard>
+      {/* Group 1 - Logos */}
+      <AssetGroup title="Logos">
+        <AssetRow
+          label="Company Logo"
+          spec="PNG - max 4MB - 512x512px"
+          checked={form.asset_company_logo}
+          onChange={(v) => update("asset_company_logo", v)}
+          driveLink={driveLink}
+          required
+        />
+        <AssetRow
+          label="App Name Logo"
+          spec="PNG - max 4MB - 148x48px"
+          checked={form.asset_app_name_logo}
+          onChange={(v) => update("asset_app_name_logo", v)}
+          driveLink={driveLink}
+          required
+        />
+      </AssetGroup>
 
-      {/* Icon */}
-      <SubCard>
-        <FieldGroup label="Have you uploaded your app icon to the Google Drive folder?" required>
-          <YesNo value={form.icon_uploaded} onChange={(v) => update("icon_uploaded", v)} idPrefix="icon-uploaded" />
-        </FieldGroup>
-      </SubCard>
+      {/* Group 2 - Icons */}
+      <AssetGroup title="Icons">
+        <AssetRow
+          label="Currency Icon"
+          spec="PNG - max 1MB - 64x64px"
+          checked={form.asset_currency_icon}
+          onChange={(v) => update("asset_currency_icon", v)}
+          driveLink={driveLink}
+        />
+        <AssetRow
+          label="Top Left App Icon"
+          spec="PNG - max 2MB - 96x96px"
+          checked={form.asset_top_left_icon}
+          onChange={(v) => update("asset_top_left_icon", v)}
+          driveLink={driveLink}
+          required
+        />
+        <AssetRow
+          label="Website Favicon"
+          spec="ICO - max 2MB - 32x32px"
+          checked={form.asset_favicon}
+          onChange={(v) => update("asset_favicon", v)}
+          driveLink={driveLink}
+        />
+      </AssetGroup>
 
-      {/* Animation (optional) */}
-      <SubCard>
-        <FieldGroup label="Have you uploaded your animation files? (optional)">
-          <YesNoSkip value={form.animation_uploaded} onChange={(v) => update("animation_uploaded", v)} idPrefix="animation-uploaded" />
-        </FieldGroup>
-      </SubCard>
+      {/* Group 3 - App Store Icons */}
+      <AssetGroup title="App Store Icons">
+        <AssetRow
+          label="iOS App Icon"
+          spec="PNG - max 5MB - 1024x1024px"
+          checked={form.asset_ios_icon}
+          onChange={(v) => update("asset_ios_icon", v)}
+          driveLink={driveLink}
+        />
+        <AssetRow
+          label="Android App Icon"
+          spec="PNG - max 5MB - 1024x1024px"
+          checked={form.asset_android_icon}
+          onChange={(v) => update("asset_android_icon", v)}
+          driveLink={driveLink}
+        />
+      </AssetGroup>
+
+      {/* Group 4 - Animations */}
+      <AssetGroup title="Animations">
+        <div className="mb-2 flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2 text-[12px] text-muted-foreground">
+          <Info className="h-3.5 w-3.5 shrink-0" />
+          All animations in JSON (Lottie) format via After Effects Bodymovin.
+        </div>
+        <AssetRow
+          label="Loading Animation"
+          spec="JSON (Lottie) - 48x48px"
+          checked={form.asset_loading_anim}
+          onChange={(v) => update("asset_loading_anim", v)}
+          driveLink={driveLink}
+        />
+        <AssetRow
+          label="Splash Screen Animation"
+          spec="JSON (Lottie) - 68x68px"
+          checked={form.asset_splash_anim}
+          onChange={(v) => update("asset_splash_anim", v)}
+          driveLink={driveLink}
+        />
+        <AssetRow
+          label="Live Icon Animation"
+          spec="JSON (Lottie)"
+          checked={form.asset_live_icon_anim}
+          onChange={(v) => update("asset_live_icon_anim", v)}
+          driveLink={driveLink}
+        />
+      </AssetGroup>
+
+      <p className="text-[11px] text-muted-foreground">
+        Fields marked <span className="text-destructive">*</span> are required before you can submit.
+      </p>
     </div>
   );
 }
