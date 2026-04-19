@@ -6,14 +6,20 @@ import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ExternalLink, Hash, FolderOpen, Globe, FileText, Inbox } from "lucide-react";
+import {
+  Loader2, ExternalLink, Hash, FolderOpen, Globe, FileText, Inbox,
+  Palette, Lock, CheckCircle2, Copy, Download, Clock, AlertCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { FormShape } from "@/lib/onboarding-schema";
+import type { StudioThemeColors, StudioSavedConfig } from "@/contexts/StudioContext";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
+
+/* ── Types ─────────────────────────────────────────────────────────────── */
 
 interface ClientLite {
   id: string;
@@ -33,6 +39,8 @@ interface TaskRow {
   sort_order: number;
 }
 
+/* ── Constants ──────────────────────────────────────────────────────────── */
+
 const PHASE_NAMES = [
   "Pre-Sale",
   "Contract & Post-Sale",
@@ -41,6 +49,83 @@ const PHASE_NAMES = [
   "Pre-Launch",
   "Post-Launch",
 ];
+
+const CORE_COLORS: { key: keyof StudioThemeColors; label: string }[] = [
+  { key: "primaryBg",            label: "Background" },
+  { key: "primary",              label: "Primary Accent" },
+  { key: "secondary",            label: "Secondary" },
+  { key: "primaryButton",        label: "Button (start)" },
+  { key: "primaryButtonGradient", label: "Button (end)" },
+  { key: "headerBorder1",        label: "Card BG" },
+  { key: "headerBorder2",        label: "Deep Card BG" },
+  { key: "wonGradient1",         label: "Win Gradient (start)" },
+  { key: "wonGradient2",         label: "Win Gradient (end)" },
+  { key: "boxGradient1",         label: "Box Gradient (start)" },
+  { key: "boxGradient2",         label: "Box Gradient (end)" },
+  { key: "lightText",            label: "Light Text" },
+  { key: "placeholder",          label: "Muted Text" },
+];
+
+const EXTENDED_COLORS: { key: keyof StudioThemeColors; label: string }[] = [
+  { key: "inactiveButton",       label: "Inactive Button" },
+  { key: "cardBackground",       label: "Card Background" },
+  { key: "navBarBackground",     label: "Nav Bar" },
+  { key: "bottomNavBackground",  label: "Bottom Nav" },
+  { key: "oddsButtonActive",     label: "Odds Active" },
+  { key: "oddsButtonInactive",   label: "Odds Inactive" },
+  { key: "liveBadge",            label: "Live Badge" },
+  { key: "successColor",         label: "Success" },
+  { key: "errorColor",           label: "Error" },
+  { key: "inputBackground",      label: "Input BG" },
+  { key: "inputBorder",          label: "Input Border" },
+  { key: "dividerColor",         label: "Divider" },
+];
+
+/* ── Helpers ────────────────────────────────────────────────────────────── */
+
+function rgbaToHex(rgba: string): string {
+  const m = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) return rgba;
+  return "#" + [m[1], m[2], m[3]].map((n) => parseInt(n).toString(16).padStart(2, "0")).join("");
+}
+
+function extractAlpha(rgba: string): number {
+  const m = rgba.match(/rgba?\([^)]*,\s*([\d.]+)\s*\)/);
+  return m ? parseFloat(m[1]) : 1;
+}
+
+function buildTcmText(
+  clientName: string,
+  colors: Partial<StudioThemeColors>,
+  icons: StudioSavedConfig["icons"],
+  locked: boolean,
+  lockedAt: string | null,
+): string {
+  const fmt = (key: keyof StudioThemeColors) => {
+    const val = colors[key];
+    if (!val) return "(not set)";
+    const hex = rgbaToHex(val);
+    const alpha = extractAlpha(val);
+    return alpha < 1 ? `${hex} (${Math.round(alpha * 100)}% opacity)` : hex;
+  };
+  const lines: string[] = [
+    `=== STUDIO CONFIG - ${clientName} ===`,
+    `Status: ${locked ? `Locked${lockedAt ? " on " + new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""}` : "In progress (not locked)"}`,
+    "",
+    "--- CORE COLORS ---",
+    ...CORE_COLORS.map(({ key, label }) => `${label.padEnd(22)}: ${fmt(key)}`),
+    "",
+    "--- EXTENDED COLORS ---",
+    ...EXTENDED_COLORS.map(({ key, label }) => `${label.padEnd(22)}: ${fmt(key)}`),
+    "",
+    "--- BRAND ASSETS ---",
+    `App Name Logo  : ${icons?.appNameLogo ? "Uploaded (download from Studio Config panel)" : "Not set"}`,
+    `Top-Left Icon  : ${icons?.topLeftAppIcon ? "Uploaded (download from Studio Config panel)" : "Not set"}`,
+  ];
+  return lines.join("\n");
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────── */
 
 function DashboardPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -70,7 +155,7 @@ function DashboardPage() {
     );
   }
   if (!user) return <Navigate to="/login" />;
-  if (role !== "admin" && role !== "account_manager") {
+  if (role !== "admin" && role !== "account_manager" && role !== "account_executive") {
     return <Navigate to="/" />;
   }
 
@@ -138,10 +223,15 @@ function DashboardPage() {
   );
 }
 
+/* ── Client detail ──────────────────────────────────────────────────────── */
+
 function ClientDetail({ client }: { client: ClientLite }) {
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [formData, setFormData] = useState<FormShape | null>(null);
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
+  const [studioConfig, setStudioConfig] = useState<StudioSavedConfig | null>(null);
+  const [studioLocked, setStudioLocked] = useState(false);
+  const [studioLockedAt, setStudioLockedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const slackChannel = `#client-${client.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-onboarding`;
@@ -158,13 +248,17 @@ function ClientDetail({ client }: { client: ClientLite }) {
           .order("sort_order", { ascending: true }),
         supabase
           .from("onboarding_forms")
-          .select("data, submitted_at")
+          .select("data, submitted_at, studio_config, studio_locked, studio_locked_at")
           .eq("client_id", client.id)
           .maybeSingle(),
       ]);
       setTasks((tasksRes.data ?? []) as TaskRow[]);
       setFormData((formRes.data?.data as FormShape | null) ?? null);
       setSubmittedAt(formRes.data?.submitted_at ?? null);
+      const sc = formRes.data?.studio_config;
+      setStudioConfig(sc && typeof sc === "object" ? (sc as StudioSavedConfig) : null);
+      setStudioLocked(formRes.data?.studio_locked ?? false);
+      setStudioLockedAt(formRes.data?.studio_locked_at ?? null);
       setLoading(false);
     })();
   }, [client.id]);
@@ -267,6 +361,14 @@ function ClientDetail({ client }: { client: ClientLite }) {
         </div>
       </div>
 
+      {/* Studio Config */}
+      <StudioConfigSection
+        clientName={client.name}
+        studioConfig={studioConfig}
+        locked={studioLocked}
+        lockedAt={studioLockedAt}
+      />
+
       {/* Form summary */}
       <div className="surface-card p-6">
         <div className="mb-4 flex items-center justify-between">
@@ -310,7 +412,7 @@ function ClientDetail({ client }: { client: ClientLite }) {
                     <span className="text-sm font-medium">{name}</span>
                   </div>
                   <span className="text-xs font-mono text-muted-foreground">
-                    {done}/{phaseTasks.length} • {pct}%
+                    {done}/{phaseTasks.length} - {pct}%
                   </span>
                 </div>
                 <div className="mb-3 h-1 w-full overflow-hidden rounded-full bg-secondary">
@@ -358,6 +460,279 @@ function ClientDetail({ client }: { client: ClientLite }) {
     </div>
   );
 }
+
+/* ── Studio Config Section ──────────────────────────────────────────────── */
+
+function StudioConfigSection({
+  clientName,
+  studioConfig,
+  locked,
+  lockedAt,
+}: {
+  clientName: string;
+  studioConfig: StudioSavedConfig | null;
+  locked: boolean;
+  lockedAt: string | null;
+}) {
+  const [showExtended, setShowExtended] = useState(false);
+
+  const colors = studioConfig?.colors ?? {};
+  const icons = studioConfig?.icons ?? {};
+  const hasConfig = !!studioConfig;
+
+  const lockedDate = lockedAt
+    ? new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : null;
+
+  const copyHex = (key: keyof StudioThemeColors) => {
+    const val = colors[key];
+    if (!val) return;
+    navigator.clipboard.writeText(rgbaToHex(val));
+    toast.success("Copied!");
+  };
+
+  const copyAllJson = () => {
+    const out: Record<string, string> = {};
+    [...CORE_COLORS, ...EXTENDED_COLORS].forEach(({ key, label }) => {
+      const val = colors[key];
+      if (val) out[label] = rgbaToHex(val);
+    });
+    navigator.clipboard.writeText(JSON.stringify(out, null, 2));
+    toast.success("Colors copied as JSON");
+  };
+
+  const copyForTcm = () => {
+    const text = buildTcmText(clientName, colors, icons, locked, lockedAt);
+    navigator.clipboard.writeText(text);
+    toast.success("Copied for TCM!");
+  };
+
+  return (
+    <div className="surface-card overflow-hidden p-0">
+      {/* Section header */}
+      <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Palette className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold uppercase tracking-wider">Studio Config</h3>
+        </div>
+        {hasConfig && (
+          <button
+            onClick={copyForTcm}
+            className="flex items-center gap-2 rounded-lg border border-border bg-primary/10 px-4 py-1.5 text-[12px] font-semibold text-primary transition-colors hover:bg-primary/15"
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Copy for TCM
+          </button>
+        )}
+      </div>
+
+      <div className="px-6 py-5 space-y-5">
+        {/* Status banner */}
+        {locked ? (
+          <div className="flex items-center gap-2.5 rounded-xl border border-success/20 bg-success/8 px-4 py-3">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+            <div>
+              <div className="text-[13px] font-semibold text-success">
+                Design locked{lockedDate ? ` on ${lockedDate}` : ""}
+              </div>
+              <div className="text-[11px] text-success/70">
+                Final values - ready for TCM configuration
+              </div>
+            </div>
+          </div>
+        ) : hasConfig ? (
+          <div className="flex items-center gap-2.5 rounded-xl border border-warning/20 bg-warning/8 px-4 py-3">
+            <Clock className="h-4 w-4 shrink-0 text-warning" />
+            <div>
+              <div className="text-[13px] font-semibold text-warning">Design in progress</div>
+              <div className="text-[11px] text-warning/70">
+                Client has started but not locked their design yet
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5 rounded-xl border border-border bg-secondary/30 px-4 py-3">
+            <AlertCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div>
+              <div className="text-[13px] font-semibold text-foreground">No design configured</div>
+              <div className="text-[11px] text-muted-foreground">
+                Client has not used Platform Studio yet
+              </div>
+            </div>
+          </div>
+        )}
+
+        {hasConfig && (
+          <>
+            {/* Brand assets */}
+            {(icons.appNameLogo || icons.topLeftAppIcon) && (
+              <div>
+                <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                  Brand Assets
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {icons.appNameLogo && (
+                    <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-background/40 px-4 py-3">
+                      <img
+                        src={icons.appNameLogo}
+                        alt="App Name Logo"
+                        className="h-8 max-w-[120px] object-contain"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-semibold text-foreground">App Name Logo</div>
+                        <div className="text-[10px] text-muted-foreground">1792x1024</div>
+                      </div>
+                      <a
+                        href={icons.appNameLogo}
+                        download="app-name-logo.png"
+                        className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  )}
+                  {icons.topLeftAppIcon && (
+                    <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-background/40 px-4 py-3">
+                      <img
+                        src={icons.topLeftAppIcon}
+                        alt="App Icon"
+                        className="h-10 w-10 rounded-lg object-contain"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-semibold text-foreground">App Icon</div>
+                        <div className="text-[10px] text-muted-foreground">1024x1024</div>
+                      </div>
+                      <a
+                        href={icons.topLeftAppIcon}
+                        download="app-icon.png"
+                        className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Core colors */}
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                  Core Colors
+                </div>
+                <button
+                  onClick={copyAllJson}
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                >
+                  <Copy className="h-3 w-3" /> Copy all as JSON
+                </button>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {CORE_COLORS.map(({ key, label }) => {
+                  const val = colors[key];
+                  const hex = val ? rgbaToHex(val) : null;
+                  return (
+                    <ColorRow
+                      key={key}
+                      label={label}
+                      hex={hex}
+                      rgba={val ?? null}
+                      onCopy={() => copyHex(key)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Extended colors (collapsible) */}
+            <div>
+              <button
+                onClick={() => setShowExtended((v) => !v)}
+                className="mb-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+              >
+                {showExtended ? "- Hide" : "+ Show"} Extended Colors ({EXTENDED_COLORS.length})
+              </button>
+              {showExtended && (
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {EXTENDED_COLORS.map(({ key, label }) => {
+                    const val = colors[key];
+                    const hex = val ? rgbaToHex(val) : null;
+                    return (
+                      <ColorRow
+                        key={key}
+                        label={label}
+                        hex={hex}
+                        rgba={val ?? null}
+                        onCopy={() => copyHex(key)}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Lock badge if not locked */}
+            {!locked && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-warning/20 bg-warning/5 px-3 py-2 text-[11px] text-warning/80">
+                <Lock className="h-3 w-3 shrink-0" />
+                Colors may still change - client has not locked their design yet.
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Color row atom ─────────────────────────────────────────────────────── */
+
+function ColorRow({
+  label,
+  hex,
+  rgba,
+  onCopy,
+}: {
+  label: string;
+  hex: string | null;
+  rgba: string | null;
+  onCopy: () => void;
+}) {
+  const alpha = rgba ? extractAlpha(rgba) : 1;
+  return (
+    <div className="flex items-center gap-2.5 rounded-lg border border-border/50 bg-background/30 px-3 py-2">
+      <div
+        className="h-7 w-7 shrink-0 rounded-md border border-white/10 shadow-sm"
+        style={{ background: rgba ?? "#000" }}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] text-muted-foreground leading-none mb-0.5">{label}</div>
+        <div className="flex items-center gap-1">
+          <span className="font-mono text-[11px] font-medium text-foreground">
+            {hex ?? "(not set)"}
+          </span>
+          {alpha < 1 && (
+            <span className="font-mono text-[9px] text-muted-foreground/60">
+              {Math.round(alpha * 100)}%
+            </span>
+          )}
+        </div>
+      </div>
+      {hex && (
+        <button
+          onClick={onCopy}
+          className="shrink-0 rounded p-1 text-muted-foreground/50 transition-colors hover:text-foreground"
+          title="Copy hex"
+        >
+          <Copy className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ── Form data summary ──────────────────────────────────────────────────── */
 
 function FormDataSummary({ data }: { data: FormShape }) {
   const items: Array<[string, string]> = [
