@@ -350,6 +350,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_am_for_client: { Args: { _client_id: string }; Returns: boolean }
       is_assigned_am: { Args: { _client_id: string }; Returns: boolean }
       is_client_owner: { Args: { _client_id: string }; Returns: boolean }
       is_client_primary_contact: {

@@ -185,11 +185,12 @@ Deno.serve(async (req) => {
     const jsonMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       try {
-        const parsed = JSON.parse(jsonMatch[1]);
-        // Filter out any accidental _ keys
-        const filtered = Object.fromEntries(
-          Object.entries(parsed).filter(([k]) => !k.startsWith("_")),
-        );
+        const parsed = JSON.parse(jsonMatch[1]) as Record<string, unknown>;
+        // Filter out any accidental _ keys and coerce values to strings
+        const filtered: Record<string, string> = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          if (!k.startsWith("_") && typeof v === "string") filtered[k] = v;
+        }
         config = Object.keys(filtered).length > 0 ? filtered : null;
       } catch {
         config = null;
