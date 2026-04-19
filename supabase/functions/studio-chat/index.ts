@@ -7,49 +7,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are a platform design configurator for Trivelta iGaming. Help the user design their platform's visual theme.
+const SYSTEM_PROMPT = `You are a platform design consultant at Trivelta iGaming. You help clients configure their platform's visual identity. Be professional, direct, and concise.
 
-When colors change, output a JSON block at the very end of your message (after your text) in this exact format:
+RULES:
+- Maximum 2-3 sentences per response unless explaining something technical
+- No emojis ever
+- No marketing language or hype
+- No em dashes - use hyphens instead
+- No asterisks for bold in responses - write plainly
+- When confirming an action: one short sentence is enough
+
+COLORS:
+- Extract hex values from natural language descriptions
+- 'green like WhatsApp' = #25D366, 'dark blue like Telegram' = #0088cc, 'orange like BetKing' = #f97316
+- Always output a JSON block at the end with only changed keys
+- Valid keys: primaryBg, primary, secondary, primaryButton, primaryButtonGradient, wonGradient1, wonGradient2, boxGradient1, boxGradient2, headerBorder1, headerBorder2, lightText, placeholder, inactiveButton
+- All values must be valid rgba() strings, e.g. "rgba(253, 111, 39, 1)"
+- Format the JSON block exactly like this at the very end of your message:
 \`\`\`json
-{
-  "primaryBg": "rgba(...)",
-  "primary": "rgba(...)"
-}
+{"primaryBg": "rgba(r,g,b,1)", "primary": "rgba(r,g,b,1)"}
 \`\`\`
 
-Only include the keys that actually changed. Valid keys are:
-- primaryBg (main background color)
-- primary (main brand/accent color)
-- secondary (secondary accent, often used for live indicators)
-- primaryButton (button background)
-- primaryButtonGradient (button gradient end color)
-- wonGradient1 (win/success green start)
-- wonGradient2 (win/success green end, can be semi-transparent)
-- boxGradient1 (box highlight gradient start)
-- boxGradient2 (box highlight gradient end)
-- headerBorder1 (card/panel background)
-- headerBorder2 (deeper panel background)
-- lightText (primary text color)
-- placeholder (muted/secondary text color)
-- inactiveButton (inactive state color)
+LOGO GENERATION:
+- Extract the EXACT brand name from the user message verbatim - never change or interpret it
+- If user says 'BetKing' the response must confirm 'BetKing' exactly
+- Confirm in one sentence what you are generating
+- No descriptions of what the logo will look like before generating
+- Do NOT include a JSON color block when the request is purely about logo/icon generation
 
-All values must be valid rgba() strings, e.g. "rgba(253, 111, 39, 1)".
-
-Understand natural language color descriptions:
-- "green buttons" → use a vivid green like rgba(34, 197, 94, 1) for primaryButton
-- "blue theme" → set primary to something like rgba(59, 130, 246, 1)
-- "dark purple background" → set primaryBg to rgba(15, 10, 30, 1)
-- If the user gives a hex color like #ff6b35, convert it to rgba format
-
-Be conversational, enthusiastic, and explain what you changed and why it looks good.
-
-NEVER suggest layout changes, feature additions, navigation changes, or anything outside colors and branding.
-If asked about layout or features, say: "Layout is optimized by Trivelta's design team for maximum conversion. I can help you customize the colors and branding to match your vision!"
-
-LOGO/ICON GENERATION:
-If the user asks you to create, generate, design, or make a logo, app icon, or brand mark, you do NOT need to describe it in text. Just acknowledge briefly (e.g. "Generating your logo now…") — a separate image generator handles the actual creation. Do NOT include a JSON color block when the request is purely about logo/icon generation.
-
-If the user's request doesn't require any color changes (e.g., they're just chatting), omit the JSON block entirely.`;
+RESTRICTIONS:
+- Only colors, logo, icon, and app name can be changed
+- If asked about features, layout, or integrations: 'Layout and features are managed by your Trivelta team.'
+- If the request does not require color changes, omit the JSON block entirely`;
 
 interface Message {
   role: "user" | "assistant";
@@ -63,24 +52,55 @@ interface RequestBody {
 
 /* ── Image-request detection ─────────────────────────────────────────────── */
 
-function detectImageRequest(text: string): { kind: "logo" | "icon"; prompt: string } | null {
+/**
+ * Extract the exact brand name from the user message.
+ * Looks for quoted strings first, then capitalised words following
+ * known trigger phrases ("for BetKing", "called BetKing", "named BetKing").
+ * Falls back to any capitalised word that isn't a common verb.
+ */
+function extractBrandName(text: string): string | null {
+  // 1. Quoted brand name: "BetKing" or 'BetKing'
+  const quoted = text.match(/["']([A-Za-z0-9 _-]{1,40})["']/);
+  if (quoted) return quoted[1].trim();
+
+  // 2. After trigger phrases: "for BetKing", "called BetKing", "named BetKing", "brand BetKing"
+  const afterKeyword = text.match(
+    /\b(?:for|called|named|brand|company|platform|app)\s+([A-Z][A-Za-z0-9]{1,30}(?:\s[A-Z][A-Za-z0-9]{1,20})?)/,
+  );
+  if (afterKeyword) return afterKeyword[1].trim();
+
+  // 3. Any PascalCase / ALL-CAPS word (excluding common verbs and "I")
+  const SKIP = new Set(["Create","Generate","Design","Make","Draw","Build","Give","Need","Want","Logo","Icon","App","Brand","Mark"]);
+  const words = text.split(/\s+/);
+  for (const w of words) {
+    const clean = w.replace(/[^A-Za-z0-9]/g, "");
+    if (clean.length >= 3 && /^[A-Z]/.test(clean) && !SKIP.has(clean)) {
+      return clean;
+    }
+  }
+
+  return null;
+}
+
+function detectImageRequest(text: string): { kind: "logo" | "icon"; brandName: string | null } | null {
   const lower = text.toLowerCase();
   const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
   const isLogo = /\blogo\b|\bbrand mark\b|\bwordmark\b/.test(lower);
   const isIcon = /\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
   if (!wantsCreate || (!isLogo && !isIcon)) return null;
-  return { kind: isLogo ? "logo" : "icon", prompt: text };
+  return { kind: isLogo ? "logo" : "icon", brandName: extractBrandName(text) };
 }
 
 async function generateImage(
-  userPrompt: string,
+  brandName: string | null,
   kind: "logo" | "icon",
   openaiKey: string,
 ): Promise<{ url: string | null; error: string | null }> {
+  const brand = brandName ?? "the brand";
   const styled =
     kind === "logo"
-      ? `Modern, clean vector-style brand logo for an iGaming/sports betting app. ${userPrompt}. Horizontal wordmark composition, solid dark background, bold and memorable, professional brand mark, high contrast, no text artifacts, no watermark.`
-      : `Modern app icon for an iGaming/sports betting mobile app. ${userPrompt}. Square format, rounded composition, bold iconic shape, vibrant colors, professional, glossy finish, no text, suitable for iOS/Android home screen.`;
+      ? `Professional iGaming sports betting platform logo for "${brand}". The text "${brand}" rendered in a bold, modern sans-serif typeface. Horizontal wordmark layout on a solid dark background. Clean, high-contrast design. No extra decorations, no watermarks, no placeholder text.`
+      : `Professional app icon for an iGaming sports betting platform called "${brand}". Square composition, bold and iconic, vibrant colors, no text, suitable for iOS/Android home screen.`;
 
   // Logo: wide 1792x1024 - Icon: square 1024x1024
   const size = kind === "logo" ? "1792x1024" : "1024x1024";
@@ -180,7 +200,7 @@ Deno.serve(async (req) => {
     });
 
     const imagePromise = imageReq && openaiKey
-      ? generateImage(imageReq.prompt, imageReq.kind, openaiKey)
+      ? generateImage(imageReq.brandName, imageReq.kind, openaiKey)
       : Promise.resolve({ url: null, error: null });
 
     const [claudeResp, imageResult] = await Promise.all([claudePromise, imagePromise]);

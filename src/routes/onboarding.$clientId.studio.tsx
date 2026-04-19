@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -247,7 +248,9 @@ function ImageMessage({
   return (
     <div className="space-y-2">
       {msg.content && (
-        <p className="whitespace-pre-wrap text-[12px] leading-relaxed">{msg.content}</p>
+        <div className="text-[12px] leading-relaxed prose-chat">
+          <ReactMarkdown>{msg.content}</ReactMarkdown>
+        </div>
       )}
       {/* Full-width image */}
       <div className="w-full overflow-hidden rounded-lg border border-white/10">
@@ -752,8 +755,12 @@ function StudioInner({
                     )}>
                       {msg.role === "assistant" && msg.imageUrl ? (
                         <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
+                      ) : msg.role === "assistant" ? (
+                        <div className="text-[12px] leading-relaxed prose-chat">
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
                       ) : (
-                        <span className="whitespace-pre-wrap">{msg.content}</span>
+                        <span className="whitespace-pre-wrap text-[12px]">{msg.content}</span>
                       )}
                     </div>
                   </div>
