@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Mail, ArrowRight, Lock } from "lucide-react";
+import { Loader2, Mail, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { TriveltaNav } from "@/components/TriveltaNav";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { Link } from "@tanstack/react-router";
 import { PartnerLogos } from "@/components/PartnerLogos";
 
 export const Route = createFileRoute("/login")({
