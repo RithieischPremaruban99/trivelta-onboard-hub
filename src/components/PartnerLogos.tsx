@@ -9,12 +9,12 @@ import zendeskLogo from "@/assets/partners/zendesk.svg";
 import seonLogo from "@/assets/partners/seon.svg";
 import spribeLogo from "@/assets/partners/spribe.svg";
 
-const PARTNERS: Array<{ name: string; src: string; height: number }> = [
-  { name: "Evolution", src: evolutionLogo, height: 22 },
-  { name: "Sportradar", src: sportradarLogo, height: 20 },
-  { name: "Zendesk", src: zendeskLogo, height: 20 },
-  { name: "SEON", src: seonLogo, height: 22 },
-  { name: "Spribe", src: spribeLogo, height: 22 },
+const PARTNERS: Array<{ name: string; src: string }> = [
+  { name: "Evolution", src: evolutionLogo },
+  { name: "Sportradar", src: sportradarLogo },
+  { name: "Zendesk", src: zendeskLogo },
+  { name: "SEON", src: seonLogo },
+  { name: "Spribe", src: spribeLogo },
 ];
 
 export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: string }) {
@@ -26,7 +26,7 @@ export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: s
       >
         {label}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-5">
+      <div className="mt-4 flex flex-wrap items-center gap-x-10 gap-y-5">
         {PARTNERS.map((p) => (
           <img
             key={p.name}
@@ -34,7 +34,7 @@ export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: s
             alt={p.name}
             loading="lazy"
             className="opacity-50 brightness-0 invert transition-opacity hover:opacity-90"
-            style={{ height: p.height, width: "auto" }}
+            style={{ height: 20, width: "auto" }}
           />
         ))}
       </div>
