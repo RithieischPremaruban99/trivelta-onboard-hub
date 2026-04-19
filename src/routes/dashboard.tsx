@@ -149,6 +149,47 @@ function DashboardPage() {
     })();
   }, [user, authLoading]);
 
+  // Retry any pending Notion syncs left over from failed design-locked calls
+  useEffect(() => {
+    if (authLoading || !user) return;
+    (async () => {
+      const { data: pending } = await supabase
+        .from("onboarding_forms")
+        .select("client_id")
+        .eq("notion_sync_pending", true)
+        .eq("studio_locked", true);
+
+      if (!pending?.length) return;
+
+      let synced = 0;
+      await Promise.all(
+        pending.map(async (row: { client_id: string }) => {
+          const { error } = await supabase.functions.invoke("design-locked", {
+            body: { client_id: row.client_id },
+          });
+          if (!error) {
+            await supabase
+              .from("onboarding_forms")
+              .update({ notion_sync_pending: false })
+              .eq("client_id", row.client_id);
+            synced++;
+          } else {
+            console.warn("[dashboard] Notion retry failed for client", row.client_id, error);
+          }
+        }),
+      );
+
+      if (synced > 0) {
+        toast.success(
+          synced === 1
+            ? "Notion synced for 1 client design."
+            : `Notion synced for ${synced} client designs.`,
+          { duration: 4000 },
+        );
+      }
+    })();
+  }, [user, authLoading]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen grid place-items-center">

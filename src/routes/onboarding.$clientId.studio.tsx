@@ -555,6 +555,30 @@ function StudioInner({
     }
   };
 
+  /* ── Call design-locked edge function; returns true on success ── */
+  const callDesignLocked = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/design-locked`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ client_id: clientId }),
+      });
+      if (!res.ok) {
+        console.error("[studio] design-locked HTTP", res.status, await res.text());
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.error("[studio] design-locked fetch error:", e);
+      return false;
+    }
+  }, [clientId]);
+
   /* ── Lock design ── */
   const handleLock = async () => {
     setLocking(true);
@@ -566,13 +590,24 @@ function StudioInner({
           studio_config: { colors: themeColors, icons: appIcons } as never,
           studio_locked: true,
           studio_locked_at: now,
+          notion_sync_pending: false,
         },
         { onConflict: "client_id" },
       );
       setLocked(true);
       setLockedAt(now);
       setLockModalOpen(false);
-      toast.success("Design locked! Your Trivelta team has been notified.");
+
+      const notionOk = await callDesignLocked();
+      if (notionOk) {
+        toast.success("Design locked! Your Trivelta team has been notified.");
+      } else {
+        toast.warning("Design locked locally. Notion sync will retry automatically.");
+        await supabase.from("onboarding_forms").upsert(
+          { client_id: clientId, notion_sync_pending: true },
+          { onConflict: "client_id" },
+        );
+      }
     } catch {
       toast.error("Failed to lock design - try again.");
     } finally {
@@ -591,25 +626,24 @@ function StudioInner({
           studio_config: { colors: themeColors, icons: appIcons } as never,
           studio_locked: true,
           studio_locked_at: now,
+          notion_sync_pending: false,
         },
         { onConflict: "client_id" },
       );
       setLocked(true);
       setLockedAt(now);
       setSaveConfirmOpen(false);
-      toast.success("Design locked and submitted!");
 
-      // Fire-and-forget: notify Notion (non-blocking)
-      const { data: { session } } = await supabase.auth.getSession();
-      fetch(`${SUPABASE_URL}/functions/v1/design-locked`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`,
-          apikey: SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ client_id: clientId }),
-      }).catch((e) => console.warn("[studio] design-locked call failed:", e));
+      const notionOk = await callDesignLocked();
+      if (notionOk) {
+        toast.success("Design locked and submitted!");
+      } else {
+        toast.warning("Design locked locally. Notion sync will retry automatically.");
+        await supabase.from("onboarding_forms").upsert(
+          { client_id: clientId, notion_sync_pending: true },
+          { onConflict: "client_id" },
+        );
+      }
 
       navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
     } catch {
