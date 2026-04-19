@@ -187,6 +187,15 @@
   .prose-chat code { font-family: var(--font-mono); font-size: 0.85em; opacity: 0.85; }
 }
 
+@keyframes route-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes route-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @layer components {
   .orb-1 { animation: orb-drift-1 20s ease-in-out infinite; }
   .orb-2 { animation: orb-drift-2 26s ease-in-out infinite; }
@@ -202,4 +211,6 @@
     background-size: 200% 100%;
     animation: progress-shimmer 2.4s linear infinite;
   }
+  .route-fade-in  { animation: route-fade-in  0.28s ease both; }
+  .route-slide-up { animation: route-slide-up 0.32s ease both; }
 }

@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Copy, ExternalLink, Mail, Loader2, MessagesSquare, FolderOpen, Palette } from "lucide-react";
+import { CheckCircle2, Copy, ExternalLink, Mail, Loader2, MessagesSquare, FolderOpen, Palette, ArrowRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { TriveltaNav } from "@/components/TriveltaNav";
 
@@ -63,7 +63,7 @@ function SuccessScreen() {
   const channel = slackName(welcomeInfo.clientName);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="route-slide-up flex min-h-screen flex-col">
       <TriveltaNav
         right={
           <div className="hidden text-right sm:block">
@@ -97,6 +97,40 @@ function SuccessScreen() {
               Trivelta team has been notified and your platform configuration starts now.
             </p>
           </div>
+
+          {/* Studio CTA - PRIMARY action before info cards */}
+          {clientRole === "client_owner" && (
+            <div className="mb-8">
+              <p className="mb-3 text-center text-[13px] font-medium uppercase tracking-[0.18em] text-muted-foreground font-mono">
+                Your onboarding is complete. Now let&apos;s build your brand.
+              </p>
+              <button
+                onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
+                className="group relative w-full overflow-hidden rounded-2xl p-px transition-all duration-300 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.7), rgba(99,102,241,0.5), rgba(37,99,235,0.3))" }}
+              >
+                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{ boxShadow: "0 0 40px 8px rgba(37,99,235,0.3)" }} />
+                <div className="relative flex w-full flex-col items-center gap-4 rounded-2xl bg-card px-8 py-8 text-center sm:flex-row sm:text-left">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/20 ring-1 ring-primary/30 transition-colors group-hover:bg-primary/30">
+                    <Palette className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-center gap-2 sm:justify-start">
+                      <span className="text-[20px] font-semibold text-foreground">Customize Your Platform</span>
+                      <Sparkles className="h-4 w-4 text-primary opacity-70" />
+                    </div>
+                    <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">
+                      Design your platform in Trivelta Studio — choose colors, generate your logo, and preview your app live.
+                    </p>
+                  </div>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/25 transition-all duration-200 group-hover:bg-primary group-hover:ring-primary">
+                    <ArrowRight className="h-5 w-5 text-primary transition-colors group-hover:text-white" />
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
 
           {/* Info cards - equal width, equal height */}
           <div className="mb-4 grid items-stretch gap-4 sm:grid-cols-3">
@@ -184,34 +218,13 @@ function SuccessScreen() {
             </div>
           </div>
 
-          {/* Platform Studio CTA */}
-          <div className="mb-4">
-            {clientRole === "client_owner" ? (
-              <button
-                onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
-                className="group flex w-full items-start gap-5 rounded-xl border border-border/60 bg-card px-6 py-5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.02]"
-              >
-                <div className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25 transition-colors group-hover:bg-primary/20">
-                  <Palette className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[14px] font-semibold text-foreground">Customize Your Platform</div>
-                  <div className="mt-1 text-[13px] text-muted-foreground">
-                    Set your colors, upload your logo, and preview your platform live before it goes live.
-                  </div>
-                  <div className="mt-2 text-[11px] text-muted-foreground/60">
-                    You can customize until you lock your design. Changes after locking require your Account Manager.
-                  </div>
-                </div>
-                <span className="mt-1 shrink-0 text-[18px] leading-none text-muted-foreground/40 transition-colors group-hover:text-primary">&rarr;</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-5 py-4 text-[13px] text-muted-foreground">
-                <Palette className="h-4 w-4 shrink-0" />
-                Platform customization is available to the account owner.
-              </div>
-            )}
-          </div>
+          {/* Non-owner notice */}
+          {clientRole !== "client_owner" && (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-border/60 bg-card px-5 py-4 text-[13px] text-muted-foreground">
+              <Palette className="h-4 w-4 shrink-0" />
+              Platform customization in Trivelta Studio is available to the account owner.
+            </div>
+          )}
 
           {/* Divider */}
           <div className="my-8 border-t border-border/60" />

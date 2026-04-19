@@ -11,7 +11,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ColorField } from "@/components/ColorField";
 import {
   COUNTRIES,
   countRequiredFields,
@@ -189,7 +188,7 @@ function FormScreen() {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="route-fade-in flex min-h-screen flex-col">
       {/* Sticky brand nav with progress bar underneath */}
       <TriveltaNav
         right={
@@ -281,8 +280,8 @@ function FormScreen() {
               title="Platform Setup"
               icon={Palette}
               done={sectionDone["3"]}
-              desc="URL, country, DNS access and full brand colour system"
-              sectionDesc="Configure your platform URL, country, and color scheme."
+              desc="URL, country and DNS access"
+              sectionDesc="Configure your platform URL, country, and DNS access. Colors are set in Trivelta Studio."
             >
               <SectionPlatform form={form} update={update} />
             </SectionShell>
@@ -756,34 +755,14 @@ function SectionPlatform({ form, update }: { form: FormShape; update: <K extends
         <FieldGroup label="DNS provider" required><Input placeholder="Cloudflare, GoDaddy, …" value={form.dns_provider} onChange={(e) => update("dns_provider", e.target.value)} /></FieldGroup>
         <FieldGroup label="Grant DNS access?" required><YesNo value={form.dns_access} onChange={(v) => update("dns_access", v)} idPrefix="dns" /></FieldGroup>
       </div>
-      <SubCard title="Brand colours">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <ColorField label="Background" value={form.color_background} onChange={(v) => update("color_background", v)} />
-          <ColorField label="Primary" value={form.color_primary} onChange={(v) => update("color_primary", v)} />
-          <ColorField label="Secondary" value={form.color_secondary} onChange={(v) => update("color_secondary", v)} />
-          <ColorField label="Light text" value={form.color_light_text} onChange={(v) => update("color_light_text", v)} />
-          <ColorField label="Placeholder" value={form.color_placeholder} onChange={(v) => update("color_placeholder", v)} />
-        </div>
-      </SubCard>
-      <div className="space-y-3">
-        <div className="text-sm font-medium text-foreground">Gradients</div>
-        {[
-          { label: "Button gradient", a: "btn_gradient_a", b: "btn_gradient_b" },
-          { label: "Box gradient", a: "box_gradient_a", b: "box_gradient_b" },
-          { label: "Header gradient", a: "header_gradient_a", b: "header_gradient_b" },
-          { label: "Won gradient", a: "won_gradient_a", b: "won_gradient_b" },
-        ].map((g) => (
-          <SubCard key={g.label}>
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <div className="text-sm font-medium text-foreground">{g.label}</div>
-              <div className="h-5 w-28 rounded-md ring-1 ring-border" style={{ background: `linear-gradient(90deg, ${form[g.a as keyof FormShape] as string}, ${form[g.b as keyof FormShape] as string})` }} />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ColorField label="Start" value={form[g.a as keyof FormShape] as string} onChange={(v) => update(g.a as keyof FormShape, v as never)} />
-              <ColorField label="End" value={form[g.b as keyof FormShape] as string} onChange={(v) => update(g.b as keyof FormShape, v as never)} />
-            </div>
-          </SubCard>
-        ))}
+      <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.05] px-4 py-3.5">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <p className="text-[13px] leading-relaxed text-muted-foreground">
+          Your platform colors will be configured in{" "}
+          <span className="font-medium text-foreground">Trivelta Studio</span> after
+          submitting this form — where you can preview your app live as you choose colors
+          and generate brand assets.
+        </p>
       </div>
     </div>
   );

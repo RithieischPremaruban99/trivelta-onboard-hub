@@ -34,7 +34,10 @@ function WelcomeGate() {
     }
   }, [user, clientRole, authLoading, loadingAuth]);
 
-  if (loadingPublic) {
+  // Show spinner while: public data loading, auth resolving, or logged-in user
+  // waiting for role check (prevents welcome gate flash before redirect fires)
+  const stillResolving = loadingPublic || authLoading || (!!user && loadingAuth);
+  if (stillResolving) {
     return (
       <div className="min-h-screen grid place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -56,7 +59,7 @@ function WelcomeGate() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="route-fade-in relative flex min-h-screen flex-col">
       <TriveltaNav
         right={
           <span className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex">
@@ -126,31 +129,44 @@ function WelcomeGate() {
                 aria-hidden="true"
               />
               <div className="relative">
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                  Your Account Manager
-                </div>
-
-                <div className="mt-5 flex items-start gap-4">
-                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-base text-primary ring-1 ring-primary/30">
-                    {initials(welcomeInfo.amName)}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[18px] font-semibold text-foreground">
-                      {welcomeInfo.amName ?? "Account Manager"}
-                    </div>
-                    <div className="text-[13px] text-muted-foreground">Account Manager</div>
-                  </div>
-                </div>
-
-                {welcomeInfo.amEmail && (
-                  <a
-                    href={`mailto:${welcomeInfo.amEmail}`}
-                    className="mt-5 flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3.5 py-2.5 font-mono text-[13px] text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                  >
-                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                    {welcomeInfo.amEmail}
-                  </a>
-                )}
+                {(() => {
+                  const isMulti = welcomeInfo.amName?.includes(" & ");
+                  const emails = welcomeInfo.amEmail?.split(",").map((e) => e.trim()).filter(Boolean) ?? [];
+                  return (
+                    <>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                        {isMulti ? "Your Account Managers" : "Your Account Manager"}
+                      </div>
+                      <div className="mt-5 flex items-start gap-4">
+                        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-base text-primary ring-1 ring-primary/30">
+                          {initials(welcomeInfo.amName)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[18px] font-semibold text-foreground">
+                            {welcomeInfo.amName ?? "Account Manager"}
+                          </div>
+                          <div className="text-[13px] text-muted-foreground">
+                            {isMulti ? "Account Managers" : "Account Manager"}
+                          </div>
+                        </div>
+                      </div>
+                      {emails.length > 0 && (
+                        <div className="mt-5 flex flex-col gap-2">
+                          {emails.map((email) => (
+                            <a
+                              key={email}
+                              href={`mailto:${email}`}
+                              className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3.5 py-2.5 font-mono text-[13px] text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                            >
+                              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                              {email}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 <div className="mt-6 border-t border-border pt-5">
                   <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">

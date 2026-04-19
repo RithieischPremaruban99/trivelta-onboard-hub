@@ -81,8 +81,8 @@ function extractBrandName(text: string): string | null {
 
 function detectImageRequest(text: string): { kind: "logo" | "icon"; brandName: string | null } | null {
   const lower = text.toLowerCase();
-  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
-  const isLogo = /\blogo\b|\bbrand mark\b|\bwordmark\b/.test(lower);
+  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want|show me)\b/.test(lower);
+  const isLogo = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bbrand image\b/.test(lower);
   const isIcon = /\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
   if (!wantsCreate || (!isLogo && !isIcon)) return null;
   return { kind: isLogo ? "logo" : "icon", brandName: extractBrandName(text) };
@@ -150,19 +150,24 @@ Deno.serve(async (req) => {
 
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
+    console.error("[studio-chat] ANTHROPIC_API_KEY missing — add it in Supabase Edge Function secrets");
+    return new Response(JSON.stringify({ error: "Logo generation is temporarily unavailable." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   const openaiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!openaiKey) {
+    console.error("[studio-chat] OPENAI_API_KEY missing — image generation will be unavailable");
+  }
 
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const imageReq = lastUser ? detectImageRequest(lastUser.content) : null;
 
   if (imageReq && !openaiKey) {
+    console.error("[studio-chat] OPENAI_API_KEY missing — cannot generate logo/icon");
     return new Response(
-      JSON.stringify({ error: "OPENAI_API_KEY not configured - add it in Supabase Edge Function secrets" }),
+      JSON.stringify({ error: "Logo generation is temporarily unavailable. Please contact your account manager." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
