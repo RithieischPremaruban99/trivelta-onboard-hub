@@ -219,7 +219,7 @@ function AssetUploadZone({
           </div>
         )}
       </button>
-      {currentUrl && !readOnly && (
+      {currentUrl && (
         <a
           href={currentUrl}
           download={type === "logo" ? "logo.png" : "app-icon.png"}
