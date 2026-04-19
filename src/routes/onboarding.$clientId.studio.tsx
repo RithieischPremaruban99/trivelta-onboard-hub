@@ -426,7 +426,7 @@ function StudioInner({
       setLockModalOpen(false);
       toast.success("Design locked! Your Trivelta team has been notified.");
     } catch {
-      toast.error("Failed to lock design — try again.");
+      toast.error("Failed to lock design - try again.");
     } finally {
       setLocking(false);
     }
@@ -466,7 +466,7 @@ function StudioInner({
         setDisplayMessages((prev) => [...prev, {
           role: "assistant",
           content: isKeyErr
-            ? "API key not configured — contact your administrator."
+            ? "API key not configured - contact your administrator."
             : "Something went wrong. Please try again.",
         }]);
         return;
@@ -495,7 +495,7 @@ function StudioInner({
       const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured") || errStr.includes("ANTHROPIC");
       setDisplayMessages((prev) => [...prev, {
         role: "assistant",
-        content: isKeyErr ? "API key not configured — contact your administrator." : "Something went wrong. Please try again.",
+        content: isKeyErr ? "API key not configured - contact your administrator." : "Something went wrong. Please try again.",
       }]);
     } finally {
       setThinking(false);
@@ -558,7 +558,7 @@ function StudioInner({
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ══ LEFT PANEL — AI Chat (35%) ═══════════════════════════════ */}
+        {/* ══ LEFT PANEL - AI Chat (35%) ═══════════════════════════════ */}
         <div className="flex w-[35%] min-w-[300px] max-w-[440px] flex-col overflow-hidden border-r border-border bg-card">
 
           {/* Panel identity header */}
@@ -745,7 +745,7 @@ function StudioInner({
           </div>
         </div>
 
-        {/* ══ RIGHT PANEL — Preview (65%) ══════════════════════════════ */}
+        {/* ══ RIGHT PANEL - Preview (65%) ══════════════════════════════ */}
         <div className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
 
           {/* Mobile / Web toggle */}
@@ -793,7 +793,7 @@ function StudioInner({
   );
 }
 
-/* ── StudioPage — auth guard + config loader ─────────────────────────────── */
+/* ── StudioPage - auth guard + config loader ─────────────────────────────── */
 
 function StudioPage() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/studio" });

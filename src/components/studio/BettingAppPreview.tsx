@@ -15,7 +15,7 @@
  * outer wrapper from StudioContext.themeColors, so changing tokens in the
  * Studio panel updates the preview live.
  *
- * Static placeholder data only — neutral "BetNova" branding, no BetCorrect
+ * Static placeholder data only - neutral "BetNova" branding, no BetCorrect
  * references.
  */
 import { useState } from "react";
