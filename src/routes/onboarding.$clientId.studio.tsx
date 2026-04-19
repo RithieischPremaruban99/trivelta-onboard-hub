@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { applyPatch, type Operation } from "fast-json-patch";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,9 +21,41 @@ import { toast } from "sonner";
 import {
   Send, Loader2, Smartphone, Monitor, Sparkles,
   RefreshCw, CheckCircle2, Upload, ArrowRight,
-  Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown, Download,
+  Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown, Download, Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/* ── Constants ──────────────────────────────────────────────────────────── */
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+// Allowed JSON Patch paths - matches system prompt ALLOWED PATCH PATHS
+const ALLOWED_PATCH_PATHS = new Set([
+  "/primaryBg", "/primary", "/secondary", "/primaryButton", "/primaryButtonGradient",
+  "/wonGradient1", "/wonGradient2", "/boxGradient1", "/boxGradient2",
+  "/headerBorder1", "/headerBorder2", "/lightText", "/placeholder", "/inactiveButton",
+]);
+
+const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
+
+// Maps ThemeColors keys to --p-* CSS custom properties on the preview element
+const THEME_TO_CSS_VAR: Partial<Record<keyof StudioThemeColors, string>> = {
+  primaryBg: "--p-bg",
+  primary: "--p-primary",
+  secondary: "--p-secondary",
+  lightText: "--p-text",
+  placeholder: "--p-muted",
+  primaryButton: "--p-btn",
+  primaryButtonGradient: "--p-btn-grad",
+  inactiveButton: "--p-inactive",
+  wonGradient1: "--p-won1",
+  wonGradient2: "--p-won2",
+  headerBorder1: "--p-nav",
+  headerBorder2: "--p-card",
+};
+
+const MAX_UNDO = 20;
 
 export const Route = createFileRoute("/onboarding/$clientId/studio")({
   component: StudioPage,
@@ -47,6 +80,39 @@ function isImageRequest(text: string): boolean {
   const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
   const isAsset = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
   return wantsCreate && isAsset;
+}
+
+/* ── Response quality sanitizer ────────────────────────────────────────── */
+
+function sanitizeChatText(raw: string): string {
+  let t = raw
+    .replace(/\*\*/g, "")          // strip markdown bold
+    .replace(/\*/g, "")            // strip markdown italic
+    .replace(/—/g, "-")            // em dash -> hyphen
+    .trim();
+  // Truncate to first 2 sentences if longer than 150 chars
+  if (t.length > 150) {
+    const sentences = t.match(/[^.!?]+[.!?]+/g) ?? [t];
+    t = sentences.slice(0, 2).join(" ").trim();
+    if (!t) t = raw.slice(0, 150).trim();
+  }
+  return t;
+}
+
+/* ── Patch validation ───────────────────────────────────────────────────── */
+
+function validateOps(ops: unknown): ops is Operation[] {
+  if (!Array.isArray(ops)) return false;
+  return ops.every(
+    (op) =>
+      op &&
+      typeof op === "object" &&
+      op.op === "replace" &&
+      typeof op.path === "string" &&
+      ALLOWED_PATCH_PATHS.has(op.path) &&
+      typeof op.value === "string" &&
+      RGBA_RE.test(op.value.trim()),
+  );
 }
 
 /* ── Color utilities ────────────────────────────────────────────────────── */
@@ -426,17 +492,22 @@ function StudioInner({
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
     {
       role: "assistant",
-      content: "Hi! I'm your platform design assistant.\n\nDescribe the look and feel you want, or ask me to generate a logo.\n\nTry: \"make the theme dark green\" or \"generate a logo for BetKing\"",
+      content: "Hi! I'm your platform design assistant. Describe the look and feel you want, or ask me to generate a logo.",
     },
   ]);
   const [apiHistory, setApiHistory] = useState<ApiMessage[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const [pendingIsImage, setPendingIsImage] = useState(false);
+  const [patchPending, setPatchPending] = useState(false);
+  // Undo history: stack of previous themeColors snapshots + description
+  const [undoStack, setUndoStack] = useState<Array<{ colors: StudioThemeColors; label: string }>>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref to the preview container div for instant CSS var updates before React re-render
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -539,7 +610,69 @@ function StudioInner({
     }
   }, [setAppIcons]);
 
-  /* ── AI send ── */
+  /* ── Apply color patch (JSON Patch ops) ── */
+  const applyColorPatch = useCallback((ops: Operation[], label: string) => {
+    setThemeColors((prev) => {
+      // Push current snapshot to undo stack (capped at MAX_UNDO)
+      setUndoStack((stack) => [
+        { colors: prev, label },
+        ...stack.slice(0, MAX_UNDO - 1),
+      ]);
+
+      // Tier-1: write CSS vars directly to preview container before React re-renders
+      const previewEl = previewContainerRef.current;
+      if (previewEl) {
+        for (const op of ops) {
+          if (op.op === "replace") {
+            const key = op.path.slice(1) as keyof StudioThemeColors;
+            const cssVar = THEME_TO_CSS_VAR[key];
+            if (cssVar) previewEl.style.setProperty(cssVar, op.value as string);
+          }
+        }
+      }
+
+      // Apply patch atomically to a clone of themeColors
+      try {
+        const result = applyPatch({ ...prev }, ops as Operation[], false, false);
+        return result.newDocument as StudioThemeColors;
+      } catch {
+        return prev; // if patch fails, leave colors unchanged
+      }
+    });
+  }, [setThemeColors]);
+
+  /* ── Undo last color patch ── */
+  const handleUndo = useCallback(() => {
+    setUndoStack((stack) => {
+      if (stack.length === 0) return stack;
+      const [top, ...rest] = stack;
+      setThemeColors(top.colors);
+      // Also revert CSS vars on the preview container
+      const previewEl = previewContainerRef.current;
+      if (previewEl) {
+        for (const [key, cssVar] of Object.entries(THEME_TO_CSS_VAR)) {
+          const val = top.colors[key as keyof StudioThemeColors];
+          if (val) previewEl.style.setProperty(cssVar, val as string);
+        }
+      }
+      toast.info(`Reverted: ${top.label}`, { duration: 2000 });
+      return rest;
+    });
+  }, [setThemeColors]);
+
+  // Ctrl+Z keyboard shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleUndo]);
+
+  /* ── AI send (streaming SSE) ── */
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || thinking) return;
@@ -551,61 +684,155 @@ function StudioInner({
     setInput("");
     setThinking(true);
     setPendingIsImage(isImg);
+    setPatchPending(false);
+
+    // Add a blank assistant message that we'll stream tokens into
+    const assistantMsgIndex = nextHistory.length; // position in displayMessages after user msg
+    setDisplayMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+    let fullChatText = "";
+    let appliedPatch = false;
+    let imageReceived = false;
 
     try {
-      const { data, error } = await supabase.functions.invoke("studio-chat", {
-        body: { messages: nextHistory, clientId },
+      // Get auth token for direct fetch (supabase.functions.invoke doesn't support SSE)
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authToken = sessionData.session?.access_token ?? SUPABASE_ANON_KEY;
+
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/studio-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`,
+          "apikey": SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ messages: nextHistory, clientId }),
       });
 
-      const bodyErr: string = (data as Record<string, unknown>)?.error as string ?? "";
-      if (error || bodyErr) {
-        const errStr = bodyErr || String(error);
-        const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured") || errStr.includes("ANTHROPIC");
-        setDisplayMessages((prev) => [...prev, {
-          role: "assistant",
-          content: isKeyErr
-            ? "API key not configured - contact your administrator."
-            : "Something went wrong. Please try again.",
-        }]);
-        return;
+      if (!resp.ok || !resp.body) {
+        throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
       }
 
-      const { text: responseText, config, imageUrl, imageType, imageError } = data as {
-        text: string;
-        config: Partial<StudioThemeColors> | null;
-        imageUrl: string | null;
-        imageType: "logo" | "icon" | null;
-        imageError: string | null;
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let sseBuffer = "";
+
+      const updateLastMsg = (updater: (msg: DisplayMessage) => DisplayMessage) => {
+        setDisplayMessages((prev) => {
+          const msgs = [...prev];
+          const lastIdx = msgs.length - 1;
+          if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
+            msgs[lastIdx] = updater(msgs[lastIdx]);
+          }
+          return msgs;
+        });
       };
 
-      // If image was requested but failed, append an error note to the message
-      const displayText = imageError && !imageUrl
-        ? `${responseText}\n\nImage generation failed - please try again. If this keeps happening, contact support.`
-        : responseText;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      setDisplayMessages((prev) => [...prev, {
-        role: "assistant",
-        content: displayText,
-        ...(imageUrl && { imageUrl, imageType: imageType ?? "logo", sourcePrompt: trimmed }),
-      }]);
-      setApiHistory((prev) => [...prev, { role: "assistant", content: responseText }]);
+        sseBuffer += dec.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        sseBuffer = lines.pop()!; // keep partial last line
 
-      if (config && Object.keys(config).length > 0) {
-        setThemeColors((prev) => ({ ...prev, ...config }));
-        toast.success("Colors updated in preview", { duration: 1500 });
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          let event: Record<string, unknown>;
+          try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+          if (event.type === "token") {
+            // Stream <chat> text into the assistant message
+            const tok = event.text as string;
+            fullChatText += tok;
+            updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
+
+          } else if (event.type === "patch") {
+            // Validate and apply color patch atomically
+            const ops = event.ops as unknown;
+            if (validateOps(ops)) {
+              setPatchPending(true);
+              const label = ops.map((o) => o.path.slice(1)).join(", ") + " change";
+              applyColorPatch(ops, label);
+              appliedPatch = true;
+              toast.success("Colors updated", { duration: 1500 });
+            } else {
+              console.warn("[studio] Invalid patch ops - skipped:", ops);
+            }
+            setPatchPending(false);
+
+          } else if (event.type === "image") {
+            const imageUrl = event.imageUrl as string | null;
+            const imageType = (event.imageType ?? "logo") as "logo" | "icon";
+            const imageError = event.imageError as string | null;
+            imageReceived = true;
+            if (imageUrl) {
+              updateLastMsg((msg) => ({ ...msg, imageUrl, imageType, sourcePrompt: trimmed }));
+            } else if (imageError) {
+              updateLastMsg((msg) => ({
+                ...msg,
+                content: (msg.content || sanitizeChatText(fullChatText)) +
+                  "\n\nImage generation failed - please try again.",
+              }));
+            }
+
+          } else if (event.type === "error") {
+            const errStr = String(event.message ?? "");
+            const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
+            updateLastMsg((msg) => ({
+              ...msg,
+              content: isKeyErr
+                ? "API key not configured - contact your administrator."
+                : "Something went wrong. Please try again.",
+            }));
+
+          } else if (event.type === "done") {
+            // Finalize: ensure chat text is sanitized
+            updateLastMsg((msg) => ({
+              ...msg,
+              content: sanitizeChatText(fullChatText) || msg.content,
+            }));
+            // Record final chat text in API history
+            setApiHistory((prev) => [...prev, { role: "assistant", content: sanitizeChatText(fullChatText) }]);
+          }
+        }
       }
+
+      // Fallback: if stream ended without a "done" event
+      if (fullChatText) {
+        updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
+        setApiHistory((prev) => {
+          // Only append if not already added
+          const last = prev[prev.length - 1];
+          if (last?.role !== "assistant") {
+            return [...prev, { role: "assistant", content: sanitizeChatText(fullChatText) }];
+          }
+          return prev;
+        });
+      }
+
     } catch (err) {
       const errStr = String(err);
-      const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured") || errStr.includes("ANTHROPIC");
-      setDisplayMessages((prev) => [...prev, {
-        role: "assistant",
-        content: isKeyErr ? "API key not configured - contact your administrator." : "Something went wrong. Please try again.",
-      }]);
+      const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
+      setDisplayMessages((prev) => {
+        const msgs = [...prev];
+        const lastIdx = msgs.length - 1;
+        if (lastIdx >= 0 && msgs[lastIdx].role === "assistant" && !msgs[lastIdx].content) {
+          msgs[lastIdx] = {
+            role: "assistant",
+            content: isKeyErr
+              ? "API key not configured - contact your administrator."
+              : "Something went wrong. Please try again.",
+          };
+        }
+        return msgs;
+      });
     } finally {
       setThinking(false);
       setPendingIsImage(false);
+      setPatchPending(false);
     }
-  }, [thinking, apiHistory, clientId, setThemeColors]);
+  }, [thinking, apiHistory, clientId, applyColorPatch]);
 
   /* ── Color config ── */
   const singleColors: { label: string; key: keyof StudioThemeColors }[] = [
@@ -766,33 +993,34 @@ function StudioInner({
                   </div>
                 ))}
 
-                {/* Thinking / generating indicator */}
-                {thinking && (
+                {/* Image generation progress indicator (shown while DALL-E is running) */}
+                {thinking && pendingIsImage && (
                   <div className="flex justify-start">
-                    {pendingIsImage ? (
-                      <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-                        <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
-                          <span className="animate-pulse">🎨</span>
-                          <span>Generating your logo... this takes 10-15 seconds</span>
-                        </div>
-                        <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
-                          <div className="h-full rounded-full bg-primary/60 animate-pulse" style={{ width: "65%" }} />
-                        </div>
+                    <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
+                      <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                        <span>Generating your logo - this takes 10-15 seconds</span>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+                      <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
+                        <div className="progress-shimmer h-full rounded-full" />
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Chat input */}
+              {/* Chat input + undo */}
               <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
+                {undoStack.length > 0 && (
+                  <button
+                    onClick={handleUndo}
+                    title="Undo last color change (Ctrl+Z)"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
                 <input
                   ref={chatInputRef}
                   className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
@@ -808,7 +1036,7 @@ function StudioInner({
                   disabled={!input.trim() || thinking}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
                 >
-                  {thinking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  {thinking && !pendingIsImage ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 </button>
               </div>
             </>
@@ -933,8 +1161,14 @@ function StudioInner({
             </button>
           </div>
 
-          {/* Preview */}
-          <div className="flex-1 overflow-auto">
+          {/* Preview - ref used for instant CSS var updates before React re-render */}
+          <div
+            ref={previewContainerRef}
+            className={cn(
+              "flex-1 overflow-auto transition-all duration-300",
+              patchPending && "ring-2 ring-primary/40 ring-inset",
+            )}
+          >
             <BettingAppPreview />
           </div>
         </div>
