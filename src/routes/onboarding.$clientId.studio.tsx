@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   Send, Loader2, Smartphone, Monitor, Sparkles,
   RefreshCw, CheckCircle2, Upload, ArrowRight,
-  Lock, Palette,
+  Lock, Palette, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +37,15 @@ interface DisplayMessage {
   imageUrl?: string;
   imageType?: "logo" | "icon";
   sourcePrompt?: string;
+}
+
+/* ── Image-request detection (mirrors edge function) ────────────────────── */
+
+function isImageRequest(text: string): boolean {
+  const lower = text.toLowerCase();
+  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
+  const isAsset = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
+  return wantsCreate && isAsset;
 }
 
 /* ── Color utilities ────────────────────────────────────────────────────── */
@@ -83,13 +92,12 @@ function StudioColorField({
 
   const applyHex = (v: string) => {
     if (readOnly) return;
-    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    if (/^#[0-9a-fA-F]{6}$/.test(v))
       setThemeColors((prev) => ({ ...prev, [colorKey]: hexToRgba(v, alpha) }));
-    }
   };
 
   return (
-    <div className={cn("flex items-center gap-2", readOnly && "opacity-60")}>
+    <div className={cn("flex items-center gap-2", readOnly && "pointer-events-none opacity-50")}>
       <label className={cn("relative shrink-0", readOnly ? "cursor-default" : "cursor-pointer")}>
         <div
           className={cn("rounded-md border border-border/60 shadow-sm", compact ? "h-7 w-7" : "h-8 w-8")}
@@ -100,7 +108,6 @@ function StudioColorField({
           value={rgbaToHex(rgba)}
           disabled={readOnly}
           onChange={(e) => {
-            if (readOnly) return;
             setHexInput(e.target.value);
             setThemeColors((prev) => ({ ...prev, [colorKey]: hexToRgba(e.target.value, alpha) }));
           }}
@@ -116,7 +123,7 @@ function StudioColorField({
           readOnly={readOnly}
           onChange={(e) => { setHexInput(e.target.value); applyHex(e.target.value); }}
           onBlur={() => setHexInput(rgbaToHex(rgba))}
-          className={cn("font-mono", compact ? "h-7 text-[10px]" : "h-7 text-[11px]", readOnly && "cursor-default")}
+          className={cn("font-mono", compact ? "h-7 text-[10px]" : "h-7 text-[11px]")}
           placeholder="#000000"
           maxLength={7}
           title={label}
@@ -133,27 +140,17 @@ function AssetUploadZone({
   type,
   currentUrl,
   readOnly = false,
+  compact = false,
 }: {
   label: string;
   type: "logo" | "icon";
   currentUrl: string | null;
   readOnly?: boolean;
+  compact?: boolean;
 }) {
   const { setAppIcons } = useStudio();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [urlInput, setUrlInput] = useState("");
   const [dragging, setDragging] = useState(false);
-
-  const applyUrl = (url: string) => {
-    if (!url.trim() || readOnly) return;
-    if (type === "logo") {
-      setAppIcons((prev) => ({ ...prev, appNameLogo: url, topLeftAppIcon: url }));
-    } else {
-      setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
-    }
-    toast.success(`${label} applied`, { duration: 1500 });
-    setUrlInput("");
-  };
 
   const applyFile = (file: File) => {
     if (readOnly) return;
@@ -165,37 +162,21 @@ function AssetUploadZone({
       } else {
         setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
       }
-      toast.success(`${label} applied to preview`, { duration: 1500 });
+      toast.success(`${label} applied`, { duration: 1500 });
     };
     reader.readAsDataURL(file);
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) applyFile(file);
-    e.target.value = "";
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    if (readOnly) return;
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) applyFile(file);
-  };
-
   return (
-    <div className="space-y-1.5">
+    <div>
       <input
         ref={fileRef}
         type="file"
         accept="image/png,image/jpeg,image/svg+xml,image/webp"
         className="hidden"
-        onChange={handleFile}
         disabled={readOnly}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) applyFile(f); e.target.value = ""; }}
       />
-
-      {/* Drop zone */}
       <button
         type="button"
         disabled={readOnly}
@@ -203,78 +184,45 @@ function AssetUploadZone({
         onDragEnter={() => { if (!readOnly) setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f?.type.startsWith("image/")) applyFile(f); }}
         className={cn(
-          "group w-full rounded-xl border-2 border-dashed px-4 py-4 text-left transition-all",
-          readOnly
-            ? "cursor-default border-border/40 bg-background/20"
-            : dragging
-            ? "border-primary bg-primary/10"
-            : "border-border bg-background/30 hover:border-primary/40 hover:bg-accent/20",
+          "w-full rounded-xl border-2 border-dashed transition-all text-left",
+          compact ? "px-3 py-2" : "px-4 py-3",
+          readOnly ? "cursor-default border-border/30 bg-background/10" :
+          dragging ? "border-primary bg-primary/10" :
+          "border-border bg-background/30 hover:border-primary/40 hover:bg-accent/20",
         )}
       >
         {currentUrl ? (
-          <div className="flex items-center gap-3">
-            {type === "logo" ? (
-              <img src={currentUrl} alt={label} className="h-8 max-w-[96px] rounded object-contain" />
-            ) : (
-              <img src={currentUrl} alt={label} className="h-10 w-10 rounded-lg object-contain" />
-            )}
+          <div className="flex items-center gap-2.5">
+            {type === "logo"
+              ? <img src={currentUrl} alt="Logo" className="h-7 max-w-[80px] rounded object-contain" />
+              : <img src={currentUrl} alt="Icon" className="h-8 w-8 rounded-lg object-contain" />
+            }
             <div>
-              <div className="text-[12px] font-semibold text-foreground">{label}</div>
-              {!readOnly && <div className="text-[11px] text-muted-foreground">Click to replace · drag & drop</div>}
+              <div className={cn("font-semibold text-foreground", compact ? "text-[11px]" : "text-[12px]")}>{label}</div>
+              {!readOnly && <div className="text-[10px] text-muted-foreground">Click to replace</div>}
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2 py-1 text-center">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-muted/50">
-              <Upload className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-muted/50">
+              <Upload className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div>
-              <div className="text-[12px] font-semibold text-foreground">{label}</div>
-              <div className="text-[11px] text-muted-foreground">
-                {readOnly ? "Not uploaded" : "PNG, JPG, SVG — drag & drop or click"}
+              <div className={cn("font-semibold text-foreground", compact ? "text-[11px]" : "text-[12px]")}>{label}</div>
+              <div className="text-[10px] text-muted-foreground">
+                {readOnly ? "Not uploaded" : "PNG, SVG · drag or click"}
               </div>
             </div>
           </div>
         )}
       </button>
-
-      {/* Paste URL */}
-      {!readOnly && (
-        <div className="flex items-center gap-1.5">
-          <Input
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") applyUrl(urlInput); }}
-            placeholder="or paste image URL…"
-            className="h-6 text-[10px] text-muted-foreground placeholder:text-muted-foreground/50"
-          />
-          {urlInput && (
-            <button
-              onClick={() => applyUrl(urlInput)}
-              className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary hover:bg-primary/10"
-            >
-              Apply
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
-/* ── Section label ──────────────────────────────────────────────────────── */
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60">
-      {children}
-    </div>
-  );
-}
-
-/* ── Image message bubble ────────────────────────────────────────────────── */
+/* ── Image message ───────────────────────────────────────────────────────── */
 
 function ImageMessage({
   msg,
@@ -285,40 +233,49 @@ function ImageMessage({
   onUse: (url: string, type: "logo" | "icon") => void;
   onRegenerate: (prompt: string) => void;
 }) {
-  const [used, setUsed] = useState(false);
+  const [usedAs, setUsedAs] = useState<"logo" | "icon" | null>(null);
   return (
     <div className="space-y-2">
       {msg.content && (
-        <p className="whitespace-pre-wrap text-[11px] leading-relaxed">{msg.content}</p>
+        <p className="whitespace-pre-wrap text-[12px] leading-relaxed">{msg.content}</p>
       )}
-      <div className="overflow-hidden rounded-lg border border-white/10">
-        <img
-          src={msg.imageUrl}
-          alt={`Generated ${msg.imageType}`}
-          className="w-full object-cover"
-          style={{ maxHeight: msg.imageType === "logo" ? 88 : 120 }}
-        />
+      {/* Full-width image */}
+      <div className="w-full overflow-hidden rounded-lg border border-white/10">
+        <img src={msg.imageUrl} alt={`Generated ${msg.imageType}`} className="w-full object-cover" />
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-1.5 pt-0.5">
         <button
-          onClick={() => { onUse(msg.imageUrl!, msg.imageType!); setUsed(true); }}
-          className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-semibold"
+          onClick={() => { onUse(msg.imageUrl!, "logo"); setUsedAs("logo"); }}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all"
           style={{
-            background: used ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.1)",
-            color: used ? "#4ade80" : "white",
-            border: `1px solid ${used ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.15)"}`,
+            background: usedAs === "logo" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.1)",
+            color: usedAs === "logo" ? "#4ade80" : "white",
+            border: `1px solid ${usedAs === "logo" ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.15)"}`,
           }}
         >
           <CheckCircle2 className="h-3 w-3" />
-          {used ? "Applied!" : `Use as ${msg.imageType}`}
+          {usedAs === "logo" ? "Applied as Logo" : "Use as Logo"}
+        </button>
+        <button
+          onClick={() => { onUse(msg.imageUrl!, "icon"); setUsedAs("icon"); }}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all"
+          style={{
+            background: usedAs === "icon" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.08)",
+            color: usedAs === "icon" ? "#4ade80" : "rgba(255,255,255,0.7)",
+            border: `1px solid ${usedAs === "icon" ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.1)"}`,
+          }}
+        >
+          <CheckCircle2 className="h-3 w-3" />
+          {usedAs === "icon" ? "Applied as Icon" : "Use as Icon"}
         </button>
         {msg.sourcePrompt && (
           <button
             onClick={() => onRegenerate(msg.sourcePrompt!)}
-            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium"
-            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
+            style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}
           >
-            <RefreshCw className="h-3 w-3" /> Generate another
+            <RefreshCw className="h-3 w-3" /> Try again
           </button>
         )}
       </div>
@@ -342,7 +299,7 @@ function LockModal({
       <div className="w-[340px] rounded-2xl border border-border bg-card p-6 shadow-2xl">
         <div className="mb-1 flex items-center gap-2">
           <Lock className="h-4 w-4 text-success" />
-          <span className="text-[15px] font-semibold">Lock Design?</span>
+          <span className="text-[15px] font-semibold">Lock My Design?</span>
         </div>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Once locked, colors and brand assets can't be changed from the Studio. Your Trivelta team will use these values to configure your platform.
@@ -358,7 +315,7 @@ function LockModal({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-success px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-success px-4 py-2 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
             Lock Design
@@ -384,29 +341,34 @@ function StudioInner({
   const navigate = useNavigate();
   const { themeColors, setThemeColors, appIcons, setAppIcons, previewMode, setPreviewMode } = useStudio();
 
-  const [activeTab, setActiveTab] = useState<"design" | "ai">("design");
+  /* ── State ── */
   const [locked, setLocked] = useState(initialLocked);
   const [lockedAt, setLockedAt] = useState<string | null>(initialLockedAt);
   const [lockModalOpen, setLockModalOpen] = useState(false);
   const [locking, setLocking] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
-    { role: "assistant", content: "Describe your colors or ask me to generate a logo.\n\nTry: \"make the buttons green\" or \"generate a logo for BetKing\"" },
+    {
+      role: "assistant",
+      content: "Hi! I'm your platform design assistant.\n\nDescribe the look and feel you want, or ask me to generate a logo.\n\nTry: \"make the theme dark green\" or \"generate a logo for BetKing\"",
+    },
   ]);
   const [apiHistory, setApiHistory] = useState<ApiMessage[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [pendingIsImage, setPendingIsImage] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages]);
+  }, [displayMessages, thinking]);
 
-  /* ── Immediate save ── */
+  /* ── Save helpers ── */
   const saveNow = useCallback(async () => {
     const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons };
     await supabase.from("onboarding_forms").upsert(
@@ -415,15 +377,13 @@ function StudioInner({
     );
   }, [clientId, themeColors, appIcons]);
 
-  /* ── Debounced auto-save (skip when locked) ── */
   const scheduleAutoSave = useCallback(
     (colors: StudioThemeColors, icons: StudioAppIcons) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(async () => {
-        const payload: StudioSavedConfig = { colors, icons };
         await supabase.from("onboarding_forms").upsert(
-          { client_id: clientId, studio_config: payload as never },
+          { client_id: clientId, studio_config: { colors, icons } as never },
           { onConflict: "client_id" },
         );
       }, 2000);
@@ -452,11 +412,10 @@ function StudioInner({
     setLocking(true);
     try {
       const now = new Date().toISOString();
-      const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons };
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: payload as never,
+          studio_config: { colors: themeColors, icons: appIcons } as never,
           studio_locked: true,
           studio_locked_at: now,
         },
@@ -465,7 +424,7 @@ function StudioInner({
       setLocked(true);
       setLockedAt(now);
       setLockModalOpen(false);
-      toast.success("Design locked! Your team has been notified.");
+      toast.success("Design locked! Your Trivelta team has been notified.");
     } catch {
       toast.error("Failed to lock design — try again.");
     } finally {
@@ -482,16 +441,18 @@ function StudioInner({
     }
   }, [setAppIcons]);
 
-  /* ── AI message send ── */
+  /* ── AI send ── */
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || thinking) return;
 
+    const isImg = isImageRequest(trimmed);
     setDisplayMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     const nextHistory = [...apiHistory, { role: "user" as const, content: trimmed }];
     setApiHistory(nextHistory);
     setInput("");
     setThinking(true);
+    setPendingIsImage(isImg);
 
     try {
       const { data, error } = await supabase.functions.invoke("studio-chat", {
@@ -527,23 +488,22 @@ function StudioInner({
 
       if (config && Object.keys(config).length > 0) {
         setThemeColors((prev) => ({ ...prev, ...config }));
-        toast.success("Colors applied", { duration: 1500 });
+        toast.success("Colors updated in preview", { duration: 1500 });
       }
     } catch (err) {
       const errStr = String(err);
       const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured") || errStr.includes("ANTHROPIC");
       setDisplayMessages((prev) => [...prev, {
         role: "assistant",
-        content: isKeyErr
-          ? "API key not configured — contact your administrator."
-          : "Something went wrong. Please try again.",
+        content: isKeyErr ? "API key not configured — contact your administrator." : "Something went wrong. Please try again.",
       }]);
     } finally {
       setThinking(false);
+      setPendingIsImage(false);
     }
   }, [thinking, apiHistory, clientId, setThemeColors]);
 
-  /* ── Color definitions ── */
+  /* ── Color config ── */
   const singleColors: { label: string; key: keyof StudioThemeColors }[] = [
     { label: "Background", key: "primaryBg" },
     { label: "Primary", key: "primary" },
@@ -552,20 +512,22 @@ function StudioInner({
     { label: "Placeholder", key: "placeholder" },
   ];
   const gradients: { label: string; startKey: keyof StudioThemeColors; endKey: keyof StudioThemeColors }[] = [
-    { label: "Button Gradient", startKey: "primaryButton", endKey: "primaryButtonGradient" },
-    { label: "Box Gradient", startKey: "boxGradient1", endKey: "boxGradient2" },
-    { label: "Header Gradient", startKey: "headerBorder1", endKey: "headerBorder2" },
-    { label: "Won Gradient", startKey: "wonGradient1", endKey: "wonGradient2" },
+    { label: "Button", startKey: "primaryButton", endKey: "primaryButtonGradient" },
+    { label: "Box", startKey: "boxGradient1", endKey: "boxGradient2" },
+    { label: "Header", startKey: "headerBorder1", endKey: "headerBorder2" },
+    { label: "Won", startKey: "wonGradient1", endKey: "wonGradient2" },
   ];
 
-  const canLock = !!appIcons.appNameLogo && !!appIcons.topLeftAppIcon;
-  const lockedDate = lockedAt ? new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null;
+  const canLock = !!appIcons.appNameLogo;
+  const lockedDate = lockedAt
+    ? new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : null;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 flex h-[56px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
+      {/* ── HEADER ──────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
         <div className="flex w-[35%] shrink-0 items-center">
           <TriveltaLogo size="sm" />
         </div>
@@ -586,206 +548,215 @@ function StudioInner({
             disabled={saving}
             className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-[12px] font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
           >
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             Save & Continue
             {!saving && <ArrowRight className="h-3.5 w-3.5 text-primary" />}
           </button>
         </div>
       </header>
 
-      {/* ── Body ───────────────────────────────────────────────────────── */}
+      {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ── LEFT PANEL (35%) ──────────────────────────────────────── */}
-        <div className="flex w-[35%] min-w-[280px] max-w-[420px] flex-col overflow-hidden border-r border-border bg-card">
+        {/* ══ LEFT PANEL — AI Chat (35%) ═══════════════════════════════ */}
+        <div className="flex w-[35%] min-w-[300px] max-w-[440px] flex-col overflow-hidden border-r border-border bg-card">
 
-          {/* Tab bar */}
-          <div className="flex shrink-0 border-b border-border">
+          {/* Panel identity header */}
+          <div className="shrink-0 border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <div>
+                <div className="text-[13px] font-bold text-foreground">Trivelta Studio</div>
+                {welcomeInfo && (
+                  <div className="text-[11px] text-muted-foreground">{welcomeInfo.clientName}</div>
+                )}
+              </div>
+            </div>
+            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary/8 px-2.5 py-1">
+              <span className="font-mono text-[9px] font-semibold text-primary">
+                Colors &amp; Text: Claude&nbsp;&nbsp;·&nbsp;&nbsp;Logos &amp; Icons: DALL-E 3
+              </span>
+            </div>
+            {locked && (
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-success">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
+              </div>
+            )}
+          </div>
+
+          {/* ── Chat messages ──────────────────────────────────────────── */}
+          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+            {displayMessages.map((msg, i) => (
+              <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
+                <div className={cn(
+                  "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-tr-sm"
+                    : "bg-secondary text-secondary-foreground rounded-tl-sm",
+                )}>
+                  {msg.role === "assistant" && msg.imageUrl ? (
+                    <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
+                  ) : (
+                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Thinking / generating indicator */}
+            {thinking && (
+              <div className="flex justify-start">
+                {pendingIsImage ? (
+                  <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
+                    <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
+                      <span className="animate-pulse">🎨</span>
+                      <span>Generating your logo… this takes 10–15 seconds</span>
+                    </div>
+                    <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
+                      <div
+                        className="h-full rounded-full bg-primary/60 animate-pulse"
+                        style={{ width: "65%" }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* ── Manual Controls (collapsible) ──────────────────────────── */}
+          <div className="shrink-0 border-t border-border">
             <button
-              onClick={() => setActiveTab("design")}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-2 py-3 text-[12px] font-semibold transition-colors",
-                activeTab === "design"
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
+              type="button"
+              onClick={() => setControlsOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
             >
-              <Palette className="h-3.5 w-3.5" /> Design
+              <div className="flex items-center gap-2">
+                <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-semibold text-foreground">Fine-tune manually</span>
+              </div>
+              {controlsOpen
+                ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                : <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              }
             </button>
+
+            {controlsOpen && (
+              <div className="max-h-[300px] overflow-y-auto border-t border-border px-4 py-3 space-y-4">
+                {/* Brand Assets */}
+                <div>
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Brand Assets</div>
+                  <div className="space-y-2">
+                    <AssetUploadZone label="Logo" type="logo" currentUrl={appIcons.appNameLogo} readOnly={locked} compact />
+                    <AssetUploadZone label="App Icon" type="icon" currentUrl={appIcons.topLeftAppIcon} readOnly={locked} compact />
+                  </div>
+                </div>
+
+                {/* Single colors */}
+                <div>
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Colors</div>
+                  <div className="space-y-2">
+                    {singleColors.map(({ label, key }) => (
+                      <StudioColorField key={key} label={label} colorKey={key} readOnly={locked} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Gradients */}
+                <div>
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Gradients</div>
+                  <div className="space-y-3.5">
+                    {gradients.map(({ label, startKey, endKey }) => (
+                      <div key={label}>
+                        <div className="mb-1.5 flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground">{label}</span>
+                          <div
+                            className="h-1.5 flex-1 rounded-full border border-border/40"
+                            style={{ background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})` }}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <StudioColorField label={`${label} start`} colorKey={startKey} compact readOnly={locked} />
+                          <StudioColorField label={`${label} end`} colorKey={endKey} compact readOnly={locked} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Chat input ─────────────────────────────────────────────── */}
+          <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
+            <input
+              ref={chatInputRef}
+              className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
+              placeholder="Describe your brand colors… or ask for a logo"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
+              }}
+            />
             <button
-              onClick={() => { setActiveTab("ai"); setTimeout(() => chatInputRef.current?.focus(), 50); }}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-2 py-3 text-[12px] font-semibold transition-colors",
-                activeTab === "ai"
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
+              onClick={() => sendMessage(input)}
+              disabled={!input.trim() || thinking}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
             >
-              <Sparkles className="h-3.5 w-3.5" /> AI
+              {thinking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             </button>
           </div>
 
-          {/* ── DESIGN TAB ──────────────────────────────────────────── */}
-          {activeTab === "design" && (
-            <>
-              {/* Locked banner */}
-              {locked && (
-                <div className="flex shrink-0 items-center gap-2 border-b border-success/20 bg-success/10 px-4 py-2">
-                  <Lock className="h-3.5 w-3.5 text-success" />
-                  <span className="text-[11px] font-semibold text-success">Design Locked{lockedDate ? ` · ${lockedDate}` : ""}</span>
-                </div>
-              )}
-
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="space-y-6 px-4 py-4">
-
-                  {/* Brand Assets */}
-                  <div>
-                    <SectionLabel>Brand Assets</SectionLabel>
-                    <div className="space-y-3">
-                      <AssetUploadZone label="Logo" type="logo" currentUrl={appIcons.appNameLogo} readOnly={locked} />
-                      <AssetUploadZone label="App Icon" type="icon" currentUrl={appIcons.topLeftAppIcon} readOnly={locked} />
-                    </div>
-                  </div>
-
-                  {/* Colors */}
-                  <div>
-                    <SectionLabel>Colors</SectionLabel>
-                    <div className="space-y-2.5">
-                      {singleColors.map(({ label, key }) => (
-                        <StudioColorField key={key} label={label} colorKey={key} readOnly={locked} />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Gradients */}
-                  <div>
-                    <SectionLabel>Gradients</SectionLabel>
-                    <div className="space-y-4">
-                      {gradients.map(({ label, startKey, endKey }) => (
-                        <div key={label}>
-                          <div className="mb-2 flex items-center gap-2.5">
-                            <span className="text-[11px] font-medium text-foreground/70">{label}</span>
-                            <div
-                              className="h-2 flex-1 rounded-full border border-border/40"
-                              style={{ background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})` }}
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <StudioColorField label={`${label} start`} colorKey={startKey} compact readOnly={locked} />
-                            <StudioColorField label={`${label} end`} colorKey={endKey} compact readOnly={locked} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
+          {/* ── Lock Design (always visible) ───────────────────────────── */}
+          <div className="shrink-0 border-t border-border p-3">
+            {locked ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/10 py-3 text-[13px] font-bold text-success">
+                <CheckCircle2 className="h-4 w-4" />
+                Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
               </div>
-
-              {/* Lock button (pinned bottom) */}
-              <div className="shrink-0 border-t border-border p-4">
-                {locked ? (
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/10 py-3 text-[13px] font-semibold text-success">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {!canLock && (
-                      <p className="text-center text-[11px] text-muted-foreground">
-                        Upload logo & icon to enable
-                      </p>
-                    )}
-                    <button
-                      onClick={() => setLockModalOpen(true)}
-                      disabled={!canLock}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-success py-3 text-[13px] font-bold text-white shadow-md transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
-                    >
-                      <Lock className="h-4 w-4" />
-                      Lock Design
-                    </button>
-                  </div>
+            ) : (
+              <div>
+                {!canLock && (
+                  <p className="mb-1.5 text-center text-[11px] text-muted-foreground">
+                    Upload or generate a logo to enable
+                  </p>
                 )}
-              </div>
-            </>
-          )}
-
-          {/* ── AI TAB ──────────────────────────────────────────────── */}
-          {activeTab === "ai" && (
-            <div className="flex flex-1 flex-col overflow-hidden">
-              {/* Model badge */}
-              <div className="flex shrink-0 items-center justify-center gap-1.5 border-b border-border px-4 py-2.5">
-                <span className="rounded-md bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-primary">
-                  Colors & Branding: Claude&nbsp;&nbsp;·&nbsp;&nbsp;Logos & Icons: DALL-E 3
-                </span>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
-                {displayMessages.map((msg, i) => (
-                  <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-                    <div className={cn(
-                      "max-w-[90%] rounded-xl px-3 py-2 text-[12px] leading-relaxed",
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-tr-sm"
-                        : "bg-secondary text-secondary-foreground rounded-tl-sm",
-                    )}>
-                      {msg.role === "assistant" && msg.imageUrl ? (
-                        <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
-                      ) : (
-                        <span className="whitespace-pre-wrap">{msg.content}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {thinking && (
-                  <div className="flex justify-start">
-                    <div className="flex items-center gap-1 rounded-xl rounded-tl-sm bg-secondary px-3 py-2.5">
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input */}
-              <div className="flex shrink-0 items-center gap-2 border-t border-border p-3">
-                <input
-                  ref={chatInputRef}
-                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                  placeholder={'Describe colors\u2026 or \u201cgenerate a logo for BetKing\u201d'}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-                />
                 <button
-                  onClick={() => sendMessage(input)}
-                  disabled={!input.trim() || thinking}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground disabled:opacity-40"
+                  onClick={() => setLockModalOpen(true)}
+                  disabled={!canLock}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-success py-3 text-[13px] font-bold text-white shadow-md transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  {thinking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  <Lock className="h-4 w-4" />
+                  Lock My Design
                 </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* ── RIGHT PANEL (65%) ─────────────────────────────────────── */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-[#0a0a0e]">
+        {/* ══ RIGHT PANEL — Preview (65%) ══════════════════════════════ */}
+        <div className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
 
-          {/* Mode toggle */}
-          <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/8 px-4 py-3">
+          {/* Mobile / Web toggle */}
+          <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
             <button
               onClick={() => setPreviewMode("mobile")}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
                 previewMode === "mobile"
-                  ? "bg-white/12 text-white shadow-sm ring-1 ring-white/20"
-                  : "text-white/40 hover:text-white/70",
+                  ? "bg-white/10 text-white ring-1 ring-white/20"
+                  : "text-white/35 hover:text-white/65",
               )}
             >
               <Smartphone className="h-4 w-4" /> Mobile
@@ -795,8 +766,8 @@ function StudioInner({
               className={cn(
                 "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
                 previewMode === "website"
-                  ? "bg-white/12 text-white shadow-sm ring-1 ring-white/20"
-                  : "text-white/40 hover:text-white/70",
+                  ? "bg-white/10 text-white ring-1 ring-white/20"
+                  : "text-white/35 hover:text-white/65",
               )}
             >
               <Monitor className="h-4 w-4" /> Web
@@ -810,7 +781,7 @@ function StudioInner({
         </div>
       </div>
 
-      {/* ── Lock confirmation modal ──────────────────────────────────── */}
+      {/* ── Lock modal ──────────────────────────────────────────────────── */}
       {lockModalOpen && (
         <LockModal
           onConfirm={handleLock}
