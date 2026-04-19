@@ -159,7 +159,7 @@ async function generateWithIdeogram(
 ): Promise<string | null> {
   const prompt = kind === "icon"
     ? `Professional app icon for iGaming sports betting platform "${brandName}". Bold iconic design, dark background, ${style} accent colors, no text, suitable for iOS/Android.`
-    : `Professional iGaming sports betting logo for "${brandName}". Brand name "${brandName}" written clearly in bold modern font. Dark background, ${style} color scheme, vector illustration, clean professional look for mobile app.`;
+    : `Professional iGaming sports betting logo. Brand name "${brandName}" in large bold clear text. Dark background. ${style} accent colors. Modern vector design.`;
 
   try {
     const resp = await fetch("https://api.ideogram.ai/generate", {
@@ -171,10 +171,10 @@ async function generateWithIdeogram(
       body: JSON.stringify({
         image_request: {
           prompt,
-          model: "V_2",
-          magic_prompt_option: "AUTO",
+          model: "V_2_TURBO",
+          magic_prompt_option: "OFF",
           style_type: "DESIGN",
-          negative_prompt: "blurry text, misspelled text, wrong brand name, distorted letters, amateur design, low quality",
+          negative_prompt: "blurry text, wrong spelling, misspelled name, distorted letters",
           aspect_ratio: kind === "icon" ? "ASPECT_1_1" : "ASPECT_16_9",
         },
       }),
@@ -234,6 +234,43 @@ async function generateWithDallE(
   }
 }
 
+/* ── Persist generated image to Supabase Storage ────────────────────────── */
+
+async function persistImage(imageUrl: string, clientId: string): Promise<string> {
+  try {
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) throw new Error(`Fetch image ${imageResponse.status}`);
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const fileName = `${clientId}/logo-${Date.now()}.png`;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const uploadResp = await fetch(
+      `${supabaseUrl}/storage/v1/object/studio-assets/${fileName}`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${serviceKey}`,
+          "Content-Type": "image/png",
+          "x-upsert": "true",
+        },
+        body: imageBuffer,
+      },
+    );
+
+    if (!uploadResp.ok) {
+      const err = await uploadResp.text();
+      console.warn("[studio-chat] Storage upload failed:", err);
+      return imageUrl; // fall back to ephemeral URL
+    }
+
+    return `${supabaseUrl}/storage/v1/object/public/studio-assets/${fileName}`;
+  } catch (e) {
+    console.warn("[studio-chat] persistImage error:", e);
+    return imageUrl; // fall back gracefully
+  }
+}
+
 /* ── Generate logo: Ideogram → DALL-E fallback ───────────────────────────── */
 
 async function generateLogo(
@@ -282,6 +319,7 @@ Deno.serve(async (req) => {
   const userMessage: string = body.message ?? (body.messages?.slice(-1)[0]?.content ?? "");
   const history: Message[]  = body.history ?? body.messages?.slice(0, -1) ?? [];
   const logoUrl: string | null = body.logoUrl ?? null;
+  const clientId: string = body.clientId ?? "unknown";
 
   const imageReq = detectImageRequest(userMessage);
 
@@ -299,8 +337,10 @@ Deno.serve(async (req) => {
       ? generateLogo(imageReq.brandName, imageReq.kind, logoStyle, IDEOGRAM_API_KEY, OPENAI_API_KEY)
       : Promise.resolve({ url: null, error: null });
 
-  // Build Claude message content — attach logo image when available and relevant
-  const shouldPassImage = !!logoUrl && isLogoContext(userMessage) && !imageReq;
+  // Build Claude message content — attach logo image when available and relevant.
+  // Only use stable Supabase Storage URLs (ephemeral CDN URLs expire and break Vision).
+  const isStableLogoUrl = !!logoUrl && logoUrl.includes("/storage/v1/object/public/");
+  const shouldPassImage = isStableLogoUrl && isLogoContext(userMessage) && !imageReq;
 
   const userContent: Array<Record<string, unknown>> = [];
   if (shouldPassImage) {
@@ -435,13 +475,17 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Image generation
+        // Image generation — persist to stable Supabase Storage URL before sending
         if (imageReq) {
           send({ type: "generating", message: `Generating ${imageReq.kind}...`, estimated_seconds: 15 });
           const imgResult = await imagePromise;
+          let stableUrl: string | null = imgResult.url;
+          if (stableUrl) {
+            stableUrl = await persistImage(stableUrl, clientId);
+          }
           send({
             type: "image",
-            imageUrl: imgResult.url,
+            imageUrl: stableUrl,
             imageType: imageReq.kind,
             imageError: imgResult.error,
           });

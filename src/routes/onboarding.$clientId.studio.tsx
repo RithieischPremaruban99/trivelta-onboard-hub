@@ -513,6 +513,10 @@ function StudioInner({
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the preview container div for instant CSS var updates before React re-render
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  // Stable Supabase Storage URL of the most recently generated or applied logo.
+  // Populated when an image event arrives (before user clicks "Use as Logo").
+  // Passed to the edge function as logoUrl so Claude Vision always gets a non-expiring URL.
+  const stableLogoUrl = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -761,7 +765,7 @@ function StudioInner({
         body: JSON.stringify({
           message: trimmed,
           history: apiHistory,
-          logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
+          logoUrl: stableLogoUrl.current || appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
           currentColors: themeColors,
         }),
       });
@@ -830,6 +834,7 @@ function StudioInner({
             const imageError = event.imageError as string | null;
             imageReceived = true;
             if (imageUrl) {
+              stableLogoUrl.current = imageUrl;
               updateLastMsg((msg) => ({ ...msg, imageUrl, imageType, sourcePrompt: trimmed }));
             } else if (imageError) {
               updateLastMsg((msg) => ({
