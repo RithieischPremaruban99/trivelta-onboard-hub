@@ -99,22 +99,22 @@ function SuccessScreen() {
           </div>
 
           {/* Info cards */}
-          <div className="mb-10 grid gap-4 sm:grid-cols-3">
+          <div className="mb-4 grid gap-4 sm:grid-cols-3">
             {/* Slack */}
-            <div className="surface-card group p-6 transition-colors hover:border-primary/30">
-              <div className="mb-4 grid h-10 w-10 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
+            <div className="surface-card group flex flex-col p-6 transition-colors hover:border-primary/30">
+              <div className="mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
                 <MessagesSquare className="h-5 w-5" />
               </div>
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                 Slack Channel
               </div>
-              <div className="mt-2 break-all font-mono text-sm font-medium text-foreground">
+              <div className="mt-2 flex-1 break-all font-mono text-sm font-medium text-foreground">
                 {channel}
               </div>
               <Button
                 size="sm"
                 variant="outline"
-                className="mt-4 w-full"
+                className="mt-5 w-full"
                 onClick={() => {
                   navigator.clipboard.writeText(channel);
                   toast.success("Copied!");
@@ -125,36 +125,36 @@ function SuccessScreen() {
             </div>
 
             {/* Drive */}
-            <div className="surface-card group p-6 transition-colors hover:border-primary/30">
-              <div className="mb-4 grid h-10 w-10 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
+            <div className="surface-card group flex flex-col p-6 transition-colors hover:border-primary/30">
+              <div className="mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
                 <FolderOpen className="h-5 w-5" />
               </div>
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                 Drive Folder
               </div>
-              <div className="mt-2 text-sm text-muted-foreground">
+              <div className="mt-2 flex-1 text-sm text-muted-foreground">
                 Upload brand assets and additional documents here.
               </div>
               {welcomeInfo.driveLink ? (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="mt-4 w-full"
+                  className="mt-5 w-full"
                   onClick={() => window.open(welcomeInfo.driveLink!, "_blank")}
                 >
                   <ExternalLink className="h-3.5 w-3.5" /> Open folder
                 </Button>
               ) : (
-                <div className="mt-4 text-[12px] text-muted-foreground/70">
+                <div className="mt-5 text-[12px] text-muted-foreground/60">
                   Link will be shared by your AM
                 </div>
               )}
             </div>
 
             {/* AM */}
-            <div className="surface-card group p-6 transition-colors hover:border-primary/30">
+            <div className="surface-card group flex flex-col p-6 transition-colors hover:border-primary/30">
               <div className="mb-4 flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
                   {initials(welcomeInfo.amName)}
                 </div>
                 <div className="min-w-0">
@@ -166,42 +166,56 @@ function SuccessScreen() {
                   </div>
                 </div>
               </div>
-              {welcomeInfo.amEmail && (
+              {welcomeInfo.amEmail ? (
                 <>
-                  <div className="break-all font-mono text-[12px] text-muted-foreground">
+                  <div className="flex-1 break-all font-mono text-[12px] text-muted-foreground">
                     {welcomeInfo.amEmail}
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="mt-4 w-full"
+                    className="mt-5 w-full"
                     onClick={() => window.open(`mailto:${welcomeInfo.amEmail}`, "_blank")}
                   >
                     <Mail className="h-3.5 w-3.5" /> Send email
                   </Button>
                 </>
+              ) : (
+                <div className="flex-1 text-[12px] text-muted-foreground/60">
+                  Contact details will be shared shortly.
+                </div>
               )}
             </div>
           </div>
 
           {/* Platform Studio CTA */}
-          <div className="mb-6">
+          <div className="mb-4">
             {clientRole === "client_owner" ? (
               <button
                 onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
-                className="btn-trivelta flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-[15px] font-semibold shadow-lg transition-all hover:opacity-90"
+                className="surface-card group flex w-full items-center justify-between gap-3 px-6 py-4 text-left transition-colors hover:border-primary/40"
               >
-                <Palette className="h-5 w-5" />
-                Customize Your Platform
-                <span className="ml-1 opacity-70">→</span>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25 transition-colors group-hover:bg-primary/20">
+                    <Palette className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold text-foreground">Customize Your Platform</div>
+                    <div className="text-[12px] text-muted-foreground">Set colors, upload brand assets, and preview your platform</div>
+                  </div>
+                </div>
+                <span className="text-muted-foreground/50 transition-colors group-hover:text-primary">→</span>
               </button>
             ) : (
               <div className="surface-card flex items-center gap-3 px-5 py-4 text-[13px] text-muted-foreground">
-                <Palette className="h-4 w-4 flex-shrink-0" />
+                <Palette className="h-4 w-4 shrink-0" />
                 Platform customization is available to the account owner.
               </div>
             )}
           </div>
+
+          {/* Divider */}
+          <div className="my-8 border-t border-border/60" />
 
           {/* Timeline */}
           <div className="surface-card p-7">
