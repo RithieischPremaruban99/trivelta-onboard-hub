@@ -758,7 +758,12 @@ function StudioInner({
           "Authorization": `Bearer ${authToken}`,
           "apikey": SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ messages: nextHistory, clientId }),
+        body: JSON.stringify({
+          message: trimmed,
+          history: apiHistory,
+          logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
+          currentColors: themeColors,
+        }),
       });
 
       if (!resp.ok || !resp.body) {
