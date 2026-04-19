@@ -138,8 +138,8 @@ function AuthScreen() {
                   )}
                 </Button>
                 <p className="text-center text-[12px] text-muted-foreground">
-                  Access is limited to invited team members. Contact your Account Manager if you
-                  need access.
+                  Enter any email to receive a magic link. The form owner can submit; all
+                  other signers can fill in fields.
                 </p>
               </form>
             </>
