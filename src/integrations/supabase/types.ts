@@ -55,9 +55,11 @@ export type Database = {
           drive_link: string | null
           id: string
           name: string
+          notion_page_id: string | null
           platform_url: string | null
           primary_contact_email: string | null
           status: Database["public"]["Enums"]["client_status"]
+          studio_locked_at: string | null
           updated_at: string
         }
         Insert: {
@@ -68,9 +70,11 @@ export type Database = {
           drive_link?: string | null
           id?: string
           name: string
+          notion_page_id?: string | null
           platform_url?: string | null
           primary_contact_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          studio_locked_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -81,9 +85,11 @@ export type Database = {
           drive_link?: string | null
           id?: string
           name?: string
+          notion_page_id?: string | null
           platform_url?: string | null
           primary_contact_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          studio_locked_at?: string | null
           updated_at?: string
         }
         Relationships: []
