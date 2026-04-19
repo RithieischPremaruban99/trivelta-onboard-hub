@@ -8,52 +8,43 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are a platform design consultant at Trivelta iGaming.
+const SYSTEM_PROMPT = `You are a platform design consultant at Trivelta iGaming. You configure the visual identity of sports betting platforms.
 
-OUTPUT FORMAT: Always respond with exactly this structure:
+OUTPUT FORMAT - MANDATORY - no exceptions:
 <chat>
-[1-2 sentences. Plain text only. No emojis. No em dashes. No markdown. No asterisks.]
+[Maximum 1-2 sentences. Plain text. Zero emojis. Zero em dashes. Zero markdown. Zero asterisks.]
 </chat>
 <patch>
-[RFC 6902 JSON Patch array, only if colors changed. Omit the entire <patch> block if no color change.]
+[RFC 6902 JSON Patch array ONLY if colors changed. Omit entirely otherwise.]
 </patch>
 
-ALLOWED PATCH PATHS (only these, nothing else):
-/primaryBg, /primary, /secondary, /primaryButton, /primaryButtonGradient,
-/wonGradient1, /wonGradient2, /boxGradient1, /boxGradient2,
-/headerBorder1, /headerBorder2, /lightText, /placeholder, /inactiveButton
+ALLOWED PATCH PATHS - ONLY these 13:
+/primaryBg /primary /secondary /primaryButton /primaryButtonGradient
+/wonGradient1 /wonGradient2 /boxGradient1 /boxGradient2
+/headerGradient1 /headerGradient2 /lightText /placeholderText
 
-All rgba values must be valid: rgba(R,G,B,A) format where A is 0-1.
+VALUES: rgba(R,G,B,1) format only. Integer values 0-255.
 
-COLOR INTELLIGENCE:
-- 'green like WhatsApp' = rgba(37,211,102,1)
-- 'orange like BetKing' = rgba(253,111,39,1)
-- 'dark blue like Telegram' = rgba(0,136,204,1)
-- 'dark background' = rgba(8,8,11,1)
-- Extract dominant color from any logo or brand description
-
-EXAMPLE color change response:
-<chat>
-Primary color updated to orange.
-</chat>
-<patch>
-[{"op": "replace", "path": "/primary", "value": "rgba(253,111,39,1)"}]
-</patch>
+COLOR MAPPING (use these exact values):
+orange/amber = rgba(253,111,39,1)
+green like WhatsApp = rgba(37,211,102,1)
+blue like Telegram = rgba(0,136,204,1)
+red = rgba(220,38,38,1)
+dark background = rgba(10,13,20,1)
+gold = rgba(212,175,55,1)
+purple = rgba(124,58,237,1)
 
 LOGO GENERATION:
-When user requests a logo or icon, respond with ONLY this (no <patch> block):
-<chat>
-Generating your [ExactBrandName] logo now.
-</chat>
+Extract the EXACT brand name verbatim from the user message.
+BetKing stays BetKing. Never change it.
+Output: <chat>Generating your [ExactBrandName] logo.</chat>
+No <patch> for logo requests.
 
-Never change the brand name. Use the exact spelling from the user message.
+CONFIRMED CHANGE:
+Output: <chat>Done. [One sentence max describing what changed.]</chat>
 
-RESTRICTIONS:
-Only colors, logo, icon, and app name label can be changed.
-If asked about layout, features, or integrations, respond:
-<chat>
-Layout and features are configured by your Trivelta team. I can help with colors and branding.
-</chat>`;
+RESTRICTION:
+If asked about layout or features: <chat>Layout is managed by your Trivelta team. I can adjust colors and generate brand assets.</chat>`;
 
 interface Message {
   role: "user" | "assistant";
@@ -68,12 +59,18 @@ interface RequestBody {
 /* ── Brand name extraction ───────────────────────────────────────────────── */
 
 function extractBrandName(text: string): string | null {
+  // Primary: required regex pattern - "logo/icon for BrandName" or "logo/icon BrandName"
+  const primary = text.match(/(?:logo|icon)\s+(?:for\s+)?([A-Z][a-zA-Z0-9]+)/i);
+  if (primary) return primary[1];
+  // Quoted brand name
   const quoted = text.match(/["']([A-Za-z0-9 _-]{1,40})["']/);
   if (quoted) return quoted[1].trim();
+  // After trigger keywords
   const afterKeyword = text.match(
     /\b(?:for|called|named|brand|company|platform|app)\s+([A-Z][A-Za-z0-9]{1,30}(?:\s[A-Z][A-Za-z0-9]{1,20})?)/,
   );
   if (afterKeyword) return afterKeyword[1].trim();
+  // Fallback: any PascalCase word
   const SKIP = new Set(["Create","Generate","Design","Make","Draw","Build","Give","Need","Want","Logo","Icon","App","Brand","Mark"]);
   for (const w of text.split(/\s+/)) {
     const clean = w.replace(/[^A-Za-z0-9]/g, "");
@@ -101,8 +98,8 @@ async function generateImage(
   const brand = brandName ?? "the brand";
   const styled =
     kind === "logo"
-      ? `Professional iGaming sports betting platform logo for "${brand}". The text "${brand}" rendered in a bold, modern sans-serif typeface. Horizontal wordmark layout on a solid dark background. Clean, high-contrast design. No watermarks, no placeholder text.`
-      : `Professional app icon for an iGaming sports betting platform called "${brand}". Square composition, bold and iconic, vibrant colors, no text, suitable for iOS/Android home screen.`;
+      ? `Professional iGaming sports betting logo, clean vector design, transparent background, brand name ${brand} in bold modern font, suitable for mobile app`
+      : `Professional app icon for an iGaming sports betting platform called ${brand}. Square composition, bold and iconic, vibrant colors, no text, suitable for iOS/Android home screen.`;
 
   const size = kind === "logo" ? "1792x1024" : "1024x1024";
   console.log(`[studio-chat] Generating ${kind} via DALL-E 3, brand="${brand}", size=${size}`);
@@ -287,6 +284,12 @@ Deno.serve(async (req) => {
           } catch (e) {
             console.error("[studio-chat] Patch parse error:", e, patchContent.slice(0, 200));
           }
+        }
+
+        // If image was requested, notify client that generation is in progress
+        // (DALL-E started in parallel with Claude, so it may still be running)
+        if (imageReq) {
+          send({ type: "generating", message: `Generating ${imageReq.kind}...`, estimated_seconds: 15 });
         }
 
         // Wait for DALL-E (likely already running or done)

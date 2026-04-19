@@ -30,11 +30,13 @@ import { cn } from "@/lib/utils";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
-// Allowed JSON Patch paths - matches system prompt ALLOWED PATCH PATHS
+// Allowed JSON Patch paths - mirrors ALLOWED PATCH PATHS in system prompt exactly
 const ALLOWED_PATCH_PATHS = new Set([
   "/primaryBg", "/primary", "/secondary", "/primaryButton", "/primaryButtonGradient",
   "/wonGradient1", "/wonGradient2", "/boxGradient1", "/boxGradient2",
-  "/headerBorder1", "/headerBorder2", "/lightText", "/placeholder", "/inactiveButton",
+  "/headerGradient1", "/headerGradient2", "/lightText", "/placeholderText",
+  // Also accept the internal key names so manual edits keep working
+  "/headerBorder1", "/headerBorder2", "/placeholder", "/inactiveButton",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
@@ -86,13 +88,15 @@ function isImageRequest(text: string): boolean {
 
 function sanitizeChatText(raw: string): string {
   let t = raw
-    .replace(/\*\*/g, "")          // strip markdown bold
-    .replace(/\*/g, "")            // strip markdown italic
-    .replace(/—/g, "-")            // em dash -> hyphen
+    .replace(/\*\*/g, "")       // strip markdown bold
+    .replace(/\*/g, "")         // strip markdown italic
+    .replace(/—/g, "-")         // em dash -> hyphen
+    .replace(/!+\s*$/g, ".")    // trailing exclamation mark -> period
+    .replace(/!(?=\s)/g, ".")   // mid-sentence exclamation -> period
     .trim();
-  // Truncate to first 2 sentences if longer than 150 chars
+  // Hard cap at 150 chars (first 2 sentences)
   if (t.length > 150) {
-    const sentences = t.match(/[^.!?]+[.!?]+/g) ?? [t];
+    const sentences = t.match(/[^.?]+[.?]+/g) ?? [t];
     t = sentences.slice(0, 2).join(" ").trim();
     if (!t) t = raw.slice(0, 150).trim();
   }
@@ -760,6 +764,12 @@ function StudioInner({
               console.warn("[studio] Invalid patch ops - skipped:", ops);
             }
             setPatchPending(false);
+
+          } else if (event.type === "generating") {
+            // DALL-E has started - show progress bar in the message
+            // The pendingIsImage indicator at the bottom handles this visually already,
+            // but we also flag it on the message itself so the progress bar shows inline
+            setPendingIsImage(true);
 
           } else if (event.type === "image") {
             const imageUrl = event.imageUrl as string | null;
