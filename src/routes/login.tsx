@@ -63,19 +63,13 @@ function LoginPage() {
     <div className="relative flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-[60px] w-full max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
-          <Link to="/login" className="flex items-center gap-2.5">
+          <Link to="/login" className="flex items-center gap-3">
+            <TriveltaLogo size="md" />
             <span
-              aria-hidden="true"
-              className="grid h-7 w-7 place-items-center rounded-md bg-primary text-[13px] font-bold text-primary-foreground"
-              style={{ letterSpacing: 0 }}
-            >
-              T
-            </span>
-            <span
-              className="text-[15px] font-semibold uppercase text-white"
+              className="border-l border-border pl-3 text-[13px] font-semibold uppercase text-white"
               style={{ letterSpacing: "0.22em" }}
             >
-              Trivelta <span className="text-muted-foreground">Studio</span>
+              Trivelta Studio
             </span>
           </Link>
           <span className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex">
