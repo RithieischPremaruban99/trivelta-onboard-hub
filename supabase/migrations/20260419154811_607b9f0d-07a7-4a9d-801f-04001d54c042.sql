@@ -1,0 +1,1 @@
+ALTER TABLE public.onboarding_forms ADD COLUMN IF NOT EXISTS studio_config jsonb NOT NULL DEFAULT '{}'::jsonb;
