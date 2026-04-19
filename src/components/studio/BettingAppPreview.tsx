@@ -526,8 +526,12 @@ const BettingAppPreview = () => {
             background: 'linear-gradient(180deg, var(--p-bg), rgba(0,0,0,0.95))', borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}>
             <div className="flex items-center gap-2">
-              {(appIcons.topLeftAppIcon || appIcons.appNameLogo) ? (
-                <img src={(appIcons.topLeftAppIcon || appIcons.appNameLogo)!} alt="App Logo" className="w-8 h-8 rounded-xl object-cover" />
+              {appIcons.appNameLogo ? (
+                /* Wide logo (1792×1024) — use contain so it isn't cropped */
+                <img src={appIcons.appNameLogo} alt="Logo" className="h-7 max-w-[96px] rounded object-contain" style={{ background: 'transparent' }} />
+              ) : appIcons.topLeftAppIcon ? (
+                /* Square icon (1024×1024) */
+                <img src={appIcons.topLeftAppIcon} alt="Icon" className="w-8 h-8 rounded-xl object-cover" />
               ) : (
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black" style={{ background: 'linear-gradient(135deg, var(--p-primary), var(--p-secondary))', color: 'var(--p-text)' }}>
                   {appLabels.appName.charAt(0)}

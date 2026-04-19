@@ -56,10 +56,6 @@ interface RequestBody {
   clientId: string;
 }
 
-interface ImageResult {
-  url: string;
-}
-
 async function generateImage(
   prompt: string,
   size: "1024x1024" | "1792x1024",
@@ -77,7 +73,9 @@ async function generateImage(
       n: 1,
       size,
       quality: "hd",
-      response_format: "url",
+      // b64_json avoids OpenAI CDN URLs that expire in ~1 hour.
+      // We return a permanent data: URL instead.
+      response_format: "b64_json",
     }),
   });
 
@@ -87,9 +85,9 @@ async function generateImage(
   }
 
   const data = await response.json();
-  const result = data.data?.[0] as ImageResult | undefined;
-  if (!result?.url) throw new Error("No image URL returned from DALL-E 3");
-  return result.url;
+  const b64: string | undefined = data.data?.[0]?.b64_json;
+  if (!b64) throw new Error("No image data returned from DALL-E 3");
+  return `data:image/png;base64,${b64}`;
 }
 
 Deno.serve(async (req) => {
@@ -107,6 +105,10 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Validate OPENAI_API_KEY early so logo requests fail fast with a clear message
+    // before wasting an Anthropic API call.
+    const openaiKey = Deno.env.get("OPENAI_API_KEY");
 
     // ── 1. Call Claude ───────────────────────────────────────────────────────
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -158,7 +160,6 @@ Deno.serve(async (req) => {
       imageType = parsedConfig._generateImage as "logo" | "icon";
       const brandPrompt = parsedConfig._brandPrompt ?? "A professional iGaming sports betting platform logo. Bold modern typography, dark background, vibrant accent colors.";
 
-      const openaiKey = Deno.env.get("OPENAI_API_KEY");
       if (!openaiKey) {
         return new Response(
           JSON.stringify({ error: "OPENAI_API_KEY not configured — add it in Supabase Edge Function secrets" }),
