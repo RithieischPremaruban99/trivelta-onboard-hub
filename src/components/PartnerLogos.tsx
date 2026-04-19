@@ -26,7 +26,7 @@ export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: s
       >
         {label}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-5">
+      <div className="mt-4 flex flex-wrap items-center gap-x-10 gap-y-5">
         {PARTNERS.map((p) => (
           <img
             key={p.name}
@@ -34,7 +34,7 @@ export function PartnerLogos({ label = "Our Partners and Clients" }: { label?: s
             alt={p.name}
             loading="lazy"
             className="opacity-50 brightness-0 invert transition-opacity hover:opacity-90"
-            style={{ height: p.height, width: "auto" }}
+            style={{ height: 20, width: "auto" }}
           />
         ))}
       </div>
