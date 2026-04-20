@@ -103,6 +103,72 @@
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "cv11", "ss01";
     letter-spacing: -0.01em;
+    font-weight: 450;
+    line-height: 1.5;
+  }
+
+  /* Typography polish */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h1, h2 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .uppercase, [class*="uppercase"] {
+    letter-spacing: 0.08em;
+  }
+
+  /* Micro-interactions */
+  a {
+    transition: color 100ms ease;
+  }
+  button:not(:disabled) {
+    transition: all 150ms ease;
+  }
+  button:not(:disabled):hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+  button:not(:disabled):active {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+
+  /* Table rows */
+  tr {
+    transition: background-color 100ms ease;
+  }
+
+  /* Focus states — replace default blue outline */
+  *:focus {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 30%, transparent);
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    transition: background 150ms ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 
   /* Subtle radial backdrop, like trivelta.com hero */
