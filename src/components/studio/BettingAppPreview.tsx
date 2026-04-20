@@ -728,45 +728,24 @@ function MobilePreview({ appName, currencySymbol, logoUrl }: { appName: string; 
   const [view, setView] = useState<MobileView>("sports");
   const [socialTab, setSocialTab] = useState<"friends" | "explore">("friends");
 
-  const NAV = [
-    { icon: Home, label: "home" },
-    { icon: Trophy, label: "Sports" },
-    { icon: Compass, label: "Discovery" },
-    { icon: Gamepad2, label: "Casino" },
-    { icon: User, label: "Profile" },
+  const NAV: { icon: typeof Home; label: string; view: MobileView | "home" }[] = [
+    { icon: Home, label: "home", view: "sports" },
+    { icon: Trophy, label: "Sports", view: "allsports" },
+    { icon: Compass, label: "Discovery", view: "betdetail" },
+    { icon: Gamepad2, label: "Casino", view: "betdetail" },
+    { icon: User, label: "Social", view: "social" },
   ];
+
+  const handleNavClick = (i: number) => {
+    setActiveNav(i);
+    setView(NAV[i].view as MobileView);
+  };
 
   return (
     <div
       className="w-full h-full flex flex-col text-[11px] overflow-hidden"
       style={{ background: "var(--p-bg)", color: "var(--p-text)" }}
     >
-      {/* View tabs */}
-      <div
-        className="flex gap-1 px-2 pt-2 pb-1 overflow-x-auto flex-shrink-0"
-        style={{ scrollbarWidth: "none", borderBottom: "1px solid var(--p-divider)" }}
-      >
-        {MOBILE_VIEW_TABS.map((t) => {
-          const active = view === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setView(t.id)}
-              className="px-2.5 h-7 text-[10px] font-semibold relative flex-shrink-0"
-              style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
-            >
-              {t.label}
-              {active && (
-                <span
-                  className="absolute bottom-0 left-1.5 right-1.5 h-[2px] rounded-full"
-                  style={{ background: "var(--p-primary)" }}
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Animated content area */}
       <div key={view} className="flex-1 min-h-0 flex flex-col" style={{ animation: "fadeIn 220ms ease" }}>
         {view === "sports" && (
@@ -780,6 +759,8 @@ function MobilePreview({ appName, currencySymbol, logoUrl }: { appName: string; 
             setActiveLeague={setActiveLeague}
             activeBetType={activeBetType}
             setActiveBetType={setActiveBetType}
+            onOpenAllSports={() => { setView("allsports"); setActiveNav(1); }}
+            onOpenBetDetail={() => { setView("betdetail"); }}
           />
         )}
         {view === "allsports" && <AllSportsView />}
