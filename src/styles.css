@@ -512,3 +512,70 @@
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
+
+/* ============================================================
+   Premium polish — final pass
+   ============================================================ */
+
+@layer base {
+  /* Inputs / textareas / selects */
+  input, textarea, select {
+    transition: box-shadow 150ms ease, border-color 150ms ease;
+  }
+  input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-ring) 35%, transparent);
+  }
+  input::placeholder, textarea::placeholder { opacity: 0.45; }
+
+  /* Disabled buttons — no transform on hover */
+  button:disabled, button[disabled], button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  button:disabled:hover, button[disabled]:hover, button[aria-disabled="true"]:hover {
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* Hex/ID monospace */
+  code, kbd, samp, .font-mono, [class*="font-mono"] {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Dropdown menu enter */
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@layer base {
+  [data-radix-popper-content-wrapper] > [data-state="open"],
+  [role="menu"][data-state="open"],
+  [role="listbox"][data-state="open"] {
+    animation: dropdown-in 150ms ease both;
+  }
+}
+
+/* Active / Live status badge pulse */
+@keyframes status-pulse {
+  0%   { box-shadow: 0 0 0 0 currentColor; }
+  70%  { box-shadow: 0 0 0 4px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@layer components {
+  .status-pulse-dot {
+    animation: status-pulse 2.5s infinite;
+    border-radius: 999px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
