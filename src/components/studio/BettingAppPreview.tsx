@@ -25,6 +25,7 @@ import {
   Search,
   Plus,
   EyeOff,
+  Eye,
   MessageCircle,
   Home,
   Compass,
@@ -40,6 +41,12 @@ import {
   Joystick,
   Flame,
   ArrowLeftRight,
+  Heart,
+  MessageSquare,
+  Share2,
+  Settings,
+  Zap,
+  RotateCw,
 } from "lucide-react";
 
 /* ─── Static placeholder data ─────────────────────────────────────────── */
