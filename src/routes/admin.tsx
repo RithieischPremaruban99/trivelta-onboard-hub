@@ -370,6 +370,17 @@ function AdminPage() {
                             >
                               <Palette className="h-3.5 w-3.5" />
                             </Button>
+                            {canDelete && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                title="Delete client (permanent)"
+                                onClick={() => handleDelete(c.id, c.name)}
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
