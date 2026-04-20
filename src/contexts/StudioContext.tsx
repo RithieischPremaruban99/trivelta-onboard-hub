@@ -1,71 +1,105 @@
 import React, { createContext, useContext, useState } from 'react';
 
 export interface StudioThemeColors {
+  // CORE BRAND
   primaryBg: string;
   primary: string;
   secondary: string;
   primaryButton: string;
   primaryButtonGradient: string;
+  // BOX GRADIENT
   boxGradient1: string;
   boxGradient2: string;
+  // TEXT
   lightText: string;
-  placeholder: string;
-  headerBorder1: string;
-  headerBorder2: string;
-  inactiveButton: string;
+  placeholderText: string;
+  navbarLabel: string;
+  textSecondary: string;
+  darkTextColor: string;
+  // HEADER
+  headerGradient1: string;
+  headerGradient2: string;
+  // WIN / LOSS
   wonGradient1: string;
   wonGradient2: string;
-  cardBackground: string;
-  navBarBackground: string;
-  bottomNavBackground: string;
-  oddsButtonActive: string;
-  oddsButtonInactive: string;
-  liveBadge: string;
-  successColor: string;
-  errorColor: string;
-  warningColor: string;
-  linkColor: string;
-  inputBackground: string;
-  inputBorder: string;
-  dividerColor: string;
-  tooltipBackground: string;
-  badgeBackground: string;
-  skeletonColor: string;
-  overlayColor: string;
+  wonColor: string;
+  lostColor: string;
+  payoutWonColor: string;
+  lossAmountText: string;
+  winStatusGradient1: string;
+  winStatusGradient2: string;
+  loseStatusGradient1: string;
+  loseStatusGradient2: string;
+  // BUTTONS & INACTIVE
+  inactiveButtonBg: string;
+  inactiveButtonText: string;
+  inactiveButtonTextSecondary: string;
+  inactiveTabUnderline: string;
+  // BACKGROUNDS
+  dark: string;
+  darkContainer: string;
+  betcardHeaderBg: string;
+  modalBackground: string;
+  notificationBg: string;
+  freeBetBackground: string;
+  bgColor: string;
+  flexBetHeaderBg: string;
+  flexBetFooterBg: string;
+  // MISC
+  vsColor: string;
+  borderAndGradientBg: string;
+  activeSecondaryGradient: string;
 }
 
 export const defaultStudioColors: StudioThemeColors = {
+  // CORE BRAND
   primaryBg: 'rgba(8, 8, 11, 1)',
   primary: 'rgba(253, 111, 39, 1)',
   secondary: 'rgba(252, 66, 51, 1)',
   primaryButton: 'rgba(252, 66, 51, 1)',
   primaryButtonGradient: 'rgba(252, 167, 50, 1)',
+  // BOX GRADIENT
   boxGradient1: 'rgba(245, 131, 0, 1)',
   boxGradient2: 'rgba(3, 249, 73, 1)',
+  // TEXT
   lightText: 'rgba(255, 255, 255, 1)',
-  placeholder: 'rgba(146, 146, 158, 1)',
-  headerBorder1: 'rgba(37, 37, 47, 1)',
-  headerBorder2: 'rgba(20, 20, 27, 1)',
-  inactiveButton: 'rgba(95, 41, 24, 1)',
+  placeholderText: 'rgba(146, 146, 158, 1)',
+  navbarLabel: 'rgba(255, 255, 255, 0.6)',
+  textSecondary: 'rgba(146, 146, 158, 1)',
+  darkTextColor: 'rgba(8, 8, 11, 1)',
+  // HEADER
+  headerGradient1: 'rgba(37, 37, 47, 1)',
+  headerGradient2: 'rgba(20, 20, 27, 1)',
+  // WIN / LOSS
   wonGradient1: 'rgba(62, 192, 130, 1)',
   wonGradient2: 'rgba(7, 158, 9, 0.416)',
-  cardBackground: 'rgba(18, 18, 25, 1)',
-  navBarBackground: 'rgba(12, 12, 16, 1)',
-  bottomNavBackground: 'rgba(8, 8, 11, 0.95)',
-  oddsButtonActive: 'rgba(253, 111, 39, 0.15)',
-  oddsButtonInactive: 'rgba(37, 37, 47, 1)',
-  liveBadge: 'rgba(239, 68, 68, 1)',
-  successColor: 'rgba(34, 197, 94, 1)',
-  errorColor: 'rgba(239, 68, 68, 1)',
-  warningColor: 'rgba(234, 179, 8, 1)',
-  linkColor: 'rgba(59, 130, 246, 1)',
-  inputBackground: 'rgba(25, 25, 35, 1)',
-  inputBorder: 'rgba(50, 50, 65, 1)',
-  dividerColor: 'rgba(255, 255, 255, 0.06)',
-  tooltipBackground: 'rgba(30, 30, 42, 1)',
-  badgeBackground: 'rgba(253, 111, 39, 0.12)',
-  skeletonColor: 'rgba(40, 40, 55, 1)',
-  overlayColor: 'rgba(0, 0, 0, 0.7)',
+  wonColor: 'rgba(62, 192, 130, 1)',
+  lostColor: 'rgba(239, 68, 68, 1)',
+  payoutWonColor: 'rgba(62, 192, 130, 1)',
+  lossAmountText: 'rgba(239, 68, 68, 1)',
+  winStatusGradient1: 'rgba(62, 192, 130, 1)',
+  winStatusGradient2: 'rgba(7, 158, 9, 0.416)',
+  loseStatusGradient1: 'rgba(239, 68, 68, 1)',
+  loseStatusGradient2: 'rgba(180, 40, 40, 0.4)',
+  // BUTTONS & INACTIVE
+  inactiveButtonBg: 'rgba(95, 41, 24, 1)',
+  inactiveButtonText: 'rgba(255, 255, 255, 0.7)',
+  inactiveButtonTextSecondary: 'rgba(255, 255, 255, 0.4)',
+  inactiveTabUnderline: 'rgba(146, 146, 158, 0.3)',
+  // BACKGROUNDS
+  dark: 'rgba(18, 18, 25, 1)',
+  darkContainer: 'rgba(25, 25, 35, 1)',
+  betcardHeaderBg: 'rgba(20, 20, 27, 1)',
+  modalBackground: 'rgba(12, 12, 16, 0.95)',
+  notificationBg: 'rgba(37, 37, 47, 1)',
+  freeBetBackground: 'rgba(253, 111, 39, 0.12)',
+  bgColor: 'rgba(8, 8, 11, 1)',
+  flexBetHeaderBg: 'rgba(20, 20, 27, 1)',
+  flexBetFooterBg: 'rgba(12, 12, 16, 1)',
+  // MISC
+  vsColor: 'rgba(146, 146, 158, 1)',
+  borderAndGradientBg: 'rgba(255, 255, 255, 0.06)',
+  activeSecondaryGradient: 'rgba(252, 66, 51, 0.15)',
 };
 
 export interface StudioAppLabels {

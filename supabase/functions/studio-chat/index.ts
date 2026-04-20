@@ -9,12 +9,29 @@ const corsHeaders = {
 };
 
 const ALLOWED_PATCH_PATHS = new Set([
+  // CORE BRAND
   "/primaryBg", "/primary", "/secondary",
   "/primaryButton", "/primaryButtonGradient",
-  "/wonGradient1", "/wonGradient2",
+  // BOX GRADIENT
   "/boxGradient1", "/boxGradient2",
+  // TEXT
+  "/lightText", "/placeholderText", "/navbarLabel", "/textSecondary", "/darkTextColor",
+  // HEADER
   "/headerGradient1", "/headerGradient2",
-  "/lightText", "/placeholderText",
+  // WIN / LOSS
+  "/wonGradient1", "/wonGradient2", "/wonColor", "/lostColor",
+  "/payoutWonColor", "/lossAmountText",
+  "/winStatusGradient1", "/winStatusGradient2",
+  "/loseStatusGradient1", "/loseStatusGradient2",
+  // BUTTONS & INACTIVE
+  "/inactiveButtonBg", "/inactiveButtonText", "/inactiveButtonTextSecondary",
+  "/inactiveTabUnderline",
+  // BACKGROUNDS
+  "/dark", "/darkContainer", "/betcardHeaderBg", "/modalBackground",
+  "/notificationBg", "/freeBetBackground", "/bgColor",
+  "/flexBetHeaderBg", "/flexBetFooterBg",
+  // MISC
+  "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
@@ -72,10 +89,11 @@ OUTPUT FORMAT — ALWAYS exactly this structure:
 [RFC 6902 JSON Patch. Only if colors change. Omit entirely if no color change.]
 </patch>
 
-ALLOWED PATCH PATHS — ONLY these 13:
+ALLOWED PATCH PATHS — core set (AI should only touch brand-visible colors):
 /primaryBg /primary /secondary /primaryButton /primaryButtonGradient
-/wonGradient1 /wonGradient2 /boxGradient1 /boxGradient2
-/headerGradient1 /headerGradient2 /lightText /placeholderText
+/boxGradient1 /boxGradient2 /headerGradient1 /headerGradient2
+/lightText /placeholderText /wonGradient1 /wonGradient2
+/wonColor /lostColor /inactiveButtonBg /activeSecondaryGradient
 
 COLOR VALUES: rgba(R,G,B,1) integers 0-255 only.
 

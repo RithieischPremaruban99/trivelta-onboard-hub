@@ -33,13 +33,23 @@ import { cn } from "@/lib/utils";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
-// Allowed JSON Patch paths - mirrors ALLOWED PATCH PATHS in system prompt exactly
+// Allowed JSON Patch paths — mirrors ALLOWED_PATCH_PATHS in edge function exactly
 const ALLOWED_PATCH_PATHS = new Set([
-  "/primaryBg", "/primary", "/secondary", "/primaryButton", "/primaryButtonGradient",
-  "/wonGradient1", "/wonGradient2", "/boxGradient1", "/boxGradient2",
-  "/headerGradient1", "/headerGradient2", "/lightText", "/placeholderText",
-  // Also accept the internal key names so manual edits keep working
-  "/headerBorder1", "/headerBorder2", "/placeholder", "/inactiveButton",
+  "/primaryBg", "/primary", "/secondary",
+  "/primaryButton", "/primaryButtonGradient",
+  "/boxGradient1", "/boxGradient2",
+  "/lightText", "/placeholderText", "/navbarLabel", "/textSecondary", "/darkTextColor",
+  "/headerGradient1", "/headerGradient2",
+  "/wonGradient1", "/wonGradient2", "/wonColor", "/lostColor",
+  "/payoutWonColor", "/lossAmountText",
+  "/winStatusGradient1", "/winStatusGradient2",
+  "/loseStatusGradient1", "/loseStatusGradient2",
+  "/inactiveButtonBg", "/inactiveButtonText", "/inactiveButtonTextSecondary",
+  "/inactiveTabUnderline",
+  "/dark", "/darkContainer", "/betcardHeaderBg", "/modalBackground",
+  "/notificationBg", "/freeBetBackground", "/bgColor",
+  "/flexBetHeaderBg", "/flexBetFooterBg",
+  "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
@@ -50,14 +60,22 @@ const THEME_TO_CSS_VAR: Partial<Record<keyof StudioThemeColors, string>> = {
   primary: "--p-primary",
   secondary: "--p-secondary",
   lightText: "--p-text",
-  placeholder: "--p-muted",
+  placeholderText: "--p-muted",
   primaryButton: "--p-btn",
   primaryButtonGradient: "--p-btn-grad",
-  inactiveButton: "--p-inactive",
+  inactiveButtonBg: "--p-inactive",
   wonGradient1: "--p-won1",
   wonGradient2: "--p-won2",
-  headerBorder1: "--p-nav",
-  headerBorder2: "--p-card",
+  headerGradient1: "--p-header1",
+  headerGradient2: "--p-header2",
+  dark: "--p-card",
+  darkContainer: "--p-input-bg",
+  borderAndGradientBg: "--p-divider",
+  activeSecondaryGradient: "--p-odds-active",
+  wonColor: "--p-success",
+  lostColor: "--p-live",
+  boxGradient1: "--p-box-grad1",
+  boxGradient2: "--p-box-grad2",
 };
 
 const MAX_UNDO = 20;
@@ -1099,20 +1117,101 @@ export function StudioInner({
     }
   }, [thinking, apiHistory, clientId, applyColorPatch]);
 
-  /* ── Color config ── */
-  const singleColors: { label: string; key: keyof StudioThemeColors }[] = [
-    { label: "Background", key: "primaryBg" },
-    { label: "Primary", key: "primary" },
-    { label: "Secondary", key: "secondary" },
-    { label: "Light Text", key: "lightText" },
-    { label: "Placeholder", key: "placeholder" },
+  /* ── Fine-tune accordion groups ── */
+  type ColorGroup = {
+    id: string;
+    label: string;
+    fields: { label: string; key: keyof StudioThemeColors }[];
+    gradients?: { label: string; startKey: keyof StudioThemeColors; endKey: keyof StudioThemeColors }[];
+  };
+
+  const COLOR_GROUPS: ColorGroup[] = [
+    {
+      id: "brand",
+      label: "Brand Colors",
+      fields: [
+        { label: "Background", key: "primaryBg" },
+        { label: "Primary", key: "primary" },
+        { label: "Secondary", key: "secondary" },
+      ],
+    },
+    {
+      id: "text",
+      label: "Text",
+      fields: [
+        { label: "Light Text", key: "lightText" },
+        { label: "Placeholder", key: "placeholderText" },
+        { label: "Navbar Label", key: "navbarLabel" },
+        { label: "Text Secondary", key: "textSecondary" },
+        { label: "Dark Text", key: "darkTextColor" },
+      ],
+    },
+    {
+      id: "buttons",
+      label: "Buttons & Gradients",
+      fields: [
+        { label: "Inactive Button BG", key: "inactiveButtonBg" },
+        { label: "Inactive Button Text", key: "inactiveButtonText" },
+        { label: "Inactive Button Text 2", key: "inactiveButtonTextSecondary" },
+        { label: "Inactive Tab Underline", key: "inactiveTabUnderline" },
+        { label: "Active Secondary", key: "activeSecondaryGradient" },
+      ],
+      gradients: [
+        { label: "Button", startKey: "primaryButton", endKey: "primaryButtonGradient" },
+        { label: "Box", startKey: "boxGradient1", endKey: "boxGradient2" },
+      ],
+    },
+    {
+      id: "header",
+      label: "Header & Nav",
+      fields: [],
+      gradients: [
+        { label: "Header", startKey: "headerGradient1", endKey: "headerGradient2" },
+      ],
+    },
+    {
+      id: "winloss",
+      label: "Win / Loss States",
+      fields: [
+        { label: "Won Color", key: "wonColor" },
+        { label: "Lost Color", key: "lostColor" },
+        { label: "Payout Won", key: "payoutWonColor" },
+        { label: "Loss Amount Text", key: "lossAmountText" },
+      ],
+      gradients: [
+        { label: "Win Status", startKey: "winStatusGradient1", endKey: "winStatusGradient2" },
+        { label: "Won BG", startKey: "wonGradient1", endKey: "wonGradient2" },
+        { label: "Lose Status", startKey: "loseStatusGradient1", endKey: "loseStatusGradient2" },
+      ],
+    },
+    {
+      id: "backgrounds",
+      label: "Backgrounds",
+      fields: [
+        { label: "Card Dark", key: "dark" },
+        { label: "Container", key: "darkContainer" },
+        { label: "Betcard Header", key: "betcardHeaderBg" },
+        { label: "Modal BG", key: "modalBackground" },
+        { label: "Notification BG", key: "notificationBg" },
+        { label: "Free Bet BG", key: "freeBetBackground" },
+        { label: "BG Color", key: "bgColor" },
+        { label: "Flex Bet Header", key: "flexBetHeaderBg" },
+        { label: "Flex Bet Footer", key: "flexBetFooterBg" },
+      ],
+    },
+    {
+      id: "misc",
+      label: "Borders & Misc",
+      fields: [
+        { label: "VS Color", key: "vsColor" },
+        { label: "Border / Divider", key: "borderAndGradientBg" },
+      ],
+    },
   ];
-  const gradients: { label: string; startKey: keyof StudioThemeColors; endKey: keyof StudioThemeColors }[] = [
-    { label: "Button", startKey: "primaryButton", endKey: "primaryButtonGradient" },
-    { label: "Box", startKey: "boxGradient1", endKey: "boxGradient2" },
-    { label: "Header", startKey: "headerBorder1", endKey: "headerBorder2" },
-    { label: "Won", startKey: "wonGradient1", endKey: "wonGradient2" },
-  ];
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ brand: true });
+  const toggleGroup = (id: string) =>
+    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const canLock = !!appIcons.appNameLogo;
   const bothCollapsed = !chatOpen && !controlsOpen;
@@ -1340,9 +1439,9 @@ export function StudioInner({
             </button>
 
             {controlsOpen && (
-              <div className="max-h-[300px] overflow-y-auto border-t border-border px-4 py-3 space-y-4">
+              <div className="max-h-[380px] overflow-y-auto border-t border-border">
                 {/* Brand Assets */}
-                <div>
+                <div className="px-4 py-3 border-b border-border">
                   <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Brand Assets</div>
                   <div className="space-y-2">
                     <AssetUploadZone label="Logo" type="logo" currentUrl={appIcons.appNameLogo} readOnly={locked} compact />
@@ -1350,37 +1449,47 @@ export function StudioInner({
                   </div>
                 </div>
 
-                {/* Single colors */}
-                <div>
-                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Colors</div>
-                  <div className="space-y-2">
-                    {singleColors.map(({ label, key }) => (
-                      <StudioColorField key={key} label={label} colorKey={key} readOnly={locked} />
-                    ))}
-                  </div>
-                </div>
+                {/* Color accordion groups */}
+                {COLOR_GROUPS.map((group) => (
+                  <div key={group.id} className="border-b border-border last:border-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(group.id)}
+                      className="flex w-full items-center justify-between px-4 py-2 text-left hover:bg-secondary/30 transition-colors"
+                    >
+                      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                        {group.label}
+                      </span>
+                      {openGroups[group.id]
+                        ? <ChevronUp className="h-3 w-3 text-muted-foreground/50" />
+                        : <ChevronDown className="h-3 w-3 text-muted-foreground/50" />
+                      }
+                    </button>
 
-                {/* Gradients */}
-                <div>
-                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Gradients</div>
-                  <div className="space-y-3.5">
-                    {gradients.map(({ label, startKey, endKey }) => (
-                      <div key={label}>
-                        <div className="mb-1.5 flex items-center gap-2">
-                          <span className="text-[10px] text-muted-foreground">{label}</span>
-                          <div
-                            className="h-1.5 flex-1 rounded-full border border-border/40"
-                            style={{ background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})` }}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <StudioColorField label={`${label} start`} colorKey={startKey} compact readOnly={locked} />
-                          <StudioColorField label={`${label} end`} colorKey={endKey} compact readOnly={locked} />
-                        </div>
+                    {openGroups[group.id] && (
+                      <div className="px-4 pb-3 space-y-2">
+                        {group.fields.map(({ label, key }) => (
+                          <StudioColorField key={key} label={label} colorKey={key} readOnly={locked} />
+                        ))}
+                        {group.gradients?.map(({ label, startKey, endKey }) => (
+                          <div key={label} className="pt-1">
+                            <div className="mb-1.5 flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground">{label}</span>
+                              <div
+                                className="h-1.5 flex-1 rounded-full border border-border/40"
+                                style={{ background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})` }}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <StudioColorField label={`${label} start`} colorKey={startKey} compact readOnly={locked} />
+                              <StudioColorField label={`${label} end`} colorKey={endKey} compact readOnly={locked} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
+                ))}
               </div>
             )}
           </div>

@@ -53,34 +53,49 @@ const PHASE_NAMES = [
 ];
 
 const CORE_COLORS: { key: keyof StudioThemeColors; label: string }[] = [
-  { key: "primaryBg",            label: "Background" },
-  { key: "primary",              label: "Primary Accent" },
-  { key: "secondary",            label: "Secondary" },
-  { key: "primaryButton",        label: "Button (start)" },
-  { key: "primaryButtonGradient", label: "Button (end)" },
-  { key: "headerBorder1",        label: "Card BG" },
-  { key: "headerBorder2",        label: "Deep Card BG" },
-  { key: "wonGradient1",         label: "Win Gradient (start)" },
-  { key: "wonGradient2",         label: "Win Gradient (end)" },
-  { key: "boxGradient1",         label: "Box Gradient (start)" },
-  { key: "boxGradient2",         label: "Box Gradient (end)" },
-  { key: "lightText",            label: "Light Text" },
-  { key: "placeholder",          label: "Muted Text" },
+  { key: "primaryBg",              label: "primaryBg" },
+  { key: "primary",                label: "primary" },
+  { key: "secondary",              label: "secondary" },
+  { key: "primaryButton",          label: "primaryButton" },
+  { key: "primaryButtonGradient",  label: "primaryButtonGradient" },
+  { key: "headerGradient1",        label: "headerGradient1" },
+  { key: "headerGradient2",        label: "headerGradient2" },
+  { key: "wonGradient1",           label: "wonGradient1" },
+  { key: "wonGradient2",           label: "wonGradient2" },
+  { key: "boxGradient1",           label: "boxGradient1" },
+  { key: "boxGradient2",           label: "boxGradient2" },
+  { key: "lightText",              label: "lightText" },
+  { key: "placeholderText",        label: "placeholderText" },
 ];
 
 const EXTENDED_COLORS: { key: keyof StudioThemeColors; label: string }[] = [
-  { key: "inactiveButton",       label: "Inactive Button" },
-  { key: "cardBackground",       label: "Card Background" },
-  { key: "navBarBackground",     label: "Nav Bar" },
-  { key: "bottomNavBackground",  label: "Bottom Nav" },
-  { key: "oddsButtonActive",     label: "Odds Active" },
-  { key: "oddsButtonInactive",   label: "Odds Inactive" },
-  { key: "liveBadge",            label: "Live Badge" },
-  { key: "successColor",         label: "Success" },
-  { key: "errorColor",           label: "Error" },
-  { key: "inputBackground",      label: "Input BG" },
-  { key: "inputBorder",          label: "Input Border" },
-  { key: "dividerColor",         label: "Divider" },
+  { key: "navbarLabel",            label: "navbarLabel" },
+  { key: "textSecondary",          label: "textSecondary" },
+  { key: "darkTextColor",          label: "darkTextColor" },
+  { key: "inactiveButtonBg",       label: "inactiveButtonBg" },
+  { key: "inactiveButtonText",     label: "inactiveButtonText" },
+  { key: "inactiveButtonTextSecondary", label: "inactiveButtonTextSecondary" },
+  { key: "inactiveTabUnderline",   label: "inactiveTabUnderline" },
+  { key: "activeSecondaryGradient", label: "activeSecondaryGradient" },
+  { key: "dark",                   label: "dark" },
+  { key: "darkContainer",          label: "darkContainer" },
+  { key: "betcardHeaderBg",        label: "betcardHeaderBg" },
+  { key: "modalBackground",        label: "modalBackground" },
+  { key: "notificationBg",         label: "notificationBg" },
+  { key: "freeBetBackground",      label: "freeBetBackground" },
+  { key: "bgColor",                label: "bgColor" },
+  { key: "flexBetHeaderBg",        label: "flexBetHeaderBg" },
+  { key: "flexBetFooterBg",        label: "flexBetFooterBg" },
+  { key: "wonColor",               label: "wonColor" },
+  { key: "lostColor",              label: "lostColor" },
+  { key: "payoutWonColor",         label: "payoutWonColor" },
+  { key: "lossAmountText",         label: "lossAmountText" },
+  { key: "winStatusGradient1",     label: "winStatusGradient1" },
+  { key: "winStatusGradient2",     label: "winStatusGradient2" },
+  { key: "loseStatusGradient1",    label: "loseStatusGradient1" },
+  { key: "loseStatusGradient2",    label: "loseStatusGradient2" },
+  { key: "vsColor",                label: "vsColor" },
+  { key: "borderAndGradientBg",    label: "borderAndGradientBg" },
 ];
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -106,23 +121,21 @@ function buildTcmText(
   const fmt = (key: keyof StudioThemeColors) => {
     const val = colors[key];
     if (!val) return "(not set)";
-    const hex = rgbaToHex(val);
-    const alpha = extractAlpha(val);
-    return alpha < 1 ? `${hex} (${Math.round(alpha * 100)}% opacity)` : hex;
+    return val; // output full rgba() value for TCM
   };
   const lines: string[] = [
     `=== STUDIO CONFIG - ${clientName} ===`,
     `Status: ${locked ? `Locked${lockedAt ? " on " + new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""}` : "In progress (not locked)"}`,
     "",
-    "--- CORE COLORS ---",
-    ...CORE_COLORS.map(({ key, label }) => `${label.padEnd(22)}: ${fmt(key)}`),
+    "--- CORE BRAND ---",
+    ...CORE_COLORS.map(({ key }) => `${key.padEnd(30)}: ${fmt(key)}`),
     "",
-    "--- EXTENDED COLORS ---",
-    ...EXTENDED_COLORS.map(({ key, label }) => `${label.padEnd(22)}: ${fmt(key)}`),
+    "--- EXTENDED ---",
+    ...EXTENDED_COLORS.map(({ key }) => `${key.padEnd(30)}: ${fmt(key)}`),
     "",
     "--- BRAND ASSETS ---",
-    `App Name Logo  : ${icons?.appNameLogo ? "Uploaded (download from Studio Config panel)" : "Not set"}`,
-    `Top-Left Icon  : ${icons?.topLeftAppIcon ? "Uploaded (download from Studio Config panel)" : "Not set"}`,
+    `appNameLogo                   : ${icons?.appNameLogo ? "Uploaded (download from Studio Config panel)" : "Not set"}`,
+    `topLeftAppIcon                : ${icons?.topLeftAppIcon ? "Uploaded (download from Studio Config panel)" : "Not set"}`,
   ];
   return lines.join("\n");
 }
