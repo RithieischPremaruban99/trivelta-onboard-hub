@@ -1,8 +1,17 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
+
+function BrandCorner() {
+  return (
+    <Link to="/" className="fixed left-5 top-4 z-50 flex items-center sm:left-8" aria-label="Trivelta Studio">
+      <TriveltaLogo size="md" withSubtitle />
+    </Link>
+  );
+}
 
 export const Route = createFileRoute("/my-onboarding")({
   component: MyOnboardingRedirect,
@@ -30,6 +39,7 @@ function MyOnboardingRedirect() {
   if (authLoading || target === null) {
     return (
       <div className="min-h-screen grid place-items-center">
+        <BrandCorner />
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -38,6 +48,7 @@ function MyOnboardingRedirect() {
   if (target === "none") {
     return (
       <div className="min-h-screen grid place-items-center px-6">
+        <BrandCorner />
         <div className="surface-card max-w-md p-8 text-center">
           <h1 className="text-lg font-semibold">No onboarding found</h1>
           <p className="mt-2 text-sm text-muted-foreground">
