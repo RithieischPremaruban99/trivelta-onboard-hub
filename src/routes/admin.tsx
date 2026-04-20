@@ -37,7 +37,10 @@ import {
   ShieldCheck,
   ShieldAlert,
   Unlock,
+  Trash2,
 } from "lucide-react";
+
+const SUPER_ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com"];
 import {
   defaultStudioColors,
   type StudioThemeColors,
