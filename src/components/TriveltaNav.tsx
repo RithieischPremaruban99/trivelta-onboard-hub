@@ -27,11 +27,13 @@ export function TriveltaNav({
         className,
       )}
     >
-      <div className="mx-auto flex h-[60px] w-full max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
+      <div className="relative flex h-[60px] w-full items-center px-5 sm:px-8">
         <Link to={homeHref} className="flex items-center">
           <TriveltaLogo size="md" withSubtitle />
         </Link>
-        {right && <div className="flex items-center gap-3">{right}</div>}
+        {right && (
+          <div className="ml-auto flex items-center gap-3">{right}</div>
+        )}
       </div>
       {bottomSlot}
     </header>
