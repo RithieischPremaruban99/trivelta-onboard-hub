@@ -233,7 +233,11 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
         </div>
       </div>
 
-      {/* Main 3-column layout */}
+      {view === "feed" && <WebFeedView />}
+      {view === "profile" && <WebProfileView appName={appName} />}
+
+      {/* Main 3-column layout (Sports view) */}
+      {view === "sports" && (
       <div className="flex-1 min-h-0 flex">
         {/* Left sidebar */}
         <aside
