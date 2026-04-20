@@ -226,6 +226,11 @@
   .animate-pulse-highlight { animation: panel-highlight 1.6s ease forwards; }
 }
 
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0);    opacity: 0.35; }
+  30%           { transform: translateY(-4px); opacity: 1;    }
+}
+
 @keyframes panel-highlight {
   0%   { background-color: transparent; }
   20%  { background-color: color-mix(in srgb, var(--primary) 14%, transparent); }

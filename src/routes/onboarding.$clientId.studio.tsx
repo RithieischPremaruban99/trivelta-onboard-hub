@@ -681,6 +681,9 @@ function StudioInner({
     if (tourActive) setChatOpen(true);
   }, [tourActive]);
 
+  // Tracks the last color field(s) changed so the AI can suggest follow-ups
+  const lastPatchLabel = useRef<string | null>(null);
+
   // Stable Supabase Storage URL of the most recently generated or applied logo.
   // Populated when an image event arrives (before user clicks "Use as Logo").
   // Passed to the edge function as logoUrl so Claude Vision always gets a non-expiring URL.
@@ -923,6 +926,9 @@ function StudioInner({
     const assistantMsgIndex = nextHistory.length; // position in displayMessages after user msg
     setDisplayMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
+    // Snapshot + clear the recent-change hint so it's only sent once
+    lastPatchLabel.current = null;
+
     let fullChatText = "";
     let appliedPatch = false;
     let imageReceived = false;
@@ -943,7 +949,16 @@ function StudioInner({
           message: trimmed,
           history: apiHistory,
           logoUrl: stableLogoUrl.current || appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
-          currentColors: themeColors,
+          context: {
+            clientName: welcomeInfo?.clientName ?? "Client",
+            currentColors: themeColors,
+            hasLogo: !!(appIcons.appNameLogo || stableLogoUrl.current),
+            hasIcon: !!appIcons.topLeftAppIcon,
+            isLocked: locked,
+            platform: "sportsbook",
+            recentChange: lastPatchLabel.current,
+            clientId,
+          },
         }),
       });
 
@@ -985,6 +1000,10 @@ function StudioInner({
             fullChatText += tok;
             updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
 
+          } else if (event.type === "thinking") {
+            // Server confirmed receipt; typing indicator is already shown via empty content
+            // Nothing extra needed — this event exists to make round-trip latency visible
+
           } else if (event.type === "patch") {
             // Validate and apply color patch atomically
             const ops = event.ops as unknown;
@@ -992,6 +1011,7 @@ function StudioInner({
               setPatchPending(true);
               const label = ops.map((o) => o.path.slice(1)).join(", ") + " change";
               applyColorPatch(ops, label);
+              lastPatchLabel.current = label; // hint for next AI request
               appliedPatch = true;
               toast.success("Colors updated", { duration: 1500 });
             } else {
@@ -1229,6 +1249,17 @@ function StudioInner({
                     )}>
                       {msg.role === "assistant" && msg.imageUrl ? (
                         <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
+                      ) : msg.role === "assistant" && !msg.content && thinking && i === displayMessages.length - 1 ? (
+                        // Typing indicator: three bouncing dots while waiting for first token
+                        <div className="flex items-center gap-1 px-0.5 py-1">
+                          {[0, 1, 2].map((d) => (
+                            <span
+                              key={d}
+                              className="block h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
+                              style={{ animation: `typing-dot 1.2s ease-in-out infinite ${d * 0.18}s` }}
+                            />
+                          ))}
+                        </div>
                       ) : msg.role === "assistant" ? (
                         <div className="text-[12px] leading-relaxed prose-chat">
                           <ReactMarkdown>{msg.content}</ReactMarkdown>
