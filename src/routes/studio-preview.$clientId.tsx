@@ -192,9 +192,14 @@ function StudioPreviewPage() {
   const toggleStudioAccess = async () => {
     setTogglingAccess(true);
     const next = !studioAccess;
-    const updatePayload: Record<string, unknown> = { studio_access: next };
-    if (next) updatePayload.studio_access_granted_at = new Date().toISOString();
-    const { error } = await supabase.from("clients").update(updatePayload).eq("id", clientId);
+    const { error } = await supabase
+      .from("clients")
+      .update(
+        next
+          ? { studio_access: next, studio_access_granted_at: new Date().toISOString() }
+          : { studio_access: next },
+      )
+      .eq("id", clientId);
     setTogglingAccess(false);
     if (error) { toast.error(error.message); return; }
     setStudioAccess(next);

@@ -1389,10 +1389,10 @@ function MobilePreview({
             <ChevronLeft className="h-3.5 w-3.5" /> {strings.BACK_TO_SPORTS}
           </button>
           <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-muted)" }}>
-            {strings.ALL_SPORTS} ({SPORTS_SIDEBAR.length})
+            {strings.ALL_SPORTS} ({getSportsSidebar(strings).length})
           </div>
           <div className="px-2">
-            {SPORTS_SIDEBAR.map((s, i) => (
+            {getSportsSidebar(strings).map((s, i) => (
               <button
                 key={s.name}
                 onClick={() => setMobileSportsTab(0)}

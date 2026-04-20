@@ -1035,15 +1035,21 @@ export function StudioInner({
               const colorOps = ops.filter((o) => o.path !== "/language" && o.path !== "/appName");
 
               if (langOps.length > 0) {
-                const newLang = langOps[langOps.length - 1].value as Language;
-                setLanguage(newLang);
-                toast.success(`Language: ${LANGUAGE_NAMES[newLang]}`, { duration: 1500 });
+                const lastLangOp = langOps[langOps.length - 1];
+                if ("value" in lastLangOp) {
+                  const newLang = lastLangOp.value as Language;
+                  setLanguage(newLang);
+                  toast.success(`Language: ${LANGUAGE_NAMES[newLang]}`, { duration: 1500 });
+                }
               }
 
               if (appNameOps.length > 0) {
-                const newName = appNameOps[appNameOps.length - 1].value.trim();
-                setAppName(newName);
-                toast.success(`App name: ${newName}`, { duration: 1500 });
+                const lastNameOp = appNameOps[appNameOps.length - 1];
+                if ("value" in lastNameOp) {
+                  const newName = String(lastNameOp.value).trim();
+                  setAppName(newName);
+                  toast.success(`App name: ${newName}`, { duration: 1500 });
+                }
               }
 
               if (colorOps.length > 0) {
