@@ -485,6 +485,15 @@ function ClientDetail({ client, onStudioAccessChange }: {
             <Info className="mt-0.5 h-3 w-3 shrink-0" />
             Lock while implementing in TCM to prevent conflicting changes.
           </div>
+          <button
+            onClick={() =>
+              window.open(`/studio-preview/${client.id}`, "_blank")
+            }
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <Palette className="h-3.5 w-3.5" />
+            Preview Studio
+          </button>
         </div>
       </div>
 

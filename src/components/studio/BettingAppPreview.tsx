@@ -190,8 +190,6 @@ const LiveDot = () => (
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-type WebView = "sports" | "feed" | "profile";
-
 function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
@@ -203,12 +201,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   const [webMyBetsFilter, setWebMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [webFeedTab, setWebFeedTab] = useState(0); // 0=Friends, 1=Explore
 
-  const NAV: { icon: typeof Home; label: string; view: WebView }[] = [
-    { icon: Home, label: "Feed", view: "feed" },
-    { icon: Trophy, label: "Sports", view: "sports" },
-    { icon: Compass, label: "Discovery", view: "sports" },
-    { icon: Gamepad2, label: "Casino", view: "sports" },
-    { icon: User, label: "Profile", view: "profile" },
+  const NAV = [
+    { icon: Home, label: "Feed" },
+    { icon: Trophy, label: "Sports" },
+    { icon: Compass, label: "Discovery" },
+    { icon: Gamepad2, label: "Casino" },
+    { icon: Swords, label: "Peer-to-peer" },
   ];
 
   /* Right panel — always visible */
@@ -886,7 +884,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             return (
               <button
                 key={n.label}
-                onClick={() => handleNav(i)}
+                onClick={() => setActiveNav(i)}
                 className="flex items-center gap-1.5 px-2.5 h-7 rounded-md transition-colors relative"
                 style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
               >
@@ -950,12 +948,12 @@ function MobilePreview({
   const [expandedBetCard, setExpandedBetCard] = useState(false);
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
 
-  const NAV: { icon: typeof Home; label: string; view: MobileView | "home" }[] = [
-    { icon: Home, label: "home", view: "sports" },
-    { icon: Trophy, label: "Sports", view: "allsports" },
-    { icon: Compass, label: "Discovery", view: "betdetail" },
-    { icon: Gamepad2, label: "Casino", view: "betdetail" },
-    { icon: User, label: "Social", view: "social" },
+  const NAV = [
+    { icon: Home, label: "home" },
+    { icon: Trophy, label: "Sports" },
+    { icon: Compass, label: "Discovery" },
+    { icon: Gamepad2, label: "Casino" },
+    { icon: User, label: "Profile" },
   ];
 
   const toggleOdd = (key: string) => {
@@ -1935,11 +1933,11 @@ function SportsView({
               className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
               style={{
                 background: "var(--p-card)",
-                border: t.active ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
+                border: "1px solid var(--p-divider)",
               }}
             >
-              <Icon className="h-4 w-4" style={{ color: t.active ? "var(--p-primary)" : "var(--p-text)" }} />
-              <span className="text-[8px] font-medium" style={{ color: t.active ? "var(--p-primary)" : "var(--p-muted)" }}>{t.label}</span>
+              <Icon className="h-4 w-4" style={{ color: "var(--p-text)" }} />
+              <span className="text-[8px] font-medium" style={{ color: "var(--p-muted)" }}>{t.label}</span>
             </button>
           );
         })}
@@ -2037,6 +2035,51 @@ function SportsView({
     </>
   );
 }
+
+/* ─── Types and data for remote-added view components ─────────────────── */
+
+interface SocialPost {
+  user: string;
+  initial: string;
+  boost?: string;
+  league?: string;
+  status?: "PENDING" | "LIVE" | "WON" | "LOST";
+  title: string;
+  match?: { home: string; away: string; date: string; score?: string };
+  pick?: { market: string; selection: string; odds: string };
+  legs?: Array<{ market: string; selection: string; vs: string; odds: string }>;
+  stake: string;
+  payout: string;
+}
+
+// Alias SPORTS_SIDEBAR with icon field for AllSportsView
+const ALL_SPORTS_LIST = SPORTS_SIDEBAR.map((s) => ({ ...s, icon: s.flag }));
+
+const FRIENDS_POSTS: SocialPost[] = [
+  {
+    user: "Alex M.", initial: "A",
+    league: "Premier League", status: "PENDING",
+    title: "4 Selection Multi", stake: "500", payout: "8,450",
+    pick: { market: "1X2", selection: "Man City Win", odds: "1.85" },
+  },
+  {
+    user: "Jordan K.", initial: "J", boost: "20% PROFIT BOOST",
+    league: "Champions League", status: "WON",
+    title: "3 Selection Accumulator", stake: "100", payout: "1,750",
+    legs: [
+      { market: "1X2", selection: "Arsenal Win", vs: "Arsenal vs Chelsea", odds: "2.10" },
+      { market: "O/U", selection: "Over 2.5", vs: "Spurs vs Wolves", odds: "1.65" },
+      { market: "1X2", selection: "Liverpool Win", vs: "Liverpool vs Everton", odds: "1.55" },
+    ],
+  },
+  {
+    user: "Sam T.", initial: "S",
+    league: "Bundesliga", status: "LIVE",
+    title: "Single Bet", stake: "200", payout: "420",
+    match: { home: "Bayern", away: "Dortmund", date: "LIVE", score: "1 - 1" },
+    pick: { market: "BTTS", selection: "Yes", odds: "1.75" },
+  },
+];
 
 function AllSportsView() {
   return (
@@ -2202,7 +2245,7 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
 }
 
 function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "friends" | "explore"; setSocialTab: (t: "friends" | "explore") => void; currencySymbol: string }) {
-  const posts = socialTab === "friends" ? FRIENDS_POSTS : EXPLORE_POSTS;
+  const posts: SocialPost[] = FRIENDS_POSTS;
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       {/* Header bar */}

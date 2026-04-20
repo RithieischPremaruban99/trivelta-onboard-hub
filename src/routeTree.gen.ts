@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudioPreviewClientIdRouteImport } from './routes/studio-preview.$clientId'
 import { Route as OnboardingClientIdRouteImport } from './routes/onboarding.$clientId'
 import { Route as OnboardingClientIdIndexRouteImport } from './routes/onboarding.$clientId.index'
 import { Route as OnboardingClientIdSuccessRouteImport } from './routes/onboarding.$clientId.success'
@@ -44,6 +45,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioPreviewClientIdRoute = StudioPreviewClientIdRouteImport.update({
+  id: '/studio-preview/$clientId',
+  path: '/studio-preview/$clientId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingClientIdRoute = OnboardingClientIdRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
   '/onboarding/$clientId': typeof OnboardingClientIdRouteWithChildren
+  '/studio-preview/$clientId': typeof StudioPreviewClientIdRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
   '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
+  '/studio-preview/$clientId': typeof StudioPreviewClientIdRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
   '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
   '/onboarding/$clientId': typeof OnboardingClientIdRouteWithChildren
+  '/studio-preview/$clientId': typeof StudioPreviewClientIdRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
   '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-onboarding'
     | '/onboarding/$clientId'
+    | '/studio-preview/$clientId'
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
     | '/onboarding/$clientId/studio'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/my-onboarding'
+    | '/studio-preview/$clientId'
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
     | '/onboarding/$clientId/studio'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-onboarding'
     | '/onboarding/$clientId'
+    | '/studio-preview/$clientId'
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
     | '/onboarding/$clientId/studio'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MyOnboardingRoute: typeof MyOnboardingRoute
   OnboardingClientIdRoute: typeof OnboardingClientIdRouteWithChildren
+  StudioPreviewClientIdRoute: typeof StudioPreviewClientIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -203,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio-preview/$clientId': {
+      id: '/studio-preview/$clientId'
+      path: '/studio-preview/$clientId'
+      fullPath: '/studio-preview/$clientId'
+      preLoaderRoute: typeof StudioPreviewClientIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding/$clientId': {
@@ -276,7 +296,17 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MyOnboardingRoute: MyOnboardingRoute,
   OnboardingClientIdRoute: OnboardingClientIdRouteWithChildren,
+  StudioPreviewClientIdRoute: StudioPreviewClientIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

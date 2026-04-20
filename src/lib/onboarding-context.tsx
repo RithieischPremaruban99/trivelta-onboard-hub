@@ -18,7 +18,7 @@ export interface OnboardingCtxValue {
   loadingAuth: boolean;
 }
 
-const OnboardingCtx = createContext<OnboardingCtxValue | undefined>(undefined);
+export const OnboardingCtx = createContext<OnboardingCtxValue | undefined>(undefined);
 
 export function OnboardingProvider({ clientId, children }: { clientId: string; children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();

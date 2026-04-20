@@ -545,7 +545,7 @@ function LockModal({
 
 /* ── StudioInner ─────────────────────────────────────────────────────────── */
 
-function StudioInner({
+export function StudioInner({
   clientId,
   initialLocked,
   initialLockedAt,

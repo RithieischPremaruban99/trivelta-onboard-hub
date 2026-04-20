@@ -33,6 +33,7 @@ import {
   ExternalLink,
   Mail,
   Lock,
+  Palette,
 } from "lucide-react";
 import {
   defaultStudioColors,
@@ -274,6 +275,19 @@ function AdminPage() {
                               onClick={() => window.open(onboardingUrl, "_blank")}
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              title="Open Studio (admin preview)"
+                              onClick={() =>
+                                window.open(
+                                  `/studio-preview/${c.id}`,
+                                  "_blank",
+                                )
+                              }
+                            >
+                              <Palette className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </td>
