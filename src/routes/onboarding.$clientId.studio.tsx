@@ -1152,6 +1152,8 @@ export function StudioInner({
               stableLogoUrl.current || appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
             context: {
               clientName: welcomeInfo?.clientName ?? "Client",
+              appName,
+              language,
               currentColors: themeColors,
               hasLogo: !!(appIcons.appNameLogo || stableLogoUrl.current),
               hasIcon: !!appIcons.topLeftAppIcon,
