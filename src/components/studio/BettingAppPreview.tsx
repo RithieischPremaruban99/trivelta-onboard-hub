@@ -201,14 +201,18 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             return (
               <button
                 key={n.label}
-                onClick={() => setActiveNav(i)}
-                className="flex items-center gap-1.5 px-2.5 h-7 rounded-md transition-colors"
-                style={{
-                  color: active ? "var(--p-primary)" : "var(--p-muted)",
-                }}
+                onClick={() => handleNav(i)}
+                className="flex items-center gap-1.5 px-2.5 h-7 rounded-md transition-colors relative"
+                style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span className="text-[10px] font-semibold">{n.label}</span>
+                {active && (
+                  <span
+                    className="absolute -bottom-[6px] left-2 right-2 h-[2px] rounded-full"
+                    style={{ background: "var(--p-primary)" }}
+                  />
+                )}
               </button>
             );
           })}
