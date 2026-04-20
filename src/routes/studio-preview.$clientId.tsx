@@ -58,6 +58,7 @@ function StudioPreviewPage() {
   const [initialColors, setInitialColors] = useState<StudioThemeColors | undefined>(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
+  const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
   const [initialLocked, setInitialLocked] = useState(false);
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -125,6 +126,7 @@ function StudioPreviewPage() {
           });
         }
         if (saved.language) setInitialLanguage(saved.language);
+        if (saved.appName) setInitialAppName(saved.appName);
       }
 
       if (data?.studio_locked) {
@@ -293,7 +295,7 @@ function StudioPreviewPage() {
       {/* Push content below the banner */}
       <div className="pt-8 h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
-          <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage}>
+          <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage} initialAppName={initialAppName}>
             <StudioInner
               clientId={clientId}
               initialLocked={initialLocked}

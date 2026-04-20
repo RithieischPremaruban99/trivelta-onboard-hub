@@ -149,6 +149,8 @@ export interface StudioState {
   language: Language;
   setLanguage: (lang: Language) => void;
   strings: TCMStrings;
+  appName: string;
+  setAppName: (name: string) => void;
 }
 
 const StudioCtx = createContext<StudioState | null>(null);
@@ -163,6 +165,7 @@ export interface StudioSavedConfig {
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
   language?: Language;
+  appName?: string;
 }
 
 export const StudioProvider: React.FC<{
@@ -170,19 +173,28 @@ export const StudioProvider: React.FC<{
   initialColors?: StudioThemeColors;
   initialIcons?: StudioAppIcons;
   initialLanguage?: Language;
-}> = ({ children, initialColors, initialIcons, initialLanguage }) => {
+  initialAppName?: string;
+}> = ({ children, initialColors, initialIcons, initialLanguage, initialAppName }) => {
   const [themeColors, setThemeColors] = useState<StudioThemeColors>(initialColors ?? defaultStudioColors);
   const [appIcons, setAppIcons] = useState<StudioAppIcons>(initialIcons ?? defaultStudioAppIcons);
   const [previewMode, setPreviewMode] = useState<'mobile' | 'website'>('mobile');
   const [language, setLanguage] = useState<Language>(initialLanguage ?? 'en');
-  const strings = useMemo(() => getStrings(language), [language]);
+  const [appName, setAppName] = useState<string>(initialAppName ?? defaultAppLabels.appName);
+
+  const strings = useMemo(
+    () => getStrings(language, {
+      APP_NAME: appName,
+      CURRENCY_SYMBOL: defaultAppLabels.currencySymbol,
+    }),
+    [language, appName],
+  );
 
   return (
     <StudioCtx.Provider
       value={{
         themeColors,
         setThemeColors,
-        appLabels: defaultAppLabels,
+        appLabels: { ...defaultAppLabels, appName },
         appIcons,
         setAppIcons,
         previewMode,
@@ -191,6 +203,8 @@ export const StudioProvider: React.FC<{
         language,
         setLanguage,
         strings,
+        appName,
+        setAppName,
       }}
     >
       {children}

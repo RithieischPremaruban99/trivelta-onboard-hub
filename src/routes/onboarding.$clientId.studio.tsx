@@ -53,6 +53,7 @@ const ALLOWED_PATCH_PATHS = new Set([
   "/flexBetHeaderBg", "/flexBetFooterBg",
   "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
   "/language",
+  "/appName",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
@@ -137,6 +138,7 @@ function validateOps(ops: unknown): ops is Operation[] {
     if (typeof op.path !== "string" || !ALLOWED_PATCH_PATHS.has(op.path)) return false;
     if (typeof op.value !== "string") return false;
     if (op.path === "/language") return LANGUAGE_VALUES.has(op.value.trim());
+    if (op.path === "/appName") return op.value.trim().length > 0 && op.value.trim().length <= 50;
     return RGBA_RE.test(op.value.trim());
   });
 }
@@ -575,7 +577,7 @@ export function StudioInner({
 }) {
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
-  const { themeColors, setThemeColors, appIcons, setAppIcons, previewMode, setPreviewMode, language, setLanguage } = useStudio();
+  const { themeColors, setThemeColors, appIcons, setAppIcons, previewMode, setPreviewMode, language, setLanguage, appName, setAppName } = useStudio();
 
   /* ── State ── */
   const [locked, setLocked] = useState(initialLocked);
@@ -714,12 +716,12 @@ export function StudioInner({
 
   /* ── Save helpers ── */
   const saveNow = useCallback(async () => {
-    const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons, language };
+    const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons, language, appName };
     await supabase.from("onboarding_forms").upsert(
       { client_id: clientId, studio_config: payload as never },
       { onConflict: "client_id" },
     );
-  }, [clientId, themeColors, appIcons, language]);
+  }, [clientId, themeColors, appIcons, language, appName]);
 
   const scheduleAutoSave = useCallback(
     (colors: StudioThemeColors, icons: StudioAppIcons) => {
@@ -727,12 +729,12 @@ export function StudioInner({
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(async () => {
         await supabase.from("onboarding_forms").upsert(
-          { client_id: clientId, studio_config: { colors, icons, language } as never },
+          { client_id: clientId, studio_config: { colors, icons, language, appName } as never },
           { onConflict: "client_id" },
         );
       }, 2000);
     },
-    [clientId, locked, language],
+    [clientId, locked, language, appName],
   );
 
   useEffect(() => {
@@ -781,7 +783,7 @@ export function StudioInner({
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: { colors: themeColors, icons: appIcons, language } as never,
+          studio_config: { colors: themeColors, icons: appIcons, language, appName } as never,
           studio_locked: true,
           studio_locked_at: now,
           notion_sync_pending: false,
@@ -817,7 +819,7 @@ export function StudioInner({
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: { colors: themeColors, icons: appIcons, language } as never,
+          studio_config: { colors: themeColors, icons: appIcons, language, appName } as never,
           studio_locked: true,
           studio_locked_at: now,
           notion_sync_pending: false,
@@ -1029,12 +1031,19 @@ export function StudioInner({
             if (validateOps(ops)) {
               setPatchPending(true);
               const langOps = ops.filter((o) => o.path === "/language");
-              const colorOps = ops.filter((o) => o.path !== "/language");
+              const appNameOps = ops.filter((o) => o.path === "/appName");
+              const colorOps = ops.filter((o) => o.path !== "/language" && o.path !== "/appName");
 
               if (langOps.length > 0) {
                 const newLang = langOps[langOps.length - 1].value as Language;
                 setLanguage(newLang);
                 toast.success(`Language: ${LANGUAGE_NAMES[newLang]}`, { duration: 1500 });
+              }
+
+              if (appNameOps.length > 0) {
+                const newName = appNameOps[appNameOps.length - 1].value.trim();
+                setAppName(newName);
+                toast.success(`App name: ${newName}`, { duration: 1500 });
               }
 
               if (colorOps.length > 0) {
@@ -1465,6 +1474,18 @@ export function StudioInner({
                       <option key={code} value={code}>{name}</option>
                     ))}
                   </select>
+                </div>
+                {/* App Name */}
+                <div className="px-4 py-3 border-b border-border">
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">App Name</div>
+                  <Input
+                    value={appName}
+                    onChange={(e) => !locked && setAppName(e.target.value)}
+                    disabled={locked}
+                    className="h-7 text-[11px]"
+                    placeholder="BetNova"
+                    maxLength={50}
+                  />
                 </div>
                 {/* Brand Assets */}
                 <div className="px-4 py-3 border-b border-border">
@@ -1938,6 +1959,7 @@ function StudioPage() {
   const [initialColors, setInitialColors] = useState<StudioThemeColors | undefined>(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
+  const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
   const [initialLocked, setInitialLocked] = useState(false);
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
   const [accessLocked, setAccessLocked] = useState(false);
@@ -1973,6 +1995,7 @@ function StudioPage() {
           setInitialColors({ ...defaultStudioColors, ...(data.studio_config as Partial<StudioThemeColors>) });
         }
         if (saved.language) setInitialLanguage(saved.language);
+        if (saved.appName) setInitialAppName(saved.appName);
       }
 
       if (data?.studio_locked) {
@@ -2047,7 +2070,7 @@ function StudioPage() {
   }
 
   return (
-    <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage}>
+    <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage} initialAppName={initialAppName}>
       <StudioInner
         clientId={clientId}
         initialLocked={initialLocked}

@@ -20,6 +20,7 @@
  */
 import { useState } from "react";
 import { useStudio } from "@/contexts/StudioContext";
+import type { TCMStrings } from "@/lib/tcm-strings";
 import {
   Bell,
   Search,
@@ -49,39 +50,42 @@ import {
 
 /* ─── Static placeholder data ─────────────────────────────────────────── */
 
-const SPORTS_SIDEBAR = [
-  { name: "Football", count: 253, flag: "⚽" },
-  { name: "Basketball", count: 66, flag: "🏀" },
-  { name: "Tennis", count: 11, flag: "🎾" },
-  { name: "Volleyball", count: 19, flag: "🏐" },
-  { name: "Table Tennis", count: 3, flag: "🏓" },
-  { name: "Ice Hockey", count: 21, flag: "🏒" },
-  { name: "American Football", count: 5, flag: "🏈" },
-  { name: "Rugby", count: 13, flag: "🏉" },
-  { name: "Golf", count: 8, flag: "⛳" },
-  { name: "Darts", count: 4, flag: "🎯" },
-  { name: "Boxing", count: 1, flag: "🥊" },
-  { name: "Cricket", count: 12, flag: "🏏" },
-  { name: "Baseball", count: 8, flag: "⚾" },
+function getSportsSidebar(strings: TCMStrings) {
+  return [
+    { name: strings.SOCCER, count: 253, flag: "⚽" },
+    { name: strings.BASKETBALL, count: 66, flag: "🏀" },
+    { name: strings.TENNIS, count: 11, flag: "🎾" },
+    { name: strings.VOLLEYBALL, count: 19, flag: "🏐" },
+    { name: strings.TABLE_TENNIS, count: 3, flag: "🏓" },
+    { name: strings.ICE_HOCKEY, count: 21, flag: "🏒" },
+    { name: strings.AMERICAN_FOOTBALL, count: 5, flag: "🏈" },
+    { name: strings.RUGBY, count: 13, flag: "🏉" },
+    { name: "Golf", count: 8, flag: "⛳" },
+    { name: "Darts", count: 4, flag: "🎯" },
+    { name: "Boxing", count: 1, flag: "🥊" },
+    { name: "Cricket", count: 12, flag: "🏏" },
+    { name: "Baseball", count: 8, flag: "⚾" },
+  ];
+}
+
+// These are computed inside components using strings — kept as icon-only config here
+const QUICK_TILE_ICONS = [
+  { icon: Radio, strKey: "TILE_LIVE_SPORTS" as const, nav: 1 },
+  { icon: Code2, strKey: "TILE_LOAD_CODE" as const, nav: 2 },
+  { icon: Clapperboard, strKey: "TILE_VIRTUALS" as const, nav: 3 },
+  { icon: ArrowLeftRight, strKey: "TILE_PEER_TO_PEER" as const, nav: 4 },
+  { icon: Joystick, strKey: "TILE_GAMERS_PARADISE" as const, nav: 3 },
 ];
 
-const QUICK_TILES = [
-  { icon: Radio, label: "Live Sports", nav: 1 },
-  { icon: Code2, label: "Load Code", nav: 2 },
-  { icon: Clapperboard, label: "Virtuals", nav: 3 },
-  { icon: ArrowLeftRight, label: "Peer to Peer", nav: 4 },
-  { icon: Joystick, label: "Gamers Paradise", nav: 3 },
+const MOBILE_TILE_ICONS = [
+  { icon: Trophy, strKey: "MOBILE_TILE_ALL_SPORTS" as const, nav: 1 },
+  { icon: Radio, strKey: "MOBILE_TILE_LIVE_SPO" as const, nav: 1 },
+  { icon: Code2, strKey: "MOBILE_TILE_LOAD_CO" as const, nav: 2 },
+  { icon: Clapperboard, strKey: "TILE_VIRTUALS" as const, nav: 3 },
+  { icon: Joystick, strKey: "MOBILE_TILE_GAMERS" as const, nav: 3 },
 ];
 
-const MOBILE_TILES = [
-  { icon: Trophy, label: "All Sports", nav: 1 },
-  { icon: Radio, label: "Live Spo.", nav: 1 },
-  { icon: Code2, label: "Load Co.", nav: 2 },
-  { icon: Clapperboard, label: "Virtuals", nav: 3 },
-  { icon: Joystick, label: "Gamers...", nav: 3 },
-];
-
-const SPORT_TABS = ["Soccer", "Basketball", "Tennis", "TT Elite Series"];
+const SPORT_TABS_KEYS = ["SOCCER", "BASKETBALL", "TENNIS"] as const;
 const LEAGUE_TABS = [
   "Premier League - England",
   "LaLiga - Spain",
@@ -429,7 +433,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                         color: "var(--p-text)",
                       }}
                     >
-                      WON
+                      {strings.STATUS_WON}
                     </span>
                   )}
                 </div>
@@ -441,7 +445,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     {p.bet}
                   </div>
                   <div className="text-[8px] mt-0.5" style={{ color: "var(--p-muted)" }}>
-                    @ {p.odds} · Stake ₦{p.stake}
+                    @ {p.odds} · {strings.STAKE} ₦{p.stake}
                   </div>
                 </div>
                 <div
@@ -519,7 +523,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           {strings.ALL_SPORTS}
         </div>
         <div className="flex-1 overflow-auto px-1.5">
-          {SPORTS_SIDEBAR.map((s, i) => {
+          {getSportsSidebar(strings).map((s, i) => {
             const active = activeSportSidebar === i;
             return (
               <button
@@ -557,12 +561,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
         <div className="px-3 py-2">
           {/* Quick tiles */}
           <div className="flex gap-1.5 mb-2">
-            {QUICK_TILES.map((t) => {
+            {QUICK_TILE_ICONS.map((t) => {
               const Icon = t.icon;
               const active = activeNav === t.nav;
               return (
                 <button
-                  key={t.label}
+                  key={t.strKey}
                   onClick={() => setActiveNav(t.nav)}
                   className="flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-md flex-shrink-0"
                   style={{
@@ -580,7 +584,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     className="text-[7.5px] font-medium text-center leading-tight px-0.5"
                     style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
                   >
-                    {t.label}
+                    {strings[t.strKey]}
                   </span>
                 </button>
               );
@@ -635,9 +639,9 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             {strings.LIVE_AND_UPCOMING_GAMES}
           </div>
           <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {SPORT_TABS.map((s, i) => (
+            {SPORT_TABS_KEYS.map((k, i) => (
               <button
-                key={s}
+                key={k}
                 onClick={() => setActiveSportRow(i)}
                 className="px-2.5 h-6 rounded-md text-[9px] font-semibold flex-shrink-0"
                 style={{
@@ -649,7 +653,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                   color: activeSportRow === i ? "var(--p-primary)" : "var(--p-muted)",
                 }}
               >
-                {s} {i < 3 ? "⚽" : ""}
+                {strings[k]} ⚽
               </button>
             ))}
           </div>
@@ -691,7 +695,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             style={{ borderColor: "var(--p-divider)" }}
           >
             <div className="flex">
-              {["Soccer", "Basketball", "Tennis", "TT Elite Series"].map((t, i) => (
+              {[strings.SOCCER, strings.BASKETBALL, strings.TENNIS, "TT Elite Series"].map((t, i) => (
                 <button
                   key={t}
                   onClick={() => setActiveSoccerTab(i)}
@@ -716,7 +720,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             <div className="flex items-center gap-1.5">
               <Trophy className="h-3 w-3" style={{ color: "var(--p-text)" }} />
               <span className="text-[11px] font-bold" style={{ color: "var(--p-text)" }}>
-                Soccer
+                {strings.SOCCER}
               </span>
             </div>
             <button
@@ -1027,12 +1031,12 @@ function MobilePreview({
       {renderTopBar()}
       {/* Quick tiles */}
       <div className="grid grid-cols-5 gap-1.5 px-3 mb-2 flex-shrink-0">
-        {MOBILE_TILES.map((t) => {
+        {MOBILE_TILE_ICONS.map((t) => {
           const Icon = t.icon;
           const active = activeNav === t.nav;
           return (
             <button
-              key={t.label}
+              key={t.strKey}
               onClick={() => setActiveNav(t.nav)}
               className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
               style={{
@@ -1048,7 +1052,7 @@ function MobilePreview({
                 className="text-[8px] font-medium"
                 style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
               >
-                {t.label}
+                {strings[t.strKey]}
               </span>
             </button>
           );
@@ -1238,9 +1242,9 @@ function MobilePreview({
 
           {/* Sport tabs */}
           <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {SPORT_TABS.map((s, i) => (
+            {SPORT_TABS_KEYS.map((k, i) => (
               <button
-                key={s}
+                key={k}
                 onClick={() => setActiveSport(i)}
                 className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
                 style={{
@@ -1252,7 +1256,7 @@ function MobilePreview({
                   color: activeSport === i ? "var(--p-primary)" : "var(--p-muted)",
                 }}
               >
-                {s}
+                {strings[k]}
               </button>
             ))}
           </div>
@@ -1941,12 +1945,12 @@ function SportsView({
 
       {/* Quick tile row */}
       <div className="grid grid-cols-5 gap-1.5 px-3 mb-2 flex-shrink-0">
-        {MOBILE_TILES.map((t) => {
+        {MOBILE_TILE_ICONS.map((t) => {
           const Icon = t.icon;
-          const isAllSports = t.label === "All Sports";
+          const isAllSports = t.strKey === "MOBILE_TILE_ALL_SPORTS";
           return (
             <button
-              key={t.label}
+              key={t.strKey}
               onClick={isAllSports ? onOpenAllSports : undefined}
               className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
               style={{
@@ -1955,7 +1959,7 @@ function SportsView({
               }}
             >
               <Icon className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-              <span className="text-[8px] font-medium" style={{ color: "var(--p-muted)" }}>{t.label}</span>
+              <span className="text-[8px] font-medium" style={{ color: "var(--p-muted)" }}>{strings[t.strKey]}</span>
             </button>
           );
         })}
@@ -1983,14 +1987,14 @@ function SportsView({
 
         <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>{strings.LIVE_AND_UPCOMING}</div>
         <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-          {SPORT_TABS.map((s, i) => (
-            <button key={s} onClick={() => setActiveSport(i)}
+          {SPORT_TABS_KEYS.map((k, i) => (
+            <button key={k} onClick={() => setActiveSport(i)}
               className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
               style={{
                 background: activeSport === i ? "var(--p-odds-active)" : "transparent",
                 border: activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
                 color: activeSport === i ? "var(--p-primary)" : "var(--p-muted)",
-              }}>{s}</button>
+              }}>{strings[k]}</button>
           ))}
         </div>
 
@@ -2070,8 +2074,6 @@ interface SocialPost {
   payout: string;
 }
 
-// Alias SPORTS_SIDEBAR with icon field for AllSportsView
-const ALL_SPORTS_LIST = SPORTS_SIDEBAR.map((s) => ({ ...s, icon: s.flag }));
 
 const FRIENDS_POSTS: SocialPost[] = [
   {
@@ -2101,6 +2103,7 @@ const FRIENDS_POSTS: SocialPost[] = [
 
 function AllSportsView() {
   const { strings } = useStudio();
+  const ALL_SPORTS_LIST = getSportsSidebar(strings).map((s) => ({ ...s, icon: s.flag }));
   return (
     <div className="flex-1 min-h-0 overflow-auto">
       {/* Search bar */}
@@ -2421,7 +2424,7 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
 /* ─── Main exported component ─────────────────────────────────────────── */
 
 const BettingAppPreview = () => {
-  const { themeColors, appLabels, appIcons, previewMode, headingFont } = useStudio();
+  const { themeColors, appIcons, previewMode, headingFont, strings } = useStudio();
   const isMobile = previewMode === "mobile";
 
   const previewVars = {
@@ -2468,8 +2471,8 @@ const BettingAppPreview = () => {
           }}
         >
           <MobilePreview
-            appName={appLabels.appName}
-            currencySymbol={appLabels.currencySymbol}
+            appName={strings.APP_NAME}
+            currencySymbol={strings.CURRENCY_SYMBOL}
             logoUrl={appIcons.appNameLogo}
           />
         </div>
@@ -2483,7 +2486,7 @@ const BettingAppPreview = () => {
             background: "var(--p-bg)",
           }}
         >
-          <WebPreview appName={appLabels.appName} logoUrl={appIcons.appNameLogo} />
+          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} />
         </div>
       )}
     </div>

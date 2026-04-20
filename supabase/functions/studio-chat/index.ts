@@ -34,6 +34,8 @@ const ALLOWED_PATCH_PATHS = new Set([
   "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
   // LANGUAGE
   "/language",
+  // APP IDENTITY
+  "/appName",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
@@ -100,6 +102,17 @@ ALLOWED PATCH PATHS — core set (AI should only touch brand-visible colors):
 
 LANGUAGE PATH: /language — valid values: "en" "fr" "pt" "sw" "yo" "ha" "ar"
 Use /language to switch the platform UI language when explicitly requested.
+Language keywords to detect:
+- French / français / francophone / Ivory Coast / Côte d'Ivoire / Senegal / Cameroun → "fr"
+- Portuguese / português / Angola / Mozambique / Cape Verde → "pt"
+- Swahili / kiswahili / Kenya / Tanzania / East Africa / Uganda → "sw"
+- Yoruba / yorùbá → "yo"
+- Hausa / hausawa / Northern Nigeria → "ha"
+- Arabic / عربي / Arab / MENA → "ar"
+- English / back to English → "en"
+
+APP NAME PATH: /appName — any non-empty string up to 50 characters
+Use /appName when user says "change app name to X", "rename to X", "call it X", "brand it as X".
 
 COLOR VALUES: rgba(R,G,B,1) integers 0-255 only.
 
@@ -137,6 +150,38 @@ User: generate a logo for BetKing
 User: switch to French
 <chat>Switching the platform preview to French.</chat>
 <patch>[{"op":"replace","path":"/language","value":"fr"}]</patch>
+
+User: change app name to BetKing
+<chat>App name updated to BetKing across all screens.</chat>
+<patch>[{"op":"replace","path":"/appName","value":"BetKing"}]</patch>
+
+User: make it French for Ivory Coast market
+<chat>French language applied with a West African green palette for the Ivory Coast market.</chat>
+<patch>[{"op":"replace","path":"/language","value":"fr"},{"op":"replace","path":"/primary","value":"rgba(0,163,108,1)"},{"op":"replace","path":"/primaryButton","value":"rgba(0,163,108,1)"},{"op":"replace","path":"/primaryButtonGradient","value":"rgba(0,130,85,1)"}]</patch>
+
+User: prepare for Nigerian market
+<chat>Nigerian market settings applied. Bet9ja orange theme with English interface.</chat>
+<patch>[{"op":"replace","path":"/language","value":"en"},{"op":"replace","path":"/primary","value":"rgba(255,107,0,1)"},{"op":"replace","path":"/primaryButton","value":"rgba(255,107,0,1)"},{"op":"replace","path":"/primaryButtonGradient","value":"rgba(220,80,0,1)"}]</patch>
+
+User: Ghana market setup
+<chat>Ghanaian market settings applied. SportyBet green with English interface.</chat>
+<patch>[{"op":"replace","path":"/language","value":"en"},{"op":"replace","path":"/primary","value":"rgba(0,163,108,1)"},{"op":"replace","path":"/primaryButton","value":"rgba(0,163,108,1)"}]</patch>
+
+User: East Africa / Kenya setup
+<chat>East African settings applied with Swahili interface and trusted green palette.</chat>
+<patch>[{"op":"replace","path":"/language","value":"sw"},{"op":"replace","path":"/primary","value":"rgba(0,140,90,1)"},{"op":"replace","path":"/primaryButton","value":"rgba(0,140,90,1)"}]</patch>
+
+User: switch to Swahili
+<chat>Platform language updated to Kiswahili.</chat>
+<patch>[{"op":"replace","path":"/language","value":"sw"}]</patch>
+
+User: change to Arabic
+<chat>Platform language updated to Arabic.</chat>
+<patch>[{"op":"replace","path":"/language","value":"ar"}]</patch>
+
+User: rename the app to SportZone
+<chat>App name updated to SportZone across all preview screens.</chat>
+<patch>[{"op":"replace","path":"/appName","value":"SportZone"}]</patch>
 
 User: can you change the layout
 <chat>Layout is optimized by your Trivelta team for conversion. I can adjust colors and generate brand assets.</chat>
@@ -543,6 +588,10 @@ Deno.serve(async (req) => {
                 if (typeof op.path !== "string" || !ALLOWED_PATCH_PATHS.has(op.path)) return false;
                 if (typeof op.value !== "string") return false;
                 if (op.path === "/language") return VALID_LANGUAGES.has((op.value as string).trim());
+                if (op.path === "/appName") {
+                  const v = (op.value as string).trim();
+                  return v.length > 0 && v.length <= 50;
+                }
                 return RGBA_RE.test((op.value as string).trim());
               });
               if (validOps.length > 0) send({ type: "patch", ops: validOps });
