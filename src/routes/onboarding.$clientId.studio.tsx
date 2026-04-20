@@ -1,9 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import ReactMarkdown from "react-markdown";
-import pkg, { type Operation } from "fast-json-patch";
-const { applyPatch } = pkg;
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,23 +9,28 @@ import {
   useStudio,
   defaultStudioColors,
   defaultStudioAppIcons,
+  migrateLegacyThemeColors,
   type StudioThemeColors,
   type StudioAppIcons,
   type StudioSavedConfig,
+  type BrandPromptEntry,
   type Language,
   LANGUAGE_NAMES,
 } from "@/contexts/StudioContext";
+import { type TCMPalette, DEFAULT_TCM_PALETTE } from "@/lib/tcm-palette";
 import BettingAppPreview from "@/components/studio/BettingAppPreview";
+import { AIChatPanel } from "@/components/studio/AIChatPanel";
+import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
+import { AdvancedModePanel } from "@/components/studio/AdvancedModePanel";
+import { AccordionSection } from "@/components/studio/AccordionSection";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
-  Send,
   Loader2,
   Smartphone,
   Monitor,
   Sparkles,
-  RefreshCw,
   CheckCircle2,
   Upload,
   ArrowRight,
@@ -36,14 +38,13 @@ import {
   Palette,
   ChevronDown,
   ChevronUp,
-  ChevronsUp,
-  ChevronsDown,
   Download,
-  Undo2,
   ShieldAlert,
   Mail,
   Clapperboard,
   Info,
+  Sliders,
+  Settings2,
 } from "lucide-react";
 import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
@@ -53,165 +54,9 @@ import { cn } from "@/lib/utils";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
-// Allowed JSON Patch paths — mirrors ALLOWED_PATCH_PATHS in edge function exactly
-const ALLOWED_PATCH_PATHS = new Set([
-  "/primaryBg",
-  "/primary",
-  "/secondary",
-  "/primaryButton",
-  "/primaryButtonGradient",
-  "/boxGradient1",
-  "/boxGradient2",
-  "/lightText",
-  "/placeholderText",
-  "/navbarLabel",
-  "/textSecondary",
-  "/darkTextColor",
-  "/headerGradient1",
-  "/headerGradient2",
-  "/wonGradient1",
-  "/wonGradient2",
-  "/wonColor",
-  "/lostColor",
-  "/payoutWonColor",
-  "/lossAmountText",
-  "/winStatusGradient1",
-  "/winStatusGradient2",
-  "/loseStatusGradient1",
-  "/loseStatusGradient2",
-  "/inactiveButtonBg",
-  "/inactiveButtonText",
-  "/inactiveButtonTextSecondary",
-  "/inactiveTabUnderline",
-  "/dark",
-  "/darkContainer",
-  "/betcardHeaderBg",
-  "/modalBackground",
-  "/notificationBg",
-  "/freeBetBackground",
-  "/bgColor",
-  "/flexBetHeaderBg",
-  "/flexBetFooterBg",
-  "/vsColor",
-  "/borderAndGradientBg",
-  "/activeSecondaryGradient",
-  "/language",
-  "/appName",
-]);
-
-const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
-const LANGUAGE_VALUES = new Set<string>(["en", "fr", "pt", "sw", "yo", "ha", "ar"]);
-
-// Maps ThemeColors keys to --p-* CSS custom properties on the preview element
-const THEME_TO_CSS_VAR: Partial<Record<keyof StudioThemeColors, string>> = {
-  primaryBg: "--p-bg",
-  primary: "--p-primary",
-  secondary: "--p-secondary",
-  lightText: "--p-text",
-  placeholderText: "--p-muted",
-  primaryButton: "--p-btn",
-  primaryButtonGradient: "--p-btn-grad",
-  inactiveButtonBg: "--p-inactive",
-  wonGradient1: "--p-won1",
-  wonGradient2: "--p-won2",
-  headerGradient1: "--p-header1",
-  headerGradient2: "--p-header2",
-  dark: "--p-card",
-  darkContainer: "--p-input-bg",
-  borderAndGradientBg: "--p-divider",
-  activeSecondaryGradient: "--p-odds-active",
-  wonColor: "--p-success",
-  lostColor: "--p-live",
-  boxGradient1: "--p-box-grad1",
-  boxGradient2: "--p-box-grad2",
-};
-
-const MAX_UNDO = 20;
-
 export const Route = createFileRoute("/onboarding/$clientId/studio")({
   component: StudioPage,
 });
-
-/* ── Types ──────────────────────────────────────────────────────────────── */
-
-interface ApiMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-interface DisplayMessage {
-  role: "user" | "assistant";
-  content: string;
-  imageUrl?: string;
-  imageType?: "logo" | "icon";
-  sourcePrompt?: string;
-}
-
-/* ── Image-request detection (mirrors edge function) ────────────────────── */
-
-function isImageRequest(text: string): boolean {
-  const lower = text.toLowerCase();
-  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
-  const isAsset = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bapp icon\b|\bicon\b|\bfavicon\b/.test(
-    lower,
-  );
-  return wantsCreate && isAsset;
-}
-
-/* ── Response quality sanitizer ────────────────────────────────────────── */
-
-function sanitizeChatText(raw: string): string {
-  let t = raw
-    .replace(/\*\*/g, "") // strip markdown bold
-    .replace(/\*/g, "") // strip markdown italic
-    .replace(/—/g, "-") // em dash -> hyphen
-    .replace(/!+\s*$/g, ".") // trailing exclamation mark -> period
-    .replace(/!(?=\s)/g, ".") // mid-sentence exclamation -> period
-    .trim();
-  // Hard cap at 150 chars (first 2 sentences)
-  if (t.length > 150) {
-    const sentences = t.match(/[^.?]+[.?]+/g) ?? [t];
-    t = sentences.slice(0, 2).join(" ").trim();
-    if (!t) t = raw.slice(0, 150).trim();
-  }
-  return t;
-}
-
-/* ── Patch validation ───────────────────────────────────────────────────── */
-
-function validateOps(ops: unknown): ops is Operation[] {
-  if (!Array.isArray(ops)) return false;
-  return ops.every((op) => {
-    if (!op || typeof op !== "object" || op.op !== "replace") return false;
-    if (typeof op.path !== "string" || !ALLOWED_PATCH_PATHS.has(op.path)) return false;
-    if (typeof op.value !== "string") return false;
-    if (op.path === "/language") return LANGUAGE_VALUES.has(op.value.trim());
-    if (op.path === "/appName") return op.value.trim().length > 0 && op.value.trim().length <= 50;
-    return RGBA_RE.test(op.value.trim());
-  });
-}
-
-/* ── Color utilities ────────────────────────────────────────────────────── */
-
-function rgbaToHex(rgba: string): string {
-  const m = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-  if (!m) return "#000000";
-  return "#" + [m[1], m[2], m[3]].map((n) => parseInt(n).toString(16).padStart(2, "0")).join("");
-}
-
-function extractAlpha(rgba: string): number {
-  const m = rgba.match(/rgba?\([^)]*,\s*([\d.]+)\s*\)/);
-  return m ? parseFloat(m[1]) : 1;
-}
-
-function hexToRgba(hex: string, alpha = 1): string {
-  const clean = hex.replace("#", "");
-  if (clean.length !== 6) return `rgba(0,0,0,${alpha})`;
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
 
 /* ── Lottie recolor utilities ───────────────────────────────────────────── */
 
@@ -227,19 +72,19 @@ function colorDist(a: [number, number, number], b: [number, number, number]): nu
 }
 
 /** Build the brand palette candidates we'll snap Lottie colors to. */
-function buildBrandPalette(tc: StudioThemeColors): Array<[number, number, number]> {
-  const keys: Array<keyof StudioThemeColors> = [
-    "primaryBg",
+function buildBrandPalette(pal: TCMPalette): Array<[number, number, number]> {
+  const fields: Array<keyof TCMPalette> = [
+    "primaryBackgroundColor",
     "primary",
     "secondary",
     "primaryButton",
     "primaryButtonGradient",
     "wonGradient1",
     "wonGradient2",
-    "lightText",
+    "lightTextColor",
   ];
-  return keys
-    .map((k) => parseRgbaTo01(tc[k]))
+  return fields
+    .map((k) => parseRgbaTo01(pal[k]))
     .filter((c): c is [number, number, number] => c !== null);
 }
 
@@ -305,81 +150,10 @@ function walkLottieColors(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function recolorLottieJson(json: any, themeColors: StudioThemeColors): any {
+function recolorLottieJson(json: any, palette: TCMPalette): any {
   const clone = JSON.parse(JSON.stringify(json));
-  walkLottieColors(clone, false, buildBrandPalette(themeColors));
+  walkLottieColors(clone, false, buildBrandPalette(palette));
   return clone;
-}
-
-/* ── Studio Color Field ─────────────────────────────────────────────────── */
-
-function StudioColorField({
-  label,
-  colorKey,
-  compact = false,
-  readOnly = false,
-}: {
-  label: string;
-  colorKey: keyof StudioThemeColors;
-  compact?: boolean;
-  readOnly?: boolean;
-}) {
-  const { themeColors, setThemeColors } = useStudio();
-  const rgba = themeColors[colorKey];
-  const alpha = extractAlpha(rgba);
-  const [hexInput, setHexInput] = useState(() => rgbaToHex(rgba));
-
-  useEffect(() => {
-    setHexInput(rgbaToHex(rgba));
-  }, [rgba]);
-
-  const applyHex = (v: string) => {
-    if (readOnly) return;
-    if (/^#[0-9a-fA-F]{6}$/.test(v))
-      setThemeColors((prev) => ({ ...prev, [colorKey]: hexToRgba(v, alpha) }));
-  };
-
-  return (
-    <div className={cn("flex items-center gap-2", readOnly && "pointer-events-none opacity-50")}>
-      <label className={cn("relative shrink-0", readOnly ? "cursor-default" : "cursor-pointer")}>
-        <div
-          className={cn(
-            "rounded-md border border-border/60 shadow-sm",
-            compact ? "h-7 w-7" : "h-8 w-8",
-          )}
-          style={{ background: rgba }}
-        />
-        <input
-          type="color"
-          value={rgbaToHex(rgba)}
-          disabled={readOnly}
-          onChange={(e) => {
-            setHexInput(e.target.value);
-            setThemeColors((prev) => ({ ...prev, [colorKey]: hexToRgba(e.target.value, alpha) }));
-          }}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-default"
-        />
-      </label>
-      <div className="min-w-0 flex-1">
-        {!compact && (
-          <div className="mb-0.5 text-[10px] leading-none text-muted-foreground">{label}</div>
-        )}
-        <Input
-          value={hexInput}
-          readOnly={readOnly}
-          onChange={(e) => {
-            setHexInput(e.target.value);
-            applyHex(e.target.value);
-          }}
-          onBlur={() => setHexInput(rgbaToHex(rgba))}
-          className={cn("font-mono", compact ? "h-7 text-[10px]" : "h-7 text-[11px]")}
-          placeholder="#000000"
-          maxLength={7}
-          title={label}
-        />
-      </div>
-    </div>
-  );
 }
 
 /* ── Asset upload zone ──────────────────────────────────────────────────── */
@@ -515,96 +289,7 @@ function AssetUploadZone({
   );
 }
 
-/* ── Image message ───────────────────────────────────────────────────────── */
-
-function ImageMessage({
-  msg,
-  onUse,
-  onRegenerate,
-}: {
-  msg: DisplayMessage;
-  onUse: (url: string, type: "logo" | "icon") => void;
-  onRegenerate: (prompt: string) => void;
-}) {
-  const [usedAs, setUsedAs] = useState<"logo" | "icon" | null>(null);
-  return (
-    <div className="space-y-2">
-      {msg.content && (
-        <div className="text-[12px] leading-relaxed prose-chat">
-          <ReactMarkdown>{msg.content}</ReactMarkdown>
-        </div>
-      )}
-      {/* Full-width image */}
-      <div className="w-full overflow-hidden rounded-lg border border-white/10">
-        <img
-          src={msg.imageUrl}
-          alt={`Generated ${msg.imageType}`}
-          className="w-full object-cover"
-        />
-      </div>
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-1.5 pt-0.5">
-        <button
-          onClick={() => {
-            onUse(msg.imageUrl!, "logo");
-            setUsedAs("logo");
-          }}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all"
-          style={{
-            background: usedAs === "logo" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.1)",
-            color: usedAs === "logo" ? "#4ade80" : "white",
-            border: `1px solid ${usedAs === "logo" ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.15)"}`,
-          }}
-        >
-          <CheckCircle2 className="h-3 w-3" />
-          {usedAs === "logo" ? "Applied as Logo" : "Use as Logo"}
-        </button>
-        <button
-          onClick={() => {
-            onUse(msg.imageUrl!, "icon");
-            setUsedAs("icon");
-          }}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all"
-          style={{
-            background: usedAs === "icon" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.08)",
-            color: usedAs === "icon" ? "#4ade80" : "rgba(255,255,255,0.7)",
-            border: `1px solid ${usedAs === "icon" ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.1)"}`,
-          }}
-        >
-          <CheckCircle2 className="h-3 w-3" />
-          {usedAs === "icon" ? "Applied as Icon" : "Use as Icon"}
-        </button>
-        {msg.sourcePrompt && (
-          <button
-            onClick={() => onRegenerate(msg.sourcePrompt!)}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              color: "rgba(255,255,255,0.45)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            <RefreshCw className="h-3 w-3" /> Try again
-          </button>
-        )}
-        <a
-          href={msg.imageUrl}
-          download="trivelta-logo.png"
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            color: "rgba(255,255,255,0.45)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <Download className="h-3 w-3" /> Download PNG
-        </a>
-      </div>
-    </div>
-  );
-}
-
-/* ── Lock confirmation modal ─────────────────────────────────────────────── */
+/* ── Save & Lock modals ──────────────────────────────────────────────────── */
 
 function SaveConfirmModal({
   onConfirm,
@@ -714,8 +399,9 @@ export function StudioInner({
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
   const {
-    themeColors,
-    setThemeColors,
+    palette,
+    manualOverrides,
+    brandPromptHistory,
     appIcons,
     setAppIcons,
     previewMode,
@@ -724,6 +410,7 @@ export function StudioInner({
     setLanguage,
     appName,
     setAppName,
+    canLock,
   } = useStudio();
 
   /* ── State ── */
@@ -732,47 +419,10 @@ export function StudioInner({
   const [lockModalOpen, setLockModalOpen] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [locking, setLocking] = useState(false);
+  type ActivePanel = "chat" | "quickEdit" | "advanced" | "animations";
+  const [activePanel, setActivePanel] = useState<ActivePanel>("chat");
   const [controlsOpen, setControlsOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(() => {
-    try {
-      return localStorage.getItem("studio-chat-open") !== "false";
-    } catch {
-      return true;
-    }
-  });
   const [saving, setSaving] = useState(false);
-
-  // Persist chat panel open/close state
-  useEffect(() => {
-    try {
-      localStorage.setItem("studio-chat-open", String(chatOpen));
-    } catch {
-      /* ignore */
-    }
-  }, [chatOpen]);
-
-  const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
-    {
-      role: "assistant",
-      content:
-        "Hi! I'm your platform design assistant. Describe the look and feel you want, or ask me to generate a logo.",
-    },
-  ]);
-  const [apiHistory, setApiHistory] = useState<ApiMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [thinking, setThinking] = useState(false);
-  const thinkingRef = useRef(false);
-  useEffect(() => {
-    thinkingRef.current = thinking;
-  }, [thinking]);
-  const [pendingIsImage, setPendingIsImage] = useState(false);
-  const [patchPending, setPatchPending] = useState(false);
-  // Undo history: stack of previous themeColors snapshots + description
-  const [undoStack, setUndoStack] = useState<Array<{ colors: StudioThemeColors; label: string }>>(
-    [],
-  );
-  const [animationsOpen, setAnimationsOpen] = useState(false);
-  const [animationsPulse, setAnimationsPulse] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [lottieData, setLottieData] = useState<Record<string, any | null>>({
     loading: null,
@@ -810,7 +460,7 @@ export function StudioInner({
         const text = await file.text();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const raw = JSON.parse(text) as any;
-        const recolored = recolorLottieJson(raw, themeColors);
+        const recolored = recolorLottieJson(raw, palette);
 
         setUploadedAnimations((prev) => ({
           ...prev,
@@ -839,11 +489,9 @@ export function StudioInner({
         setUploadedAnimations((prev) => ({ ...prev, [slotKey]: null }));
       }
     },
-    [clientId, themeColors],
+    [clientId, palette],
   );
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the preview container div for instant CSS var updates before React re-render
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -869,41 +517,51 @@ export function StudioInner({
 
   // Keep chat open while tour is running so step 2 spotlight has content to highlight
   useEffect(() => {
-    if (tourActive) setChatOpen(true);
+    if (tourActive) setActivePanel("chat");
   }, [tourActive]);
-
-  // Tracks the last color field(s) changed so the AI can suggest follow-ups
-  const lastPatchLabel = useRef<string | null>(null);
-
-  // Stable Supabase Storage URL of the most recently generated or applied logo.
-  // Populated when an image event arrives (before user clicks "Use as Logo").
-  // Passed to the edge function as logoUrl so Claude Vision always gets a non-expiring URL.
-  const stableLogoUrl = useRef<string | null>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages, thinking]);
 
   /* ── Save helpers ── */
   const saveNow = useCallback(async () => {
-    const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons, language, appName };
+    const payload: StudioSavedConfig = {
+      palette,
+      manualOverrides: Array.from(manualOverrides),
+      brandPromptHistory,
+      icons: appIcons,
+      language,
+      appName,
+    };
     await supabase
       .from("onboarding_forms")
       .upsert(
         { client_id: clientId, studio_config: payload as never },
         { onConflict: "client_id" },
       );
-  }, [clientId, themeColors, appIcons, language, appName]);
+  }, [clientId, palette, manualOverrides, brandPromptHistory, appIcons, language, appName]);
 
   const scheduleAutoSave = useCallback(
-    (colors: StudioThemeColors, icons: StudioAppIcons) => {
+    (
+      pal: TCMPalette,
+      overrides: Set<keyof TCMPalette>,
+      history: BrandPromptEntry[],
+      icons: StudioAppIcons,
+    ) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(async () => {
         await supabase
           .from("onboarding_forms")
           .upsert(
-            { client_id: clientId, studio_config: { colors, icons, language, appName } as never },
+            {
+              client_id: clientId,
+              studio_config: {
+                palette: pal,
+                manualOverrides: Array.from(overrides),
+                brandPromptHistory: history,
+                icons,
+                language,
+                appName,
+              } as never,
+            },
             { onConflict: "client_id" },
           );
       }, 2000);
@@ -912,11 +570,11 @@ export function StudioInner({
   );
 
   useEffect(() => {
-    scheduleAutoSave(themeColors, appIcons);
+    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons);
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [themeColors, appIcons, scheduleAutoSave]);
+  }, [palette, manualOverrides, brandPromptHistory, appIcons, scheduleAutoSave]);
 
   /* ── Save & Continue ── */
   const handleSaveAndContinue = () => {
@@ -961,7 +619,14 @@ export function StudioInner({
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: { colors: themeColors, icons: appIcons, language, appName } as never,
+          studio_config: {
+            palette,
+            manualOverrides: Array.from(manualOverrides),
+            brandPromptHistory,
+            icons: appIcons,
+            language,
+            appName,
+          } as never,
           studio_locked: true,
           studio_locked_at: now,
           notion_sync_pending: false,
@@ -996,7 +661,14 @@ export function StudioInner({
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: { colors: themeColors, icons: appIcons, language, appName } as never,
+          studio_config: {
+            palette,
+            manualOverrides: Array.from(manualOverrides),
+            brandPromptHistory,
+            icons: appIcons,
+            language,
+            appName,
+          } as never,
           studio_locked: true,
           studio_locked_at: now,
           notion_sync_pending: false,
@@ -1025,415 +697,6 @@ export function StudioInner({
     }
   };
 
-  /* ── Use AI-generated image ── */
-  const handleUseImage = useCallback(
-    (url: string, type: "logo" | "icon") => {
-      if (type === "logo") {
-        setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url, appNameLogo: url }));
-      } else {
-        setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
-      }
-      setTimeout(() => chatInputRef.current?.focus(), 0);
-    },
-    [setAppIcons],
-  );
-
-  /* ── Apply color patch (JSON Patch ops) ── */
-  const applyColorPatch = useCallback(
-    (ops: Operation[], label: string) => {
-      setThemeColors((prev) => {
-        // Push current snapshot to undo stack (capped at MAX_UNDO)
-        setUndoStack((stack) => [{ colors: prev, label }, ...stack.slice(0, MAX_UNDO - 1)]);
-
-        // Tier-1: write CSS vars directly to preview container before React re-renders
-        const previewEl = previewContainerRef.current;
-        if (previewEl) {
-          for (const op of ops) {
-            if (op.op === "replace") {
-              const key = op.path.slice(1) as keyof StudioThemeColors;
-              const cssVar = THEME_TO_CSS_VAR[key];
-              if (cssVar) previewEl.style.setProperty(cssVar, op.value as string);
-            }
-          }
-        }
-
-        // Apply patch atomically to a clone of themeColors
-        try {
-          const result = applyPatch({ ...prev }, ops as Operation[], false, false);
-          return result.newDocument as StudioThemeColors;
-        } catch {
-          return prev; // if patch fails, leave colors unchanged
-        }
-      });
-    },
-    [setThemeColors],
-  );
-
-  /* ── Undo last color patch ── */
-  const handleUndo = useCallback(() => {
-    setUndoStack((stack) => {
-      if (stack.length === 0) return stack;
-      const [top, ...rest] = stack;
-      setThemeColors(top.colors);
-      // Also revert CSS vars on the preview container
-      const previewEl = previewContainerRef.current;
-      if (previewEl) {
-        for (const [key, cssVar] of Object.entries(THEME_TO_CSS_VAR)) {
-          const val = top.colors[key as keyof StudioThemeColors];
-          if (val) previewEl.style.setProperty(cssVar, val as string);
-        }
-      }
-      toast.info(`Reverted: ${top.label}`, { duration: 2000 });
-      return rest;
-    });
-  }, [setThemeColors]);
-
-  // Ctrl+Z keyboard shortcut
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [handleUndo]);
-
-  /* ── AI send (streaming SSE) ── */
-  const sendMessage = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || thinkingRef.current) return;
-
-      // Auto-expand Animations panel and pulse it when message is animation-related
-      const lower = trimmed.toLowerCase();
-      const isAnimationMsg =
-        /\b(animation|animations|splash|loading\s+screen|lottie|live\s+icon|loading\s+anim)\b/.test(
-          lower,
-        );
-      if (isAnimationMsg) {
-        setAnimationsOpen(true);
-        setAnimationsPulse(true);
-        setTimeout(() => setAnimationsPulse(false), 1600);
-      }
-
-      const isImg = isImageRequest(trimmed);
-      setDisplayMessages((prev) => [...prev, { role: "user", content: trimmed }]);
-      const nextHistory = [...apiHistory, { role: "user" as const, content: trimmed }];
-      setApiHistory(nextHistory);
-      setInput("");
-      setThinking(true);
-      setPendingIsImage(isImg);
-      setPatchPending(false);
-
-      // Add a blank assistant message that we'll stream tokens into
-      const assistantMsgIndex = nextHistory.length; // position in displayMessages after user msg
-      setDisplayMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-      // Snapshot + clear the recent-change hint so it's only sent once
-      lastPatchLabel.current = null;
-
-      let fullChatText = "";
-      let appliedPatch = false;
-      let imageReceived = false;
-
-      try {
-        // Get auth token for direct fetch (supabase.functions.invoke doesn't support SSE)
-        const { data: sessionData } = await supabase.auth.getSession();
-        const authToken = sessionData.session?.access_token ?? SUPABASE_ANON_KEY;
-
-        const resp = await fetch(`${SUPABASE_URL}/functions/v1/studio-chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-            apikey: SUPABASE_ANON_KEY,
-          },
-          body: JSON.stringify({
-            message: trimmed,
-            history: apiHistory,
-            logoUrl:
-              stableLogoUrl.current || appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
-            context: {
-              clientName: welcomeInfo?.clientName ?? "Client",
-              appName,
-              language,
-              currentColors: themeColors,
-              hasLogo: !!(appIcons.appNameLogo || stableLogoUrl.current),
-              hasIcon: !!appIcons.topLeftAppIcon,
-              isLocked: locked,
-              platform: "sportsbook",
-              recentChange: lastPatchLabel.current,
-              clientId,
-            },
-          }),
-        });
-
-        if (!resp.ok || !resp.body) {
-          throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
-        }
-
-        const reader = resp.body.getReader();
-        const dec = new TextDecoder();
-        let sseBuffer = "";
-
-        const updateLastMsg = (updater: (msg: DisplayMessage) => DisplayMessage) => {
-          setDisplayMessages((prev) => {
-            const msgs = [...prev];
-            const lastIdx = msgs.length - 1;
-            if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
-              msgs[lastIdx] = updater(msgs[lastIdx]);
-            }
-            return msgs;
-          });
-        };
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          sseBuffer += dec.decode(value, { stream: true });
-          const lines = sseBuffer.split("\n");
-          sseBuffer = lines.pop()!; // keep partial last line
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            let event: Record<string, unknown>;
-            try {
-              event = JSON.parse(line.slice(6));
-            } catch {
-              continue;
-            }
-
-            if (event.type === "token") {
-              // Stream <chat> text into the assistant message
-              const tok = event.text as string;
-              fullChatText += tok;
-              updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
-            } else if (event.type === "thinking") {
-              // Server confirmed receipt; typing indicator is already shown via empty content
-              // Nothing extra needed — this event exists to make round-trip latency visible
-            } else if (event.type === "patch") {
-              // Validate and apply patch atomically
-              const ops = event.ops as unknown;
-              if (validateOps(ops)) {
-                setPatchPending(true);
-                const langOps = ops.filter((o) => o.path === "/language");
-                const appNameOps = ops.filter((o) => o.path === "/appName");
-                const colorOps = ops.filter((o) => o.path !== "/language" && o.path !== "/appName");
-
-                if (langOps.length > 0) {
-                  const lastLangOp = langOps[langOps.length - 1];
-                  if ("value" in lastLangOp) {
-                    const newLang = lastLangOp.value as Language;
-                    setLanguage(newLang);
-                    toast.success(`Language: ${LANGUAGE_NAMES[newLang]}`, { duration: 1500 });
-                  }
-                }
-
-                if (appNameOps.length > 0) {
-                  const lastNameOp = appNameOps[appNameOps.length - 1];
-                  if ("value" in lastNameOp) {
-                    const newName = String(lastNameOp.value).trim();
-                    setAppName(newName);
-                    toast.success(`App name: ${newName}`, { duration: 1500 });
-                  }
-                }
-
-                if (colorOps.length > 0) {
-                  const label = colorOps.map((o) => o.path.slice(1)).join(", ") + " change";
-                  applyColorPatch(colorOps as Operation[], label);
-                  lastPatchLabel.current = label;
-                  appliedPatch = true;
-                  toast.success("Colors updated", { duration: 1500 });
-                }
-              } else {
-                console.warn("[studio] Invalid patch ops - skipped:", ops);
-              }
-              setPatchPending(false);
-            } else if (event.type === "generating") {
-              // DALL-E has started - show progress bar in the message
-              // The pendingIsImage indicator at the bottom handles this visually already,
-              // but we also flag it on the message itself so the progress bar shows inline
-              setPendingIsImage(true);
-            } else if (event.type === "image") {
-              const imageUrl = event.imageUrl as string | null;
-              const imageType = (event.imageType ?? "logo") as "logo" | "icon";
-              const imageError = event.imageError as string | null;
-              imageReceived = true;
-              if (imageUrl) {
-                stableLogoUrl.current = imageUrl;
-                updateLastMsg((msg) => ({ ...msg, imageUrl, imageType, sourcePrompt: trimmed }));
-              } else if (imageError) {
-                updateLastMsg((msg) => ({
-                  ...msg,
-                  content:
-                    (msg.content || sanitizeChatText(fullChatText)) +
-                    "\n\nImage generation failed - please try again.",
-                }));
-              }
-            } else if (event.type === "error") {
-              const errStr = String(event.message ?? "");
-              const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
-              updateLastMsg((msg) => ({
-                ...msg,
-                content: isKeyErr
-                  ? "API key not configured - contact your administrator."
-                  : "Something went wrong. Please try again.",
-              }));
-            } else if (event.type === "done") {
-              // Finalize: ensure chat text is sanitized
-              updateLastMsg((msg) => ({
-                ...msg,
-                content: sanitizeChatText(fullChatText) || msg.content,
-              }));
-              // Record final chat text in API history
-              setApiHistory((prev) => [
-                ...prev,
-                { role: "assistant", content: sanitizeChatText(fullChatText) },
-              ]);
-            }
-          }
-        }
-
-        // Fallback: if stream ended without a "done" event
-        if (fullChatText) {
-          updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
-          setApiHistory((prev) => {
-            // Only append if not already added
-            const last = prev[prev.length - 1];
-            if (last?.role !== "assistant") {
-              return [...prev, { role: "assistant", content: sanitizeChatText(fullChatText) }];
-            }
-            return prev;
-          });
-        }
-      } catch (err) {
-        const errStr = String(err);
-        const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
-        setDisplayMessages((prev) => {
-          const msgs = [...prev];
-          const lastIdx = msgs.length - 1;
-          if (lastIdx >= 0 && msgs[lastIdx].role === "assistant" && !msgs[lastIdx].content) {
-            msgs[lastIdx] = {
-              role: "assistant",
-              content: isKeyErr
-                ? "API key not configured - contact your administrator."
-                : "Something went wrong. Please try again.",
-            };
-          }
-          return msgs;
-        });
-      } finally {
-        setThinking(false);
-        setPendingIsImage(false);
-        setPatchPending(false);
-        setTimeout(() => chatInputRef.current?.focus(), 0);
-      }
-    },
-    [apiHistory, clientId, applyColorPatch],
-  );
-
-  /* ── Fine-tune accordion groups ── */
-  type ColorGroup = {
-    id: string;
-    label: string;
-    fields: { label: string; key: keyof StudioThemeColors }[];
-    gradients?: {
-      label: string;
-      startKey: keyof StudioThemeColors;
-      endKey: keyof StudioThemeColors;
-    }[];
-  };
-
-  const COLOR_GROUPS: ColorGroup[] = [
-    {
-      id: "brand",
-      label: "Brand Colors",
-      fields: [
-        { label: "Background", key: "primaryBg" },
-        { label: "Primary", key: "primary" },
-        { label: "Secondary", key: "secondary" },
-      ],
-    },
-    {
-      id: "text",
-      label: "Text",
-      fields: [
-        { label: "Light Text", key: "lightText" },
-        { label: "Placeholder", key: "placeholderText" },
-        { label: "Navbar Label", key: "navbarLabel" },
-        { label: "Text Secondary", key: "textSecondary" },
-        { label: "Dark Text", key: "darkTextColor" },
-      ],
-    },
-    {
-      id: "buttons",
-      label: "Buttons & Gradients",
-      fields: [
-        { label: "Inactive Button BG", key: "inactiveButtonBg" },
-        { label: "Inactive Button Text", key: "inactiveButtonText" },
-        { label: "Inactive Button Text 2", key: "inactiveButtonTextSecondary" },
-        { label: "Inactive Tab Underline", key: "inactiveTabUnderline" },
-        { label: "Active Secondary", key: "activeSecondaryGradient" },
-      ],
-      gradients: [
-        { label: "Button", startKey: "primaryButton", endKey: "primaryButtonGradient" },
-        { label: "Box", startKey: "boxGradient1", endKey: "boxGradient2" },
-      ],
-    },
-    {
-      id: "header",
-      label: "Header & Nav",
-      fields: [],
-      gradients: [{ label: "Header", startKey: "headerGradient1", endKey: "headerGradient2" }],
-    },
-    {
-      id: "winloss",
-      label: "Win / Loss States",
-      fields: [
-        { label: "Won Color", key: "wonColor" },
-        { label: "Lost Color", key: "lostColor" },
-        { label: "Payout Won", key: "payoutWonColor" },
-        { label: "Loss Amount Text", key: "lossAmountText" },
-      ],
-      gradients: [
-        { label: "Win Status", startKey: "winStatusGradient1", endKey: "winStatusGradient2" },
-        { label: "Won BG", startKey: "wonGradient1", endKey: "wonGradient2" },
-        { label: "Lose Status", startKey: "loseStatusGradient1", endKey: "loseStatusGradient2" },
-      ],
-    },
-    {
-      id: "backgrounds",
-      label: "Backgrounds",
-      fields: [
-        { label: "Card Dark", key: "dark" },
-        { label: "Container", key: "darkContainer" },
-        { label: "Betcard Header", key: "betcardHeaderBg" },
-        { label: "Modal BG", key: "modalBackground" },
-        { label: "Notification BG", key: "notificationBg" },
-        { label: "Free Bet BG", key: "freeBetBackground" },
-        { label: "BG Color", key: "bgColor" },
-        { label: "Flex Bet Header", key: "flexBetHeaderBg" },
-        { label: "Flex Bet Footer", key: "flexBetFooterBg" },
-      ],
-    },
-    {
-      id: "misc",
-      label: "Borders & Misc",
-      fields: [
-        { label: "VS Color", key: "vsColor" },
-        { label: "Border / Divider", key: "borderAndGradientBg" },
-      ],
-    },
-  ];
-
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ brand: true });
-  const toggleGroup = (id: string) => setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const canLock = !!appIcons.appNameLogo;
-  const bothCollapsed = !chatOpen && !controlsOpen;
   const lockedDate = lockedAt
     ? new Date(lockedAt).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -1497,187 +760,20 @@ export function StudioInner({
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         {/* ══ LEFT PANEL ═══════════════════════════════════════════════ */}
-        <div
-          className={cn(
-            "flex flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200",
-            bothCollapsed
-              ? "w-[210px] min-w-[210px] max-w-[210px]"
-              : "w-[35%] min-w-[300px] max-w-[440px]",
-          )}
-        >
-          {/* Always-visible identity strip + collapse-all button */}
-          <div className="shrink-0 flex items-center justify-between border-b border-border px-3 py-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/15">
-                <Sparkles className="h-3 w-3 text-primary" />
-              </div>
-              <span className="truncate text-[11px] font-bold text-foreground">
-                {welcomeInfo?.clientName ?? "Studio"}
-              </span>
+        <div className="flex flex-col overflow-hidden border-r border-border bg-card w-[35%] min-w-[300px] max-w-[440px]">
+
+          {/* Always-visible identity strip */}
+          <div className="shrink-0 flex items-center gap-2 border-b border-border px-3 py-2">
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/15">
+              <Sparkles className="h-3 w-3 text-primary" />
             </div>
-            <button
-              onClick={() => {
-                if (bothCollapsed) {
-                  setChatOpen(true);
-                } else {
-                  setChatOpen(false);
-                  setControlsOpen(false);
-                }
-              }}
-              className="ml-2 flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              title={bothCollapsed ? "Expand panels" : "Collapse all"}
-            >
-              {bothCollapsed ? (
-                <>
-                  <ChevronsDown className="h-3 w-3" /> Expand
-                </>
-              ) : (
-                <>
-                  <ChevronsUp className="h-3 w-3" /> Collapse
-                </>
-              )}
-            </button>
+            <span className="truncate text-[11px] font-bold text-foreground">
+              {welcomeInfo?.clientName ?? "Studio"}
+            </span>
           </div>
 
-          {/* ── AI Assistant section (chat toggle + expanded content) ─────── */}
-          {/* tourChatRef wraps both the toggle and the expanded chat body */}
-          <div ref={tourChatRef}>
-            <button
-              type="button"
-              onClick={() => setChatOpen((v) => !v)}
-              className="shrink-0 flex w-full items-center justify-between border-b border-border px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                <span className="text-[11px] font-semibold text-foreground">AI Assistant</span>
-                {!chatOpen && locked && <CheckCircle2 className="h-3 w-3 text-success" />}
-              </div>
-              {chatOpen ? (
-                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </button>
-
-            {/* ── AI chat expanded content ─────────────────────────────────── */}
-            {chatOpen && (
-              <>
-                {/* Locked status bar (only shown when design is locked) */}
-                {locked && (
-                  <div className="shrink-0 flex items-center gap-1.5 border-b border-border px-4 py-2 text-[11px] font-semibold text-success">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
-                  </div>
-                )}
-
-                {/* Chat messages */}
-                <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3">
-                  {displayMessages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}
-                    >
-                      <div
-                        className={cn(
-                          "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-tr-sm"
-                            : "bg-secondary text-secondary-foreground rounded-tl-sm",
-                        )}
-                      >
-                        {msg.role === "assistant" && msg.imageUrl ? (
-                          <ImageMessage
-                            msg={msg}
-                            onUse={handleUseImage}
-                            onRegenerate={sendMessage}
-                          />
-                        ) : msg.role === "assistant" &&
-                          !msg.content &&
-                          thinking &&
-                          i === displayMessages.length - 1 ? (
-                          // Typing indicator: three bouncing dots while waiting for first token
-                          <div className="flex items-center gap-1 px-0.5 py-1">
-                            {[0, 1, 2].map((d) => (
-                              <span
-                                key={d}
-                                className="block h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
-                                style={{
-                                  animation: `typing-dot 1.2s ease-in-out infinite ${d * 0.18}s`,
-                                }}
-                              />
-                            ))}
-                          </div>
-                        ) : msg.role === "assistant" ? (
-                          <div className="text-[12px] leading-relaxed prose-chat">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          </div>
-                        ) : (
-                          <span className="whitespace-pre-wrap text-[12px]">{msg.content}</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Image generation progress indicator (shown while DALL-E is running) */}
-                  {thinking && pendingIsImage && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-                        <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                          <span>Generating your logo - this takes 10-15 seconds</span>
-                        </div>
-                        <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
-                          <div className="progress-shimmer h-full rounded-full" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Chat input + undo */}
-                <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
-                  {undoStack.length > 0 && (
-                    <button
-                      onClick={handleUndo}
-                      title="Undo last color change (Ctrl+Z)"
-                      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                    >
-                      <Undo2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                  <input
-                    ref={chatInputRef}
-                    className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                    placeholder="Describe your brand colors... or ask for a logo"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage(input);
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => sendMessage(input)}
-                    disabled={!input.trim() || thinking}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
-                  >
-                    {thinking && !pendingIsImage ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Send className="h-3.5 w-3.5" />
-                    )}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-          {/* end tourChatRef wrapper */}
-
-          {/* ── Fine-tune manually (collapsible) ────────────────────────── */}
-          <div ref={tourFineTuneRef} className="shrink-0 border-t border-border">
+          {/* ── Brand Assets (compact, collapsible) ─────────────────── */}
+          <div className="shrink-0 border-b border-border">
             <button
               type="button"
               onClick={() => setControlsOpen((v) => !v)}
@@ -1685,9 +781,7 @@ export function StudioInner({
             >
               <div className="flex items-center gap-2">
                 <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-semibold text-foreground">
-                  Fine-tune manually
-                </span>
+                <span className="text-[11px] font-semibold text-foreground">Brand Assets</span>
               </div>
               {controlsOpen ? (
                 <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1697,8 +791,7 @@ export function StudioInner({
             </button>
 
             {controlsOpen && (
-              <div className="max-h-[380px] overflow-y-auto border-t border-border">
-                {/* Language */}
+              <div className="border-t border-border">
                 <div className="px-4 py-3 border-b border-border">
                   <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                     Language
@@ -1716,7 +809,6 @@ export function StudioInner({
                     ))}
                   </select>
                 </div>
-                {/* App Name */}
                 <div className="px-4 py-3 border-b border-border">
                   <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                     App Name
@@ -1730,10 +822,9 @@ export function StudioInner({
                     maxLength={50}
                   />
                 </div>
-                {/* Brand Assets */}
-                <div className="px-4 py-3 border-b border-border">
+                <div className="px-4 py-3">
                   <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-                    Brand Assets
+                    Logo &amp; Icon
                   </div>
                   <div className="space-y-2">
                     <AssetUploadZone
@@ -1752,96 +843,63 @@ export function StudioInner({
                     />
                   </div>
                 </div>
-
-                {/* Color accordion groups */}
-                {COLOR_GROUPS.map((group) => (
-                  <div key={group.id} className="border-b border-border last:border-0">
-                    <button
-                      type="button"
-                      onClick={() => toggleGroup(group.id)}
-                      className="flex w-full items-center justify-between px-4 py-2 text-left hover:bg-secondary/30 transition-colors"
-                    >
-                      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-                        {group.label}
-                      </span>
-                      {openGroups[group.id] ? (
-                        <ChevronUp className="h-3 w-3 text-muted-foreground/50" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3 text-muted-foreground/50" />
-                      )}
-                    </button>
-
-                    {openGroups[group.id] && (
-                      <div className="px-4 pb-3 space-y-2">
-                        {group.fields.map(({ label, key }) => (
-                          <StudioColorField
-                            key={key}
-                            label={label}
-                            colorKey={key}
-                            readOnly={locked}
-                          />
-                        ))}
-                        {group.gradients?.map(({ label, startKey, endKey }) => (
-                          <div key={label} className="pt-1">
-                            <div className="mb-1.5 flex items-center gap-2">
-                              <span className="text-[10px] text-muted-foreground">{label}</span>
-                              <div
-                                className="h-1.5 flex-1 rounded-full border border-border/40"
-                                style={{
-                                  background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})`,
-                                }}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <StudioColorField
-                                label={`${label} start`}
-                                colorKey={startKey}
-                                compact
-                                readOnly={locked}
-                              />
-                              <StudioColorField
-                                label={`${label} end`}
-                                colorKey={endKey}
-                                compact
-                                readOnly={locked}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
               </div>
             )}
           </div>
 
-          {/* ── Animations (collapsible) ────────────────────────────────── */}
-          <div
-            className={cn(
-              "shrink-0 border-t border-border transition-all",
-              animationsPulse && "animate-pulse-highlight",
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => setAnimationsOpen((v) => !v)}
-              className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
-            >
-              <div className="flex items-center gap-2">
-                <Clapperboard className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-semibold text-foreground">Animations</span>
-              </div>
-              {animationsOpen ? (
-                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </button>
+          {/* ── Exclusive accordion (fills remaining height) ─────────── */}
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
 
-            {animationsOpen && (
-              <div className="border-t border-border px-4 py-3 space-y-4">
-                {/* Info message */}
+            {/* Panel 1 — AI Palette Generator */}
+            <AccordionSection
+              sectionRef={tourChatRef}
+              title="AI Palette Generator"
+              icon={<Sparkles className="h-3.5 w-3.5" />}
+              active={activePanel === "chat"}
+              onClick={() => setActivePanel("chat")}
+              badge={locked ? "Locked" : undefined}
+            >
+              {locked && (
+                <div className="flex items-center gap-1.5 border-b border-border px-4 py-2 text-[11px] font-semibold text-success">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
+                </div>
+              )}
+              <AIChatPanel />
+            </AccordionSection>
+
+            {/* Panel 2 — Quick Edit */}
+            <AccordionSection
+              sectionRef={tourFineTuneRef}
+              title="Quick Edit"
+              icon={<Sliders className="h-3.5 w-3.5" />}
+              subtitle="25 key fields"
+              active={activePanel === "quickEdit"}
+              onClick={() => setActivePanel("quickEdit")}
+              badge={manualOverrides.size > 0 ? `${manualOverrides.size} edited` : undefined}
+            >
+              <QuickEditPanel />
+            </AccordionSection>
+
+            {/* Panel 3 — Advanced Mode */}
+            <AccordionSection
+              title="Advanced Mode"
+              icon={<Settings2 className="h-3.5 w-3.5" />}
+              subtitle="All 344 fields"
+              active={activePanel === "advanced"}
+              onClick={() => setActivePanel("advanced")}
+            >
+              <AdvancedModePanel />
+            </AccordionSection>
+
+            {/* Panel 4 — Animations */}
+            <AccordionSection
+              title="Animations"
+              icon={<Clapperboard className="h-3.5 w-3.5" />}
+              active={activePanel === "animations"}
+              onClick={() => setActivePanel("animations")}
+            >
+              <div className="px-4 py-3 space-y-4">
                 <div className="flex gap-2.5 rounded-lg border border-primary/20 bg-primary/8 p-3">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                   <p className="text-[11px] leading-relaxed text-muted-foreground">
@@ -1851,7 +909,6 @@ export function StudioInner({
                   </p>
                 </div>
 
-                {/* Animation slots */}
                 {[
                   { key: "loading", label: "Loading Animation" },
                   { key: "splash", label: "Splash Screen" },
@@ -1867,7 +924,6 @@ export function StudioInner({
                         <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                           {label}
                         </span>
-                        {/* Upload button */}
                         {!locked && (
                           <label className="flex cursor-pointer items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-0.5 text-[9px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary">
                             {isUploading ? (
@@ -1918,10 +974,12 @@ export function StudioInner({
                   );
                 })}
               </div>
-            )}
-          </div>
+            </AccordionSection>
 
-          {/* ── Lock Design (always visible) ───────────────────────────── */}
+          </div>
+          {/* end exclusive accordion */}
+
+          {/* ── Lock Design (always visible at bottom) ─────────────────── */}
           <div ref={tourLockRef} className="shrink-0 border-t border-border p-3">
             {locked ? (
               <div className="flex items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/10 py-3 text-[13px] font-bold text-success">
@@ -1976,13 +1034,10 @@ export function StudioInner({
             </button>
           </div>
 
-          {/* Preview - ref used for instant CSS var updates before React re-render */}
+          {/* Preview */}
           <div
             ref={previewContainerRef}
-            className={cn(
-              "flex-1 overflow-auto transition-all duration-300",
-              patchPending && "ring-2 ring-primary/40 ring-inset",
-            )}
+            className="flex-1 overflow-auto transition-all duration-300"
           >
             <BettingAppPreview />
           </div>
@@ -2047,14 +1102,14 @@ const TOUR_STEPS = [
   },
   {
     refKey: "chat",
-    title: "Your AI Design Assistant",
-    text: "Describe what you want in plain language. Try: 'I want a dark green theme' or 'Generate a logo for BetKing'. The AI will apply changes instantly.",
+    title: "Your AI Palette Generator",
+    text: "Describe what you want in plain language. Try: 'I want a dark green theme for a Nigerian sportsbook'. The AI will generate your full 344-field color palette instantly.",
     cta: "Next →",
   },
   {
     refKey: "fineTune",
-    title: "Fine-tune Manually",
-    text: "Prefer to control colors yourself? Click 'Fine-tune manually' to open color pickers and upload your own logo and icon.",
+    title: "Quick Edit Colors",
+    text: "Prefer to control colors yourself? Click 'Quick Edit' to tweak the 25 most important fields. For full control, use Advanced Mode (all 344 fields).",
     cta: "Next →",
   },
   {
@@ -2263,7 +1318,13 @@ function StudioPage() {
   const { user, loading: authLoading } = useAuth();
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
-  const [initialColors, setInitialColors] = useState<StudioThemeColors | undefined>(undefined);
+  const [initialPalette, setInitialPalette] = useState<TCMPalette | undefined>(undefined);
+  const [initialManualOverrides, setInitialManualOverrides] = useState<
+    (keyof TCMPalette)[] | undefined
+  >(undefined);
+  const [initialBrandPromptHistory, setInitialBrandPromptHistory] = useState<
+    BrandPromptEntry[] | undefined
+  >(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
@@ -2307,15 +1368,28 @@ function StudioPage() {
 
       if (data?.studio_config && typeof data.studio_config === "object") {
         const saved = data.studio_config as StudioSavedConfig;
-        if (saved.colors) {
-          setInitialColors({ ...defaultStudioColors, ...saved.colors });
+
+        if (saved.palette) {
+          // New format (Phase 3+): has TCMPalette
+          setInitialPalette({ ...DEFAULT_TCM_PALETTE, ...saved.palette });
+          if (saved.manualOverrides) setInitialManualOverrides(saved.manualOverrides);
+          if (saved.brandPromptHistory) setInitialBrandPromptHistory(saved.brandPromptHistory);
+          setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
+        } else if (saved.colors) {
+          // Legacy format: has 'colors' key with old StudioThemeColors shape
+          setInitialPalette(
+            migrateLegacyThemeColors({ ...defaultStudioColors, ...saved.colors }),
+          );
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else {
-          setInitialColors({
-            ...defaultStudioColors,
-            ...(data.studio_config as Partial<StudioThemeColors>),
-          });
+          // Very old format: raw StudioThemeColors object (no wrapper)
+          setInitialPalette(
+            migrateLegacyThemeColors(
+              data.studio_config as Partial<StudioThemeColors>,
+            ),
+          );
         }
+
         if (saved.language) setInitialLanguage(saved.language);
         if (saved.appName) setInitialAppName(saved.appName);
       }
@@ -2454,7 +1528,9 @@ function StudioPage() {
 
   return (
     <StudioProvider
-      initialColors={initialColors}
+      initialPalette={initialPalette}
+      initialManualOverrides={initialManualOverrides}
+      initialBrandPromptHistory={initialBrandPromptHistory ?? []}
       initialIcons={initialIcons}
       initialLanguage={initialLanguage}
       initialAppName={initialAppName}
