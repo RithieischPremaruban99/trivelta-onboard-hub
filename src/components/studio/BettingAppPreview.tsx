@@ -828,48 +828,24 @@ function MobilePreview({ appName, currencySymbol, logoUrl }: { appName: string; 
 function SportsView({
   appName, currencySymbol, logoUrl,
   activeSport, setActiveSport, activeLeague, setActiveLeague, activeBetType, setActiveBetType,
+  onOpenAllSports,
 }: {
   appName: string; currencySymbol: string; logoUrl?: string | null;
   activeSport: number; setActiveSport: (n: number) => void;
   activeLeague: number; setActiveLeague: (n: number) => void;
   activeBetType: number; setActiveBetType: (n: number) => void;
+  onOpenAllSports: () => void;
+  onOpenBetDetail: () => void;
 }) {
-  return (
-    <>
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
-        {logoUrl ? (
-          <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
-        ) : (
-          <div
-            className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
-            style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
-          >
-            {appName.slice(0, 1)}
-          </div>
-        )}
-        <div className="flex items-center gap-1.5 px-2.5 h-6 rounded-full" style={{ background: "var(--p-card)" }}>
-          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol}</span>
-          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>****</span>
-          <Plus className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
-          <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Bell className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-primary)" }} />
-          </div>
-          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-        </div>
-      </div>
-
       {/* Quick tile row */}
       <div className="grid grid-cols-5 gap-1.5 px-3 mb-2 flex-shrink-0">
         {MOBILE_TILES.map((t) => {
           const Icon = t.icon;
+          const isAllSports = t.label === "All Sports";
           return (
-            <div
+            <button
               key={t.label}
+              onClick={isAllSports ? onOpenAllSports : undefined}
               className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
               style={{
                 background: "var(--p-card)",
