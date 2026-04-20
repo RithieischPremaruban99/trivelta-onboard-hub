@@ -649,6 +649,547 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   );
 }
 
+/* ─── WEB FEED VIEW ───────────────────────────────────────────────────── */
+
+const WEB_FRIENDS = [
+  { name: "Benblack42", handle: "Benblack42" },
+  { name: "Oluleye", handle: "Oluleye" },
+  { name: "Osahon Osamuyimen", handle: "Drezzy987" },
+  { name: "Box3030", handle: "Box3030" },
+  { name: "Ibezim Chinonso", handle: "Ibezimchinons..." },
+  { name: "Shubham P", handle: "prod" },
+  { name: "Akinwale Oluwatoyin", handle: "Akinwale1" },
+  { name: "Prince001", handle: "Prince001" },
+  { name: "Rammers", handle: "Rammers" },
+];
+
+type WebPost = {
+  user: string;
+  initial: string;
+  league: string;
+  boost?: string;
+  status: "PENDING" | "LOST" | "WON" | "LIVE";
+  title: string;
+  prevStake?: string;
+  payout: string;
+  stake: string;
+  totalLegs: number;
+  legs: { sport: string; market: string; selection: string; vs: string; odds: string }[];
+  ago: string;
+};
+
+const WEB_FEED_POSTS: WebPost[] = [
+  {
+    user: "Akinwale1",
+    initial: "A",
+    league: "ATP Madrid, Spain Men Singles +1",
+    boost: "75% BOOST",
+    status: "PENDING",
+    title: "17 Leg Parlay",
+    prevStake: "15119.89",
+    payout: "26459.06",
+    stake: "34",
+    totalLegs: 17,
+    ago: "14 hours ago",
+    legs: [
+      { sport: "🎾", market: "Total games", selection: "under 22.5", vs: "Rocha, Henrique  vs  Choinski, Jan", odds: "1.75" },
+      { sport: "🎾", market: "Game handicap", selection: "Tomova, Viktoriya (-2.5)", vs: "Tomova, Viktoriya  vs  Pavlyuchenkova, Anastasia", odds: "1.83" },
+      { sport: "🎾", market: "Total games", selection: "under 22.5", vs: "Vallejo, Adolfo Daniel  vs  Martinez, Pedro", odds: "1.77" },
+      { sport: "🎾", market: "Game handicap", selection: "Halys, Quentin (-0.5)", vs: "Halys, Quentin  vs  Faria, Jaime", odds: "1.85" },
+    ],
+  },
+  {
+    user: "Akinwale1",
+    initial: "A",
+    league: "NBA, WTA Rouen, France Women Singles +6",
+    boost: "45% BOOST",
+    status: "LOST",
+    title: "12 Leg Parlay",
+    prevStake: "1528.64",
+    payout: "2216.08",
+    stake: "20",
+    totalLegs: 12,
+    ago: "1 day ago",
+    legs: [
+      { sport: "🏀", market: "Handicap (Incl. overtime)", selection: "Toronto Raptors (+8.5)", vs: "Toronto Raptors  vs  Cleveland Cavaliers", odds: "1.85" },
+      { sport: "🏀", market: "Total (Incl. overtime)", selection: "under 231.5", vs: "Minnesota Timberwolves  vs  Denver Nuggets", odds: "1.87" },
+      { sport: "🏀", market: "Handicap (Incl. overtime)", selection: "Atlanta Hawks (+5.5)", vs: "Atlanta Hawks  vs  New York Knicks", odds: "1.84" },
+      { sport: "🎾", market: "Game handicap", selection: "Podrez, Veronika (+5.5)", vs: "Podrez, Veronika  vs  Cirstea, Sorana", odds: "1.69" },
+    ],
+  },
+];
+
+function WebFeedView() {
+  const [tab, setTab] = useState<"friends" | "explore">("friends");
+  const [followTab, setFollowTab] = useState<"following" | "followers">("following");
+
+  return (
+    <div className="flex-1 min-h-0 flex">
+      {/* Left column */}
+      <aside className="w-[260px] flex-shrink-0 border-r flex flex-col overflow-auto"
+        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}>
+        <div className="px-3 py-3">
+          <div className="text-[12px] font-bold mb-2" style={{ color: "var(--p-text)" }}>Friends</div>
+          <div className="flex items-center gap-1.5 px-2 h-7 rounded-md mb-3"
+            style={{ background: "var(--p-input-bg)", border: "1px solid var(--p-input-border)" }}>
+            <Search className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
+            <span className="text-[10px]" style={{ color: "var(--p-muted)" }}>Search</span>
+          </div>
+
+          {/* Refer card */}
+          <div className="rounded-lg p-2.5 mb-3 text-center"
+            style={{ background: "var(--p-card)", border: "1px solid var(--p-primary)" }}>
+            <div className="h-6 w-6 rounded-full grid place-items-center mx-auto mb-1.5"
+              style={{ background: "var(--p-odds-active)" }}>
+              <User className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
+            </div>
+            <div className="text-[9px] mb-2 leading-tight" style={{ color: "var(--p-primary)" }}>
+              Refer your friends and build your social betting network 1 Friend at a time
+            </div>
+            <button className="h-6 px-3 rounded-md text-[9px] font-bold w-full"
+              style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+              Refer friends
+            </button>
+          </div>
+
+          {/* Follow tabs */}
+          <div className="flex border-b mb-2" style={{ borderColor: "var(--p-divider)" }}>
+            {[
+              { id: "following" as const, label: "23 Following" },
+              { id: "followers" as const, label: "46 Followers" },
+            ].map((t) => {
+              const a = followTab === t.id;
+              return (
+                <button key={t.id} onClick={() => setFollowTab(t.id)}
+                  className="flex-1 h-7 text-[10px] font-semibold relative"
+                  style={{ color: a ? "var(--p-text)" : "var(--p-muted)" }}>
+                  {t.label}
+                  {a && <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full" style={{ background: "var(--p-primary)" }} />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Friend list */}
+          <div className="space-y-1.5">
+            {WEB_FRIENDS.map((f) => (
+              <div key={f.handle} className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full grid place-items-center text-[9px] font-black flex-shrink-0"
+                  style={{ background: "var(--p-odds-active)", color: "var(--p-primary)" }}>
+                  {f.name.slice(0, 1)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-bold truncate" style={{ color: "var(--p-text)" }}>{f.name}</div>
+                  <div className="text-[8px] truncate" style={{ color: "var(--p-muted)" }}>{f.handle}</div>
+                </div>
+                <button className="h-5 px-2 rounded text-[8px] font-bold"
+                  style={{ background: "var(--p-card)", border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}>
+                  Following
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Center */}
+      <main className="flex-1 min-w-0 overflow-auto">
+        {/* Friends/Explore */}
+        <div className="flex border-b" style={{ borderColor: "var(--p-divider)" }}>
+          {[
+            { id: "friends" as const, label: "Friends" },
+            { id: "explore" as const, label: "Explore" },
+          ].map((t) => {
+            const a = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className="flex-1 h-9 text-[12px] font-semibold relative"
+                style={{ color: a ? "var(--p-text)" : "var(--p-muted)" }}>
+                {t.label}
+                {a && <span className="absolute bottom-0 left-1/3 right-1/3 h-[2px] rounded-full" style={{ background: "var(--p-primary)" }} />}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="p-3 space-y-3">
+          {WEB_FEED_POSTS.map((p, idx) => (
+            <WebFeedCard key={idx} post={p} />
+          ))}
+        </div>
+      </main>
+
+      {/* Right column */}
+      <aside className="w-[240px] flex-shrink-0 border-l flex flex-col items-center pt-8 px-3"
+        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}>
+        <div className="h-9 w-9 rounded-full grid place-items-center mb-2"
+          style={{ background: "var(--p-card)" }}>
+          <Zap className="h-4 w-4" style={{ color: "var(--p-muted)" }} />
+        </div>
+        <div className="text-[11px] font-semibold mb-3" style={{ color: "var(--p-text)" }}>Betslip is empty</div>
+        <button className="w-full h-8 rounded-md text-[11px] font-bold"
+          style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+          Make Bets
+        </button>
+      </aside>
+    </div>
+  );
+}
+
+function WebFeedCard({ post }: { post: WebPost }) {
+  const statusColors: Record<string, { bg: string; color: string }> = {
+    PENDING: { bg: "var(--p-card)", color: "var(--p-primary)" },
+    LOST: { bg: "rgba(239,68,68,0.12)", color: "var(--p-secondary)" },
+    WON: { bg: "linear-gradient(135deg, var(--p-won1), var(--p-won2))", color: "var(--p-text)" },
+    LIVE: { bg: "rgba(239,68,68,0.12)", color: "var(--p-live)" },
+  };
+  const s = statusColors[post.status];
+
+  return (
+    <div className="rounded-lg p-3" style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+      {/* Header: avatar + user */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
+          style={{ background: "var(--p-odds-active)", color: "var(--p-primary)" }}>
+          {post.initial}
+        </div>
+        <span className="text-[11px] font-bold" style={{ color: "var(--p-text)" }}>{post.user}</span>
+      </div>
+
+      {/* League + badges */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px]">⚽</span>
+          <span className="text-[10px]" style={{ color: "var(--p-muted)" }}>{post.league}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {post.boost && (
+            <span className="text-[8px] font-bold px-1.5 py-[2px] rounded flex items-center gap-0.5"
+              style={{ background: "var(--p-odds-active)", color: "var(--p-primary)", border: "1px solid var(--p-primary)" }}>
+              <Zap className="h-2 w-2" /> {post.boost}
+            </span>
+          )}
+          <span className="text-[8px] font-bold px-1.5 py-[2px] rounded"
+            style={{ background: s.bg, color: s.color, border: post.status === "WON" ? "none" : `1px solid ${s.color}` }}>
+            {post.status}
+          </span>
+        </div>
+      </div>
+
+      {/* Title + payout */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[14px] font-bold" style={{ color: "var(--p-text)" }}>{post.title}</div>
+        <div className="text-[12px] font-bold flex items-center gap-1" style={{ color: "var(--p-text)" }}>
+          {post.prevStake && (
+            <span className="text-[10px] line-through" style={{ color: "var(--p-muted)" }}>{post.prevStake}</span>
+          )}
+          {post.payout}
+          <Zap className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
+        </div>
+      </div>
+
+      {/* Legs */}
+      <div className="space-y-1.5 mb-2">
+        {post.legs.map((l, i) => (
+          <div key={i} className="rounded-md p-2"
+            style={{ background: "var(--p-bg)", border: post.status === "LOST" ? "1px solid rgba(239,68,68,0.3)" : "1px solid var(--p-divider)" }}>
+            <div className="flex items-center justify-between mb-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px]">{l.sport}</span>
+                <span className="text-[9px]" style={{ color: post.status === "LOST" ? "var(--p-secondary)" : "var(--p-primary)" }}>{l.market}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>{l.selection}</span>
+              <span className="text-[10px] font-bold" style={{ color: post.status === "LOST" ? "var(--p-secondary)" : "var(--p-primary)" }}>{l.odds}</span>
+            </div>
+            <div className="text-[8px] mt-0.5" style={{ color: "var(--p-muted)" }}>{l.vs}</div>
+          </div>
+        ))}
+      </div>
+
+      <button className="w-full text-center text-[10px] font-bold py-1 mb-2"
+        style={{ color: "var(--p-primary)" }}>
+        Show all {post.totalLegs} legs ▼
+      </button>
+
+      {/* Stake row */}
+      <div className="flex items-center justify-between border-t pt-2 mb-2 text-[9px]"
+        style={{ borderColor: "var(--p-divider)", color: "var(--p-muted)" }}>
+        <span>STAKE</span>
+        <span style={{ color: "var(--p-text)" }}>₦ {post.stake}</span>
+        <span style={{ color: "var(--p-text)" }}>₦ {post.payout}</span>
+        <span>PAYOUT</span>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Heart className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
+          <MessageSquare className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
+          <RotateCw className="h-3.5 w-3.5" style={{ color: "var(--p-primary)" }} />
+        </div>
+        <span className="text-[8px]" style={{ color: "var(--p-muted)" }}>{post.ago}</span>
+        <Share2 className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── WEB PROFILE VIEW ────────────────────────────────────────────────── */
+
+const PROFILE_BETS = [
+  { team: "Brentford FC", odds: "2.16", market: "1x2", stake: "100", payout: "0", away: "Fulham FC", time: "4/17/2026, 10:53:35 PM", status: "LOST" as const },
+  { team: "Brentford FC", odds: "2.16", market: "1x2", stake: "10", payout: "0", away: "Fulham FC", time: "4/17/2026, 10:53:02 PM", status: "LOST" as const },
+  { team: "Tottenham Hotspur", odds: "2.85", market: "1x2", stake: "10", payout: "0", away: "Brighton & Hove Albion", time: "4/17/2026, 9:05:55 PM", status: "LOST" as const },
+];
+
+const PROFILE_TX = [
+  { label: "Naira bet win", time: "Yesterday, 7:29 PM", amount: "262.88" },
+  { label: "Naira bet win", time: "Yesterday, 7:29 PM", amount: "427.43" },
+  { label: "Naira bet win", time: "Yesterday, 7:29 PM", amount: "243.71" },
+  { label: "Naira bet win", time: "Yesterday, 7:29 PM", amount: "644.16" },
+  { label: "Naira bet win", time: "Yesterday, 5:05 PM", amount: "57.60" },
+];
+
+const TOP_GAMES = ["Aviator", "Crazy Chicken", "England League - ondemand", "Golden boat", "Bario Jet"];
+
+function WebProfileView({ appName }: { appName: string }) {
+  const [betsTab, setBetsTab] = useState<"mybets" | "myfeed">("mybets");
+  const [filter, setFilter] = useState<"All" | "PENDING" | "Settled" | "P2P Bets">("All");
+
+  return (
+    <div className="flex-1 min-h-0 flex">
+      {/* Left column */}
+      <aside className="w-[280px] flex-shrink-0 border-r overflow-auto"
+        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}>
+        <div className="p-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[13px] font-bold" style={{ color: "var(--p-text)" }}>{appName}Test</div>
+            <div className="flex items-center gap-2">
+              <Share2 className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
+              <Settings className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
+            </div>
+          </div>
+
+          {/* Avatar */}
+          <div className="flex flex-col items-center mb-3">
+            <div className="h-20 w-20 rounded-full grid place-items-center text-[22px] font-black mb-2"
+              style={{ background: "var(--p-odds-active)", color: "var(--p-primary)", border: "2px solid var(--p-primary)" }}>
+              TN
+            </div>
+            <div className="text-[12px] font-bold" style={{ color: "var(--p-text)" }}>Testing Name</div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+            <div>
+              <div className="text-[9px]" style={{ color: "var(--p-muted)" }}>Wins</div>
+              <div className="text-[14px] font-bold" style={{ color: "var(--p-primary)" }}>85</div>
+            </div>
+            <div>
+              <div className="text-[9px]" style={{ color: "var(--p-muted)" }}>Following</div>
+              <div className="text-[14px] font-bold" style={{ color: "var(--p-text)" }}>23</div>
+            </div>
+            <div>
+              <div className="text-[9px]" style={{ color: "var(--p-muted)" }}>Followers</div>
+              <div className="text-[14px] font-bold" style={{ color: "var(--p-text)" }}>46</div>
+            </div>
+          </div>
+
+          {/* Bonuses */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--p-text)" }}>
+              Available Bonuses <span className="h-3 w-3 rounded-full grid place-items-center text-[7px]" style={{ background: "var(--p-primary)", color: "var(--p-text)" }}>1</span>
+            </div>
+            <button className="text-[9px] font-semibold flex items-center gap-0.5" style={{ color: "var(--p-primary)" }}>
+              All Bonuses <ChevronRight className="h-2.5 w-2.5" />
+            </button>
+          </div>
+
+          <div className="rounded-lg p-2.5 mb-1.5"
+            style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))" }}>
+            <div className="text-[10px] font-black mb-1" style={{ color: "var(--p-text)" }}>GET A 100% BONUS ON YOUR FIRST DEPOSIT</div>
+            <div className="text-[8px]" style={{ color: "var(--p-text)", opacity: 0.85 }}>
+              Enjoy 100% welcome bonus on your first deposit and double your starting stake.
+            </div>
+          </div>
+          <div className="flex justify-center gap-1 mb-3">
+            <span className="h-1 w-3 rounded-full" style={{ background: "var(--p-primary)" }} />
+            <span className="h-1 w-1 rounded-full" style={{ background: "var(--p-divider)" }} />
+          </div>
+
+          {/* Refer friends */}
+          <div className="rounded-lg p-2.5 mb-3 text-center"
+            style={{ background: "var(--p-card)", border: "1px solid var(--p-primary)" }}>
+            <div className="h-6 w-6 rounded-full grid place-items-center mx-auto mb-1.5"
+              style={{ background: "var(--p-odds-active)" }}>
+              <User className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
+            </div>
+            <div className="text-[9px] mb-2" style={{ color: "var(--p-primary)" }}>
+              Refer your friends and build your social betting network 1 Friend at a time
+            </div>
+            <button className="h-6 px-3 rounded-md text-[9px] font-bold w-full"
+              style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+              Refer friends
+            </button>
+          </div>
+
+          {/* Top games */}
+          <div className="rounded-lg p-2.5"
+            style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+            <div className="text-[10px] font-bold mb-2" style={{ color: "var(--p-text)" }}>Top 5 Casino Games</div>
+            <div className="grid grid-cols-5 gap-1">
+              {TOP_GAMES.map((g) => (
+                <div key={g} className="flex flex-col items-center gap-0.5">
+                  <div className="h-9 w-9 rounded-full grid place-items-center text-[8px] font-bold"
+                    style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+                    {g.slice(0, 1)}
+                  </div>
+                  <span className="text-[7px] text-center leading-tight" style={{ color: "var(--p-muted)" }}>{g.split(" ")[0]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Center */}
+      <main className="flex-1 min-w-0 overflow-auto">
+        {/* My Bets / My Feed */}
+        <div className="flex border-b" style={{ borderColor: "var(--p-divider)" }}>
+          {[
+            { id: "mybets" as const, label: "My Bets" },
+            { id: "myfeed" as const, label: "My Feed" },
+          ].map((t) => {
+            const a = betsTab === t.id;
+            return (
+              <button key={t.id} onClick={() => setBetsTab(t.id)}
+                className="flex-1 h-9 text-[12px] font-semibold relative"
+                style={{ color: a ? "var(--p-text)" : "var(--p-muted)" }}>
+                {t.label}
+                {a && <span className="absolute bottom-0 left-1/3 right-1/3 h-[2px] rounded-full" style={{ background: "var(--p-primary)" }} />}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="p-3">
+          {/* Filter pills */}
+          <div className="grid grid-cols-4 gap-2 mb-3">
+            {(["All", "PENDING", "Settled", "P2P Bets"] as const).map((f) => {
+              const a = filter === f;
+              return (
+                <button key={f} onClick={() => setFilter(f)}
+                  className="h-8 rounded-md text-[10px] font-bold"
+                  style={{
+                    background: a ? "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))" : "var(--p-card)",
+                    color: "var(--p-text)",
+                  }}>
+                  {f}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Bet rows */}
+          <div className="space-y-2">
+            {PROFILE_BETS.map((b, i) => (
+              <div key={i} className="rounded-lg p-3"
+                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <TeamDot label={b.team} />
+                    <span className="text-[11px] font-bold" style={{ color: "var(--p-text)" }}>{b.team}</span>
+                    <span className="text-[10px]" style={{ color: "var(--p-muted)" }}>|</span>
+                    <span className="text-[11px] font-bold" style={{ color: "var(--p-secondary)" }}>{b.odds}</span>
+                  </div>
+                  <span className="text-[8px] font-bold px-2 py-[2px] rounded"
+                    style={{ background: "rgba(239,68,68,0.12)", color: "var(--p-secondary)", border: "1px solid var(--p-secondary)" }}>
+                    {b.status}
+                  </span>
+                </div>
+                <div className="text-[9px] mb-2" style={{ color: "var(--p-muted)" }}>{b.market}</div>
+
+                <div className="grid grid-cols-[1fr,auto,auto,auto,1fr] gap-2 items-center text-[9px] mb-2"
+                  style={{ color: "var(--p-muted)" }}>
+                  <span>STAKE</span>
+                  <span style={{ color: "var(--p-text)" }}>₦ {b.stake}</span>
+                  <span>|</span>
+                  <span style={{ color: "var(--p-text)" }}>₦ {b.payout}</span>
+                  <span className="text-right">PAYOUT</span>
+                </div>
+
+                <div className="border-t pt-2 grid grid-cols-[1fr,repeat(3,28px)] gap-2 items-center text-[9px]"
+                  style={{ borderColor: "var(--p-divider)" }}>
+                  <span style={{ color: "var(--p-muted)" }}> </span>
+                  <span className="text-center font-bold" style={{ color: "var(--p-text)" }}>1</span>
+                  <span className="text-center font-bold" style={{ color: "var(--p-text)" }}>2</span>
+                  <span className="text-center font-bold" style={{ color: "var(--p-text)" }}>T</span>
+
+                  <span style={{ color: "var(--p-text)" }}>{b.away}</span>
+                  <span className="text-center" style={{ color: "var(--p-muted)" }}>0</span>
+                  <span className="text-center" style={{ color: "var(--p-muted)" }}>0</span>
+                  <span className="text-center" style={{ color: "var(--p-muted)" }}>0</span>
+                </div>
+
+                <div className="text-right text-[8px] mt-2" style={{ color: "var(--p-muted)" }}>{b.time}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+
+      {/* Right wallet */}
+      <aside className="w-[260px] flex-shrink-0 border-l overflow-auto p-3"
+        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}>
+        <div className="text-[12px] font-bold mb-2" style={{ color: "var(--p-text)" }}>Naira</div>
+        <button className="w-full h-9 rounded-md flex items-center justify-center gap-1.5 text-[12px] font-bold mb-3"
+          style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+          ₦ Naira
+        </button>
+        <div className="flex items-center gap-1 text-[10px] mb-1" style={{ color: "var(--p-muted)" }}>
+          Total balance <Eye className="h-2.5 w-2.5" />
+        </div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[14px] font-bold" style={{ color: "var(--p-text)" }}>₦ ----</span>
+          <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
+        </div>
+        <div className="text-[9px] mb-3" style={{ color: "var(--p-muted)" }}>
+          Withdrawable Balance: <span style={{ color: "var(--p-primary)" }}>₦ 22,071.84</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <button className="h-8 rounded-md text-[10px] font-bold"
+            style={{ background: "var(--p-card)", color: "var(--p-text)", border: "1px solid var(--p-divider)" }}>
+            Withdraw
+          </button>
+          <button className="h-8 rounded-md text-[10px] font-bold"
+            style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+            Deposit
+          </button>
+        </div>
+
+        <div className="text-[11px] font-bold mb-2" style={{ color: "var(--p-text)" }}>Transactions history</div>
+        <div className="space-y-2">
+          {PROFILE_TX.map((t, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-full grid place-items-center flex-shrink-0"
+                style={{ background: "var(--p-card)" }}>
+                <Trophy className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-semibold truncate" style={{ color: "var(--p-text)" }}>{t.label}</div>
+                <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>{t.time}</div>
+              </div>
+              <span className="text-[10px] font-bold" style={{ color: "var(--p-success)" }}>+ {t.amount}</span>
+            </div>
+          ))}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 /* ─── MOBILE VERSION ──────────────────────────────────────────────────── */
 
 type MobileView = "sports" | "allsports" | "social" | "betdetail";
