@@ -37,7 +37,10 @@ import {
   ShieldCheck,
   ShieldAlert,
   Unlock,
+  Trash2,
 } from "lucide-react";
+
+const SUPER_ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com"];
 import {
   defaultStudioColors,
   type StudioThemeColors,
@@ -183,6 +186,24 @@ function AdminPage() {
               return sum + (t.done / t.total) * 100;
             }, 0) / clients.length,
           ),
+  };
+
+  const canDelete = SUPER_ADMIN_EMAILS.includes(user?.email ?? "");
+
+  const handleDelete = async (clientId: string, clientName: string) => {
+    if (
+      !window.confirm(
+        `Permanently delete "${clientName}"?\n\nThis removes the client and ALL related onboarding data, tasks, submissions, AM assignments and team members. This cannot be undone.`,
+      )
+    )
+      return;
+    const { error } = await supabase.from("clients").delete().eq("id", clientId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Deleted ${clientName}`);
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
   };
 
   return (
@@ -349,6 +370,17 @@ function AdminPage() {
                             >
                               <Palette className="h-3.5 w-3.5" />
                             </Button>
+                            {canDelete && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                title="Delete client (permanent)"
+                                onClick={() => handleDelete(c.id, c.name)}
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
