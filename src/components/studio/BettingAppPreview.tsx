@@ -637,6 +637,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           </div>
         </aside>
       </div>
+      )}
     </div>
   );
 }
