@@ -32,9 +32,12 @@ const ALLOWED_PATCH_PATHS = new Set([
   "/flexBetHeaderBg", "/flexBetFooterBg",
   // MISC
   "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
+  // LANGUAGE
+  "/language",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
+const VALID_LANGUAGES = new Set(["en", "fr", "pt", "sw", "yo", "ha", "ar"]);
 
 /* ── System prompt (context-injected per request) ────────────────────────── */
 
@@ -95,6 +98,9 @@ ALLOWED PATCH PATHS — core set (AI should only touch brand-visible colors):
 /lightText /placeholderText /wonGradient1 /wonGradient2
 /wonColor /lostColor /inactiveButtonBg /activeSecondaryGradient
 
+LANGUAGE PATH: /language — valid values: "en" "fr" "pt" "sw" "yo" "ha" "ar"
+Use /language to switch the platform UI language when explicitly requested.
+
 COLOR VALUES: rgba(R,G,B,1) integers 0-255 only.
 
 IIGAMING COLOR INTELLIGENCE:
@@ -127,6 +133,10 @@ User: adjust colors to match my logo (with image)
 
 User: generate a logo for BetKing
 <chat>Generating your BetKing logo now.</chat>
+
+User: switch to French
+<chat>Switching the platform preview to French.</chat>
+<patch>[{"op":"replace","path":"/language","value":"fr"}]</patch>
 
 User: can you change the layout
 <chat>Layout is optimized by your Trivelta team for conversion. I can adjust colors and generate brand assets.</chat>
@@ -528,14 +538,13 @@ Deno.serve(async (req) => {
           try {
             const ops = JSON.parse(patchContent);
             if (Array.isArray(ops) && ops.length > 0) {
-              const validOps = ops.filter(
-                (op: Record<string, unknown>) =>
-                  op.op === "replace" &&
-                  typeof op.path === "string" &&
-                  ALLOWED_PATCH_PATHS.has(op.path) &&
-                  typeof op.value === "string" &&
-                  RGBA_RE.test((op.value as string).trim()),
-              );
+              const validOps = ops.filter((op: Record<string, unknown>) => {
+                if (op.op !== "replace") return false;
+                if (typeof op.path !== "string" || !ALLOWED_PATCH_PATHS.has(op.path)) return false;
+                if (typeof op.value !== "string") return false;
+                if (op.path === "/language") return VALID_LANGUAGES.has((op.value as string).trim());
+                return RGBA_RE.test((op.value as string).trim());
+              });
               if (validOps.length > 0) send({ type: "patch", ops: validOps });
             }
           } catch (e) {

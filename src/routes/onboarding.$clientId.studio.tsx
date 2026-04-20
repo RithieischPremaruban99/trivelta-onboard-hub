@@ -14,6 +14,8 @@ import {
   type StudioThemeColors,
   type StudioAppIcons,
   type StudioSavedConfig,
+  type Language,
+  LANGUAGE_NAMES,
 } from "@/contexts/StudioContext";
 import BettingAppPreview from "@/components/studio/BettingAppPreview";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
@@ -50,9 +52,11 @@ const ALLOWED_PATCH_PATHS = new Set([
   "/notificationBg", "/freeBetBackground", "/bgColor",
   "/flexBetHeaderBg", "/flexBetFooterBg",
   "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
+  "/language",
 ]);
 
 const RGBA_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/;
+const LANGUAGE_VALUES = new Set<string>(["en", "fr", "pt", "sw", "yo", "ha", "ar"]);
 
 // Maps ThemeColors keys to --p-* CSS custom properties on the preview element
 const THEME_TO_CSS_VAR: Partial<Record<keyof StudioThemeColors, string>> = {
@@ -128,16 +132,13 @@ function sanitizeChatText(raw: string): string {
 
 function validateOps(ops: unknown): ops is Operation[] {
   if (!Array.isArray(ops)) return false;
-  return ops.every(
-    (op) =>
-      op &&
-      typeof op === "object" &&
-      op.op === "replace" &&
-      typeof op.path === "string" &&
-      ALLOWED_PATCH_PATHS.has(op.path) &&
-      typeof op.value === "string" &&
-      RGBA_RE.test(op.value.trim()),
-  );
+  return ops.every((op) => {
+    if (!op || typeof op !== "object" || op.op !== "replace") return false;
+    if (typeof op.path !== "string" || !ALLOWED_PATCH_PATHS.has(op.path)) return false;
+    if (typeof op.value !== "string") return false;
+    if (op.path === "/language") return LANGUAGE_VALUES.has(op.value.trim());
+    return RGBA_RE.test(op.value.trim());
+  });
 }
 
 /* ── Color utilities ────────────────────────────────────────────────────── */
@@ -574,7 +575,7 @@ export function StudioInner({
 }) {
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
-  const { themeColors, setThemeColors, appIcons, setAppIcons, previewMode, setPreviewMode } = useStudio();
+  const { themeColors, setThemeColors, appIcons, setAppIcons, previewMode, setPreviewMode, language, setLanguage } = useStudio();
 
   /* ── State ── */
   const [locked, setLocked] = useState(initialLocked);
@@ -713,12 +714,12 @@ export function StudioInner({
 
   /* ── Save helpers ── */
   const saveNow = useCallback(async () => {
-    const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons };
+    const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons, language };
     await supabase.from("onboarding_forms").upsert(
       { client_id: clientId, studio_config: payload as never },
       { onConflict: "client_id" },
     );
-  }, [clientId, themeColors, appIcons]);
+  }, [clientId, themeColors, appIcons, language]);
 
   const scheduleAutoSave = useCallback(
     (colors: StudioThemeColors, icons: StudioAppIcons) => {
@@ -726,12 +727,12 @@ export function StudioInner({
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(async () => {
         await supabase.from("onboarding_forms").upsert(
-          { client_id: clientId, studio_config: { colors, icons } as never },
+          { client_id: clientId, studio_config: { colors, icons, language } as never },
           { onConflict: "client_id" },
         );
       }, 2000);
     },
-    [clientId, locked],
+    [clientId, locked, language],
   );
 
   useEffect(() => {
@@ -780,7 +781,7 @@ export function StudioInner({
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: { colors: themeColors, icons: appIcons } as never,
+          studio_config: { colors: themeColors, icons: appIcons, language } as never,
           studio_locked: true,
           studio_locked_at: now,
           notion_sync_pending: false,
@@ -816,7 +817,7 @@ export function StudioInner({
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
-          studio_config: { colors: themeColors, icons: appIcons } as never,
+          studio_config: { colors: themeColors, icons: appIcons, language } as never,
           studio_locked: true,
           studio_locked_at: now,
           notion_sync_pending: false,
@@ -1023,15 +1024,26 @@ export function StudioInner({
             // Nothing extra needed — this event exists to make round-trip latency visible
 
           } else if (event.type === "patch") {
-            // Validate and apply color patch atomically
+            // Validate and apply patch atomically
             const ops = event.ops as unknown;
             if (validateOps(ops)) {
               setPatchPending(true);
-              const label = ops.map((o) => o.path.slice(1)).join(", ") + " change";
-              applyColorPatch(ops, label);
-              lastPatchLabel.current = label; // hint for next AI request
-              appliedPatch = true;
-              toast.success("Colors updated", { duration: 1500 });
+              const langOps = ops.filter((o) => o.path === "/language");
+              const colorOps = ops.filter((o) => o.path !== "/language");
+
+              if (langOps.length > 0) {
+                const newLang = langOps[langOps.length - 1].value as Language;
+                setLanguage(newLang);
+                toast.success(`Language: ${LANGUAGE_NAMES[newLang]}`, { duration: 1500 });
+              }
+
+              if (colorOps.length > 0) {
+                const label = colorOps.map((o) => o.path.slice(1)).join(", ") + " change";
+                applyColorPatch(colorOps as Operation[], label);
+                lastPatchLabel.current = label;
+                appliedPatch = true;
+                toast.success("Colors updated", { duration: 1500 });
+              }
             } else {
               console.warn("[studio] Invalid patch ops - skipped:", ops);
             }
@@ -1440,6 +1452,20 @@ export function StudioInner({
 
             {controlsOpen && (
               <div className="max-h-[380px] overflow-y-auto border-t border-border">
+                {/* Language */}
+                <div className="px-4 py-3 border-b border-border">
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Language</div>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as Language)}
+                    disabled={locked}
+                    className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
+                      <option key={code} value={code}>{name}</option>
+                    ))}
+                  </select>
+                </div>
                 {/* Brand Assets */}
                 <div className="px-4 py-3 border-b border-border">
                   <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Brand Assets</div>
@@ -1911,6 +1937,7 @@ function StudioPage() {
   const navigate = useNavigate();
   const [initialColors, setInitialColors] = useState<StudioThemeColors | undefined>(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
+  const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialLocked, setInitialLocked] = useState(false);
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
   const [accessLocked, setAccessLocked] = useState(false);
@@ -1945,6 +1972,7 @@ function StudioPage() {
         } else {
           setInitialColors({ ...defaultStudioColors, ...(data.studio_config as Partial<StudioThemeColors>) });
         }
+        if (saved.language) setInitialLanguage(saved.language);
       }
 
       if (data?.studio_locked) {
@@ -2019,7 +2047,7 @@ function StudioPage() {
   }
 
   return (
-    <StudioProvider initialColors={initialColors} initialIcons={initialIcons}>
+    <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage}>
       <StudioInner
         clientId={clientId}
         initialLocked={initialLocked}

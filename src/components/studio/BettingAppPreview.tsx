@@ -178,19 +178,23 @@ const TeamDot = ({ label }: { label: string }) => (
   </div>
 );
 
-const LiveDot = () => (
-  <span
-    className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full text-[8px] font-bold"
-    style={{ background: "rgba(239,68,68,0.15)", color: "var(--p-live)" }}
-  >
-    <span className="h-1 w-1 rounded-full" style={{ background: "var(--p-live)" }} />
-    LIVE
-  </span>
-);
+const LiveDot = () => {
+  const { strings } = useStudio();
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full text-[8px] font-bold"
+      style={{ background: "rgba(239,68,68,0.15)", color: "var(--p-live)" }}
+    >
+      <span className="h-1 w-1 rounded-full" style={{ background: "var(--p-live)" }} />
+      {strings.LIVE_BADGE}
+    </span>
+  );
+};
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
 function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
+  const { strings } = useStudio();
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
@@ -201,12 +205,18 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   const [webMyBetsFilter, setWebMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [webFeedTab, setWebFeedTab] = useState(0); // 0=Friends, 1=Explore
 
+  const statusLabel = (s: string) =>
+    s === "WON" ? strings.STATUS_WON :
+    s === "LOST" ? strings.STATUS_LOST :
+    s === "LIVE" ? strings.STATUS_LIVE :
+    strings.STATUS_PENDING;
+
   const NAV = [
-    { icon: Home, label: "Feed" },
-    { icon: Trophy, label: "Sports" },
-    { icon: Compass, label: "Discovery" },
-    { icon: Gamepad2, label: "Casino" },
-    { icon: Swords, label: "Peer-to-peer" },
+    { icon: Home, label: strings.FEED },
+    { icon: Trophy, label: strings.SPORTSBOOK },
+    { icon: Compass, label: strings.DISCOVERY },
+    { icon: Gamepad2, label: strings.CASINO },
+    { icon: Swords, label: strings.PEER_TO_PEER_NAV },
   ];
 
   /* Right panel — always visible */
@@ -220,7 +230,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
         className="flex border-b text-[9px] font-semibold"
         style={{ borderColor: "var(--p-divider)" }}
       >
-        {["My Bets", "My Feed"].map((t, i) => (
+        {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
           <button
             key={t}
             onClick={() => setWebMyBetsMainTab(i)}
@@ -245,7 +255,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             className="flex border-b text-[8px] font-semibold"
             style={{ borderColor: "var(--p-divider)" }}
           >
-            {["All", "Pending", "Settled", "P2P"].map((t, i) => (
+            {[strings.FILTER_ALL, strings.FILTER_PENDING, strings.FILTER_SETTLED, strings.FILTER_P2P].map((t, i) => (
               <button
                 key={t}
                 onClick={() => setWebMyBetsFilter(i)}
@@ -294,18 +304,18 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                         color: isWon ? "var(--p-text)" : b.status === "PENDING" ? "#eab308" : "var(--p-live)",
                       }}
                     >
-                      {b.status}
+                      {statusLabel(b.status)}
                     </span>
                   </div>
                   <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
                     1x2 · odds {b.odds}
                   </div>
                   <div className="flex items-center justify-between mt-1 text-[9px]">
-                    <span style={{ color: "var(--p-muted)" }}>STAKE</span>
+                    <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
                     <span className="font-bold" style={{ color: "var(--p-text)" }}>
                       ₦{b.stake}
                     </span>
-                    <span style={{ color: "var(--p-muted)" }}>PAYOUT</span>
+                    <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
                     <span
                       className="font-bold"
                       style={{ color: isWon ? "var(--p-success)" : "var(--p-text)" }}
@@ -318,7 +328,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             })}
             {webMyBetsFilter === 3 && (
               <div className="text-center py-4 text-[9px]" style={{ color: "var(--p-muted)" }}>
-                No P2P bets yet
+                {strings.NO_P2P_BETS}
               </div>
             )}
           </div>
@@ -371,7 +381,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       <main className="flex-1 min-w-0 overflow-auto px-3 py-2">
         {/* Friends / Explore tabs */}
         <div className="flex gap-2 mb-3">
-          {(["Friends", "Explore"] as const).map((t, i) => (
+          {([strings.TAB_FRIENDS, strings.TAB_EXPLORE] as const).map((t, i) => (
             <button
               key={t}
               onClick={() => setWebFeedTab(i)}
@@ -442,7 +452,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     <Heart className="h-3 w-3" /> {p.likes}
                   </button>
                   <button className="flex items-center gap-1">
-                    <Share2 className="h-3 w-3" /> Share
+                    <Share2 className="h-3 w-3" /> {strings.SHARE}
                   </button>
                 </div>
               </div>
@@ -475,7 +485,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                   className="mt-2 w-full h-6 rounded text-[9px] font-semibold"
                   style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
                 >
-                  View Tips
+                  {strings.VIEW_TIPS}
                 </button>
               </div>
             ))}
@@ -501,12 +511,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           >
             <Search className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
             <span className="text-[9px]" style={{ color: "var(--p-muted)" }}>
-              Search
+              {strings.SEARCH}
             </span>
           </div>
         </div>
         <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-muted)" }}>
-          All Sports
+          {strings.ALL_SPORTS}
         </div>
         <div className="flex-1 overflow-auto px-1.5">
           {SPORTS_SIDEBAR.map((s, i) => {
@@ -587,7 +597,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 color: "var(--p-primary)",
               }}
             >
-              <Flame className="h-3 w-3" /> BetBuilder
+              <Flame className="h-3 w-3" /> {strings.BET_BUILDER}
             </button>
             <button
               onClick={() => setActiveNav(4)}
@@ -598,7 +608,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 color: "var(--p-primary)",
               }}
             >
-              <ArrowLeftRight className="h-3 w-3" /> Peer-to-Peer
+              <ArrowLeftRight className="h-3 w-3" /> {strings.PEER_TO_PEER_BTN}
             </button>
           </div>
 
@@ -613,16 +623,16 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               className="text-[9px] font-bold tracking-wider opacity-90"
               style={{ color: "var(--p-text)" }}
             >
-              GET A 100% BONUS ON YOUR FIRST DEPOSIT
+              {strings.WELCOME_BONUS_PROMO}
             </div>
             <div className="text-[9px] mt-1 opacity-80" style={{ color: "var(--p-text)" }}>
-              Enjoy 100% welcome bonus on your first deposit and double your starting stake.
+              {strings.WELCOME_BONUS_BODY_WEB}
             </div>
           </div>
 
           {/* Live & upcoming */}
           <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
-            Live & Upcoming Games
+            {strings.LIVE_AND_UPCOMING_GAMES}
           </div>
           <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
             {SPORT_TABS.map((s, i) => (
@@ -713,7 +723,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               className="text-[9px] font-semibold flex items-center gap-0.5"
               style={{ color: "var(--p-primary)" }}
             >
-              SEE MORE <ChevronRight className="h-2.5 w-2.5" />
+              {strings.SEE_MORE} <ChevronRight className="h-2.5 w-2.5" />
             </button>
           </div>
 
@@ -819,13 +829,13 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 </div>
                 <div className="mt-1.5 flex items-center justify-between">
                   <span className="text-[8px]" style={{ color: "var(--p-muted)" }}>
-                    STATS
+                    {strings.STATS}
                   </span>
                   <span
                     className="text-[8px] font-semibold flex items-center gap-0.5"
                     style={{ color: "var(--p-primary)" }}
                   >
-                    MORE BETS <ChevronRight className="h-2 w-2" />
+                    {strings.MORE_BETS} <ChevronRight className="h-2 w-2" />
                   </span>
                 </div>
               </div>
@@ -850,7 +860,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           <div className="text-[14px] font-bold" style={{ color: "var(--p-text)" }}>
             {title}
           </div>
-          <div className="text-[10px]">Coming soon</div>
+          <div className="text-[10px]">{strings.COMING_SOON}</div>
         </div>
       </main>
       {renderRightPanel()}
@@ -902,7 +912,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-medium" style={{ color: "var(--p-text)" }}>
-            Sign in
+            {strings.SIGN_IN}
           </span>
           <button
             className="h-7 px-3 rounded-md text-[10px] font-bold"
@@ -911,7 +921,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               color: "var(--p-text)",
             }}
           >
-            Create an account
+            {strings.CREATE_ACCOUNT}
           </button>
         </div>
       </div>
@@ -948,12 +958,19 @@ function MobilePreview({
   const [expandedBetCard, setExpandedBetCard] = useState(false);
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
 
+  const { strings } = useStudio();
+  const statusLabel = (s: string) =>
+    s === "WON" ? strings.STATUS_WON :
+    s === "LOST" ? strings.STATUS_LOST :
+    s === "PENDING" ? strings.STATUS_PENDING :
+    s === "LIVE" ? strings.STATUS_LIVE : s;
+
   const NAV = [
-    { icon: Home, label: "home" },
-    { icon: Trophy, label: "Sports" },
-    { icon: Compass, label: "Discovery" },
-    { icon: Gamepad2, label: "Casino" },
-    { icon: User, label: "Profile" },
+    { icon: Home, label: strings.HOME },
+    { icon: Trophy, label: strings.SPORTSBOOK },
+    { icon: Compass, label: strings.DISCOVERY },
+    { icon: Gamepad2, label: strings.CASINO },
+    { icon: User, label: strings.PROFILE },
   ];
 
   const toggleOdd = (key: string) => {
@@ -1048,7 +1065,7 @@ function MobilePreview({
               color: "var(--p-primary)",
             }}
           >
-            <Flame className="h-3.5 w-3.5" /> BetBuilder
+            <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
           </button>
           <button
             className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
@@ -1058,7 +1075,7 @@ function MobilePreview({
               color: "var(--p-primary)",
             }}
           >
-            <ArrowLeftRight className="h-3.5 w-3.5" /> Peer-to-Peer
+            <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
           </button>
         </div>
         {/* Welcome Bonus */}
@@ -1070,10 +1087,10 @@ function MobilePreview({
           }}
         >
           <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>
-            WELCOME BONUS
+            {strings.WELCOME_BONUS_PROMO}
           </div>
           <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-text)" }}>
-            Get a Free Sportsbook Pick or Enjoy 50% More Casino Cash For Casino Games
+            {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
           <div
             className="mt-2 h-5 w-5 rounded-full grid place-items-center"
@@ -1084,7 +1101,7 @@ function MobilePreview({
         </div>
         {/* Featured matches */}
         <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
-          Live & Upcoming
+          {strings.LIVE_AND_UPCOMING}
         </div>
         <div className="space-y-2">
           {MATCHES.slice(0, 3).map((m, i) => {
@@ -1171,7 +1188,7 @@ function MobilePreview({
         className="flex border-b flex-shrink-0"
         style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
       >
-        {["Sports", "All Sports"].map((t, i) => (
+        {[strings.TAB_SPORTS, strings.TAB_ALL_SPORTS].map((t, i) => (
           <button
             key={t}
             onClick={() => setMobileSportsTab(i)}
@@ -1201,7 +1218,7 @@ function MobilePreview({
                 color: "var(--p-primary)",
               }}
             >
-              <Flame className="h-3.5 w-3.5" /> BetBuilder
+              <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
             </button>
             <button
               className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
@@ -1211,12 +1228,12 @@ function MobilePreview({
                 color: "var(--p-primary)",
               }}
             >
-              <ArrowLeftRight className="h-3.5 w-3.5" /> Peer-to-Peer
+              <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
             </button>
           </div>
 
           <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
-            Live & Upcoming
+            {strings.LIVE_AND_UPCOMING}
           </div>
 
           {/* Sport tabs */}
@@ -1365,10 +1382,10 @@ function MobilePreview({
             className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-semibold"
             style={{ color: "var(--p-primary)" }}
           >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back to Sports
+            <ChevronLeft className="h-3.5 w-3.5" /> {strings.BACK_TO_SPORTS}
           </button>
           <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-muted)" }}>
-            All Sports ({SPORTS_SIDEBAR.length})
+            {strings.ALL_SPORTS} ({SPORTS_SIDEBAR.length})
           </div>
           <div className="px-2">
             {SPORTS_SIDEBAR.map((s, i) => (
@@ -1406,7 +1423,7 @@ function MobilePreview({
       {renderTopBar()}
       <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
         <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-text)" }}>
-          Discover
+          {strings.DISCOVER}
         </div>
         <div className="grid grid-cols-2 gap-2">
           {EXPLORE_POSTS.map((p, i) => (
@@ -1431,7 +1448,7 @@ function MobilePreview({
                 className="mt-2 w-full h-7 rounded text-[9px] font-semibold"
                 style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
               >
-                View Tips
+                {strings.VIEW_TIPS}
               </button>
             </div>
           ))}
@@ -1446,7 +1463,7 @@ function MobilePreview({
       {renderTopBar()}
       <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
         <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-text)" }}>
-          Casino
+          {strings.CASINO_HEADING}
         </div>
         <div className="grid grid-cols-3 gap-2">
           {["🎰 Slots", "🃏 Poker", "🎲 Roulette", "🂡 Blackjack", "🎳 Bingo", "🎮 Live"].map(
@@ -1475,7 +1492,7 @@ function MobilePreview({
         className="flex border-b flex-shrink-0"
         style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
       >
-        {["My Bets", "My Feed"].map((t, i) => (
+        {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
           <button
             key={t}
             onClick={() => setMobileProfileTab(i)}
@@ -1501,7 +1518,7 @@ function MobilePreview({
             className="flex border-b flex-shrink-0"
             style={{ borderColor: "var(--p-divider)" }}
           >
-            {["All", "Pending", "Settled", "P2P"].map((t, i) => (
+            {[strings.FILTER_ALL, strings.FILTER_PENDING, strings.FILTER_SETTLED, strings.FILTER_P2P].map((t, i) => (
               <button
                 key={t}
                 onClick={() => setMobileMyBetsFilter(i)}
@@ -1557,18 +1574,18 @@ function MobilePreview({
                           : "var(--p-live)",
                       }}
                     >
-                      {b.status}
+                      {statusLabel(b.status)}
                     </span>
                   </div>
                   <div className="text-[9px]" style={{ color: "var(--p-muted)" }}>
                     1x2 · odds {b.odds}
                   </div>
                   <div className="flex items-center justify-between mt-1.5 text-[9px]">
-                    <span style={{ color: "var(--p-muted)" }}>STAKE</span>
+                    <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
                     <span className="font-bold" style={{ color: "var(--p-text)" }}>
                       ₦{b.stake}
                     </span>
-                    <span style={{ color: "var(--p-muted)" }}>PAYOUT</span>
+                    <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
                     <span
                       className="font-bold"
                       style={{ color: isWon ? "var(--p-success)" : "var(--p-text)" }}
@@ -1668,11 +1685,11 @@ function MobilePreview({
                   )}
                 </button>
                 <div className="flex items-center justify-between mt-2 text-[9px]">
-                  <span style={{ color: "var(--p-muted)" }}>STAKE</span>
+                  <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
                   <span className="font-bold" style={{ color: "var(--p-text)" }}>
                     ₦1,000
                   </span>
-                  <span style={{ color: "var(--p-muted)" }}>POTENTIAL</span>
+                  <span style={{ color: "var(--p-muted)" }}>{strings.POTENTIAL}</span>
                   <span className="font-bold" style={{ color: "var(--p-success)" }}>
                     ₦1,284,500
                   </span>
@@ -1685,7 +1702,7 @@ function MobilePreview({
                 className="text-center py-6 text-[9px]"
                 style={{ color: "var(--p-muted)" }}
               >
-                No P2P bets yet
+                {strings.NO_P2P_BETS}
               </div>
             )}
           </div>
@@ -1698,7 +1715,7 @@ function MobilePreview({
             className="flex gap-2 px-3 py-2 border-b flex-shrink-0"
             style={{ borderColor: "var(--p-divider)" }}
           >
-            {(["Friends", "Explore"] as const).map((t, i) => (
+            {[strings.TAB_FRIENDS, strings.TAB_EXPLORE].map((t, i) => (
               <button
                 key={t}
                 onClick={() => setMobileFeedTab(i)}
@@ -1748,7 +1765,7 @@ function MobilePreview({
                             color: "var(--p-text)",
                           }}
                         >
-                          WON
+                          {strings.STATUS_WON}
                         </span>
                       )}
                     </div>
@@ -1777,7 +1794,7 @@ function MobilePreview({
                         <Heart className="h-3 w-3" /> {p.likes}
                       </button>
                       <button className="flex items-center gap-1">
-                        <Share2 className="h-3 w-3" /> Share
+                        <Share2 className="h-3 w-3" /> {strings.SHARE}
                       </button>
                     </div>
                   </div>
@@ -1892,6 +1909,7 @@ function SportsView({
   onOpenAllSports: () => void;
   onOpenBetDetail: () => void;
 }) {
+  const { strings } = useStudio();
   return (
     <>
       {/* Top bar */}
@@ -1947,23 +1965,23 @@ function SportsView({
         <div className="grid grid-cols-2 gap-2 mb-2">
           <button className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}>
-            <Flame className="h-3.5 w-3.5" /> BetBuilder
+            <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
           </button>
           <button className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}>
-            <ArrowLeftRight className="h-3.5 w-3.5" /> Peer-to-Peer
+            <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
           </button>
         </div>
 
         <div className="rounded-lg p-3 mb-3 relative"
           style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", border: "1px solid var(--p-primary)" }}>
-          <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>WELCOME BONUS</div>
+          <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>{strings.WELCOME_BONUS_PROMO}</div>
           <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-text)" }}>
-            Get a Free Sportsbook Pick or Enjoy 50% More Casino Cash For Casino Games
+            {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
         </div>
 
-        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>Live & Upcoming</div>
+        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>{strings.LIVE_AND_UPCOMING}</div>
         <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {SPORT_TABS.map((s, i) => (
             <button key={s} onClick={() => setActiveSport(i)}
@@ -2082,6 +2100,7 @@ const FRIENDS_POSTS: SocialPost[] = [
 ];
 
 function AllSportsView() {
+  const { strings } = useStudio();
   return (
     <div className="flex-1 min-h-0 overflow-auto">
       {/* Search bar */}
@@ -2090,13 +2109,13 @@ function AllSportsView() {
         <div className="flex-1 flex items-center gap-2 px-3 h-9 rounded-full"
           style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
           <Search className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
-          <span className="text-[10.5px]" style={{ color: "var(--p-muted)" }}>Search teams, players and events</span>
+          <span className="text-[10.5px]" style={{ color: "var(--p-muted)" }}>{strings.SEARCH}</span>
         </div>
       </div>
 
       {/* Popular */}
       <div className="px-3 pt-2 pb-3">
-        <div className="text-[11px] font-semibold mb-2" style={{ color: "var(--p-muted)" }}>Popular</div>
+        <div className="text-[11px] font-semibold mb-2" style={{ color: "var(--p-muted)" }}>{strings.POPULAR}</div>
         <div className="flex flex-col items-start gap-1">
           <div className="h-12 w-12 rounded-xl grid place-items-center"
             style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
@@ -2108,7 +2127,7 @@ function AllSportsView() {
 
       {/* All Sports */}
       <div className="px-3">
-        <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>All Sports</div>
+        <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>{strings.ALL_SPORTS}</div>
         <div className="space-y-2 pb-3">
           {ALL_SPORTS_LIST.map((s) => (
             <div key={s.name}
@@ -2130,6 +2149,12 @@ function AllSportsView() {
 }
 
 function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySymbol: string }) {
+  const { strings } = useStudio();
+  const statusLabel = (s: string) =>
+    s === "WON" ? strings.STATUS_WON :
+    s === "LOST" ? strings.STATUS_LOST :
+    s === "PENDING" ? strings.STATUS_PENDING :
+    s === "LIVE" ? strings.STATUS_LIVE : s;
   const statusBg =
     post.status === "PENDING" ? "rgba(0,0,0,0.5)" :
     post.status === "LIVE" ? "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))" :
@@ -2166,7 +2191,7 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
             <span className="text-[8.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
               style={{ background: statusBg, color: "var(--p-text)" }}>
               {post.status === "LIVE" && <span className="h-1 w-1 rounded-full bg-white" />}
-              {post.status}
+              {statusLabel(post.status)}
             </span>
           )}
         </div>
@@ -2227,10 +2252,10 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
 
       {/* Stake/payout */}
       <div className="flex items-center justify-between text-[9px] pt-2 border-t" style={{ borderColor: "var(--p-divider)" }}>
-        <span style={{ color: "var(--p-muted)" }}>STAKE</span>
+        <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
         <span className="font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol} {post.stake}</span>
         <span className="font-bold" style={{ color: "var(--p-primary)" }}>{currencySymbol} {post.payout}</span>
-        <span style={{ color: "var(--p-muted)" }}>PAYOUT</span>
+        <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
       </div>
 
       {/* Reactions */}
@@ -2245,6 +2270,7 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
 }
 
 function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "friends" | "explore"; setSocialTab: (t: "friends" | "explore") => void; currencySymbol: string }) {
+  const { strings } = useStudio();
   const posts: SocialPost[] = FRIENDS_POSTS;
   return (
     <div className="flex-1 min-h-0 flex flex-col">
@@ -2272,7 +2298,7 @@ function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "f
             <button key={t} onClick={() => setSocialTab(t)}
               className="flex-1 h-9 text-[12px] font-bold relative"
               style={{ color: active ? "var(--p-text)" : "var(--p-muted)" }}>
-              {t === "friends" ? "Friends" : "Explore"}
+              {t === "friends" ? strings.TAB_FRIENDS : strings.TAB_EXPLORE}
               {active && (
                 <span className="absolute bottom-0 left-6 right-6 h-[2px] rounded-full"
                   style={{ background: "var(--p-primary)" }} />
@@ -2291,6 +2317,7 @@ function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "f
 }
 
 function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
+  const { strings } = useStudio();
   return (
     <div className="flex-1 min-h-0 overflow-auto px-3 pt-3 pb-2">
       <div className="rounded-xl p-3 mb-2"
@@ -2302,7 +2329,7 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
             <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>Premier League, Serie A</span>
           </div>
           <span className="text-[8.5px] font-black px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(0,0,0,0.5)", color: "var(--p-primary)" }}>PENDING</span>
+            style={{ background: "rgba(0,0,0,0.5)", color: "var(--p-primary)" }}>{strings.STATUS_PENDING}</span>
         </div>
 
         <div className="flex items-baseline justify-between mb-2">
@@ -2348,12 +2375,12 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
         <div className="rounded-lg p-2 mb-2" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid var(--p-primary)" }}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--p-primary)" }}>
-              <Flame className="h-3 w-3" /> FLEX CUTS
+              <Flame className="h-3 w-3" /> {strings.FLEX_CUTS}
             </span>
             <span className="text-[10px] font-bold" style={{ color: "var(--p-primary)" }}>1.27 - 3.14</span>
           </div>
           <div className="grid grid-cols-3 text-[8.5px] font-bold pb-1 border-b" style={{ color: "var(--p-muted)", borderColor: "var(--p-divider)" }}>
-            <span>OUTCOME</span><span>ODDS</span><span className="text-right">PAYOUT</span>
+            <span>{strings.OUTCOME}</span><span>{strings.ODDS_LABEL}</span><span className="text-right">{strings.PAYOUT}</span>
           </div>
           <div className="grid grid-cols-3 text-[10px] py-1.5" style={{ color: "var(--p-text)" }}>
             <span>12 of 13 correct</span><span>1.27</span><span className="text-right">{currencySymbol} 155.53</span>
@@ -2365,10 +2392,10 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
 
         {/* Stake */}
         <div className="flex items-center justify-between text-[9px] pt-1 border-t" style={{ borderColor: "var(--p-divider)" }}>
-          <span style={{ color: "var(--p-muted)" }}>STAKE</span>
+          <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
           <span className="font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol} 122.00</span>
           <span className="font-bold" style={{ color: "var(--p-primary)" }}>{currencySymbol} 26135.44</span>
-          <span style={{ color: "var(--p-muted)" }}>PAYOUT</span>
+          <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
         </div>
         <div className="flex items-center gap-3 mt-2 text-[10px]" style={{ color: "var(--p-muted)" }}>
           <span>♡ 0</span><span>💬 0</span>

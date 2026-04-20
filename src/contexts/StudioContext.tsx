@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { type Language, type TCMStrings, getStrings, LANGUAGE_NAMES } from '@/lib/tcm-strings';
+export type { Language, TCMStrings };
+export { LANGUAGE_NAMES };
 
 export interface StudioThemeColors {
   // CORE BRAND
@@ -143,6 +146,9 @@ export interface StudioState {
   previewMode: 'mobile' | 'website';
   setPreviewMode: (mode: 'mobile' | 'website') => void;
   headingFont: string;
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  strings: TCMStrings;
 }
 
 const StudioCtx = createContext<StudioState | null>(null);
@@ -156,16 +162,20 @@ export const useStudio = () => {
 export interface StudioSavedConfig {
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
+  language?: Language;
 }
 
 export const StudioProvider: React.FC<{
   children: React.ReactNode;
   initialColors?: StudioThemeColors;
   initialIcons?: StudioAppIcons;
-}> = ({ children, initialColors, initialIcons }) => {
+  initialLanguage?: Language;
+}> = ({ children, initialColors, initialIcons, initialLanguage }) => {
   const [themeColors, setThemeColors] = useState<StudioThemeColors>(initialColors ?? defaultStudioColors);
   const [appIcons, setAppIcons] = useState<StudioAppIcons>(initialIcons ?? defaultStudioAppIcons);
   const [previewMode, setPreviewMode] = useState<'mobile' | 'website'>('mobile');
+  const [language, setLanguage] = useState<Language>(initialLanguage ?? 'en');
+  const strings = useMemo(() => getStrings(language), [language]);
 
   return (
     <StudioCtx.Provider
@@ -178,6 +188,9 @@ export const StudioProvider: React.FC<{
         previewMode,
         setPreviewMode,
         headingFont: 'Sora',
+        language,
+        setLanguage,
+        strings,
       }}
     >
       {children}

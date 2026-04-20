@@ -23,6 +23,7 @@ import {
   type StudioThemeColors,
   type StudioAppIcons,
   type StudioSavedConfig,
+  type Language,
 } from "@/contexts/StudioContext";
 import { OnboardingCtx, type OnboardingCtxValue } from "@/lib/onboarding-context";
 import { StudioInner } from "@/routes/onboarding.$clientId.studio";
@@ -56,6 +57,7 @@ function StudioPreviewPage() {
   const [clientName, setClientName] = useState<string | null>(null);
   const [initialColors, setInitialColors] = useState<StudioThemeColors | undefined>(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
+  const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialLocked, setInitialLocked] = useState(false);
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -122,6 +124,7 @@ function StudioPreviewPage() {
             ...(data.studio_config as Partial<StudioThemeColors>),
           });
         }
+        if (saved.language) setInitialLanguage(saved.language);
       }
 
       if (data?.studio_locked) {
@@ -290,7 +293,7 @@ function StudioPreviewPage() {
       {/* Push content below the banner */}
       <div className="pt-8 h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
-          <StudioProvider initialColors={initialColors} initialIcons={initialIcons}>
+          <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage}>
             <StudioInner
               clientId={clientId}
               initialLocked={initialLocked}
