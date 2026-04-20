@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { applyPatch, type Operation } from "fast-json-patch";
 import { useAuth } from "@/lib/auth-context";
@@ -658,6 +659,27 @@ function StudioInner({
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the preview container div for instant CSS var updates before React re-render
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  // Tour refs — each points to a spotlighted area
+  const tourChatRef = useRef<HTMLDivElement>(null);
+  const tourFineTuneRef = useRef<HTMLDivElement>(null);
+  const tourPreviewRef = useRef<HTMLDivElement>(null);
+  const tourLockRef = useRef<HTMLDivElement>(null);
+  const tourRefs = { chat: tourChatRef, fineTune: tourFineTuneRef, preview: tourPreviewRef, lock: tourLockRef } as
+    Record<string, React.RefObject<HTMLDivElement>>;
+
+  // Tour state — show automatically on first visit, show help button after
+  const [tourActive, setTourActive] = useState(
+    () => !localStorage.getItem(`trivelta_studio_tour_${clientId}`),
+  );
+  const [showHelp, setShowHelp] = useState(
+    () => !!localStorage.getItem(`trivelta_studio_tour_${clientId}`),
+  );
+
+  // Keep chat open while tour is running so step 2 spotlight has content to highlight
+  useEffect(() => {
+    if (tourActive) setChatOpen(true);
+  }, [tourActive]);
+
   // Stable Supabase Storage URL of the most recently generated or applied logo.
   // Populated when an image event arrives (before user clicks "Use as Logo").
   // Passed to the edge function as logoUrl so Claude Vision always gets a non-expiring URL.
@@ -1153,7 +1175,9 @@ function StudioInner({
             </button>
           </div>
 
-          {/* ── AI Assistant toggle ──────────────────────────────────────── */}
+          {/* ── AI Assistant section (chat toggle + expanded content) ─────── */}
+          {/* tourChatRef wraps both the toggle and the expanded chat body */}
+          <div ref={tourChatRef}>
           <button
             type="button"
             onClick={() => setChatOpen((v) => !v)}
@@ -1255,8 +1279,10 @@ function StudioInner({
             </>
           )}
 
+          </div>{/* end tourChatRef wrapper */}
+
           {/* ── Fine-tune manually (collapsible) ────────────────────────── */}
-          <div className="shrink-0 border-t border-border">
+          <div ref={tourFineTuneRef} className="shrink-0 border-t border-border">
             <button
               type="button"
               onClick={() => setControlsOpen((v) => !v)}
@@ -1414,7 +1440,7 @@ function StudioInner({
           </div>
 
           {/* ── Lock Design (always visible) ───────────────────────────── */}
-          <div className="shrink-0 border-t border-border p-3">
+          <div ref={tourLockRef} className="shrink-0 border-t border-border p-3">
             {locked ? (
               <div className="flex items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/10 py-3 text-[13px] font-bold text-success">
                 <CheckCircle2 className="h-4 w-4" />
@@ -1441,7 +1467,7 @@ function StudioInner({
         </div>
 
         {/* ══ RIGHT PANEL - Preview (65%) ══════════════════════════════ */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
+        <div ref={tourPreviewRef} className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
 
           {/* Mobile / Web toggle */}
           <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
@@ -1482,6 +1508,30 @@ function StudioInner({
         </div>
       </div>
 
+      {/* ── Studio tour (first-time only) ───────────────────────────────── */}
+      {tourActive && (
+        <StudioTour
+          clientId={clientId}
+          onDone={() => { setTourActive(false); setShowHelp(true); }}
+          refs={tourRefs}
+        />
+      )}
+
+      {/* ── Help button (replay tour) ────────────────────────────────────── */}
+      {showHelp && !tourActive && (
+        <button
+          onClick={() => {
+            localStorage.removeItem(`trivelta_studio_tour_${clientId}`);
+            setShowHelp(false);
+            setTourActive(true);
+          }}
+          className="fixed bottom-5 right-5 z-50 grid h-8 w-8 place-items-center rounded-full border border-border bg-card text-[13px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary/50 hover:text-primary"
+          title="Replay Studio tour"
+        >
+          ?
+        </button>
+      )}
+
       {/* ── Lock modal ──────────────────────────────────────────────────── */}
       {lockModalOpen && (
         <LockModal
@@ -1499,6 +1549,206 @@ function StudioInner({
         />
       )}
     </div>
+  );
+}
+
+/* ── Studio Tour ────────────────────────────────────────────────────────── */
+
+const TOUR_STEPS = [
+  {
+    refKey: null as string | null,
+    title: "Welcome to Trivelta Studio",
+    text: "This is where you'll design your platform. We'll show you around in 30 seconds.",
+    cta: "Let's go →",
+  },
+  {
+    refKey: "chat",
+    title: "Your AI Design Assistant",
+    text: "Describe what you want in plain language. Try: 'I want a dark green theme' or 'Generate a logo for BetKing'. The AI will apply changes instantly.",
+    cta: "Next →",
+  },
+  {
+    refKey: "fineTune",
+    title: "Fine-tune Manually",
+    text: "Prefer to control colors yourself? Click 'Fine-tune manually' to open color pickers and upload your own logo and icon.",
+    cta: "Next →",
+  },
+  {
+    refKey: "preview",
+    title: "Live Platform Preview",
+    text: "See your changes in real time. Toggle between Mobile and Web view to see exactly how your platform will look.",
+    cta: "Next →",
+  },
+  {
+    refKey: "lock",
+    title: "Lock Your Design When Ready",
+    text: "When you're happy with your colors and logo, click 'Lock My Design'. Your Account Manager will then configure your platform exactly as shown here.",
+    cta: "Start designing →",
+  },
+];
+
+function StudioTour({
+  clientId,
+  onDone,
+  refs,
+}: {
+  clientId: string;
+  onDone: () => void;
+  refs: Record<string, React.RefObject<HTMLDivElement>>;
+}) {
+  const [step, setStep] = useState(0);
+  const [fading, setFading] = useState(false);
+  const [spotRect, setSpotRect] = useState<DOMRect | null>(null);
+
+  const current = TOUR_STEPS[step];
+  const CARD_W = 340;
+  const PAD = 12;
+
+  useLayoutEffect(() => {
+    const el = current.refKey ? refs[current.refKey]?.current : null;
+    const update = () => setSpotRect(el ? el.getBoundingClientRect() : null);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const done = useCallback(() => {
+    setFading(true);
+    setTimeout(() => {
+      localStorage.setItem(`trivelta_studio_tour_${clientId}`, "1");
+      onDone();
+    }, 250);
+  }, [clientId, onDone]);
+
+  const next = useCallback(() => {
+    if (step < TOUR_STEPS.length - 1) setStep((s) => s + 1);
+    else done();
+  }, [step, done]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") done();
+      if ((e.key === "Enter" || e.key === " ") && (e.target as HTMLElement).tagName !== "BUTTON") {
+        e.preventDefault();
+        next();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [done, next]);
+
+  const cardStyle = (): React.CSSProperties => {
+    const CARD_H = 230;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    if (!spotRect) {
+      return { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: CARD_W };
+    }
+    const cx = spotRect.left + spotRect.width / 2;
+    const left = Math.max(PAD, Math.min(cx - CARD_W / 2, vw - CARD_W - PAD));
+    const spaceBelow = vh - spotRect.bottom - PAD;
+    const spaceAbove = spotRect.top - PAD;
+    let top: number;
+    if (spaceBelow >= CARD_H) {
+      top = spotRect.bottom + PAD;
+    } else if (spaceAbove >= CARD_H) {
+      top = spotRect.top - CARD_H - PAD;
+    } else {
+      top = Math.max(PAD, Math.min(spotRect.top + (spotRect.height - CARD_H) / 2, vh - CARD_H - PAD));
+    }
+    return { position: "fixed", top, left, width: CARD_W };
+  };
+
+  return createPortal(
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "all",
+        opacity: fading ? 0 : 1, transition: "opacity 250ms ease",
+      }}
+    >
+      {/* Spotlight / dark backdrop */}
+      {spotRect ? (
+        <div
+          style={{
+            position: "fixed",
+            top: spotRect.top - PAD,
+            left: spotRect.left - PAD,
+            width: spotRect.width + PAD * 2,
+            height: spotRect.height + PAD * 2,
+            borderRadius: 12,
+            // box-shadow creates the dark overlay; the div center is transparent, showing content
+            boxShadow: "0 0 0 100vmax rgba(0,0,0,0.78)",
+            border: "2px solid rgba(99,179,237,0.6)",
+            pointerEvents: "none",
+          }}
+        />
+      ) : (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", pointerEvents: "none" }} />
+      )}
+
+      {/* Tour card */}
+      <div
+        className="rounded-xl border border-white/10 bg-card shadow-2xl"
+        style={{ ...cardStyle(), position: "fixed", zIndex: 10000, pointerEvents: "all" }}
+      >
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-3 w-3 text-primary" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Studio Tour
+            </span>
+          </div>
+          <button
+            onClick={done}
+            className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Skip tour
+          </button>
+        </div>
+
+        <div className="px-5 py-4">
+          <p className="mb-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-primary">
+            Step {step + 1} of {TOUR_STEPS.length}
+          </p>
+          <h3 className="mb-2 text-[15px] font-semibold leading-snug text-foreground">
+            {current.title}
+          </h3>
+          <p className="text-[12px] leading-relaxed text-muted-foreground">{current.text}</p>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-5 py-3">
+          <div className="flex gap-1.5">
+            {TOUR_STEPS.map((_, i) => (
+              <span
+                key={i}
+                className="block h-1.5 rounded-full transition-all duration-200"
+                style={{
+                  width: i === step ? 16 : 6,
+                  background: i === step ? "var(--primary)" : "rgba(255,255,255,0.15)",
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            {step > 0 && (
+              <button
+                onClick={() => setStep((s) => s - 1)}
+                className="rounded-lg px-3 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                ← Back
+              </button>
+            )}
+            <button
+              onClick={next}
+              className="rounded-lg bg-primary px-4 py-1.5 text-[12px] font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+            >
+              {current.cta}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
