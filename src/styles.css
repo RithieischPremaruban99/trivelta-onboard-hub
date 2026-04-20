@@ -103,6 +103,72 @@
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "cv11", "ss01";
     letter-spacing: -0.01em;
+    font-weight: 450;
+    line-height: 1.5;
+  }
+
+  /* Typography polish */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h1, h2 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .uppercase, [class*="uppercase"] {
+    letter-spacing: 0.08em;
+  }
+
+  /* Micro-interactions */
+  a {
+    transition: color 100ms ease;
+  }
+  button:not(:disabled) {
+    transition: all 150ms ease;
+  }
+  button:not(:disabled):hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+  button:not(:disabled):active {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+
+  /* Table rows */
+  tr {
+    transition: background-color 100ms ease;
+  }
+
+  /* Focus states — replace default blue outline */
+  *:focus {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 30%, transparent);
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    transition: background 150ms ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 
   /* Subtle radial backdrop, like trivelta.com hero */
@@ -236,4 +302,83 @@
   20%  { background-color: color-mix(in srgb, var(--primary) 14%, transparent); }
   60%  { background-color: color-mix(in srgb, var(--primary) 8%, transparent); }
   100% { background-color: transparent; }
+}
+
+/* ============================================================
+   Premium polish — chat, modal, toast, skeleton, card hover
+   ============================================================ */
+
+@keyframes chat-bubble-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@layer components {
+  .chat-bubble-enter { animation: chat-bubble-in 200ms ease both; }
+}
+
+@layer base {
+  [data-radix-accordion-content] { transition: height 200ms ease; }
+  svg.lucide-chevron-down, .accordion-chevron { transition: transform 200ms ease; }
+  [data-state=open] > svg.lucide-chevron-down,
+  [data-state=open] > .accordion-chevron { transform: rotate(180deg); }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.97); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@layer base {
+  [role=dialog][data-state=open] { animation: modal-in 200ms ease both; }
+  [data-radix-dialog-overlay], [data-state][data-radix-dialog-overlay] {
+    transition: opacity 150ms ease;
+  }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(4px); }
+}
+@layer base {
+  [data-sonner-toast][data-mounted=true] { animation: toast-in 200ms ease both; }
+  [data-sonner-toast][data-removed=true] { animation: toast-out 150ms ease both; }
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@layer components {
+  .animate-pulse {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--color-foreground) 6%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: skeleton-shimmer 1.5s infinite linear;
+  }
+}
+
+@layer components {
+  .surface-card {
+    transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .surface-card:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--color-border) 100%, white 6%);
+  }
+  .color-swatch { transition: transform 150ms ease; }
+  .color-swatch:hover { transform: scale(1.1); }
+}
+
+@layer base {
+  [role=switch], [role=switch] > * {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
