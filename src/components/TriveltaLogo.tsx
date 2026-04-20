@@ -37,13 +37,19 @@ export function TriveltaLogo({
       {withSubtitle && (
         <span
           className={cn(
-            "font-semibold uppercase text-white leading-none",
+            "font-semibold uppercase leading-none bg-clip-text text-transparent",
             dims.text,
             dims.pl,
           )}
           style={{
             letterSpacing: "0.24em",
-            borderLeft: "2px solid rgba(255,255,255,0.85)",
+            borderLeft: "2px solid rgba(220,224,232,0.55)",
+            backgroundImage:
+              "linear-gradient(135deg, #f4f6fa 0%, #d3d8e0 25%, #aab1bd 50%, #e8ecf2 75%, #b8bfca 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            textShadow: "0 1px 0 rgba(255,255,255,0.05)",
+            filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))",
           }}
         >
           Studio
