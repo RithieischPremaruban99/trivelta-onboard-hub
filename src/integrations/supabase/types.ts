@@ -59,6 +59,9 @@ export type Database = {
           platform_url: string | null
           primary_contact_email: string | null
           status: Database["public"]["Enums"]["client_status"]
+          studio_access: boolean
+          studio_access_granted_at: string | null
+          studio_access_granted_by: string | null
           studio_access_locked: boolean
           studio_locked_at: string | null
           updated_at: string
@@ -75,6 +78,9 @@ export type Database = {
           platform_url?: string | null
           primary_contact_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          studio_access?: boolean
+          studio_access_granted_at?: string | null
+          studio_access_granted_by?: string | null
           studio_access_locked?: boolean
           studio_locked_at?: string | null
           updated_at?: string
@@ -91,6 +97,9 @@ export type Database = {
           platform_url?: string | null
           primary_contact_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          studio_access?: boolean
+          studio_access_granted_at?: string | null
+          studio_access_granted_by?: string | null
           studio_access_locked?: boolean
           studio_locked_at?: string | null
           updated_at?: string
