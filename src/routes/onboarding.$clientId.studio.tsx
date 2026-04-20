@@ -143,6 +143,85 @@ function hexToRgba(hex: string, alpha = 1): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+/* ── Lottie recolor utilities ───────────────────────────────────────────── */
+
+/** Parse "rgba(r, g, b, a)" → [r01, g01, b01] floats, or null if unparseable. */
+function parseRgbaTo01(css: string): [number, number, number] | null {
+  const m = css.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+  if (!m) return null;
+  return [parseFloat(m[1]) / 255, parseFloat(m[2]) / 255, parseFloat(m[3]) / 255];
+}
+
+function colorDist(a: [number, number, number], b: [number, number, number]): number {
+  return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+}
+
+/** Build the brand palette candidates we'll snap Lottie colors to. */
+function buildBrandPalette(tc: StudioThemeColors): Array<[number, number, number]> {
+  const keys: Array<keyof StudioThemeColors> = [
+    "primaryBg", "primary", "secondary", "primaryButton",
+    "primaryButtonGradient", "wonGradient1", "wonGradient2", "lightText",
+  ];
+  return keys.map((k) => parseRgbaTo01(tc[k])).filter((c): c is [number, number, number] => c !== null);
+}
+
+function isColorArr(arr: unknown[]): arr is number[] {
+  return (arr.length === 3 || arr.length === 4) &&
+    (arr as number[]).every((v) => typeof v === "number" && v >= -0.001 && v <= 1.001);
+}
+
+function snapColor(arr: number[], palette: Array<[number, number, number]>): void {
+  const src: [number, number, number] = [arr[0], arr[1], arr[2]];
+  let best = palette[0];
+  let bestDist = Infinity;
+  for (const p of palette) {
+    const d = colorDist(src, p);
+    if (d < bestDist) { bestDist = d; best = p; }
+  }
+  arr[0] = best[0]; arr[1] = best[1]; arr[2] = best[2];
+  // alpha (arr[3]) is intentionally preserved
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function walkLottieColors(node: unknown, isColorK: boolean, palette: Array<[number, number, number]>): void {
+  if (Array.isArray(node)) {
+    if (isColorK) {
+      if (isColorArr(node as unknown[])) {
+        snapColor(node as number[], palette);
+      } else {
+        // Animated keyframes: recolor s and e vectors inside each keyframe object
+        for (const kf of node as unknown[]) {
+          if (kf && typeof kf === "object") {
+            const obj = kf as Record<string, unknown>;
+            if (Array.isArray(obj.s) && isColorArr(obj.s)) snapColor(obj.s as number[], palette);
+            if (Array.isArray(obj.e) && isColorArr(obj.e)) snapColor(obj.e as number[], palette);
+          }
+        }
+      }
+    } else {
+      for (const item of node) walkLottieColors(item, false, palette);
+    }
+  } else if (node !== null && typeof node === "object") {
+    const obj = node as Record<string, unknown>;
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === "c" && v !== null && typeof v === "object" && !Array.isArray(v)) {
+        // Color property — descend directly into its `k` value
+        const cp = v as Record<string, unknown>;
+        if (cp.k !== undefined) walkLottieColors(cp.k, true, palette);
+      } else {
+        walkLottieColors(v, false, palette);
+      }
+    }
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function recolorLottieJson(json: any, themeColors: StudioThemeColors): any {
+  const clone = JSON.parse(JSON.stringify(json));
+  walkLottieColors(clone, false, buildBrandPalette(themeColors));
+  return clone;
+}
+
 /* ── Studio Color Field ─────────────────────────────────────────────────── */
 
 function StudioColorField({
@@ -526,6 +605,53 @@ function StudioInner({
         .catch(() => { /* silently ignore — placeholder just won't render */ });
     });
   }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [uploadedAnimations, setUploadedAnimations] = useState<
+    Record<string, { data: object; url: string | null; uploading: boolean } | null>
+  >({ loading: null, splash: null, live: null });
+
+  const handleAnimationUpload = useCallback(
+    async (slotKey: string, file: File) => {
+      if (!file.name.endsWith(".json")) {
+        toast.error("Please upload a Lottie JSON file (.json)");
+        return;
+      }
+      try {
+        const text = await file.text();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw = JSON.parse(text) as any;
+        const recolored = recolorLottieJson(raw, themeColors);
+
+        setUploadedAnimations((prev) => ({
+          ...prev,
+          [slotKey]: { data: recolored, url: null, uploading: true },
+        }));
+
+        const fileName = `${clientId}/animation-${slotKey}-${Date.now()}.json`;
+        const blob = new Blob([JSON.stringify(recolored)], { type: "application/json" });
+        const { data: storageData, error } = await supabase.storage
+          .from("studio-assets")
+          .upload(fileName, blob, { contentType: "application/json", upsert: true });
+
+        if (error) console.warn("[studio] Animation upload failed:", error);
+        const url = storageData
+          ? supabase.storage.from("studio-assets").getPublicUrl(fileName).data.publicUrl
+          : null;
+
+        setUploadedAnimations((prev) => ({
+          ...prev,
+          [slotKey]: { data: recolored, url, uploading: false },
+        }));
+        toast.success("Animation recolored with your brand colors");
+      } catch (e) {
+        toast.error("Failed to process animation — check the file is a valid Lottie JSON");
+        console.error(e);
+        setUploadedAnimations((prev) => ({ ...prev, [slotKey]: null }));
+      }
+    },
+    [clientId, themeColors],
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
@@ -1220,32 +1346,69 @@ function StudioInner({
                   </p>
                 </div>
 
-                {/* Placeholder Lottie previews */}
+                {/* Animation slots */}
                 {[
                   { key: "loading", label: "Loading Animation" },
                   { key: "splash",  label: "Splash Screen" },
                   { key: "live",    label: "Live Icon" },
-                ].map(({ key, label }) => (
-                  <div key={key}>
-                    <div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-                      {label}
+                ].map(({ key, label }) => {
+                  const uploaded = uploadedAnimations[key];
+                  const previewData = uploaded?.data ?? lottieData[key];
+                  const isUploaded = !!uploaded;
+                  const isUploading = uploaded?.uploading === true;
+                  return (
+                    <div key={key}>
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                          {label}
+                        </span>
+                        {/* Upload button */}
+                        {!locked && (
+                          <label className="flex cursor-pointer items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-0.5 text-[9px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary">
+                            {isUploading
+                              ? <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                              : <Upload className="h-2.5 w-2.5" />
+                            }
+                            {isUploaded ? "Replace" : "Upload"}
+                            <input
+                              type="file"
+                              accept=".json"
+                              className="sr-only"
+                              disabled={isUploading}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleAnimationUpload(key, f);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
+                      <div
+                        className="relative flex items-center justify-center overflow-hidden rounded-lg border border-border bg-background/60"
+                        style={{ height: 120 }}
+                      >
+                        {previewData ? (
+                          <Lottie
+                            animationData={previewData}
+                            loop
+                            style={{ height: 100, width: "100%" }}
+                          />
+                        ) : (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/40" />
+                        )}
+                        <span className={cn(
+                          "absolute bottom-1.5 right-2 rounded-sm px-1 py-0.5 font-mono text-[8px] uppercase tracking-wide",
+                          isUploaded
+                            ? "bg-primary/15 text-primary"
+                            : "bg-background/80 text-muted-foreground/60",
+                        )}>
+                          {isUploaded ? "Brand colors applied" : "Placeholder"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="relative flex items-center justify-center overflow-hidden rounded-lg border border-border bg-background/60" style={{ height: 120 }}>
-                      {lottieData[key] ? (
-                        <Lottie
-                          animationData={lottieData[key]}
-                          loop
-                          style={{ height: 100, width: "100%" }}
-                        />
-                      ) : (
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/40" />
-                      )}
-                      <span className="absolute bottom-1.5 right-2 rounded-sm bg-background/80 px-1 py-0.5 font-mono text-[8px] uppercase tracking-wide text-muted-foreground/60">
-                        Placeholder
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
