@@ -1,10 +1,23 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Loader2 } from "lucide-react";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 
 export const Route = createFileRoute("/")({
   component: IndexGateway,
 });
+
+function BrandCorner() {
+  return (
+    <Link
+      to="/"
+      className="fixed left-5 top-4 z-50 flex items-center sm:left-8"
+      aria-label="Trivelta Studio"
+    >
+      <TriveltaLogo size="md" withSubtitle />
+    </Link>
+  );
+}
 
 function IndexGateway() {
   const { loading, user, role } = useAuth();
@@ -12,6 +25,7 @@ function IndexGateway() {
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center" suppressHydrationWarning>
+        <BrandCorner />
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -27,6 +41,7 @@ function IndexGateway() {
   // Authenticated but no role assigned
   return (
     <div className="min-h-screen grid place-items-center px-6">
+      <BrandCorner />
       <div className="surface-card max-w-md p-8 text-center">
         <h1 className="text-lg font-semibold">Awaiting access</h1>
         <p className="mt-2 text-sm text-muted-foreground">
