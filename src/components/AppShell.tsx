@@ -4,7 +4,13 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { TriveltaNav } from "@/components/TriveltaNav";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  badge,
+}: {
+  children: React.ReactNode;
+  badge?: string;
+}) {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -16,6 +22,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <TriveltaNav
+        product="Suite"
+        badge={badge}
         right={
           <div className="flex items-center gap-3">
             {role && (

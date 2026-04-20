@@ -1432,7 +1432,7 @@ export function StudioInner({
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
         <div className="flex w-[35%] shrink-0 items-center">
-          <TriveltaLogo size="sm" />
+          <TriveltaLogo size="sm" withSubtitle product="Studio" />
         </div>
         <div className="flex flex-1 items-center justify-center gap-2">
           {welcomeInfo && (
@@ -2257,6 +2257,10 @@ function StudioPage() {
   const [accessLocked, setAccessLocked] = useState(false);
   const [studioAccess, setStudioAccess] = useState(false);
   const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    document.title = "Trivelta Studio";
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;

@@ -29,6 +29,10 @@ function WelcomeGate() {
   const navigate = useNavigate();
   const [redirecting, setRedirecting] = useState(false);
 
+  useEffect(() => {
+    document.title = "Trivelta Hub · Welcome";
+  }, []);
+
   // Auto-redirect authenticated users based on form submission status
   useEffect(() => {
     if (authLoading || loadingPublic || !user) return;
@@ -72,9 +76,10 @@ function WelcomeGate() {
   return (
     <div className="route-fade-in relative flex min-h-screen flex-col">
       <TriveltaNav
+        product="Hub"
         right={
           <span className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex">
-            <span className="text-primary">●</span> Platform Onboarding
+            <span className="text-primary">●</span> Onboarding
           </span>
         }
       />

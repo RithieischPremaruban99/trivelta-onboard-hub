@@ -1,4 +1,5 @@
 import { createFileRoute, Navigate, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Loader2 } from "lucide-react";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
@@ -12,15 +13,19 @@ function BrandCorner() {
     <Link
       to="/"
       className="fixed left-5 top-4 z-50 flex items-center sm:left-8"
-      aria-label="Trivelta Studio"
+      aria-label="Trivelta Suite"
     >
-      <TriveltaLogo size="md" withSubtitle />
+      <TriveltaLogo size="md" withSubtitle product="Suite" />
     </Link>
   );
 }
 
 function IndexGateway() {
   const { loading, user, role } = useAuth();
+
+  useEffect(() => {
+    document.title = "Trivelta Suite";
+  }, []);
 
   if (loading) {
     return (

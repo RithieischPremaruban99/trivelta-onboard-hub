@@ -166,6 +166,10 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = "Trivelta Suite · Dashboard";
+  }, []);
+
+  useEffect(() => {
     if (authLoading || !user) return;
     (async () => {
       setLoading(true);
@@ -235,7 +239,7 @@ function DashboardPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell badge="Account Manager">
       <div className="mx-auto w-full max-w-[1400px] px-6 py-6">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           {/* Sidebar: client list */}

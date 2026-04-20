@@ -86,6 +86,10 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    document.title = "Trivelta Suite · Admin";
+  }, []);
+
   const refresh = async () => {
     setLoading(true);
     const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes] = await Promise.all([
@@ -182,7 +186,7 @@ function AdminPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell badge="Admin">
       <div className="mx-auto w-full max-w-[1400px] px-6 py-6">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>

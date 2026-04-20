@@ -17,11 +17,14 @@ const SIZE_MAP: Record<Size, { h: string; text: string; pl: string }> = {
 export function TriveltaLogo({
   size = "md",
   withSubtitle = true,
+  product = "Studio",
   className,
 }: {
   size?: Size;
-  /** Show the "STUDIO" lockup divider + wordmark. Defaults to true. */
+  /** Show the product lockup divider + wordmark. Defaults to true. */
   withSubtitle?: boolean;
+  /** Product name shown after the divider. Defaults to "Studio". */
+  product?: string;
   className?: string;
 }) {
   const dims = SIZE_MAP[size];
@@ -52,7 +55,7 @@ export function TriveltaLogo({
             filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))",
           }}
         >
-          Studio
+          {product}
         </span>
       )}
     </div>

@@ -234,6 +234,10 @@ function FormScreen() {
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const myPresenceRef = useRef<PresencePayload | null>(null);
 
+  useEffect(() => {
+    document.title = "Trivelta Hub · Onboarding";
+  }, []);
+
   // Redirect unauthenticated users to auth screen
   useEffect(() => {
     if (authLoading) return;
@@ -494,6 +498,7 @@ function FormScreen() {
     <div className="route-fade-in flex min-h-screen flex-col">
       {/* Sticky brand nav with progress bar underneath */}
       <TriveltaNav
+        product="Hub"
         homeHref={`/onboarding/${clientId}`}
         right={
           <div className="flex items-center gap-3">

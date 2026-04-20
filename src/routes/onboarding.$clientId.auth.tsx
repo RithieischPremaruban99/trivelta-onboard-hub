@@ -24,6 +24,10 @@ function AuthScreen() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
+    document.title = "Trivelta Hub · Welcome";
+  }, []);
+
+  useEffect(() => {
     if (authLoading || loadingAuth) return;
     if (user && clientRole) {
       // Check submission status — skip form, go straight to studio if already submitted
@@ -65,6 +69,7 @@ function AuthScreen() {
   return (
     <div className="flex min-h-screen flex-col">
       <TriveltaNav
+        product="Hub"
         right={
           welcomeInfo && (
             <div className="hidden text-right sm:block">

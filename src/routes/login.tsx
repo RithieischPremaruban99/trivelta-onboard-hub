@@ -15,17 +15,15 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
   head: () => ({
     meta: [
-      { title: "Sign in - Trivelta Onboarding Hub" },
+      { title: "Trivelta Suite" },
       {
         name: "description",
-        content:
-          "Sign in to the Trivelta Onboarding Hub - the premium iGaming B2B turnkey platform.",
+        content: "Sign in to Trivelta Suite - your iGaming platform starts here.",
       },
-      { property: "og:title", content: "Sign in - Trivelta Onboarding Hub" },
+      { property: "og:title", content: "Trivelta Suite" },
       {
         property: "og:description",
-        content:
-          "Sign in to the Trivelta Onboarding Hub - the premium iGaming B2B turnkey platform.",
+        content: "Sign in to Trivelta Suite - your iGaming platform starts here.",
       },
     ],
   }),
@@ -64,7 +62,7 @@ function LoginPage() {
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="flex h-[60px] w-full items-center px-5 sm:px-8">
           <Link to="/login" className="flex items-center">
-            <TriveltaLogo size="md" withSubtitle />
+            <TriveltaLogo size="md" withSubtitle product="Suite" />
           </Link>
         </div>
       </header>
@@ -85,23 +83,17 @@ function LoginPage() {
                 className="font-bold tracking-tight text-white"
                 style={{ fontSize: "52px", lineHeight: 1.1, fontWeight: 700 }}
               >
-                Welcome to Trivelta.
+                Trivelta Suite.
                 <br />
-                <span style={{ color: "#2563eb" }}>Your platform is ready to be built.</span>
+                <span style={{ color: "#2563eb" }}>Your platform starts here.</span>
               </h1>
 
               <p
                 className="mt-5 text-[16px] font-normal"
                 style={{ color: "#8896ab", marginTop: "20px" }}
               >
-                A fully customizable iGaming engine built to your exact specifications.
-              </p>
-              <p
-                className="text-[14px] font-normal leading-relaxed"
-                style={{ color: "#6b7280", marginTop: "12px" }}
-              >
-                Track contracts, branding, integrations, and go-live tasks - from kickoff to
-                post-launch.
+                Submit your onboarding details and work with your Account Manager to bring your
+                platform to life.
               </p>
 
               <div
@@ -185,7 +177,7 @@ function LoginPage() {
                           type="email"
                           required
                           autoComplete="email"
-                          placeholder="you@company.com"
+                          placeholder="Your email address"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="mt-2 w-full text-white placeholder:text-[#5b6478]"
@@ -217,15 +209,15 @@ function LoginPage() {
                             </>
                           ) : (
                             <>
-                              Send magic link <ArrowRight className="ml-1 h-4 w-4" />
+                              Continue <ArrowRight className="ml-1 h-4 w-4" />
                             </>
-                          )}
+)}
                         </Button>
                         <p
                           className="text-center text-[12px]"
                           style={{ color: "#6b7280", marginTop: "12px" }}
                         >
-                          Access is limited to invited users.
+                          Don't have an account? Your Account Manager will send you a direct link.
                         </p>
                       </form>
 

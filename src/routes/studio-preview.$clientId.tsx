@@ -75,6 +75,10 @@ function StudioPreviewPage() {
   const [togglingLock, setTogglingLock] = useState(false);
   const [ready, setReady] = useState(false);
 
+  useEffect(() => {
+    document.title = "Trivelta Studio · Admin Preview";
+  }, []);
+
   // All clients for prev/next navigation
   const [allClients, setAllClients] = useState<ClientLite[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);

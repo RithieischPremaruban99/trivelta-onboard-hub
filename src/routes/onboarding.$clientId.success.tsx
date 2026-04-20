@@ -53,6 +53,10 @@ function SuccessScreen() {
   const [studioAccess, setStudioAccess] = useState(false);
 
   useEffect(() => {
+    document.title = "Trivelta Hub · Complete";
+  }, []);
+
+  useEffect(() => {
     if (authLoading) return;
     if (!user) {
       navigate({ to: "/onboarding/$clientId/auth", params: { clientId }, replace: true });
@@ -89,6 +93,7 @@ function SuccessScreen() {
   return (
     <div className="route-slide-up flex min-h-screen flex-col">
       <TriveltaNav
+        product="Hub"
         right={
           <div className="hidden text-right sm:block">
             <div className="text-[13px] font-semibold text-foreground">
