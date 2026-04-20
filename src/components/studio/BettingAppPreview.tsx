@@ -1,22 +1,21 @@
 /**
- * BettingAppPreview
+ * BettingAppPreview — renders Sportsbook UI surfaces only.
  *
- * Faithful reproduction of the standard Trivelta platform layout (as seen
- * on BetCorrect today), used inside Studio so clients can preview how their
- * brand colors look in production. Two modes:
+ * Consumes TCMPalette via deterministic CSS variables injected on the root element.
+ * Every palette field maps to: fieldNameToCssVar(fieldName) → --p-{kebab-case}
  *
- *  - Mobile (375px iPhone frame): top balance bar, quick-access row, big
- *    Welcome Bonus card, sport tabs + match cards, bottom nav.
- *  - Web (full desktop layout): left sport sidebar, center match feed with
- *    sport/league/bet-type tabs and a Welcome Bonus banner, right "My Bets"
- *    panel.
+ * The following TCMPalette feature groups are set as CSS variables but NOT rendered
+ * in this preview component. They apply at runtime in the actual TCM deployment
+ * once the client's features are activated:
  *
- * All accent colors are driven by CSS variables (`--p-*`) injected on the
- * outer wrapper from StudioContext.themeColors, so changing tokens in the
- * Studio panel updates the preview live.
+ * - Poker (~44 fields)
+ * - Pikkem (~16 fields)
+ * - Gamepass (~54 fields)
+ * - Casino (~9 fields)
+ * - PAM Admin Panel (~15 fields — admin-only, not visible to end users)
  *
- * Static placeholder data only - neutral "BetNova" branding, no BetCorrect
- * references.
+ * Client can still edit these fields in Advanced Mode; they will be stored in
+ * studio_config.palette and applied when the TCM runtime renders those features.
  */
 import { useState } from "react";
 import { useStudio } from "@/contexts/StudioContext";
@@ -254,7 +253,7 @@ const PARLAY_LEGS = [
 const TeamDot = ({ label }: { label: string }) => (
   <div
     className="h-4 w-4 rounded-full grid place-items-center text-[7px] font-bold flex-shrink-0"
-    style={{ background: "var(--p-inactive)", color: "var(--p-text)" }}
+    style={{ background: "var(--p-inactive-button-bg)", color: "var(--p-light-text-color)" }}
   >
     {label.slice(0, 1)}
   </div>
@@ -265,9 +264,9 @@ const LiveDot = () => {
   return (
     <span
       className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full text-[8px] font-bold"
-      style={{ background: "rgba(239,68,68,0.15)", color: "var(--p-live)" }}
+      style={{ background: "rgba(239,68,68,0.15)", color: "var(--p-lost-color)" }}
     >
-      <span className="h-1 w-1 rounded-full" style={{ background: "var(--p-live)" }} />
+      <span className="h-1 w-1 rounded-full" style={{ background: "var(--p-lost-color)" }} />
       {strings.LIVE_BADGE}
     </span>
   );
@@ -308,19 +307,19 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   const renderRightPanel = () => (
     <aside
       className="w-[200px] border-l flex flex-col flex-shrink-0"
-      style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
+      style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
     >
       {/* My Bets / My Feed top tabs */}
       <div
         className="flex border-b text-[9px] font-semibold"
-        style={{ borderColor: "var(--p-divider)" }}
+        style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
       >
         {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
           <button
             key={t}
             onClick={() => setWebMyBetsMainTab(i)}
             className="flex-1 h-7 relative"
-            style={{ color: webMyBetsMainTab === i ? "var(--p-text)" : "var(--p-muted)" }}
+            style={{ color: webMyBetsMainTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
           >
             {t}
             {webMyBetsMainTab === i && (
@@ -338,7 +337,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           {/* All / Pending / Settled / P2P filters */}
           <div
             className="flex border-b text-[8px] font-semibold"
-            style={{ borderColor: "var(--p-divider)" }}
+            style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
           >
             {[
               strings.FILTER_ALL,
@@ -350,7 +349,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 key={t}
                 onClick={() => setWebMyBetsFilter(i)}
                 className="flex-1 h-6 relative"
-                style={{ color: webMyBetsFilter === i ? "var(--p-primary)" : "var(--p-muted)" }}
+                style={{ color: webMyBetsFilter === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
               >
                 {t}
                 {webMyBetsFilter === i && (
@@ -374,12 +373,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 <div
                   key={i}
                   className="rounded-md p-2"
-                  style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1">
                       <TeamDot label={b.team} />
-                      <span className="text-[9px] font-bold" style={{ color: "var(--p-text)" }}>
+                      <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                         {b.team.slice(0, 12)}…
                       </span>
                     </div>
@@ -387,32 +386,32 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                       className="text-[8px] font-bold px-1.5 py-[1px] rounded"
                       style={{
                         background: isWon
-                          ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))"
+                          ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
                           : b.status === "PENDING"
                             ? "rgba(234,179,8,0.15)"
                             : "rgba(239,68,68,0.15)",
                         color: isWon
-                          ? "var(--p-text)"
+                          ? "var(--p-light-text-color)"
                           : b.status === "PENDING"
                             ? "#eab308"
-                            : "var(--p-live)",
+                            : "var(--p-lost-color)",
                       }}
                     >
                       {statusLabel(b.status)}
                     </span>
                   </div>
-                  <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
+                  <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
                     1x2 · odds {b.odds}
                   </div>
                   <div className="flex items-center justify-between mt-1 text-[9px]">
-                    <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-                    <span className="font-bold" style={{ color: "var(--p-text)" }}>
+                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
+                    <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
                       ₦{b.stake}
                     </span>
-                    <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
+                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
                     <span
                       className="font-bold"
-                      style={{ color: isWon ? "var(--p-success)" : "var(--p-text)" }}
+                      style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}
                     >
                       ₦{b.payout}
                     </span>
@@ -421,7 +420,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               );
             })}
             {webMyBetsFilter === 3 && (
-              <div className="text-center py-4 text-[9px]" style={{ color: "var(--p-muted)" }}>
+              <div className="text-center py-4 text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
                 {strings.NO_P2P_BETS}
               </div>
             )}
@@ -434,20 +433,20 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             <div
               key={i}
               className="rounded-md p-2"
-              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+              style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
             >
               <div className="flex items-center gap-1.5 mb-1">
                 <div
                   className="h-5 w-5 rounded-full grid place-items-center text-[8px] font-bold flex-shrink-0"
-                  style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+                  style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
                 >
                   {p.avatar}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[8px] font-bold truncate" style={{ color: "var(--p-text)" }}>
+                  <div className="text-[8px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>
                     {p.user}
                   </div>
-                  <div className="text-[7px]" style={{ color: "var(--p-muted)" }}>
+                  <div className="text-[7px]" style={{ color: "var(--p-text-secondary-color)" }}>
                     {p.action}
                   </div>
                 </div>
@@ -457,7 +456,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               </div>
               <div
                 className="flex justify-between mt-1 text-[7px]"
-                style={{ color: "var(--p-muted)" }}
+                style={{ color: "var(--p-text-secondary-color)" }}
               >
                 <span>
                   @{p.odds} · {p.time}
@@ -483,9 +482,9 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               onClick={() => setWebFeedTab(i)}
               className="flex items-center gap-1 px-4 h-7 rounded-full text-[10px] font-semibold"
               style={{
-                background: webFeedTab === i ? "var(--p-primary)" : "var(--p-card)",
-                color: webFeedTab === i ? "var(--p-text)" : "var(--p-muted)",
-                border: webFeedTab === i ? "none" : "1px solid var(--p-divider)",
+                background: webFeedTab === i ? "var(--p-primary)" : "var(--p-dark)",
+                color: webFeedTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                border: webFeedTab === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
               }}
             >
               {i === 0 ? <Users className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
@@ -500,20 +499,20 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               <div
                 key={i}
                 className="rounded-md p-3"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div
                     className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold flex-shrink-0"
-                    style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+                    style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
                   >
                     {p.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+                    <div className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                       {p.user}
                     </div>
-                    <div className="text-[9px]" style={{ color: "var(--p-muted)" }}>
+                    <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
                       {p.action} · {p.time}
                     </div>
                   </div>
@@ -521,8 +520,8 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     <span
                       className="text-[8px] font-bold px-1.5 py-[1px] rounded"
                       style={{
-                        background: "linear-gradient(135deg, var(--p-won1), var(--p-won2))",
-                        color: "var(--p-text)",
+                        background: "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))",
+                        color: "var(--p-light-text-color)",
                       }}
                     >
                       {strings.STATUS_WON}
@@ -532,20 +531,20 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 <div
                   className="rounded p-2 mb-2"
                   style={{
-                    background: "var(--p-odds-active)",
+                    background: "var(--p-active-secondary-gradient-color)",
                     border: "1px solid var(--p-primary)",
                   }}
                 >
                   <div className="text-[9.5px] font-semibold" style={{ color: "var(--p-primary)" }}>
                     {p.bet}
                   </div>
-                  <div className="text-[8px] mt-0.5" style={{ color: "var(--p-muted)" }}>
+                  <div className="text-[8px] mt-0.5" style={{ color: "var(--p-text-secondary-color)" }}>
                     @ {p.odds} · {strings.STAKE} ₦{p.stake}
                   </div>
                 </div>
                 <div
                   className="flex items-center gap-3 text-[9px]"
-                  style={{ color: "var(--p-muted)" }}
+                  style={{ color: "var(--p-text-secondary-color)" }}
                 >
                   <button className="flex items-center gap-1">
                     <Heart className="h-3 w-3" /> {p.likes}
@@ -563,23 +562,23 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               <div
                 key={i}
                 className="rounded-md p-3"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <span
                   className="text-[9px] font-bold px-1.5 py-[1px] rounded"
-                  style={{ background: "var(--p-odds-active)", color: "var(--p-primary)" }}
+                  style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
                 >
                   {p.badge}
                 </span>
-                <div className="text-[11px] font-bold mt-1.5" style={{ color: "var(--p-text)" }}>
+                <div className="text-[11px] font-bold mt-1.5" style={{ color: "var(--p-light-text-color)" }}>
                   {p.title}
                 </div>
-                <div className="text-[9px] mt-1" style={{ color: "var(--p-muted)" }}>
+                <div className="text-[9px] mt-1" style={{ color: "var(--p-text-secondary-color)" }}>
                   {p.desc}
                 </div>
                 <button
                   className="mt-2 w-full h-6 rounded text-[9px] font-semibold"
-                  style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+                  style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
                 >
                   {strings.VIEW_TIPS}
                 </button>
@@ -598,20 +597,20 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       {/* Left sidebar */}
       <aside
         className="w-[170px] border-r flex flex-col flex-shrink-0"
-        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
         <div className="px-2.5 py-2">
           <div
             className="flex items-center gap-1.5 px-2 h-6 rounded-md"
-            style={{ background: "var(--p-input-bg)", border: "1px solid var(--p-input-border)" }}
+            style={{ background: "var(--p-dark-container-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
           >
-            <Search className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
-            <span className="text-[9px]" style={{ color: "var(--p-muted)" }}>
+            <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+            <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
               {strings.SEARCH}
             </span>
           </div>
         </div>
-        <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-muted)" }}>
+        <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
           {strings.ALL_SPORTS}
         </div>
         <div className="flex-1 overflow-auto px-1.5">
@@ -623,25 +622,25 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 onClick={() => setActiveSportSidebar(i)}
                 className="w-full flex items-center gap-1.5 px-1.5 h-7 rounded-md mb-0.5 text-left"
                 style={{
-                  background: active ? "var(--p-odds-active)" : "transparent",
+                  background: active ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border: active ? "1px solid var(--p-primary)" : "1px solid transparent",
                 }}
               >
                 <span
                   className="h-3 w-3 rounded border"
-                  style={{ borderColor: "var(--p-input-border)" }}
+                  style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
                 />
                 <span className="text-[10px]">{s.flag}</span>
                 <span
                   className="flex-1 text-[10px] font-medium"
-                  style={{ color: active ? "var(--p-primary)" : "var(--p-text)" }}
+                  style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
                 >
                   {s.name}
                 </span>
-                <span className="text-[9px] font-semibold" style={{ color: "var(--p-muted)" }}>
+                <span className="text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
                   {s.count}
                 </span>
-                <ChevronDown className="h-2.5 w-2.5" style={{ color: "var(--p-muted)" }} />
+                <ChevronDown className="h-2.5 w-2.5" style={{ color: "var(--p-text-secondary-color)" }} />
               </button>
             );
           })}
@@ -662,17 +661,17 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                   onClick={() => setActiveNav(t.nav)}
                   className="flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-md flex-shrink-0"
                   style={{
-                    background: "var(--p-card)",
-                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
+                    background: "var(--p-dark)",
+                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
                   }}
                 >
                   <Icon
                     className="h-3.5 w-3.5"
-                    style={{ color: active ? "var(--p-primary)" : "var(--p-text)" }}
+                    style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
                   />
                   <span
                     className="text-[7.5px] font-medium text-center leading-tight px-0.5"
-                    style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
+                    style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
                   >
                     {strings[t.strKey]}
                   </span>
@@ -686,7 +685,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             <button
               className="h-8 rounded-md flex items-center justify-center gap-1.5 text-[10px] font-bold"
               style={{
-                background: "var(--p-odds-active)",
+                background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
                 color: "var(--p-primary)",
               }}
@@ -697,7 +696,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               onClick={() => setActiveNav(4)}
               className="h-8 rounded-md flex items-center justify-center gap-1.5 text-[10px] font-bold"
               style={{
-                background: "var(--p-odds-active)",
+                background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
                 color: "var(--p-primary)",
               }}
@@ -710,22 +709,22 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           <div
             className="rounded-lg p-3 mb-3 relative overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
+              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
             }}
           >
             <div
               className="text-[9px] font-bold tracking-wider opacity-90"
-              style={{ color: "var(--p-text)" }}
+              style={{ color: "var(--p-light-text-color)" }}
             >
               {strings.WELCOME_BONUS_PROMO}
             </div>
-            <div className="text-[9px] mt-1 opacity-80" style={{ color: "var(--p-text)" }}>
+            <div className="text-[9px] mt-1 opacity-80" style={{ color: "var(--p-light-text-color)" }}>
               {strings.WELCOME_BONUS_BODY_WEB}
             </div>
           </div>
 
           {/* Live & upcoming */}
-          <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
+          <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
             {strings.LIVE_AND_UPCOMING_GAMES}
           </div>
           <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
@@ -735,12 +734,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 onClick={() => setActiveSportRow(i)}
                 className="px-2.5 h-6 rounded-md text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeSportRow === i ? "var(--p-odds-active)" : "transparent",
+                  background: activeSportRow === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
                     activeSportRow === i
                       ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
-                  color: activeSportRow === i ? "var(--p-primary)" : "var(--p-muted)",
+                      : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeSportRow === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {strings[k]} ⚽
@@ -754,24 +753,24 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               <div
                 key={i}
                 className="rounded-md p-1.5"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <LiveDot />
-                <div className="text-[8px] mt-1 truncate" style={{ color: "var(--p-muted)" }}>
+                <div className="text-[8px] mt-1 truncate" style={{ color: "var(--p-text-secondary-color)" }}>
                   {m.code}
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-[9px] font-bold" style={{ color: "var(--p-text)" }}>
+                  <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                     {m.home}
                   </span>
                   {m.odds && (
-                    <span className="text-[8px]" style={{ color: "var(--p-muted)" }}>
+                    <span className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
                       {m.odds}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold" style={{ color: "var(--p-text)" }}>
+                  <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                     {m.away}
                   </span>
                 </div>
@@ -782,7 +781,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           {/* Soccer tabs — now stateful */}
           <div
             className="flex items-center justify-between border-b mb-2"
-            style={{ borderColor: "var(--p-divider)" }}
+            style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
           >
             <div className="flex">
               {[strings.SOCCER, strings.BASKETBALL, strings.TENNIS, "TT Elite Series"].map(
@@ -792,7 +791,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     onClick={() => setActiveSoccerTab(i)}
                     className="px-3 h-7 text-[10px] font-semibold relative"
                     style={{
-                      color: activeSoccerTab === i ? "var(--p-text)" : "var(--p-muted)",
+                      color: activeSoccerTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                     }}
                   >
                     {t}
@@ -810,8 +809,8 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
 
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
-              <Trophy className="h-3 w-3" style={{ color: "var(--p-text)" }} />
-              <span className="text-[11px] font-bold" style={{ color: "var(--p-text)" }}>
+              <Trophy className="h-3 w-3" style={{ color: "var(--p-light-text-color)" }} />
+              <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                 {strings.SOCCER}
               </span>
             </div>
@@ -831,12 +830,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-6 rounded-full text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeLeague === i ? "var(--p-odds-active)" : "transparent",
+                  background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
                     activeLeague === i
                       ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
-                  color: activeLeague === i ? "var(--p-primary)" : "var(--p-muted)",
+                      : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 ⚽ {l}
@@ -852,17 +851,45 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-6 rounded-md text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-odds-active)" : "transparent",
+                  background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
                     activeBetType === i
                       ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
-                  color: activeBetType === i ? "var(--p-primary)" : "var(--p-muted)",
+                      : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
               </button>
             ))}
+          </div>
+
+          {/* Free Bet Promo Banner */}
+          <div style={{
+            margin: "8px 8px 4px",
+            borderRadius: 8,
+            padding: "10px 12px",
+            background: `linear-gradient(135deg, var(--p-free-bet-background), var(--p-primary))`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div>
+              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+                🎁 Free Bet Available
+              </div>
+              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
+                Claim your $25 welcome bet
+              </div>
+            </div>
+            <div style={{
+              background: "var(--p-primary-button)",
+              color: "var(--p-primary-text-color)",
+              fontSize: 9,
+              fontWeight: 700,
+              padding: "4px 8px",
+              borderRadius: 4,
+            }}>Claim</div>
           </div>
 
           {/* Match cards (2-column grid) */}
@@ -871,18 +898,18 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               <div
                 key={i}
                 className="rounded-md p-2"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span
                     className="text-[8px] font-semibold"
-                    style={{ color: m.live ? "var(--p-live)" : "var(--p-primary)" }}
+                    style={{ color: m.live ? "var(--p-lost-color)" : "var(--p-primary)" }}
                   >
                     {m.date}
                   </span>
                   <div
                     className="flex gap-3 text-[8px] font-bold"
-                    style={{ color: "var(--p-muted)" }}
+                    style={{ color: "var(--p-text-secondary-color)" }}
                   >
                     <span>1</span>
                     <span>X</span>
@@ -895,7 +922,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                       <TeamDot label={m.home} />
                       <span
                         className="text-[9.5px] font-medium truncate"
-                        style={{ color: "var(--p-text)" }}
+                        style={{ color: "var(--p-light-text-color)" }}
                       >
                         {m.home}
                       </span>
@@ -904,7 +931,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                       <TeamDot label={m.away} />
                       <span
                         className="text-[9.5px] font-medium truncate"
-                        style={{ color: "var(--p-text)" }}
+                        style={{ color: "var(--p-light-text-color)" }}
                       >
                         {m.away}
                       </span>
@@ -916,7 +943,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                         key={j}
                         className="w-9 h-9 rounded-md text-[10px] font-bold"
                         style={{
-                          background: "var(--p-odds-active)",
+                          background: "var(--p-active-secondary-gradient-color)",
                           border: "1px solid var(--p-primary)",
                           color: "var(--p-primary)",
                         }}
@@ -927,7 +954,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                   </div>
                 </div>
                 <div className="mt-1.5 flex items-center justify-between">
-                  <span className="text-[8px]" style={{ color: "var(--p-muted)" }}>
+                  <span className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
                     {strings.STATS}
                   </span>
                   <span
@@ -953,10 +980,10 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       <main className="flex-1 min-w-0 overflow-auto px-3 py-2">
         <div
           className="flex flex-col items-center justify-center h-full gap-3"
-          style={{ color: "var(--p-muted)" }}
+          style={{ color: "var(--p-text-secondary-color)" }}
         >
           <Icon className="h-10 w-10" />
-          <div className="text-[14px] font-bold" style={{ color: "var(--p-text)" }}>
+          <div className="text-[14px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
             {title}
           </div>
           <div className="text-[10px]">{strings.COMING_SOON}</div>
@@ -969,12 +996,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   return (
     <div
       className="w-full h-full flex flex-col text-[11px]"
-      style={{ background: "var(--p-bg)", color: "var(--p-text)" }}
+      style={{ background: "var(--p-primary-background-color)", color: "var(--p-light-text-color)" }}
     >
       {/* Top nav */}
       <div
         className="flex items-center justify-between px-4 h-11 border-b flex-shrink-0"
-        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
         <div className="flex items-center gap-1">
           {logoUrl ? (
@@ -982,7 +1009,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           ) : (
             <div
               className="h-6 w-6 rounded-full grid place-items-center mr-2 text-[9px] font-black"
-              style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+              style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
             >
               {appName.slice(0, 1)}
             </div>
@@ -995,7 +1022,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 key={n.label}
                 onClick={() => setActiveNav(i)}
                 className="flex items-center gap-1.5 px-2.5 h-7 rounded-md transition-colors relative"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
+                style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span className="text-[10px] font-semibold">{n.label}</span>
@@ -1010,14 +1037,14 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           })}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-medium" style={{ color: "var(--p-text)" }}>
+          <span className="text-[10px] font-medium" style={{ color: "var(--p-light-text-color)" }}>
             {strings.SIGN_IN}
           </span>
           <button
             className="h-7 px-3 rounded-md text-[10px] font-bold"
             style={{
-              background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
-              color: "var(--p-text)",
+              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
+              color: "var(--p-light-text-color)",
             }}
           >
             {strings.CREATE_ACCOUNT}
@@ -1094,33 +1121,33 @@ function MobilePreview({
       ) : (
         <div
           className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
-          style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+          style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
         >
           {appName.slice(0, 1)}
         </div>
       )}
       <div
         className="flex items-center gap-1.5 px-2.5 h-6 rounded-full"
-        style={{ background: "var(--p-card)" }}
+        style={{ background: "var(--p-dark)" }}
       >
-        <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+        <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
           {currencySymbol}
         </span>
-        <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>
+        <span className="text-[10px] tracking-wider" style={{ color: "var(--p-light-text-color)" }}>
           ****
         </span>
         <Plus className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
-        <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
+        <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
       </div>
       <div className="flex items-center gap-2">
         <div className="relative">
-          <Bell className="h-4 w-4" style={{ color: "var(--p-text)" }} />
+          <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
           <span
             className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
             style={{ background: "var(--p-primary)" }}
           />
         </div>
-        <MessageCircle className="h-4 w-4" style={{ color: "var(--p-text)" }} />
+        <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
       </div>
     </div>
   );
@@ -1140,17 +1167,17 @@ function MobilePreview({
               onClick={() => setActiveNav(t.nav)}
               className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
               style={{
-                background: "var(--p-card)",
-                border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
+                background: "var(--p-dark)",
+                border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
               }}
             >
               <Icon
                 className="h-4 w-4"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-text)" }}
+                style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
               />
               <span
                 className="text-[8px] font-medium"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
+                style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
               >
                 {strings[t.strKey]}
               </span>
@@ -1164,7 +1191,7 @@ function MobilePreview({
           <button
             className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{
-              background: "var(--p-odds-active)",
+              background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
               color: "var(--p-primary)",
             }}
@@ -1174,7 +1201,7 @@ function MobilePreview({
           <button
             className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{
-              background: "var(--p-odds-active)",
+              background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
               color: "var(--p-primary)",
             }}
@@ -1186,25 +1213,25 @@ function MobilePreview({
         <div
           className="rounded-lg p-3 mb-3 relative"
           style={{
-            background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
+            background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
             border: "1px solid var(--p-primary)",
           }}
         >
-          <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>
+          <div className="text-[12px] font-black" style={{ color: "var(--p-light-text-color)" }}>
             {strings.WELCOME_BONUS_PROMO}
           </div>
-          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-text)" }}>
+          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-light-text-color)" }}>
             {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
           <div
             className="mt-2 h-5 w-5 rounded-full grid place-items-center"
             style={{ background: "rgba(0,0,0,0.3)" }}
           >
-            <ChevronDown className="h-3 w-3" style={{ color: "var(--p-text)" }} />
+            <ChevronDown className="h-3 w-3" style={{ color: "var(--p-light-text-color)" }} />
           </div>
         </div>
         {/* Featured matches */}
-        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
+        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
           {strings.LIVE_AND_UPCOMING}
         </div>
         <div className="space-y-2">
@@ -1216,18 +1243,18 @@ function MobilePreview({
               <div
                 key={i}
                 className="rounded-md p-2.5"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span
                     className="text-[9px] font-semibold"
-                    style={{ color: m.live ? "var(--p-live)" : "var(--p-primary)" }}
+                    style={{ color: m.live ? "var(--p-lost-color)" : "var(--p-primary)" }}
                   >
                     {m.date}
                   </span>
                   <div
                     className="flex gap-5 text-[9px] font-bold"
-                    style={{ color: "var(--p-muted)" }}
+                    style={{ color: "var(--p-text-secondary-color)" }}
                   >
                     <span>1</span>
                     <span>X</span>
@@ -1240,7 +1267,7 @@ function MobilePreview({
                       <TeamDot label={m.home} />
                       <span
                         className="text-[10.5px] font-medium truncate"
-                        style={{ color: "var(--p-text)" }}
+                        style={{ color: "var(--p-light-text-color)" }}
                       >
                         {m.home}
                       </span>
@@ -1249,7 +1276,7 @@ function MobilePreview({
                       <TeamDot label={m.away} />
                       <span
                         className="text-[10.5px] font-medium truncate"
-                        style={{ color: "var(--p-text)" }}
+                        style={{ color: "var(--p-light-text-color)" }}
                       >
                         {m.away}
                       </span>
@@ -1264,9 +1291,9 @@ function MobilePreview({
                           onClick={() => toggleOdd(key)}
                           className="w-10 h-10 rounded-md text-[11px] font-bold transition-colors"
                           style={{
-                            background: sel ? "var(--p-primary)" : "var(--p-odds-active)",
+                            background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
                             border: "1px solid var(--p-primary)",
-                            color: sel ? "var(--p-text)" : "var(--p-primary)",
+                            color: sel ? "var(--p-light-text-color)" : "var(--p-primary)",
                           }}
                         >
                           {m.odds[j]}
@@ -1290,14 +1317,14 @@ function MobilePreview({
       {/* Sports / All Sports sub-tab bar */}
       <div
         className="flex border-b flex-shrink-0"
-        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
         {[strings.TAB_SPORTS, strings.TAB_ALL_SPORTS].map((t, i) => (
           <button
             key={t}
             onClick={() => setMobileSportsTab(i)}
             className="flex-1 h-8 text-[10px] font-semibold relative"
-            style={{ color: mobileSportsTab === i ? "var(--p-primary)" : "var(--p-muted)" }}
+            style={{ color: mobileSportsTab === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
           >
             {t}
             {mobileSportsTab === i && (
@@ -1317,7 +1344,7 @@ function MobilePreview({
             <button
               className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
               style={{
-                background: "var(--p-odds-active)",
+                background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
                 color: "var(--p-primary)",
               }}
@@ -1327,7 +1354,7 @@ function MobilePreview({
             <button
               className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
               style={{
-                background: "var(--p-odds-active)",
+                background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
                 color: "var(--p-primary)",
               }}
@@ -1336,7 +1363,7 @@ function MobilePreview({
             </button>
           </div>
 
-          <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
+          <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
             {strings.LIVE_AND_UPCOMING}
           </div>
 
@@ -1348,10 +1375,10 @@ function MobilePreview({
                 onClick={() => setActiveSport(i)}
                 className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeSport === i ? "var(--p-odds-active)" : "transparent",
+                  background: activeSport === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
-                    activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
-                  color: activeSport === i ? "var(--p-primary)" : "var(--p-muted)",
+                    activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeSport === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {strings[k]}
@@ -1367,12 +1394,12 @@ function MobilePreview({
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeLeague === i ? "var(--p-odds-active)" : "transparent",
+                  background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
                     activeLeague === i
                       ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
-                  color: activeLeague === i ? "var(--p-primary)" : "var(--p-muted)",
+                      : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 ⚽ {l.split(" - ")[0]}
@@ -1388,17 +1415,45 @@ function MobilePreview({
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-6 rounded-md text-[9.5px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-odds-active)" : "transparent",
+                  background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
                     activeBetType === i
                       ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
-                  color: activeBetType === i ? "var(--p-primary)" : "var(--p-muted)",
+                      : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
               </button>
             ))}
+          </div>
+
+          {/* Free Bet Promo Banner */}
+          <div style={{
+            margin: "8px 8px 4px",
+            borderRadius: 8,
+            padding: "10px 12px",
+            background: `linear-gradient(135deg, var(--p-free-bet-background), var(--p-primary))`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div>
+              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+                🎁 Free Bet Available
+              </div>
+              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
+                Claim your $25 welcome bet
+              </div>
+            </div>
+            <div style={{
+              background: "var(--p-primary-button)",
+              color: "var(--p-primary-text-color)",
+              fontSize: 9,
+              fontWeight: 700,
+              padding: "4px 8px",
+              borderRadius: 4,
+            }}>Claim</div>
           </div>
 
           {/* Match cards */}
@@ -1411,18 +1466,18 @@ function MobilePreview({
                 <div
                   key={i}
                   className="rounded-md p-2.5"
-                  style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span
                       className="text-[9px] font-semibold"
-                      style={{ color: m.live ? "var(--p-live)" : "var(--p-primary)" }}
+                      style={{ color: m.live ? "var(--p-lost-color)" : "var(--p-primary)" }}
                     >
                       {m.date}
                     </span>
                     <div
                       className="flex gap-5 text-[9px] font-bold"
-                      style={{ color: "var(--p-muted)" }}
+                      style={{ color: "var(--p-text-secondary-color)" }}
                     >
                       <span>1</span>
                       <span>X</span>
@@ -1435,7 +1490,7 @@ function MobilePreview({
                         <TeamDot label={m.home} />
                         <span
                           className="text-[10.5px] font-medium truncate"
-                          style={{ color: "var(--p-text)" }}
+                          style={{ color: "var(--p-light-text-color)" }}
                         >
                           {m.home}
                         </span>
@@ -1444,7 +1499,7 @@ function MobilePreview({
                         <TeamDot label={m.away} />
                         <span
                           className="text-[10.5px] font-medium truncate"
-                          style={{ color: "var(--p-text)" }}
+                          style={{ color: "var(--p-light-text-color)" }}
                         >
                           {m.away}
                         </span>
@@ -1459,9 +1514,9 @@ function MobilePreview({
                             onClick={() => toggleOdd(key)}
                             className="w-10 h-10 rounded-md text-[11px] font-bold transition-colors"
                             style={{
-                              background: sel ? "var(--p-primary)" : "var(--p-odds-active)",
+                              background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
                               border: "1px solid var(--p-primary)",
-                              color: sel ? "var(--p-text)" : "var(--p-primary)",
+                              color: sel ? "var(--p-light-text-color)" : "var(--p-primary)",
                             }}
                           >
                             {m.odds[j]}
@@ -1486,7 +1541,7 @@ function MobilePreview({
           >
             <ChevronLeft className="h-3.5 w-3.5" /> {strings.BACK_TO_SPORTS}
           </button>
-          <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-muted)" }}>
+          <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
             {strings.ALL_SPORTS} ({getSportsSidebar(strings).length})
           </div>
           <div className="px-2">
@@ -1495,19 +1550,19 @@ function MobilePreview({
                 key={s.name}
                 onClick={() => setMobileSportsTab(0)}
                 className="w-full flex items-center gap-2 px-2 h-10 rounded-md mb-0.5 text-left"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <span className="text-[14px]">{s.flag}</span>
-                <span className="flex-1 text-[11px] font-medium" style={{ color: "var(--p-text)" }}>
+                <span className="flex-1 text-[11px] font-medium" style={{ color: "var(--p-light-text-color)" }}>
                   {s.name}
                 </span>
                 <span
                   className="text-[9px] font-bold px-1.5 py-[1px] rounded-full"
-                  style={{ background: "var(--p-odds-active)", color: "var(--p-primary)" }}
+                  style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
                 >
                   {s.count}
                 </span>
-                <ChevronRight className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
+                <ChevronRight className="h-3.5 w-3.5" style={{ color: "var(--p-text-secondary-color)" }} />
               </button>
             ))}
           </div>
@@ -1521,7 +1576,7 @@ function MobilePreview({
     <>
       {renderTopBar()}
       <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
-        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-text)" }}>
+        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-light-text-color)" }}>
           {strings.DISCOVER}
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -1529,23 +1584,23 @@ function MobilePreview({
             <div
               key={i}
               className="rounded-md p-3"
-              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+              style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
             >
               <span
                 className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                style={{ background: "var(--p-odds-active)", color: "var(--p-primary)" }}
+                style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
               >
                 {p.badge}
               </span>
-              <div className="text-[11px] font-bold mt-1.5" style={{ color: "var(--p-text)" }}>
+              <div className="text-[11px] font-bold mt-1.5" style={{ color: "var(--p-light-text-color)" }}>
                 {p.title}
               </div>
-              <div className="text-[9px] mt-1" style={{ color: "var(--p-muted)" }}>
+              <div className="text-[9px] mt-1" style={{ color: "var(--p-text-secondary-color)" }}>
                 {p.desc}
               </div>
               <button
                 className="mt-2 w-full h-7 rounded text-[9px] font-semibold"
-                style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+                style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
               >
                 {strings.VIEW_TIPS}
               </button>
@@ -1561,7 +1616,7 @@ function MobilePreview({
     <>
       {renderTopBar()}
       <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
-        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-text)" }}>
+        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-light-text-color)" }}>
           {strings.CASINO_HEADING}
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -1571,13 +1626,13 @@ function MobilePreview({
                 key={g}
                 className="h-16 rounded-md flex flex-col items-center justify-center gap-1 text-[9px] font-semibold"
                 style={{
-                  background: "var(--p-card)",
-                  border: "1px solid var(--p-divider)",
-                  color: "var(--p-text)",
+                  background: "var(--p-dark)",
+                  border: "1px solid var(--p-border-and-gradient-bg)",
+                  color: "var(--p-light-text-color)",
                 }}
               >
                 <span className="text-[20px]">{g.slice(0, 2)}</span>
-                <span style={{ color: "var(--p-muted)" }}>{g.slice(3)}</span>
+                <span style={{ color: "var(--p-text-secondary-color)" }}>{g.slice(3)}</span>
               </button>
             ),
           )}
@@ -1593,14 +1648,14 @@ function MobilePreview({
       {/* My Bets / My Feed tabs */}
       <div
         className="flex border-b flex-shrink-0"
-        style={{ borderColor: "var(--p-divider)", background: "var(--p-nav)" }}
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
         {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
           <button
             key={t}
             onClick={() => setMobileProfileTab(i)}
             className="flex-1 h-8 text-[10px] font-semibold relative"
-            style={{ color: mobileProfileTab === i ? "var(--p-primary)" : "var(--p-muted)" }}
+            style={{ color: mobileProfileTab === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
           >
             {t}
             {mobileProfileTab === i && (
@@ -1617,7 +1672,7 @@ function MobilePreview({
         /* My Bets */
         <div className="flex flex-col flex-1 min-h-0">
           {/* All / Pending / Settled / P2P filters */}
-          <div className="flex border-b flex-shrink-0" style={{ borderColor: "var(--p-divider)" }}>
+          <div className="flex border-b flex-shrink-0" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
             {[
               strings.FILTER_ALL,
               strings.FILTER_PENDING,
@@ -1629,7 +1684,7 @@ function MobilePreview({
                 onClick={() => setMobileMyBetsFilter(i)}
                 className="flex-1 h-7 text-[9px] font-semibold relative"
                 style={{
-                  color: mobileMyBetsFilter === i ? "var(--p-primary)" : "var(--p-muted)",
+                  color: mobileMyBetsFilter === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {t}
@@ -1643,6 +1698,54 @@ function MobilePreview({
             ))}
           </div>
           <div className="flex-1 min-h-0 overflow-auto px-3 py-2 space-y-2">
+            {/* Flex Bet / Parlay Card */}
+            <div style={{
+              margin: "8px 8px 4px",
+              borderRadius: 8,
+              overflow: "hidden",
+              border: `1px solid var(--p-win-status-border-gradient-1)`,
+            }}>
+              {/* Header */}
+              <div style={{
+                background: "var(--p-flex-bet-header-bg)",
+                padding: "8px 12px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}>
+                <span style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+                  3-Leg Parlay
+                </span>
+                <span style={{ color: "var(--p-won-color)", fontSize: 10, fontWeight: 600 }}>
+                  ✓ 3/3 Won
+                </span>
+              </div>
+              {/* Legs */}
+              {["Man Utd — Win", "Over 2.5 Goals", "Both Teams Score"].map((leg, i) => (
+                <div key={i} style={{
+                  background: `linear-gradient(90deg, var(--p-win-status-gradient-1), var(--p-win-status-gradient-2))`,
+                  padding: "6px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  borderTop: i > 0 ? `1px solid var(--p-border-and-gradient-bg)` : undefined,
+                }}>
+                  <span style={{ color: "var(--p-won-color)", fontSize: 9 }}>✓</span>
+                  <span style={{ color: "var(--p-light-text-color)", fontSize: 10 }}>{leg}</span>
+                </div>
+              ))}
+              {/* Footer */}
+              <div style={{
+                background: "var(--p-flex-bet-footer-bg)",
+                padding: "8px 12px",
+                display: "flex",
+                justifyContent: "space-between",
+              }}>
+                <span style={{ color: "var(--p-text-secondary-color)", fontSize: 10 }}>Payout</span>
+                <span style={{ color: "var(--p-payout-won-color)", fontSize: 11, fontWeight: 700 }}>+$150.00</span>
+              </div>
+            </div>
+
             {/* Regular bet slips */}
             {BET_SLIPS.filter((b) => {
               if (mobileMyBetsFilter === 0) return true;
@@ -1655,12 +1758,12 @@ function MobilePreview({
                 <div
                   key={i}
                   className="rounded-md p-2.5"
-                  style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
                       <TeamDot label={b.team} />
-                      <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+                      <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                         {b.team.slice(0, 16)}
                       </span>
                     </div>
@@ -1668,32 +1771,32 @@ function MobilePreview({
                       className="text-[8px] font-bold px-1.5 py-[1px] rounded"
                       style={{
                         background: isWon
-                          ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))"
+                          ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
                           : b.status === "PENDING"
                             ? "rgba(234,179,8,0.15)"
                             : "rgba(239,68,68,0.15)",
                         color: isWon
-                          ? "var(--p-text)"
+                          ? "var(--p-light-text-color)"
                           : b.status === "PENDING"
                             ? "#eab308"
-                            : "var(--p-live)",
+                            : "var(--p-lost-color)",
                       }}
                     >
                       {statusLabel(b.status)}
                     </span>
                   </div>
-                  <div className="text-[9px]" style={{ color: "var(--p-muted)" }}>
+                  <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
                     1x2 · odds {b.odds}
                   </div>
                   <div className="flex items-center justify-between mt-1.5 text-[9px]">
-                    <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-                    <span className="font-bold" style={{ color: "var(--p-text)" }}>
+                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
+                    <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
                       ₦{b.stake}
                     </span>
-                    <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
+                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
                     <span
                       className="font-bold"
-                      style={{ color: isWon ? "var(--p-success)" : "var(--p-text)" }}
+                      style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}
                     >
                       ₦{b.payout}
                     </span>
@@ -1706,10 +1809,10 @@ function MobilePreview({
             {(mobileMyBetsFilter === 0 || mobileMyBetsFilter === 1) && (
               <div
                 className="rounded-md p-2.5"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+                  <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                     17-Leg Accumulator
                   </span>
                   <span
@@ -1719,7 +1822,7 @@ function MobilePreview({
                     PENDING
                   </span>
                 </div>
-                <div className="text-[9px] mb-1.5" style={{ color: "var(--p-muted)" }}>
+                <div className="text-[9px] mb-1.5" style={{ color: "var(--p-text-secondary-color)" }}>
                   Accumulator · Total odds 1,284.5x
                 </div>
                 {/* First 3 legs always visible */}
@@ -1727,13 +1830,13 @@ function MobilePreview({
                   <div
                     key={i}
                     className="flex items-center justify-between py-1 border-b"
-                    style={{ borderColor: "var(--p-divider)" }}
+                    style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-[8.5px] truncate" style={{ color: "var(--p-text)" }}>
+                      <div className="text-[8.5px] truncate" style={{ color: "var(--p-light-text-color)" }}>
                         {leg.match}
                       </div>
-                      <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
+                      <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
                         {leg.pick}
                       </div>
                     </div>
@@ -1751,13 +1854,13 @@ function MobilePreview({
                     <div
                       key={i + 3}
                       className="flex items-center justify-between py-1 border-b"
-                      style={{ borderColor: "var(--p-divider)" }}
+                      style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-[8.5px] truncate" style={{ color: "var(--p-text)" }}>
+                        <div className="text-[8.5px] truncate" style={{ color: "var(--p-light-text-color)" }}>
                           {leg.match}
                         </div>
-                        <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
+                        <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
                           {leg.pick}
                         </div>
                       </div>
@@ -1786,12 +1889,12 @@ function MobilePreview({
                   )}
                 </button>
                 <div className="flex items-center justify-between mt-2 text-[9px]">
-                  <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-                  <span className="font-bold" style={{ color: "var(--p-text)" }}>
+                  <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
+                  <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
                     ₦1,000
                   </span>
-                  <span style={{ color: "var(--p-muted)" }}>{strings.POTENTIAL}</span>
-                  <span className="font-bold" style={{ color: "var(--p-success)" }}>
+                  <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.POTENTIAL}</span>
+                  <span className="font-bold" style={{ color: "var(--p-won-color)" }}>
                     ₦1,284,500
                   </span>
                 </div>
@@ -1799,7 +1902,7 @@ function MobilePreview({
             )}
 
             {mobileMyBetsFilter === 3 && (
-              <div className="text-center py-6 text-[9px]" style={{ color: "var(--p-muted)" }}>
+              <div className="text-center py-6 text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
                 {strings.NO_P2P_BETS}
               </div>
             )}
@@ -1811,7 +1914,7 @@ function MobilePreview({
           {/* Friends / Explore tabs */}
           <div
             className="flex gap-2 px-3 py-2 border-b flex-shrink-0"
-            style={{ borderColor: "var(--p-divider)" }}
+            style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
           >
             {[strings.TAB_FRIENDS, strings.TAB_EXPLORE].map((t, i) => (
               <button
@@ -1819,9 +1922,9 @@ function MobilePreview({
                 onClick={() => setMobileFeedTab(i)}
                 className="flex items-center gap-1 px-3 h-6 rounded-full text-[9.5px] font-semibold"
                 style={{
-                  background: mobileFeedTab === i ? "var(--p-primary)" : "var(--p-card)",
-                  color: mobileFeedTab === i ? "var(--p-text)" : "var(--p-muted)",
-                  border: mobileFeedTab === i ? "none" : "1px solid var(--p-divider)",
+                  background: mobileFeedTab === i ? "var(--p-primary)" : "var(--p-dark)",
+                  color: mobileFeedTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  border: mobileFeedTab === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
                 }}
               >
                 {i === 0 ? <Users className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
@@ -1835,20 +1938,20 @@ function MobilePreview({
                   <div
                     key={i}
                     className="rounded-md p-2.5"
-                    style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                    style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                   >
                     <div className="flex items-center gap-2 mb-1.5">
                       <div
                         className="h-6 w-6 rounded-full grid place-items-center text-[9px] font-bold flex-shrink-0"
-                        style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+                        style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
                       >
                         {p.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+                        <div className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                           {p.user}
                         </div>
-                        <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
+                        <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
                           {p.action} · {p.time}
                         </div>
                       </div>
@@ -1856,8 +1959,8 @@ function MobilePreview({
                         <span
                           className="text-[8px] font-bold px-1.5 py-[1px] rounded"
                           style={{
-                            background: "linear-gradient(135deg, var(--p-won1), var(--p-won2))",
-                            color: "var(--p-text)",
+                            background: "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))",
+                            color: "var(--p-light-text-color)",
                           }}
                         >
                           {strings.STATUS_WON}
@@ -1867,7 +1970,7 @@ function MobilePreview({
                     <div
                       className="rounded p-2 mb-1.5"
                       style={{
-                        background: "var(--p-odds-active)",
+                        background: "var(--p-active-secondary-gradient-color)",
                         border: "1px solid var(--p-primary)",
                       }}
                     >
@@ -1877,13 +1980,13 @@ function MobilePreview({
                       >
                         {p.bet}
                       </div>
-                      <div className="text-[8px] mt-0.5" style={{ color: "var(--p-muted)" }}>
+                      <div className="text-[8px] mt-0.5" style={{ color: "var(--p-text-secondary-color)" }}>
                         @ {p.odds} · Stake ₦{p.stake}
                       </div>
                     </div>
                     <div
                       className="flex items-center gap-3 text-[9px]"
-                      style={{ color: "var(--p-muted)" }}
+                      style={{ color: "var(--p-text-secondary-color)" }}
                     >
                       <button className="flex items-center gap-1">
                         <Heart className="h-3 w-3" /> {p.likes}
@@ -1898,18 +2001,18 @@ function MobilePreview({
                   <div
                     key={i}
                     className="rounded-md p-2.5"
-                    style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+                    style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                   >
                     <span
                       className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                      style={{ background: "var(--p-odds-active)", color: "var(--p-primary)" }}
+                      style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
                     >
                       {p.badge}
                     </span>
-                    <div className="text-[11px] font-bold mt-1" style={{ color: "var(--p-text)" }}>
+                    <div className="text-[11px] font-bold mt-1" style={{ color: "var(--p-light-text-color)" }}>
                       {p.title}
                     </div>
-                    <div className="text-[9px] mt-0.5" style={{ color: "var(--p-muted)" }}>
+                    <div className="text-[9px] mt-0.5" style={{ color: "var(--p-text-secondary-color)" }}>
                       {p.desc}
                     </div>
                   </div>
@@ -1923,7 +2026,7 @@ function MobilePreview({
   return (
     <div
       className="w-full h-full flex flex-col text-[11px] overflow-hidden"
-      style={{ background: "var(--p-bg)", color: "var(--p-text)" }}
+      style={{ background: "var(--p-primary-background-color)", color: "var(--p-light-text-color)" }}
     >
       {/* View switcher */}
       {activeNav === 0 && renderHomeView()}
@@ -1936,8 +2039,8 @@ function MobilePreview({
       <div
         className="grid grid-cols-5 border-t flex-shrink-0"
         style={{
-          borderColor: "var(--p-divider)",
-          background: "var(--p-bottom-nav)",
+          borderColor: "var(--p-border-and-gradient-bg)",
+          background: "var(--p-dark)",
         }}
       >
         {NAV.map((n, i) => {
@@ -1960,8 +2063,8 @@ function MobilePreview({
                 <div
                   className="h-5 w-5 rounded-full grid place-items-center text-[8px] font-black"
                   style={{
-                    background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
-                    color: "var(--p-text)",
+                    background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
+                    color: "var(--p-light-text-color)",
                   }}
                 >
                   TN
@@ -1969,12 +2072,12 @@ function MobilePreview({
               ) : (
                 <Icon
                   className="h-4 w-4"
-                  style={{ color: active ? "var(--p-primary)" : "var(--p-muted)" }}
+                  style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
                 />
               )}
               <span
                 className="text-[9px] font-medium"
-                style={{ color: active || isProfile ? "var(--p-primary)" : "var(--p-muted)" }}
+                style={{ color: active || isProfile ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
               >
                 {n.label}
               </span>
@@ -2023,33 +2126,33 @@ function SportsView({
         ) : (
           <div
             className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
-            style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+            style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
           >
             {appName.slice(0, 1)}
           </div>
         )}
         <div
           className="flex items-center gap-1.5 px-2.5 h-6 rounded-full"
-          style={{ background: "var(--p-card)" }}
+          style={{ background: "var(--p-dark)" }}
         >
-          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+          <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
             {currencySymbol}
           </span>
-          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>
+          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-light-text-color)" }}>
             ****
           </span>
           <Plus className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
-          <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
+          <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Bell className="h-4 w-4" style={{ color: "var(--p-text)" }} />
+            <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
             <span
               className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
               style={{ background: "var(--p-primary)" }}
             />
           </div>
-          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-text)" }} />
+          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
         </div>
       </div>
 
@@ -2064,12 +2167,12 @@ function SportsView({
               onClick={isAllSports ? onOpenAllSports : undefined}
               className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
               style={{
-                background: "var(--p-card)",
-                border: "1px solid var(--p-divider)",
+                background: "var(--p-dark)",
+                border: "1px solid var(--p-border-and-gradient-bg)",
               }}
             >
-              <Icon className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-              <span className="text-[8px] font-medium" style={{ color: "var(--p-muted)" }}>
+              <Icon className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+              <span className="text-[8px] font-medium" style={{ color: "var(--p-text-secondary-color)" }}>
                 {strings[t.strKey]}
               </span>
             </button>
@@ -2082,7 +2185,7 @@ function SportsView({
           <button
             className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{
-              background: "var(--p-odds-active)",
+              background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
               color: "var(--p-primary)",
             }}
@@ -2092,7 +2195,7 @@ function SportsView({
           <button
             className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{
-              background: "var(--p-odds-active)",
+              background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
               color: "var(--p-primary)",
             }}
@@ -2104,19 +2207,19 @@ function SportsView({
         <div
           className="rounded-lg p-3 mb-3 relative"
           style={{
-            background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
+            background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
             border: "1px solid var(--p-primary)",
           }}
         >
-          <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>
+          <div className="text-[12px] font-black" style={{ color: "var(--p-light-text-color)" }}>
             {strings.WELCOME_BONUS_PROMO}
           </div>
-          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-text)" }}>
+          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-light-text-color)" }}>
             {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
         </div>
 
-        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
+        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
           {strings.LIVE_AND_UPCOMING}
         </div>
         <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
@@ -2126,10 +2229,10 @@ function SportsView({
               onClick={() => setActiveSport(i)}
               className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
               style={{
-                background: activeSport === i ? "var(--p-odds-active)" : "transparent",
+                background: activeSport === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                 border:
-                  activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
-                color: activeSport === i ? "var(--p-primary)" : "var(--p-muted)",
+                  activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeSport === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
               }}
             >
               {strings[k]}
@@ -2144,10 +2247,10 @@ function SportsView({
               onClick={() => setActiveLeague(i)}
               className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0"
               style={{
-                background: activeLeague === i ? "var(--p-odds-active)" : "transparent",
+                background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                 border:
-                  activeLeague === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
-                color: activeLeague === i ? "var(--p-primary)" : "var(--p-muted)",
+                  activeLeague === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeLeague === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
               }}
             >
               ⚽ {l.split(" - ")[0]}
@@ -2162,10 +2265,10 @@ function SportsView({
               onClick={() => setActiveBetType(i)}
               className="px-2.5 h-6 rounded-md text-[9.5px] font-semibold flex-shrink-0"
               style={{
-                background: activeBetType === i ? "var(--p-odds-active)" : "transparent",
+                background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                 border:
-                  activeBetType === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
-                color: activeBetType === i ? "var(--p-primary)" : "var(--p-muted)",
+                  activeBetType === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeBetType === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
               }}
             >
               {b}
@@ -2178,18 +2281,18 @@ function SportsView({
             <div
               key={i}
               className="rounded-md p-2.5"
-              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+              style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span
                   className="text-[9px] font-semibold"
-                  style={{ color: m.live ? "var(--p-live)" : "var(--p-primary)" }}
+                  style={{ color: m.live ? "var(--p-lost-color)" : "var(--p-primary)" }}
                 >
                   {m.date}
                 </span>
                 <div
                   className="flex gap-5 text-[9px] font-bold"
-                  style={{ color: "var(--p-muted)" }}
+                  style={{ color: "var(--p-text-secondary-color)" }}
                 >
                   <span>1</span>
                   <span>X</span>
@@ -2202,7 +2305,7 @@ function SportsView({
                     <TeamDot label={m.home} />
                     <span
                       className="text-[10.5px] font-medium truncate"
-                      style={{ color: "var(--p-text)" }}
+                      style={{ color: "var(--p-light-text-color)" }}
                     >
                       {m.home}
                     </span>
@@ -2211,7 +2314,7 @@ function SportsView({
                     <TeamDot label={m.away} />
                     <span
                       className="text-[10.5px] font-medium truncate"
-                      style={{ color: "var(--p-text)" }}
+                      style={{ color: "var(--p-light-text-color)" }}
                     >
                       {m.away}
                     </span>
@@ -2223,7 +2326,7 @@ function SportsView({
                       key={j}
                       className="w-10 h-10 rounded-md text-[11px] font-bold"
                       style={{
-                        background: "var(--p-odds-active)",
+                        background: "var(--p-active-secondary-gradient-color)",
                         border: "1px solid var(--p-primary)",
                         color: "var(--p-primary)",
                       }}
@@ -2303,13 +2406,13 @@ function AllSportsView() {
     <div className="flex-1 min-h-0 overflow-auto">
       {/* Search bar */}
       <div className="px-3 pt-3 pb-2 flex items-center gap-2">
-        <ChevronRight className="h-4 w-4 rotate-180" style={{ color: "var(--p-text)" }} />
+        <ChevronRight className="h-4 w-4 rotate-180" style={{ color: "var(--p-light-text-color)" }} />
         <div
           className="flex-1 flex items-center gap-2 px-3 h-9 rounded-full"
-          style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+          style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
         >
-          <Search className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
-          <span className="text-[10.5px]" style={{ color: "var(--p-muted)" }}>
+          <Search className="h-3.5 w-3.5" style={{ color: "var(--p-text-secondary-color)" }} />
+          <span className="text-[10.5px]" style={{ color: "var(--p-text-secondary-color)" }}>
             {strings.SEARCH}
           </span>
         </div>
@@ -2317,19 +2420,19 @@ function AllSportsView() {
 
       {/* Popular */}
       <div className="px-3 pt-2 pb-3">
-        <div className="text-[11px] font-semibold mb-2" style={{ color: "var(--p-muted)" }}>
+        <div className="text-[11px] font-semibold mb-2" style={{ color: "var(--p-text-secondary-color)" }}>
           {strings.POPULAR}
         </div>
         <div className="flex flex-col items-start gap-1">
           <div
             className="h-12 w-12 rounded-xl grid place-items-center"
-            style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+            style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
           >
-            <span className="text-[18px] font-black" style={{ color: "var(--p-text)" }}>
+            <span className="text-[18px] font-black" style={{ color: "var(--p-light-text-color)" }}>
               V
             </span>
           </div>
-          <span className="text-[10px]" style={{ color: "var(--p-muted)" }}>
+          <span className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
             Virtuals
           </span>
         </div>
@@ -2337,7 +2440,7 @@ function AllSportsView() {
 
       {/* All Sports */}
       <div className="px-3">
-        <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>
+        <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-light-text-color)" }}>
           {strings.ALL_SPORTS}
         </div>
         <div className="space-y-2 pb-3">
@@ -2345,21 +2448,21 @@ function AllSportsView() {
             <div
               key={s.name}
               className="flex items-center gap-2.5 px-3 h-11 rounded-xl"
-              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+              style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
             >
               <div
                 className="h-6 w-6 rounded-full grid place-items-center text-[12px]"
-                style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)" }}
+                style={{ background: "var(--p-active-secondary-gradient-color)", border: "1px solid var(--p-primary)" }}
               >
                 <span style={{ color: "var(--p-primary)" }}>{s.icon}</span>
               </div>
               <span
                 className="flex-1 text-[11.5px] font-semibold"
-                style={{ color: "var(--p-text)" }}
+                style={{ color: "var(--p-light-text-color)" }}
               >
                 {s.name}
               </span>
-              <span className="text-[11px] font-medium" style={{ color: "var(--p-muted)" }}>
+              <span className="text-[11px] font-medium" style={{ color: "var(--p-text-secondary-color)" }}>
                 {s.count}
               </span>
               <ChevronDown className="h-3.5 w-3.5" style={{ color: "var(--p-primary)" }} />
@@ -2387,9 +2490,9 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
     post.status === "PENDING"
       ? "rgba(0,0,0,0.5)"
       : post.status === "LIVE"
-        ? "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))"
+        ? "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))"
         : post.status === "WON"
-          ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))"
+          ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
           : post.status === "LOST"
             ? "var(--p-secondary)"
             : "transparent";
@@ -2397,20 +2500,20 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
   return (
     <div
       className="rounded-xl p-3 mb-2"
-      style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+      style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <div
           className="h-7 w-7 rounded-full grid place-items-center text-[11px] font-black"
           style={{
-            background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
-            color: "var(--p-text)",
+            background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
+            color: "var(--p-light-text-color)",
           }}
         >
           {post.initial}
         </div>
-        <span className="text-[12px] font-bold flex-1" style={{ color: "var(--p-text)" }}>
+        <span className="text-[12px] font-bold flex-1" style={{ color: "var(--p-light-text-color)" }}>
           {post.user}
         </span>
         {post.boost && (
@@ -2427,15 +2530,15 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
       {(post.league || post.status) && (
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <Trophy className="h-3 w-3 flex-shrink-0" style={{ color: "var(--p-muted)" }} />
-            <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>
+            <Trophy className="h-3 w-3 flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }} />
+            <span className="text-[10px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>
               {post.league}
             </span>
           </div>
           {post.status && (
             <span
               className="text-[8.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
-              style={{ background: statusBg, color: "var(--p-text)" }}
+              style={{ background: statusBg, color: "var(--p-light-text-color)" }}
             >
               {post.status === "LIVE" && <span className="h-1 w-1 rounded-full bg-white" />}
               {statusLabel(post.status)}
@@ -2445,7 +2548,7 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
       )}
 
       {/* Title */}
-      <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>
+      <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-light-text-color)" }}>
         {post.title}
       </div>
 
@@ -2454,33 +2557,33 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
         <div className="rounded-lg p-2 mb-2" style={{ background: "rgba(0,0,0,0.25)" }}>
           <div
             className="flex items-center justify-between text-[10px] mb-1"
-            style={{ color: "var(--p-muted)" }}
+            style={{ color: "var(--p-text-secondary-color)" }}
           >
             <div className="flex items-center gap-1">
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive)" }} />
-              <span style={{ color: "var(--p-text)" }}>{post.match.home}</span>
+              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive-button-bg)" }} />
+              <span style={{ color: "var(--p-light-text-color)" }}>{post.match.home}</span>
             </div>
             <span style={{ color: "var(--p-primary)" }}>{post.match.date}</span>
             <div className="flex items-center gap-1">
-              <span style={{ color: "var(--p-text)" }}>{post.match.away}</span>
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive)" }} />
+              <span style={{ color: "var(--p-light-text-color)" }}>{post.match.away}</span>
+              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive-button-bg)" }} />
             </div>
           </div>
           {post.match.score && (
-            <div className="text-center text-[11px] font-bold" style={{ color: "var(--p-text)" }}>
+            <div className="text-center text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
               {post.match.score}
             </div>
           )}
           {post.pick && (
             <div
               className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
-              style={{ background: "var(--p-bg)", border: "1px solid var(--p-primary)" }}
+              style={{ background: "var(--p-primary-background-color)", border: "1px solid var(--p-primary)" }}
             >
               <div className="min-w-0">
                 <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
                   {post.pick.market}
                 </div>
-                <div className="text-[11px] font-bold truncate" style={{ color: "var(--p-text)" }}>
+                <div className="text-[11px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>
                   {post.pick.selection}
                 </div>
               </div>
@@ -2507,11 +2610,11 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
                   </div>
                   <div
                     className="text-[11px] font-bold truncate"
-                    style={{ color: "var(--p-text)" }}
+                    style={{ color: "var(--p-light-text-color)" }}
                   >
                     {leg.selection}
                   </div>
-                  <div className="text-[8.5px] mt-0.5 truncate" style={{ color: "var(--p-muted)" }}>
+                  <div className="text-[8.5px] mt-0.5 truncate" style={{ color: "var(--p-text-secondary-color)" }}>
                     <span style={{ color: "var(--p-secondary)" }}>vs</span>{" "}
                     {leg.vs.split(" vs ")[1] ?? leg.vs}
                   </div>
@@ -2528,22 +2631,22 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
       {/* Stake/payout */}
       <div
         className="flex items-center justify-between text-[9px] pt-2 border-t"
-        style={{ borderColor: "var(--p-divider)" }}
+        style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
       >
-        <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-        <span className="font-bold" style={{ color: "var(--p-text)" }}>
+        <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
+        <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
           {currencySymbol} {post.stake}
         </span>
         <span className="font-bold" style={{ color: "var(--p-primary)" }}>
           {currencySymbol} {post.payout}
         </span>
-        <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
+        <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
       </div>
 
       {/* Reactions */}
       <div
         className="flex items-center gap-3 mt-2 pt-2 text-[10px]"
-        style={{ color: "var(--p-muted)" }}
+        style={{ color: "var(--p-text-secondary-color)" }}
       >
         <span>♡ 0</span>
         <span>💬 0</span>
@@ -2571,31 +2674,31 @@ function SocialView({
       <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
         <div
           className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
-          style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+          style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
         >
           ✓
         </div>
         <div
           className="flex items-center gap-1.5 px-2.5 h-6 rounded-full"
-          style={{ background: "var(--p-card)" }}
+          style={{ background: "var(--p-dark)" }}
         >
-          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+          <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
             {currencySymbol}
           </span>
-          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>
+          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-light-text-color)" }}>
             ****
           </span>
           <Plus className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
-          <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
+          <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
         </div>
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-text)" }} />
+          <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
         </div>
       </div>
 
       {/* Friends/Explore tabs */}
-      <div className="flex border-b flex-shrink-0" style={{ borderColor: "var(--p-divider)" }}>
+      <div className="flex border-b flex-shrink-0" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
         {(["friends", "explore"] as const).map((t) => {
           const active = socialTab === t;
           return (
@@ -2603,7 +2706,7 @@ function SocialView({
               key={t}
               onClick={() => setSocialTab(t)}
               className="flex-1 h-9 text-[12px] font-bold relative"
-              style={{ color: active ? "var(--p-text)" : "var(--p-muted)" }}
+              style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
             >
               {t === "friends" ? strings.TAB_FRIENDS : strings.TAB_EXPLORE}
               {active && (
@@ -2633,13 +2736,13 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
     <div className="flex-1 min-h-0 overflow-auto px-3 pt-3 pb-2">
       <div
         className="rounded-xl p-3 mb-2"
-        style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+        style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <Trophy className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
-            <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>
+            <Trophy className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+            <span className="text-[10px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>
               Premier League, Serie A
             </span>
           </div>
@@ -2652,7 +2755,7 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
         </div>
 
         <div className="flex items-baseline justify-between mb-2">
-          <div className="text-[14px] font-black" style={{ color: "var(--p-text)" }}>
+          <div className="text-[14px] font-black" style={{ color: "var(--p-light-text-color)" }}>
             13 Selection Flex Multi
           </div>
           <div className="text-[12px] font-bold" style={{ color: "var(--p-primary)" }}>
@@ -2664,31 +2767,31 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
         <div className="rounded-lg p-2 mb-2" style={{ background: "rgba(0,0,0,0.25)" }}>
           <div className="flex items-center justify-between text-[10px] mb-1">
             <div className="flex items-center gap-1">
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive)" }} />
-              <span style={{ color: "var(--p-text)" }}>Crystal Palace</span>
+              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive-button-bg)" }} />
+              <span style={{ color: "var(--p-light-text-color)" }}>Crystal Palace</span>
             </div>
             <div className="text-center">
               <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
                 20 APR
               </div>
-              <div className="text-[8.5px]" style={{ color: "var(--p-muted)" }}>
+              <div className="text-[8.5px]" style={{ color: "var(--p-text-secondary-color)" }}>
                 9:00 PM
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <span style={{ color: "var(--p-text)" }}>West Ham United</span>
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive)" }} />
+              <span style={{ color: "var(--p-light-text-color)" }}>West Ham United</span>
+              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive-button-bg)" }} />
             </div>
           </div>
           <div
             className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
-            style={{ background: "var(--p-bg)", border: "1px solid var(--p-primary)" }}
+            style={{ background: "var(--p-primary-background-color)", border: "1px solid var(--p-primary)" }}
           >
             <div>
               <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
                 Total
               </div>
-              <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>
+              <div className="text-[12px] font-black" style={{ color: "var(--p-light-text-color)" }}>
                 over 2.5
               </div>
             </div>
@@ -2705,7 +2808,7 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
             <span
               key={i}
               className="h-1 w-1 rounded-full"
-              style={{ background: "var(--p-inactive)" }}
+              style={{ background: "var(--p-inactive-button-bg)" }}
             />
           ))}
         </div>
@@ -2728,18 +2831,18 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
           </div>
           <div
             className="grid grid-cols-3 text-[8.5px] font-bold pb-1 border-b"
-            style={{ color: "var(--p-muted)", borderColor: "var(--p-divider)" }}
+            style={{ color: "var(--p-text-secondary-color)", borderColor: "var(--p-border-and-gradient-bg)" }}
           >
             <span>{strings.OUTCOME}</span>
             <span>{strings.ODDS_LABEL}</span>
             <span className="text-right">{strings.PAYOUT}</span>
           </div>
-          <div className="grid grid-cols-3 text-[10px] py-1.5" style={{ color: "var(--p-text)" }}>
+          <div className="grid grid-cols-3 text-[10px] py-1.5" style={{ color: "var(--p-light-text-color)" }}>
             <span>12 of 13 correct</span>
             <span>1.27</span>
             <span className="text-right">{currencySymbol} 155.53</span>
           </div>
-          <div className="grid grid-cols-3 text-[10px]" style={{ color: "var(--p-text)" }}>
+          <div className="grid grid-cols-3 text-[10px]" style={{ color: "var(--p-light-text-color)" }}>
             <span>13 of 13 correct</span>
             <span>3.14</span>
             <span className="text-right">{currencySymbol} 383.35</span>
@@ -2749,27 +2852,27 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
         {/* Stake */}
         <div
           className="flex items-center justify-between text-[9px] pt-1 border-t"
-          style={{ borderColor: "var(--p-divider)" }}
+          style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
         >
-          <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-          <span className="font-bold" style={{ color: "var(--p-text)" }}>
+          <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
+          <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
             {currencySymbol} 122.00
           </span>
           <span className="font-bold" style={{ color: "var(--p-primary)" }}>
             {currencySymbol} 26135.44
           </span>
-          <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
+          <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
         </div>
         <div
           className="flex items-center gap-3 mt-2 text-[10px]"
-          style={{ color: "var(--p-muted)" }}
+          style={{ color: "var(--p-text-secondary-color)" }}
         >
           <span>♡ 0</span>
           <span>💬 0</span>
           <span style={{ color: "var(--p-primary)" }}>⚡ 0 Rebets</span>
           <span className="ml-auto">⤴</span>
         </div>
-        <div className="text-[8.5px] mt-1" style={{ color: "var(--p-muted)" }}>
+        <div className="text-[8.5px] mt-1" style={{ color: "var(--p-text-secondary-color)" }}>
           an hour ago
         </div>
       </div>
@@ -2794,64 +2897,144 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
 
 /* ─── Main exported component ─────────────────────────────────────────── */
 
-const BettingAppPreview = () => {
-  const { themeColors, appIcons, previewMode, headingFont, strings } = useStudio();
-  const isMobile = previewMode === "mobile";
+/** Convert a TCMPalette field name (camelCase) to a CSS variable name (--p-kebab-case). */
+function fieldNameToCssVar(fieldName: string): string {
+  const kebab = fieldName
+    .replace(/([A-Z])/g, "-$1")
+    .replace(/([0-9]+)/g, "-$1")
+    .toLowerCase()
+    .replace(/^-/, "");
+  return `--p-${kebab}`;
+}
 
-  const previewVars = {
-    // Primary mappings
-    "--p-bg": themeColors.primaryBg,
-    "--p-primary": themeColors.primary,
-    "--p-secondary": themeColors.secondary,
-    "--p-text": themeColors.lightText,
-    "--p-muted": themeColors.placeholderText,
-    "--p-btn": themeColors.primaryButton,
-    "--p-btn-grad": themeColors.primaryButtonGradient,
-    "--p-inactive": themeColors.inactiveButtonBg,
-    "--p-won1": themeColors.wonGradient1,
-    "--p-won2": themeColors.wonGradient2,
-    "--p-card": themeColors.dark,
-    "--p-nav": themeColors.dark,
-    "--p-bottom-nav": themeColors.dark,
-    "--p-header1": themeColors.headerGradient1,
-    "--p-header2": themeColors.headerGradient2,
-    "--p-box-grad1": themeColors.boxGradient1,
-    "--p-box-grad2": themeColors.boxGradient2,
-    "--p-odds-active": themeColors.activeSecondaryGradient,
-    "--p-odds-inactive": themeColors.inactiveButtonBg,
-    "--p-live": themeColors.lostColor,
-    "--p-success": themeColors.wonColor,
-    "--p-input-bg": themeColors.darkContainer,
-    "--p-input-border": themeColors.borderAndGradientBg,
-    "--p-divider": themeColors.borderAndGradientBg,
-    // Spec-required aliases
-    "--p-box1": themeColors.boxGradient1,
-    "--p-box2": themeColors.boxGradient2,
-    "--p-light-text": themeColors.lightText,
-    "--p-placeholder": themeColors.placeholderText,
-    "--p-navbar": themeColors.navbarLabel,
-    "--p-text-secondary": themeColors.textSecondary,
-    "--p-hd1": themeColors.headerGradient1,
-    "--p-hd2": themeColors.headerGradient2,
-    "--p-won-color": themeColors.wonColor,
-    "--p-lost-color": themeColors.lostColor,
-    "--p-payout-won": themeColors.payoutWonColor,
-    "--p-loss-text": themeColors.lossAmountText,
-    "--p-inactive-btn": themeColors.inactiveButtonBg,
-    "--p-inactive-text": themeColors.inactiveButtonText,
-    "--p-dark": themeColors.dark,
-    "--p-dark-container": themeColors.darkContainer,
-    "--p-betcard-header": themeColors.betcardHeaderBg,
-    "--p-modal": themeColors.modalBackground,
-    "--p-notification": themeColors.notificationBg,
-    "--p-flex-header": themeColors.flexBetHeaderBg,
-    "--p-flex-footer": themeColors.flexBetFooterBg,
-    "--p-vs": themeColors.vsColor,
-    fontFamily: headingFont + ", sans-serif",
-  } as React.CSSProperties;
+/** Generate an inline style object setting all TCMPalette fields as CSS variables. */
+function paletteToInlineStyle(
+  pal: import("@/lib/tcm-palette").TCMPalette,
+  extraStyles?: React.CSSProperties,
+): React.CSSProperties {
+  const style: Record<string, string> = {};
+  for (const [fieldName, value] of Object.entries(pal)) {
+    style[fieldNameToCssVar(fieldName)] = value as string;
+  }
+  return { ...style, ...extraStyles } as React.CSSProperties;
+}
+
+const BettingAppPreview = () => {
+  const { palette, appIcons, previewMode, headingFont, strings } = useStudio();
+  const isMobile = previewMode === "mobile";
+  const [showModal, setShowModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const handleSimulateNotification = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   return (
-    <div className="flex items-center justify-center w-full h-full p-4" style={previewVars}>
+    <div
+      className="flex flex-col items-center w-full h-full"
+      style={paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" })}
+    >
+      {/* Toolbar */}
+      <div
+        className="flex items-center gap-2 px-4 py-2 w-full flex-shrink-0"
+        style={{ background: "var(--p-dark)", borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}
+      >
+        <button
+          onClick={() => setShowModal((v) => !v)}
+          className="px-3 h-7 rounded text-[10px] font-semibold"
+          style={{ background: "var(--p-primary-button)", color: "var(--p-primary-text-color)" }}
+        >
+          Show Modal
+        </button>
+        <button
+          onClick={handleSimulateNotification}
+          className="px-3 h-7 rounded text-[10px] font-semibold"
+          style={{ background: "var(--p-inactive-button-bg)", color: "var(--p-inactive-button-text-primary)" }}
+        >
+          Simulate Notification
+        </button>
+      </div>
+
+      <div className="flex items-center justify-center w-full flex-1 p-4 relative overflow-hidden">
+      {/* Toast notification */}
+      {showToast && (
+        <div
+          className="absolute top-4 right-4 z-50 rounded-xl p-3 flex items-start gap-2 shadow-xl"
+          style={{
+            background: "var(--p-notification-section-bg)",
+            border: "1px solid var(--p-border-and-gradient-bg)",
+            minWidth: 200,
+            maxWidth: 260,
+          }}
+        >
+          <div
+            className="h-7 w-7 rounded-full grid place-items-center flex-shrink-0"
+            style={{ background: "var(--p-action-icon-box-bg)" }}
+          >
+            <span style={{ color: "var(--p-won-color)", fontSize: 14 }}>✓</span>
+          </div>
+          <div>
+            <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+              Bet placed successfully
+            </div>
+            <div className="text-[10px] mt-0.5" style={{ color: "var(--p-text-secondary-color)" }}>
+              +$42 potential payout
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal overlay */}
+      {showModal && (
+        <div
+          className="absolute inset-0 z-40 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="rounded-xl p-5 shadow-2xl"
+            style={{
+              background: "var(--p-modal-background)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
+              minWidth: 240,
+              maxWidth: 300,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[14px] font-bold mb-1" style={{ color: "var(--p-light-text-color)" }}>
+              Confirm Bet
+            </div>
+            <div className="text-[11px] mb-3" style={{ color: "var(--p-text-secondary-color)" }}>
+              Stake: $25 · Potential Payout: $87.50
+            </div>
+            <div
+              className="mb-3"
+              style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 h-8 rounded text-[11px] font-semibold"
+                style={{ background: "var(--p-inactive-button-bg)", color: "var(--p-inactive-button-text-primary)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 h-8 rounded text-[11px] font-semibold"
+                style={{
+                  background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
+                  color: "var(--p-primary-text-color)",
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isMobile ? (
         <div
           className="relative overflow-hidden rounded-[36px] shadow-2xl"
@@ -2859,7 +3042,7 @@ const BettingAppPreview = () => {
             width: 340,
             height: 700,
             border: "3px solid #1a1a1a",
-            background: "var(--p-bg)",
+            background: "var(--p-primary-background-color)",
           }}
         >
           <MobilePreview
@@ -2875,12 +3058,13 @@ const BettingAppPreview = () => {
             maxWidth: 1100,
             height: "min(680px, calc(100vh - 220px))",
             border: "1px solid rgba(255,255,255,0.08)",
-            background: "var(--p-bg)",
+            background: "var(--p-primary-background-color)",
           }}
         >
           <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} />
         </div>
       )}
+      </div>
     </div>
   );
 };
