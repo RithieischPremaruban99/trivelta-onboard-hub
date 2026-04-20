@@ -589,6 +589,7 @@ function StudioInner({
   // Undo history: stack of previous themeColors snapshots + description
   const [undoStack, setUndoStack] = useState<Array<{ colors: StudioThemeColors; label: string }>>([]);
   const [animationsOpen, setAnimationsOpen] = useState(false);
+  const [animationsPulse, setAnimationsPulse] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [lottieData, setLottieData] = useState<Record<string, any | null>>({
     loading: null, splash: null, live: null,
@@ -899,6 +900,15 @@ function StudioInner({
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || thinking) return;
+
+    // Auto-expand Animations panel and pulse it when message is animation-related
+    const lower = trimmed.toLowerCase();
+    const isAnimationMsg = /\b(animation|animations|splash|loading\s+screen|lottie|live\s+icon|loading\s+anim)\b/.test(lower);
+    if (isAnimationMsg) {
+      setAnimationsOpen(true);
+      setAnimationsPulse(true);
+      setTimeout(() => setAnimationsPulse(false), 1600);
+    }
 
     const isImg = isImageRequest(trimmed);
     setDisplayMessages((prev) => [...prev, { role: "user", content: trimmed }]);
@@ -1345,7 +1355,7 @@ function StudioInner({
           </div>
 
           {/* ── Animations (collapsible) ────────────────────────────────── */}
-          <div className="shrink-0 border-t border-border">
+          <div className={cn("shrink-0 border-t border-border transition-all", animationsPulse && "animate-pulse-highlight")}>
             <button
               type="button"
               onClick={() => setAnimationsOpen((v) => !v)}

@@ -223,4 +223,12 @@
   .route-fade-in  { animation: route-fade-in  0.28s ease both; }
   .route-slide-up { animation: route-slide-up 0.32s ease both; }
   .field-error-shake { animation: field-shake 0.45s ease; }
+  .animate-pulse-highlight { animation: panel-highlight 1.6s ease forwards; }
+}
+
+@keyframes panel-highlight {
+  0%   { background-color: transparent; }
+  20%  { background-color: color-mix(in srgb, var(--primary) 14%, transparent); }
+  60%  { background-color: color-mix(in srgb, var(--primary) 8%, transparent); }
+  100% { background-color: transparent; }
 }

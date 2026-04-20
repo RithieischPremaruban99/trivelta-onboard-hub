@@ -73,6 +73,11 @@ WHEN USER SAYS "match background to logo" or similar:
 LOGO GENERATION signals — when detected, respond with confirmation only, NO patch:
 - "generate", "create", "make", "design" + "logo" / "icon" / "brand"
 
+ANIMATION signals — when user asks about animations, splash screen, loading screen, live icon, or Lottie files:
+- Respond with EXACTLY this text, no variation:
+<chat>Animations are created by your Trivelta team based on your brand colors. Open the Animations panel on the left to preview the placeholder animations and upload your own Lottie JSON files if you have them.</chat>
+- No patch. No other response.
+
 RESPONSE EXAMPLES:
 User: "make buttons green like SportyBet"
 <chat>Updating buttons to SportyBet green.</chat>
@@ -86,7 +91,13 @@ User: "adjust background to match the logo" (with image)
 <patch>[{"op":"replace","path":"/primaryBg","value":"rgba(10,13,20,1)"},{"op":"replace","path":"/primary","value":"rgba(253,111,39,1)"}]</patch>
 
 User: "can you change the layout?"
-<chat>Layout is configured by your Trivelta team. I can adjust colors and generate brand assets.</chat>`;
+<chat>Layout is configured by your Trivelta team. I can adjust colors and generate brand assets.</chat>
+
+User: "can you make a loading animation?"
+<chat>Animations are created by your Trivelta team based on your brand colors. Open the Animations panel on the left to preview the placeholder animations and upload your own Lottie JSON files if you have them.</chat>
+
+User: "show me the splash screen"
+<chat>Animations are created by your Trivelta team based on your brand colors. Open the Animations panel on the left to preview the placeholder animations and upload your own Lottie JSON files if you have them.</chat>`;
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
