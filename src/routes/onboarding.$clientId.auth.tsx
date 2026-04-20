@@ -26,7 +26,19 @@ function AuthScreen() {
   useEffect(() => {
     if (authLoading || loadingAuth) return;
     if (user && clientRole) {
-      navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
+      // Check submission status — skip form, go straight to studio if already submitted
+      supabase
+        .from("onboarding_forms")
+        .select("submitted_at")
+        .eq("client_id", clientId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.submitted_at) {
+            navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+          } else {
+            navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
+          }
+        });
     }
   }, [user, clientRole, authLoading, loadingAuth]);
 

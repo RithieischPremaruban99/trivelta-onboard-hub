@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Lock, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TriveltaNav } from "@/components/TriveltaNav";
@@ -23,11 +25,30 @@ function initials(name: string | null | undefined) {
 function WelcomeGate() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/" });
   const { welcomeInfo, loadingPublic } = useOnboardingCtx();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [redirecting, setRedirecting] = useState(false);
 
-  // Only block while the public welcome data is loading (needed to render the page)
-  if (loadingPublic) {
+  // Auto-redirect authenticated users based on form submission status
+  useEffect(() => {
+    if (authLoading || loadingPublic || !user) return;
+    setRedirecting(true);
+    supabase
+      .from("onboarding_forms")
+      .select("submitted_at")
+      .eq("client_id", clientId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.submitted_at) {
+          navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+        } else {
+          navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
+        }
+      });
+  }, [authLoading, loadingPublic, user, clientId]);
+
+  // Block while loading or redirecting an authenticated user
+  if (authLoading || loadingPublic || redirecting) {
     return (
       <div className="min-h-screen grid place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -93,9 +114,7 @@ function WelcomeGate() {
               <Button
                 size="lg"
                 onClick={() =>
-                  user
-                    ? navigate({ to: "/onboarding/$clientId/form", params: { clientId } })
-                    : navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })
+                  navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })
                 }
                 className="btn-trivelta h-12 px-8 text-[15px]"
               >

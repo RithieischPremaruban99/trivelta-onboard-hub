@@ -1,10 +1,16 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
+  const { role } = useAuth();
+  const isAdminOrAE = role === "admin" || role === "account_executive";
+  const isAM = role === "account_manager";
+  const dest = isAdminOrAE ? "/admin" : isAM ? "/dashboard" : "/";
+  const label = isAdminOrAE ? "Go to Admin Panel" : isAM ? "Go to Dashboard" : "Go home";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -15,10 +21,10 @@ function NotFoundComponent() {
         </p>
         <div className="mt-6">
           <Link
-            to="/"
+            to={dest}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go home
+            {label}
           </Link>
         </div>
       </div>

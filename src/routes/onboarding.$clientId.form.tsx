@@ -223,7 +223,7 @@ function FormScreen() {
       if (formData?.data) setForm(emptyForm(formData.data as Partial<FormShape>));
       if (formData?.submitted_at) {
         setSubmitted(formData.submitted_at);
-        navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
+        navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
       }
       setLoading(false);
     })();
@@ -243,7 +243,7 @@ function FormScreen() {
         setForm(emptyForm(remote.data));
         if (remote.submitted_at) {
           setSubmitted(remote.submitted_at);
-          navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+          navigate({ to: "/onboarding/$clientId/studio", params: { clientId } });
         }
       })
       .subscribe();
@@ -448,6 +448,7 @@ function FormScreen() {
     <div className="route-fade-in flex min-h-screen flex-col">
       {/* Sticky brand nav with progress bar underneath */}
       <TriveltaNav
+        homeHref={`/onboarding/${clientId}`}
         right={
           <div className="flex items-center gap-3">
             <PresenceAvatars users={otherUsers} />

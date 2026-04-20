@@ -1975,7 +1975,7 @@ function StudioPage() {
       const [formRes, clientRes] = await Promise.all([
         supabase
           .from("onboarding_forms")
-          .select("studio_config, studio_locked, studio_locked_at")
+          .select("submitted_at, studio_config, studio_locked, studio_locked_at")
           .eq("client_id", clientId)
           .maybeSingle(),
         supabase
@@ -1986,6 +1986,13 @@ function StudioPage() {
       ]);
 
       const data = formRes.data;
+
+      // If form not submitted → redirect to form
+      if (!data?.submitted_at) {
+        navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
+        return;
+      }
+
       if (data?.studio_config && typeof data.studio_config === "object") {
         const saved = data.studio_config as StudioSavedConfig;
         if (saved.colors) {

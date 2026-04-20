@@ -138,7 +138,8 @@ function AdminPage() {
     );
   }
   if (!user) return <Navigate to="/login" />;
-  if (role !== "admin" && role !== "account_executive" && role !== "account_manager") {
+  if (role === "account_manager") return <Navigate to="/dashboard" />;
+  if (role !== "admin" && role !== "account_executive") {
     return <Navigate to="/" />;
   }
 

@@ -398,9 +398,13 @@ function ClientDetail({ client, onStudioAccessChange }: {
             <p className="mt-1 text-sm text-muted-foreground">{client.country ?? "-"}</p>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link to="/onboarding/$clientId" params={{ clientId: client.id }}>
+            <a
+              href={`/onboarding/${client.id}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               Open onboarding form <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+            </a>
           </Button>
         </div>
 

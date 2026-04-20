@@ -27,7 +27,7 @@ import {
 } from "@/contexts/StudioContext";
 import { OnboardingCtx, type OnboardingCtxValue } from "@/lib/onboarding-context";
 import { StudioInner } from "@/routes/onboarding.$clientId.studio";
-import { Loader2, ArrowLeft, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ArrowLeft, ShieldCheck, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 /* ── Admin email allow-list ─────────────────────────────────────────────── */
 
@@ -246,8 +246,15 @@ function StudioPreviewPage() {
           )}
         </div>
 
-        {/* Spacer mirrors the back button width to keep label centered */}
-        <div className="w-[110px]" />
+        <a
+          href={`/onboarding/${clientId}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Onboarding Form
+        </a>
       </div>
 
       {/* Prev arrow */}
