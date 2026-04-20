@@ -157,8 +157,8 @@ VAGUE -> QUESTION -> THEN APPLY:
   Experienced -> dark rgba(10,13,20,1) + orange rgba(255,107,0,1)
 
 "green" ->
-"SportyBet-style trust green, or a brighter lime energy green?"
-  SportyBet -> rgba(0,163,108,1)
+"Betway-style trust green (dominant in Ghana, used by Odibets in Kenya), or a brighter lime energy green?"
+  Betway -> rgba(0,163,108,1)
   Lime -> rgba(0,200,80,1)
 
 "professional" ->
