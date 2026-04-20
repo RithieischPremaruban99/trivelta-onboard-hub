@@ -761,6 +761,10 @@ export function StudioInner({
   const [apiHistory, setApiHistory] = useState<ApiMessage[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const thinkingRef = useRef(false);
+  useEffect(() => {
+    thinkingRef.current = thinking;
+  }, [thinking]);
   const [pendingIsImage, setPendingIsImage] = useState(false);
   const [patchPending, setPatchPending] = useState(false);
   // Undo history: stack of previous themeColors snapshots + description
@@ -1029,6 +1033,7 @@ export function StudioInner({
       } else {
         setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
       }
+      setTimeout(() => chatInputRef.current?.focus(), 0);
     },
     [setAppIcons],
   );
@@ -1099,7 +1104,7 @@ export function StudioInner({
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || thinking) return;
+      if (!trimmed || thinkingRef.current) return;
 
       // Auto-expand Animations panel and pulse it when message is animation-related
       const lower = trimmed.toLowerCase();
@@ -1324,9 +1329,10 @@ export function StudioInner({
         setThinking(false);
         setPendingIsImage(false);
         setPatchPending(false);
+        setTimeout(() => chatInputRef.current?.focus(), 0);
       }
     },
-    [thinking, apiHistory, clientId, applyColorPatch],
+    [apiHistory, clientId, applyColorPatch],
   );
 
   /* ── Fine-tune accordion groups ── */
