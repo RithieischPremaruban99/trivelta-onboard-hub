@@ -151,19 +151,28 @@ const LiveDot = () => (
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
+type WebView = "sports" | "feed" | "profile";
+
 function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
   const [activeNav, setActiveNav] = useState(1); // Sports
   const [activeSport, setActiveSport] = useState(0);
   const [activeLeague, setActiveLeague] = useState(0);
   const [activeBetType, setActiveBetType] = useState(0);
+  const [view, setView] = useState<WebView>("sports");
 
-  const NAV = [
-    { icon: Home, label: "Feed" },
-    { icon: Trophy, label: "Sports" },
-    { icon: Compass, label: "Discovery" },
-    { icon: Gamepad2, label: "Casino" },
-    { icon: Swords, label: "Peer-to-peer" },
+  const NAV: { icon: typeof Home; label: string; view: WebView }[] = [
+    { icon: Home, label: "Feed", view: "feed" },
+    { icon: Trophy, label: "Sports", view: "sports" },
+    { icon: Compass, label: "Discovery", view: "sports" },
+    { icon: Gamepad2, label: "Casino", view: "sports" },
+    { icon: User, label: "Profile", view: "profile" },
   ];
+
+  const handleNav = (i: number) => {
+    setActiveNav(i);
+    setView(NAV[i].view);
+  };
+
 
   return (
     <div
