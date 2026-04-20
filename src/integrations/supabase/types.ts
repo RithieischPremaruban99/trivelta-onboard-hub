@@ -138,6 +138,7 @@ export type Database = {
           created_at: string
           data: Json
           id: string
+          notion_sync_pending: boolean
           studio_config: Json
           studio_locked: boolean
           studio_locked_at: string | null
@@ -149,6 +150,7 @@ export type Database = {
           created_at?: string
           data?: Json
           id?: string
+          notion_sync_pending?: boolean
           studio_config?: Json
           studio_locked?: boolean
           studio_locked_at?: string | null
@@ -160,6 +162,7 @@ export type Database = {
           created_at?: string
           data?: Json
           id?: string
+          notion_sync_pending?: boolean
           studio_config?: Json
           studio_locked?: boolean
           studio_locked_at?: string | null
