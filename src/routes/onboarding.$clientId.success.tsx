@@ -31,6 +31,7 @@ function SuccessScreen() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
+  const [studioAccess, setStudioAccess] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -39,15 +40,23 @@ function SuccessScreen() {
       return;
     }
     (async () => {
-      const { data } = await supabase
-        .from("onboarding_forms")
-        .select("submitted_at")
-        .eq("client_id", clientId)
-        .maybeSingle();
-      if (!data?.submitted_at) {
+      const [formRes, clientRes] = await Promise.all([
+        supabase
+          .from("onboarding_forms")
+          .select("submitted_at")
+          .eq("client_id", clientId)
+          .maybeSingle(),
+        supabase
+          .from("clients")
+          .select("studio_access")
+          .eq("id", clientId)
+          .maybeSingle(),
+      ]);
+      if (!formRes.data?.submitted_at) {
         navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
         return;
       }
+      setStudioAccess(clientRes.data?.studio_access ?? false);
       setVerified(true);
     })();
   }, [user, authLoading]);
@@ -99,7 +108,7 @@ function SuccessScreen() {
           </div>
 
           {/* Studio CTA - PRIMARY action before info cards */}
-          {clientRole === "client_owner" && (
+          {clientRole === "client_owner" && studioAccess && (
             <div className="mb-8">
               <p className="mb-3 text-center text-[13px] font-medium uppercase tracking-[0.18em] text-muted-foreground font-mono">
                 Your onboarding is complete. Now let&apos;s build your brand.
@@ -129,6 +138,21 @@ function SuccessScreen() {
                   </div>
                 </div>
               </button>
+            </div>
+          )}
+
+          {/* Studio not yet available — AM will reach out */}
+          {clientRole === "client_owner" && !studioAccess && (
+            <div className="mb-8 flex items-center gap-4 rounded-xl border border-border/60 bg-card px-6 py-5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
+                <Palette className="h-6 w-6 text-primary/60" />
+              </div>
+              <div>
+                <div className="text-[15px] font-semibold text-foreground">Trivelta Studio</div>
+                <p className="mt-0.5 text-[13px] text-muted-foreground">
+                  Your AM will enable your Studio workspace shortly. You'll be notified when it's ready.
+                </p>
+              </div>
             </div>
           )}
 

@@ -27,7 +27,8 @@ import {
 } from "@/contexts/StudioContext";
 import { OnboardingCtx, type OnboardingCtxValue } from "@/lib/onboarding-context";
 import { StudioInner } from "@/routes/onboarding.$clientId.studio";
-import { Loader2, ArrowLeft, ShieldCheck, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, ShieldCheck, ShieldAlert, Lock, Unlock, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 /* ── Admin email allow-list ─────────────────────────────────────────────── */
 
@@ -61,6 +62,10 @@ function StudioPreviewPage() {
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
   const [initialLocked, setInitialLocked] = useState(false);
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
+  const [studioAccess, setStudioAccess] = useState(false);
+  const [studioAccessLocked, setStudioAccessLocked] = useState(false);
+  const [togglingAccess, setTogglingAccess] = useState(false);
+  const [togglingLock, setTogglingLock] = useState(false);
   const [ready, setReady] = useState(false);
 
   // All clients for prev/next navigation
@@ -93,7 +98,7 @@ function StudioPreviewPage() {
       const [clientRes, formRes, allClientsRes] = await Promise.all([
         supabase
           .from("clients")
-          .select("name")
+          .select("name, studio_access, studio_access_locked")
           .eq("id", clientId)
           .maybeSingle(),
         supabase
@@ -108,6 +113,8 @@ function StudioPreviewPage() {
       ]);
 
       setClientName(clientRes.data?.name ?? "Client");
+      setStudioAccess(clientRes.data?.studio_access ?? false);
+      setStudioAccessLocked(clientRes.data?.studio_access_locked ?? false);
 
       const clients = (allClientsRes.data ?? []) as ClientLite[];
       setAllClients(clients);
@@ -182,6 +189,28 @@ function StudioPreviewPage() {
     }
   };
 
+  const toggleStudioAccess = async () => {
+    setTogglingAccess(true);
+    const next = !studioAccess;
+    const updatePayload: Record<string, unknown> = { studio_access: next };
+    if (next) updatePayload.studio_access_granted_at = new Date().toISOString();
+    const { error } = await supabase.from("clients").update(updatePayload).eq("id", clientId);
+    setTogglingAccess(false);
+    if (error) { toast.error(error.message); return; }
+    setStudioAccess(next);
+    toast.success(next ? "Studio access granted" : "Studio access revoked");
+  };
+
+  const toggleStudioLock = async () => {
+    setTogglingLock(true);
+    const next = !studioAccessLocked;
+    const { error } = await supabase.from("clients").update({ studio_access_locked: next }).eq("id", clientId);
+    setTogglingLock(false);
+    if (error) { toast.error(error.message); return; }
+    setStudioAccessLocked(next);
+    toast.success(next ? "Studio locked for client" : "Studio unlocked for client");
+  };
+
   /* Loading */
   if (authLoading || !ready) {
     return (
@@ -222,7 +251,7 @@ function StudioPreviewPage() {
   return (
     <>
       {/* Admin banner */}
-      <div className="fixed top-0 left-0 right-0 z-[9999] h-8 flex items-center justify-between px-4 bg-amber-400 text-amber-950 text-[12px] font-semibold shadow-sm">
+      <div className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between px-4 py-1.5 bg-amber-400 text-amber-950 text-[12px] font-semibold shadow-sm gap-3">
         <button
           onClick={() => {
             if (window.history.length > 1) {
@@ -231,26 +260,59 @@ function StudioPreviewPage() {
               navigate({ to: "/admin" });
             }
           }}
-          className="flex items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
+          className="flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Admin
         </button>
 
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Admin Preview Mode —{" "}
-          <span className="max-w-[260px] truncate">{clientName ?? "…"}</span>
-          {counter && (
-            <span className="opacity-60 font-normal">({counter})</span>
-          )}
+        <div className="flex items-center gap-3 flex-wrap justify-center">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Admin Preview —{" "}
+            <span className="max-w-[200px] truncate">{clientName ?? "…"}</span>
+            {counter && (
+              <span className="opacity-60 font-normal">({counter})</span>
+            )}
+          </div>
+          {/* Studio Access toggle */}
+          <button
+            onClick={toggleStudioAccess}
+            disabled={togglingAccess}
+            className="flex items-center gap-1.5 rounded-full border border-amber-600/40 bg-amber-500/30 px-2.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-amber-500/50 disabled:opacity-50"
+          >
+            {togglingAccess ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : studioAccess ? (
+              <ShieldCheck className="h-3 w-3" />
+            ) : (
+              <ShieldAlert className="h-3 w-3" />
+            )}
+            Studio: {studioAccess ? "Granted" : "No Access"}
+          </button>
+          {/* Design Lock toggle */}
+          <button
+            onClick={toggleStudioLock}
+            disabled={togglingLock || !studioAccess}
+            className="flex items-center gap-1.5 rounded-full border border-amber-600/40 bg-amber-500/30 px-2.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-amber-500/50 disabled:opacity-40"
+            title={!studioAccess ? "Grant studio access first" : undefined}
+          >
+            {togglingLock ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : studioAccessLocked ? (
+              <Lock className="h-3 w-3" />
+            ) : (
+              <Unlock className="h-3 w-3" />
+            )}
+            Design: {studioAccessLocked ? "Locked" : "Unlocked"}
+          </button>
         </div>
 
         <a
           href={`/onboarding/${clientId}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
+          className="flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Onboarding Form
@@ -300,7 +362,7 @@ function StudioPreviewPage() {
       )}
 
       {/* Push content below the banner */}
-      <div className="pt-8 h-screen overflow-hidden">
+      <div className="pt-10 h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
           <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage} initialAppName={initialAppName}>
             <StudioInner

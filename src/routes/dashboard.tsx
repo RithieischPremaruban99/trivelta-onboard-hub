@@ -29,6 +29,7 @@ interface ClientLite {
   country: string | null;
   platform_url: string | null;
   drive_link: string | null;
+  studio_access: boolean;
   studio_access_locked: boolean;
 }
 
@@ -154,7 +155,7 @@ function DashboardPage() {
       setLoading(true);
       const { data } = await supabase
         .from("clients")
-        .select("id, name, status, country, platform_url, drive_link, studio_access_locked")
+        .select("id, name, status, country, platform_url, drive_link, studio_access, studio_access_locked")
         .order("created_at", { ascending: false });
       setClients((data ?? []) as ClientLite[]);
       if (data?.length) setSelectedId((data[0] as ClientLite).id);
@@ -454,64 +455,128 @@ function ClientDetail({ client, onStudioAccessChange }: {
 
       {/* Studio Access Control */}
       <div className="surface-card p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10">
-              <Palette className="h-4 w-4 text-primary" />
+        <div className="flex items-start gap-3 mb-5">
+          <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10">
+            <Palette className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider">Trivelta Studio</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Client's platform design workspace.
+            </p>
+          </div>
+        </div>
+
+        {/* State 1 — no access granted yet */}
+        {!client.studio_access && (
+          <div className="rounded-lg border border-border bg-secondary/30 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldAlert className="h-4 w-4 text-muted-foreground/60" />
+              <span className="text-sm font-medium text-muted-foreground">Studio not yet granted</span>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider">Studio Access</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Control whether the client can access Trivelta Studio.
-              </p>
+            <p className="text-xs text-muted-foreground/80 mb-4">
+              Studio access has not been enabled for this client. Only an Account Executive can grant access.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() =>
+                  window.open(`/studio-preview/${client.id}`, "_blank")
+                }
+                className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Preview Studio (admin only)
+              </button>
             </div>
           </div>
-          {studioAccessLocked ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-[11px] font-medium text-destructive">
-              <ShieldAlert className="h-3 w-3" />
-              Studio Locked — client cannot access
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-[11px] font-medium text-success">
-              <ShieldCheck className="h-3 w-3" />
-              Studio Open — client can edit
-            </span>
-          )}
-        </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          {studioAccessLocked ? (
-            <button
-              onClick={toggleStudioAccess}
-              disabled={togglingAccess}
-              className="inline-flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-60"
-            >
-              {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
-              Unlock Studio Access
-            </button>
-          ) : (
-            <button
-              onClick={toggleStudioAccess}
-              disabled={togglingAccess}
-              className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-60"
-            >
-              {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
-              Lock Studio Access
-            </button>
-          )}
-          <div className="flex items-start gap-1.5 rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-            <Info className="mt-0.5 h-3 w-3 shrink-0" />
-            Lock while implementing in TCM to prevent conflicting changes.
+        )}
+
+        {/* State 2 — access granted, not locked */}
+        {client.studio_access && !studioAccessLocked && (
+          <div className="rounded-lg border border-success/30 bg-success/5 p-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-success" />
+                <span className="text-sm font-medium text-success">Studio Active — client can design</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() =>
+                  window.open(`/studio-preview/${client.id}`, "_blank")
+                }
+                className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Preview Studio
+              </button>
+              <button
+                onClick={toggleStudioAccess}
+                disabled={togglingAccess}
+                className="inline-flex items-center gap-2 rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-600 dark:text-amber-400 transition-colors hover:bg-amber-400/20 disabled:opacity-60"
+              >
+                {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+                Lock for TCM
+              </button>
+              <div className="flex items-start gap-1.5 rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground self-center">
+                <Info className="mt-0.5 h-3 w-3 shrink-0" />
+                Lock while implementing in TCM.
+              </div>
+            </div>
           </div>
-          <button
-            onClick={() =>
-              window.open(`/studio-preview/${client.id}`, "_blank")
-            }
-            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
-          >
-            <Palette className="h-3.5 w-3.5" />
-            Preview Studio
-          </button>
-        </div>
+        )}
+
+        {/* State 3 — access granted, locked by AM */}
+        {client.studio_access && studioAccessLocked && (
+          <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">Studio Locked — TCM implementation in progress</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() =>
+                  window.open(`/studio-preview/${client.id}`, "_blank")
+                }
+                className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Preview Studio
+              </button>
+              <button
+                onClick={toggleStudioAccess}
+                disabled={togglingAccess}
+                className="inline-flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-60"
+              >
+                {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
+                Unlock Studio
+              </button>
+              <button
+                onClick={() => {
+                  if (studioConfig?.icons?.appNameLogo || studioConfig?.icons?.topLeftAppIcon) {
+                    toast.info("Download brand assets from the Studio Config section below.");
+                  }
+                  navigator.clipboard.writeText(
+                    buildTcmText(
+                      client.name,
+                      studioConfig?.colors ?? {},
+                      studioConfig?.icons,
+                      studioLocked,
+                      studioLockedAt,
+                    )
+                  );
+                  toast.success("Studio config copied for TCM");
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Copy for TCM
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Studio Config */}

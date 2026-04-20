@@ -34,6 +34,9 @@ import {
   Mail,
   Lock,
   Palette,
+  ShieldCheck,
+  ShieldAlert,
+  Unlock,
 } from "lucide-react";
 import {
   defaultStudioColors,
@@ -60,6 +63,7 @@ interface ClientRow {
   platform_url: string | null;
   primary_contact_email: string | null;
   created_at: string;
+  studio_access: boolean;
 }
 
 function AdminPage() {
@@ -84,7 +88,7 @@ function AdminPage() {
     const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes] = await Promise.all([
       supabase
         .from("clients")
-        .select("id, name, country, status, drive_link, platform_url, primary_contact_email, created_at")
+        .select("id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access")
         .order("created_at", { ascending: false }),
       supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
@@ -208,7 +212,8 @@ function AdminPage() {
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Status</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Progress</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Created</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Studio</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Studio Access</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Studio Config</th>
                     <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Onboarding link</th>
                   </tr>
                 </thead>
@@ -251,6 +256,19 @@ function AdminPage() {
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground font-mono whitespace-nowrap">
                           {new Date(c.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StudioAccessCell
+                            clientId={c.id}
+                            hasAccess={c.studio_access}
+                            onChanged={(val) =>
+                              setClients((prev) =>
+                                prev.map((r) =>
+                                  r.id === c.id ? { ...r, studio_access: val } : r,
+                                ),
+                              )
+                            }
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <StudioConfigCell
@@ -409,6 +427,60 @@ function ClientAmCell({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ── Studio Access cell ──────────────────────────────────────────────────── */
+
+function StudioAccessCell({
+  clientId,
+  hasAccess,
+  onChanged,
+}: {
+  clientId: string;
+  hasAccess: boolean;
+  onChanged: (val: boolean) => void;
+}) {
+  const [toggling, setToggling] = useState(false);
+
+  const toggle = async () => {
+    setToggling(true);
+    const next = !hasAccess;
+    const updatePayload: Record<string, unknown> = { studio_access: next };
+    if (next) updatePayload.studio_access_granted_at = new Date().toISOString();
+    const { error } = await supabase
+      .from("clients")
+      .update(updatePayload)
+      .eq("id", clientId);
+    setToggling(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    onChanged(next);
+    toast.success(next ? "Studio access granted" : "Studio access revoked");
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={toggling}
+      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-accent/60 disabled:opacity-50"
+    >
+      {toggling ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+      ) : hasAccess ? (
+        <>
+          <ShieldCheck className="h-3.5 w-3.5 text-success" />
+          <span className="font-medium text-success">Granted</span>
+        </>
+      ) : (
+        <>
+          <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground/50" />
+          <span className="text-muted-foreground/50">No access</span>
+        </>
+      )}
+    </button>
   );
 }
 
@@ -574,12 +646,13 @@ function NewClientDialog({
   const [driveLink, setDriveLink] = useState(DEFAULT_DRIVE_LINK);
   const [contactEmail, setContactEmail] = useState("");
   const [amIds, setAmIds] = useState<string[]>([]);
+  const [grantStudioAccess, setGrantStudioAccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const reset = () => {
     setName(""); setCountry(""); setPlatformUrl(""); setDriveLink(DEFAULT_DRIVE_LINK);
-    setContactEmail(""); setAmIds([]); setCreatedClient(null);
+    setContactEmail(""); setAmIds([]); setGrantStudioAccess(false); setCreatedClient(null);
   };
 
   const create = async () => {
@@ -594,6 +667,8 @@ function NewClientDialog({
           platform_url: platformUrl.trim() || null,
           drive_link: driveLink.trim() || null,
           primary_contact_email: contactEmail.trim().toLowerCase(),
+          studio_access: grantStudioAccess,
+          ...(grantStudioAccess ? { studio_access_granted_at: new Date().toISOString() } : {}),
         },
       ])
       .select("id, name")
@@ -713,6 +788,23 @@ function NewClientDialog({
           <p className="text-[11px] text-muted-foreground">
             You can assign multiple AMs. They'll all see this client in their dashboard.
           </p>
+        </div>
+        <div className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background/40 px-4 py-3">
+          <div>
+            <div className="text-sm font-medium">Grant Studio Access</div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
+              Allow client to open Trivelta Studio after submitting the form.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setGrantStudioAccess((v) => !v)}
+            className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${grantStudioAccess ? "bg-primary" : "bg-secondary"}`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm ring-0 transition-transform ${grantStudioAccess ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </button>
         </div>
         <div className="space-y-1.5">
           <Label>Platform URL</Label>
