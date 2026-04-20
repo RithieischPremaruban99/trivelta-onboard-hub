@@ -188,6 +188,24 @@ function AdminPage() {
           ),
   };
 
+  const canDelete = SUPER_ADMIN_EMAILS.includes(user?.email ?? "");
+
+  const handleDelete = async (clientId: string, clientName: string) => {
+    if (
+      !window.confirm(
+        `Permanently delete "${clientName}"?\n\nThis removes the client and ALL related onboarding data, tasks, submissions, AM assignments and team members. This cannot be undone.`,
+      )
+    )
+      return;
+    const { error } = await supabase.from("clients").delete().eq("id", clientId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Deleted ${clientName}`);
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+  };
+
   return (
     <AppShell badge="Admin">
       <div className="mx-auto w-full max-w-[1400px] px-6 py-6">
