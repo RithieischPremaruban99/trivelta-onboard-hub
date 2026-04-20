@@ -20,7 +20,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             {role && (
               <nav className="hidden items-center gap-1 sm:flex">
-                {(role === "admin" || role === "account_manager" || role === "account_executive") && (
+                {(role === "admin" ||
+                  role === "account_manager" ||
+                  role === "account_executive") && (
                   <Link
                     to="/dashboard"
                     className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"

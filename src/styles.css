@@ -54,23 +54,23 @@
   --radius: 0.75rem;
 
   /* Trivelta palette (oklch equivalents of the spec'd hex) */
-  --background: oklch(0.158 0.022 261);             /* #080d1a - deep navy */
-  --foreground: oklch(1 0 0);                       /* #ffffff */
-  --card: oklch(0.193 0.024 261);                   /* #0d1525 */
+  --background: oklch(0.158 0.022 261); /* #080d1a - deep navy */
+  --foreground: oklch(1 0 0); /* #ffffff */
+  --card: oklch(0.193 0.024 261); /* #0d1525 */
   --card-foreground: oklch(1 0 0);
   --popover: oklch(0.193 0.024 261);
   --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.578 0.214 263);                /* #2563eb */
+  --primary: oklch(0.578 0.214 263); /* #2563eb */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.235 0.022 261);              /* slightly lighter than card */
+  --secondary: oklch(0.235 0.022 261); /* slightly lighter than card */
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.225 0.02 261);
-  --muted-foreground: oklch(0.65 0.018 252);        /* #8896ab */
+  --muted-foreground: oklch(0.65 0.018 252); /* #8896ab */
   --accent: oklch(0.27 0.025 261);
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --success: oklch(0.72 0.17 152);                  /* #22c55e */
+  --success: oklch(0.72 0.17 152); /* #22c55e */
   --success-foreground: oklch(0.158 0.022 261);
   --warning: oklch(0.78 0.16 75);
   --warning-foreground: oklch(0.158 0.022 261);
@@ -95,7 +95,8 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -174,8 +175,16 @@
   /* Subtle radial backdrop, like trivelta.com hero */
   body {
     background-image:
-      radial-gradient(ellipse 90% 65% at 50% -10%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, color-mix(in oklab, var(--color-primary) 6%, transparent), transparent 70%);
+      radial-gradient(
+        ellipse 90% 65% at 50% -10%,
+        color-mix(in oklab, var(--color-primary) 12%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 60% 50% at 100% 100%,
+        color-mix(in oklab, var(--color-primary) 6%, transparent),
+        transparent 70%
+      );
     background-attachment: fixed;
   }
 
@@ -184,7 +193,9 @@
   }
 
   /* Tighter, more confident headings */
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     letter-spacing: -0.025em;
   }
 }
@@ -215,67 +226,162 @@
 
 /* Onboarding animated gradient orbs */
 @keyframes orb-drift-1 {
-  0%, 100% { transform: translate(0px, 0px) scale(1); }
-  25% { transform: translate(40px, -60px) scale(1.08); }
-  50% { transform: translate(-30px, 30px) scale(0.95); }
-  75% { transform: translate(50px, 40px) scale(1.03); }
+  0%,
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  25% {
+    transform: translate(40px, -60px) scale(1.08);
+  }
+  50% {
+    transform: translate(-30px, 30px) scale(0.95);
+  }
+  75% {
+    transform: translate(50px, 40px) scale(1.03);
+  }
 }
 @keyframes orb-drift-2 {
-  0%, 100% { transform: translate(0px, 0px) scale(1); }
-  25% { transform: translate(-50px, 40px) scale(1.05); }
-  50% { transform: translate(30px, -40px) scale(0.97); }
-  75% { transform: translate(-20px, 50px) scale(1.02); }
+  0%,
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  25% {
+    transform: translate(-50px, 40px) scale(1.05);
+  }
+  50% {
+    transform: translate(30px, -40px) scale(0.97);
+  }
+  75% {
+    transform: translate(-20px, 50px) scale(1.02);
+  }
 }
 @keyframes orb-drift-3 {
-  0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(35px, 50px) scale(1.04); }
-  66% { transform: translate(-40px, -30px) scale(0.96); }
+  0%,
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(35px, 50px) scale(1.04);
+  }
+  66% {
+    transform: translate(-40px, -30px) scale(0.96);
+  }
 }
 @keyframes check-scale-in {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 @keyframes progress-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Markdown inside studio chat bubbles */
 @layer components {
-  .prose-chat p { margin: 0 0 0.35em; }
-  .prose-chat p:last-child { margin-bottom: 0; }
-  .prose-chat strong { font-weight: 600; }
-  .prose-chat em { font-style: italic; }
-  .prose-chat ul { margin: 0.25em 0; padding-left: 1.1em; list-style-type: disc; }
-  .prose-chat ol { margin: 0.25em 0; padding-left: 1.1em; list-style-type: decimal; }
-  .prose-chat li { margin: 0.1em 0; }
-  .prose-chat code { font-family: var(--font-mono); font-size: 0.85em; opacity: 0.85; }
+  .prose-chat p {
+    margin: 0 0 0.35em;
+  }
+  .prose-chat p:last-child {
+    margin-bottom: 0;
+  }
+  .prose-chat strong {
+    font-weight: 600;
+  }
+  .prose-chat em {
+    font-style: italic;
+  }
+  .prose-chat ul {
+    margin: 0.25em 0;
+    padding-left: 1.1em;
+    list-style-type: disc;
+  }
+  .prose-chat ol {
+    margin: 0.25em 0;
+    padding-left: 1.1em;
+    list-style-type: decimal;
+  }
+  .prose-chat li {
+    margin: 0.1em 0;
+  }
+  .prose-chat code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    opacity: 0.85;
+  }
 }
 
 @keyframes route-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes route-slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes field-shake {
-  0%, 100% { transform: translateX(0); }
-  15%       { transform: translateX(-5px); }
-  30%       { transform: translateX(5px); }
-  45%       { transform: translateX(-4px); }
-  60%       { transform: translateX(4px); }
-  75%       { transform: translateX(-2px); }
-  90%       { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-5px);
+  }
+  30% {
+    transform: translateX(5px);
+  }
+  45% {
+    transform: translateX(-4px);
+  }
+  60% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+  90% {
+    transform: translateX(2px);
+  }
 }
 
 @layer components {
-  .orb-1 { animation: orb-drift-1 20s ease-in-out infinite; }
-  .orb-2 { animation: orb-drift-2 26s ease-in-out infinite; }
-  .orb-3 { animation: orb-drift-3 32s ease-in-out infinite; }
-  .check-anim { animation: check-scale-in 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  .orb-1 {
+    animation: orb-drift-1 20s ease-in-out infinite;
+  }
+  .orb-2 {
+    animation: orb-drift-2 26s ease-in-out infinite;
+  }
+  .orb-3 {
+    animation: orb-drift-3 32s ease-in-out infinite;
+  }
+  .check-anim {
+    animation: check-scale-in 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
   .progress-shimmer {
     background: linear-gradient(
       90deg,
@@ -286,22 +392,46 @@
     background-size: 200% 100%;
     animation: progress-shimmer 2.4s linear infinite;
   }
-  .route-fade-in  { animation: route-fade-in  0.28s ease both; }
-  .route-slide-up { animation: route-slide-up 0.32s ease both; }
-  .field-error-shake { animation: field-shake 0.45s ease; }
-  .animate-pulse-highlight { animation: panel-highlight 1.6s ease forwards; }
+  .route-fade-in {
+    animation: route-fade-in 0.28s ease both;
+  }
+  .route-slide-up {
+    animation: route-slide-up 0.32s ease both;
+  }
+  .field-error-shake {
+    animation: field-shake 0.45s ease;
+  }
+  .animate-pulse-highlight {
+    animation: panel-highlight 1.6s ease forwards;
+  }
 }
 
 @keyframes typing-dot {
-  0%, 60%, 100% { transform: translateY(0);    opacity: 0.35; }
-  30%           { transform: translateY(-4px); opacity: 1;    }
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
 }
 
 @keyframes panel-highlight {
-  0%   { background-color: transparent; }
-  20%  { background-color: color-mix(in srgb, var(--primary) 14%, transparent); }
-  60%  { background-color: color-mix(in srgb, var(--primary) 8%, transparent); }
-  100% { background-color: transparent; }
+  0% {
+    background-color: transparent;
+  }
+  20% {
+    background-color: color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+  60% {
+    background-color: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 /* ============================================================

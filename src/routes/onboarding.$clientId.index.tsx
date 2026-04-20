@@ -113,9 +113,7 @@ function WelcomeGate() {
             <div className="mt-10 flex flex-col items-start gap-3">
               <Button
                 size="lg"
-                onClick={() =>
-                  navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })
-                }
+                onClick={() => navigate({ to: "/onboarding/$clientId/auth", params: { clientId } })}
                 className="btn-trivelta h-12 px-8 text-[15px]"
               >
                 Begin Onboarding <ArrowRight className="ml-1 h-4 w-4" />
@@ -142,7 +140,11 @@ function WelcomeGate() {
               <div className="relative">
                 {(() => {
                   const isMulti = welcomeInfo.amName?.includes(" & ");
-                  const emails = welcomeInfo.amEmail?.split(",").map((e) => e.trim()).filter(Boolean) ?? [];
+                  const emails =
+                    welcomeInfo.amEmail
+                      ?.split(",")
+                      .map((e) => e.trim())
+                      .filter(Boolean) ?? [];
                   return (
                     <>
                       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">

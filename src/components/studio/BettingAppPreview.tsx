@@ -121,14 +121,55 @@ type Match = {
 };
 
 const MATCHES: Match[] = [
-  { date: "LIVE · Not started", home: "Manchester City", away: "Arsenal FC", odds: ["1.85", "3.55", "4.15"], live: true },
-  { date: "TOMORROW · 9:00 PM", home: "Crystal Palace", away: "West Ham United", odds: ["2.46", "3.35", "3.10"] },
-  { date: "21 APR · 9:00 PM", home: "Brighton & Hove Albion", away: "Chelsea FC", odds: ["2.50", "3.75", "2.75"] },
-  { date: "22 APR · 9:00 PM", home: "AFC Bournemouth", away: "Leeds United", odds: ["2.10", "3.65", "3.60"] },
-  { date: "22 APR · 9:00 PM", home: "Burnley FC", away: "Manchester City", odds: ["12.00", "7.20", "1.24"] },
-  { date: "24 APR · 9:00 PM", home: "Sunderland AFC", away: "Nottingham Forest", odds: ["2.90", "3.35", "2.60"] },
-  { date: "25 APR · 1:30 PM", home: "Fulham FC", away: "Aston Villa", odds: ["2.70", "3.65", "2.60"] },
-  { date: "25 APR · 4:00 PM", home: "Wolverhampton Wanderers", away: "Tottenham Hotspur", odds: ["4.10", "3.85", "1.90"] },
+  {
+    date: "LIVE · Not started",
+    home: "Manchester City",
+    away: "Arsenal FC",
+    odds: ["1.85", "3.55", "4.15"],
+    live: true,
+  },
+  {
+    date: "TOMORROW · 9:00 PM",
+    home: "Crystal Palace",
+    away: "West Ham United",
+    odds: ["2.46", "3.35", "3.10"],
+  },
+  {
+    date: "21 APR · 9:00 PM",
+    home: "Brighton & Hove Albion",
+    away: "Chelsea FC",
+    odds: ["2.50", "3.75", "2.75"],
+  },
+  {
+    date: "22 APR · 9:00 PM",
+    home: "AFC Bournemouth",
+    away: "Leeds United",
+    odds: ["2.10", "3.65", "3.60"],
+  },
+  {
+    date: "22 APR · 9:00 PM",
+    home: "Burnley FC",
+    away: "Manchester City",
+    odds: ["12.00", "7.20", "1.24"],
+  },
+  {
+    date: "24 APR · 9:00 PM",
+    home: "Sunderland AFC",
+    away: "Nottingham Forest",
+    odds: ["2.90", "3.35", "2.60"],
+  },
+  {
+    date: "25 APR · 1:30 PM",
+    home: "Fulham FC",
+    away: "Aston Villa",
+    odds: ["2.70", "3.65", "2.60"],
+  },
+  {
+    date: "25 APR · 4:00 PM",
+    home: "Wolverhampton Wanderers",
+    away: "Tottenham Hotspur",
+    odds: ["4.10", "3.85", "1.90"],
+  },
 ];
 
 const BET_SLIPS = [
@@ -138,10 +179,47 @@ const BET_SLIPS = [
 ];
 
 const SOCIAL_POSTS = [
-  { user: "Alex M.", avatar: "A", action: "placed a 3-leg parlay", bet: "Man City, Arsenal, Chelsea", time: "2m ago", likes: 12, stake: "500", odds: "8.45" },
-  { user: "Jordan K.", avatar: "J", action: "won big!", bet: "Brighton Over 2.5", time: "15m ago", likes: 34, stake: "100", odds: "1.75", won: true },
-  { user: "Sam T.", avatar: "S", action: "is live betting", bet: "Arsenal vs Chelsea", time: "1h ago", likes: 8, stake: "200", odds: "2.10" },
-  { user: "Morgan R.", avatar: "M", action: "placed a bet", bet: "Tottenham Win", time: "2h ago", likes: 5, stake: "50", odds: "3.20" },
+  {
+    user: "Alex M.",
+    avatar: "A",
+    action: "placed a 3-leg parlay",
+    bet: "Man City, Arsenal, Chelsea",
+    time: "2m ago",
+    likes: 12,
+    stake: "500",
+    odds: "8.45",
+  },
+  {
+    user: "Jordan K.",
+    avatar: "J",
+    action: "won big!",
+    bet: "Brighton Over 2.5",
+    time: "15m ago",
+    likes: 34,
+    stake: "100",
+    odds: "1.75",
+    won: true,
+  },
+  {
+    user: "Sam T.",
+    avatar: "S",
+    action: "is live betting",
+    bet: "Arsenal vs Chelsea",
+    time: "1h ago",
+    likes: 8,
+    stake: "200",
+    odds: "2.10",
+  },
+  {
+    user: "Morgan R.",
+    avatar: "M",
+    action: "placed a bet",
+    bet: "Tottenham Win",
+    time: "2h ago",
+    likes: 5,
+    stake: "50",
+    odds: "3.20",
+  },
 ];
 
 const EXPLORE_POSTS = [
@@ -210,10 +288,13 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   const [webFeedTab, setWebFeedTab] = useState(0); // 0=Friends, 1=Explore
 
   const statusLabel = (s: string) =>
-    s === "WON" ? strings.STATUS_WON :
-    s === "LOST" ? strings.STATUS_LOST :
-    s === "LIVE" ? strings.STATUS_LIVE :
-    strings.STATUS_PENDING;
+    s === "WON"
+      ? strings.STATUS_WON
+      : s === "LOST"
+        ? strings.STATUS_LOST
+        : s === "LIVE"
+          ? strings.STATUS_LIVE
+          : strings.STATUS_PENDING;
 
   const NAV = [
     { icon: Home, label: strings.FEED },
@@ -259,7 +340,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             className="flex border-b text-[8px] font-semibold"
             style={{ borderColor: "var(--p-divider)" }}
           >
-            {[strings.FILTER_ALL, strings.FILTER_PENDING, strings.FILTER_SETTLED, strings.FILTER_P2P].map((t, i) => (
+            {[
+              strings.FILTER_ALL,
+              strings.FILTER_PENDING,
+              strings.FILTER_SETTLED,
+              strings.FILTER_P2P,
+            ].map((t, i) => (
               <button
                 key={t}
                 onClick={() => setWebMyBetsFilter(i)}
@@ -303,9 +389,13 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                         background: isWon
                           ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))"
                           : b.status === "PENDING"
-                          ? "rgba(234,179,8,0.15)"
-                          : "rgba(239,68,68,0.15)",
-                        color: isWon ? "var(--p-text)" : b.status === "PENDING" ? "#eab308" : "var(--p-live)",
+                            ? "rgba(234,179,8,0.15)"
+                            : "rgba(239,68,68,0.15)",
+                        color: isWon
+                          ? "var(--p-text)"
+                          : b.status === "PENDING"
+                            ? "#eab308"
+                            : "var(--p-live)",
                       }}
                     >
                       {statusLabel(b.status)}
@@ -369,7 +459,9 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 className="flex justify-between mt-1 text-[7px]"
                 style={{ color: "var(--p-muted)" }}
               >
-                <span>@{p.odds} · {p.time}</span>
+                <span>
+                  @{p.odds} · {p.time}
+                </span>
                 <span>♥ {p.likes}</span>
               </div>
             </div>
@@ -439,7 +531,10 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 </div>
                 <div
                   className="rounded p-2 mb-2"
-                  style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)" }}
+                  style={{
+                    background: "var(--p-odds-active)",
+                    border: "1px solid var(--p-primary)",
+                  }}
                 >
                   <div className="text-[9.5px] font-semibold" style={{ color: "var(--p-primary)" }}>
                     {p.bet}
@@ -476,10 +571,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 >
                   {p.badge}
                 </span>
-                <div
-                  className="text-[11px] font-bold mt-1.5"
-                  style={{ color: "var(--p-text)" }}
-                >
+                <div className="text-[11px] font-bold mt-1.5" style={{ color: "var(--p-text)" }}>
                   {p.title}
                 </div>
                 <div className="text-[9px] mt-1" style={{ color: "var(--p-muted)" }}>
@@ -571,9 +663,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                   className="flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-md flex-shrink-0"
                   style={{
                     background: "var(--p-card)",
-                    border: active
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
+                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
                   }}
                 >
                   <Icon
@@ -695,24 +785,26 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             style={{ borderColor: "var(--p-divider)" }}
           >
             <div className="flex">
-              {[strings.SOCCER, strings.BASKETBALL, strings.TENNIS, "TT Elite Series"].map((t, i) => (
-                <button
-                  key={t}
-                  onClick={() => setActiveSoccerTab(i)}
-                  className="px-3 h-7 text-[10px] font-semibold relative"
-                  style={{
-                    color: activeSoccerTab === i ? "var(--p-text)" : "var(--p-muted)",
-                  }}
-                >
-                  {t}
-                  {activeSoccerTab === i && (
-                    <span
-                      className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
-                      style={{ background: "var(--p-primary)" }}
-                    />
-                  )}
-                </button>
-              ))}
+              {[strings.SOCCER, strings.BASKETBALL, strings.TENNIS, "TT Elite Series"].map(
+                (t, i) => (
+                  <button
+                    key={t}
+                    onClick={() => setActiveSoccerTab(i)}
+                    className="px-3 h-7 text-[10px] font-semibold relative"
+                    style={{
+                      color: activeSoccerTab === i ? "var(--p-text)" : "var(--p-muted)",
+                    }}
+                  >
+                    {t}
+                    {activeSoccerTab === i && (
+                      <span
+                        className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
+                        style={{ background: "var(--p-primary)" }}
+                      />
+                    )}
+                  </button>
+                ),
+              )}
             </div>
           </div>
 
@@ -788,7 +880,10 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                   >
                     {m.date}
                   </span>
-                  <div className="flex gap-3 text-[8px] font-bold" style={{ color: "var(--p-muted)" }}>
+                  <div
+                    className="flex gap-3 text-[8px] font-bold"
+                    style={{ color: "var(--p-muted)" }}
+                  >
                     <span>1</span>
                     <span>X</span>
                     <span>2</span>
@@ -964,10 +1059,15 @@ function MobilePreview({
 
   const { strings } = useStudio();
   const statusLabel = (s: string) =>
-    s === "WON" ? strings.STATUS_WON :
-    s === "LOST" ? strings.STATUS_LOST :
-    s === "PENDING" ? strings.STATUS_PENDING :
-    s === "LIVE" ? strings.STATUS_LIVE : s;
+    s === "WON"
+      ? strings.STATUS_WON
+      : s === "LOST"
+        ? strings.STATUS_LOST
+        : s === "PENDING"
+          ? strings.STATUS_PENDING
+          : s === "LIVE"
+            ? strings.STATUS_LIVE
+            : s;
 
   const NAV = [
     { icon: Home, label: strings.HOME },
@@ -1250,9 +1350,7 @@ function MobilePreview({
                 style={{
                   background: activeSport === i ? "var(--p-odds-active)" : "transparent",
                   border:
-                    activeSport === i
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-divider)",
+                    activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
                   color: activeSport === i ? "var(--p-primary)" : "var(--p-muted)",
                 }}
               >
@@ -1400,10 +1498,7 @@ function MobilePreview({
                 style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
               >
                 <span className="text-[14px]">{s.flag}</span>
-                <span
-                  className="flex-1 text-[11px] font-medium"
-                  style={{ color: "var(--p-text)" }}
-                >
+                <span className="flex-1 text-[11px] font-medium" style={{ color: "var(--p-text)" }}>
                   {s.name}
                 </span>
                 <span
@@ -1475,12 +1570,16 @@ function MobilePreview({
               <button
                 key={g}
                 className="h-16 rounded-md flex flex-col items-center justify-center gap-1 text-[9px] font-semibold"
-                style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)", color: "var(--p-text)" }}
+                style={{
+                  background: "var(--p-card)",
+                  border: "1px solid var(--p-divider)",
+                  color: "var(--p-text)",
+                }}
               >
                 <span className="text-[20px]">{g.slice(0, 2)}</span>
                 <span style={{ color: "var(--p-muted)" }}>{g.slice(3)}</span>
               </button>
-            )
+            ),
           )}
         </div>
       </div>
@@ -1518,11 +1617,13 @@ function MobilePreview({
         /* My Bets */
         <div className="flex flex-col flex-1 min-h-0">
           {/* All / Pending / Settled / P2P filters */}
-          <div
-            className="flex border-b flex-shrink-0"
-            style={{ borderColor: "var(--p-divider)" }}
-          >
-            {[strings.FILTER_ALL, strings.FILTER_PENDING, strings.FILTER_SETTLED, strings.FILTER_P2P].map((t, i) => (
+          <div className="flex border-b flex-shrink-0" style={{ borderColor: "var(--p-divider)" }}>
+            {[
+              strings.FILTER_ALL,
+              strings.FILTER_PENDING,
+              strings.FILTER_SETTLED,
+              strings.FILTER_P2P,
+            ].map((t, i) => (
               <button
                 key={t}
                 onClick={() => setMobileMyBetsFilter(i)}
@@ -1569,13 +1670,13 @@ function MobilePreview({
                         background: isWon
                           ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))"
                           : b.status === "PENDING"
-                          ? "rgba(234,179,8,0.15)"
-                          : "rgba(239,68,68,0.15)",
+                            ? "rgba(234,179,8,0.15)"
+                            : "rgba(239,68,68,0.15)",
                         color: isWon
                           ? "var(--p-text)"
                           : b.status === "PENDING"
-                          ? "#eab308"
-                          : "var(--p-live)",
+                            ? "#eab308"
+                            : "var(--p-live)",
                       }}
                     >
                       {statusLabel(b.status)}
@@ -1653,10 +1754,7 @@ function MobilePreview({
                       style={{ borderColor: "var(--p-divider)" }}
                     >
                       <div className="flex-1 min-w-0">
-                        <div
-                          className="text-[8.5px] truncate"
-                          style={{ color: "var(--p-text)" }}
-                        >
+                        <div className="text-[8.5px] truncate" style={{ color: "var(--p-text)" }}>
                           {leg.match}
                         </div>
                         <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
@@ -1683,8 +1781,7 @@ function MobilePreview({
                     </>
                   ) : (
                     <>
-                      Show all {PARLAY_LEGS.length} legs{" "}
-                      <ChevronDown className="h-3 w-3" />
+                      Show all {PARLAY_LEGS.length} legs <ChevronDown className="h-3 w-3" />
                     </>
                   )}
                 </button>
@@ -1702,10 +1799,7 @@ function MobilePreview({
             )}
 
             {mobileMyBetsFilter === 3 && (
-              <div
-                className="text-center py-6 text-[9px]"
-                style={{ color: "var(--p-muted)" }}
-              >
+              <div className="text-center py-6 text-[9px]" style={{ color: "var(--p-muted)" }}>
                 {strings.NO_P2P_BETS}
               </div>
             )}
@@ -1751,10 +1845,7 @@ function MobilePreview({
                         {p.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div
-                          className="text-[10px] font-bold"
-                          style={{ color: "var(--p-text)" }}
-                        >
+                        <div className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
                           {p.user}
                         </div>
                         <div className="text-[8px]" style={{ color: "var(--p-muted)" }}>
@@ -1815,10 +1906,7 @@ function MobilePreview({
                     >
                       {p.badge}
                     </span>
-                    <div
-                      className="text-[11px] font-bold mt-1"
-                      style={{ color: "var(--p-text)" }}
-                    >
+                    <div className="text-[11px] font-bold mt-1" style={{ color: "var(--p-text)" }}>
                       {p.title}
                     </div>
                     <div className="text-[9px] mt-0.5" style={{ color: "var(--p-muted)" }}>
@@ -1902,14 +1990,26 @@ function MobilePreview({
 /* ─── Sub-views ───────────────────────────────────────────────────────── */
 
 function SportsView({
-  appName, currencySymbol, logoUrl,
-  activeSport, setActiveSport, activeLeague, setActiveLeague, activeBetType, setActiveBetType,
+  appName,
+  currencySymbol,
+  logoUrl,
+  activeSport,
+  setActiveSport,
+  activeLeague,
+  setActiveLeague,
+  activeBetType,
+  setActiveBetType,
   onOpenAllSports,
 }: {
-  appName: string; currencySymbol: string; logoUrl?: string | null;
-  activeSport: number; setActiveSport: (n: number) => void;
-  activeLeague: number; setActiveLeague: (n: number) => void;
-  activeBetType: number; setActiveBetType: (n: number) => void;
+  appName: string;
+  currencySymbol: string;
+  logoUrl?: string | null;
+  activeSport: number;
+  setActiveSport: (n: number) => void;
+  activeLeague: number;
+  setActiveLeague: (n: number) => void;
+  activeBetType: number;
+  setActiveBetType: (n: number) => void;
   onOpenAllSports: () => void;
   onOpenBetDetail: () => void;
 }) {
@@ -1928,16 +2028,26 @@ function SportsView({
             {appName.slice(0, 1)}
           </div>
         )}
-        <div className="flex items-center gap-1.5 px-2.5 h-6 rounded-full" style={{ background: "var(--p-card)" }}>
-          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol}</span>
-          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>****</span>
+        <div
+          className="flex items-center gap-1.5 px-2.5 h-6 rounded-full"
+          style={{ background: "var(--p-card)" }}
+        >
+          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+            {currencySymbol}
+          </span>
+          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>
+            ****
+          </span>
           <Plus className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
           <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
             <Bell className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-primary)" }} />
+            <span
+              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
+              style={{ background: "var(--p-primary)" }}
+            />
           </div>
           <MessageCircle className="h-4 w-4" style={{ color: "var(--p-text)" }} />
         </div>
@@ -1959,7 +2069,9 @@ function SportsView({
               }}
             >
               <Icon className="h-4 w-4" style={{ color: "var(--p-text)" }} />
-              <span className="text-[8px] font-medium" style={{ color: "var(--p-muted)" }}>{strings[t.strKey]}</span>
+              <span className="text-[8px] font-medium" style={{ color: "var(--p-muted)" }}>
+                {strings[t.strKey]}
+              </span>
             </button>
           );
         })}
@@ -1967,86 +2079,157 @@ function SportsView({
 
       <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
         <div className="grid grid-cols-2 gap-2 mb-2">
-          <button className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
-            style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}>
+          <button
+            className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
+            style={{
+              background: "var(--p-odds-active)",
+              border: "1px solid var(--p-primary)",
+              color: "var(--p-primary)",
+            }}
+          >
             <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
           </button>
-          <button className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
-            style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}>
+          <button
+            className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
+            style={{
+              background: "var(--p-odds-active)",
+              border: "1px solid var(--p-primary)",
+              color: "var(--p-primary)",
+            }}
+          >
             <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
           </button>
         </div>
 
-        <div className="rounded-lg p-3 mb-3 relative"
-          style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", border: "1px solid var(--p-primary)" }}>
-          <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>{strings.WELCOME_BONUS_PROMO}</div>
+        <div
+          className="rounded-lg p-3 mb-3 relative"
+          style={{
+            background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
+            border: "1px solid var(--p-primary)",
+          }}
+        >
+          <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>
+            {strings.WELCOME_BONUS_PROMO}
+          </div>
           <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-text)" }}>
             {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
         </div>
 
-        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>{strings.LIVE_AND_UPCOMING}</div>
+        <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-text)" }}>
+          {strings.LIVE_AND_UPCOMING}
+        </div>
         <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {SPORT_TABS_KEYS.map((k, i) => (
-            <button key={k} onClick={() => setActiveSport(i)}
+            <button
+              key={k}
+              onClick={() => setActiveSport(i)}
               className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
               style={{
                 background: activeSport === i ? "var(--p-odds-active)" : "transparent",
-                border: activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
+                border:
+                  activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
                 color: activeSport === i ? "var(--p-primary)" : "var(--p-muted)",
-              }}>{strings[k]}</button>
+              }}
+            >
+              {strings[k]}
+            </button>
           ))}
         </div>
 
         <div className="flex gap-1.5 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {LEAGUE_TABS.slice(0, 3).map((l, i) => (
-            <button key={l} onClick={() => setActiveLeague(i)}
+            <button
+              key={l}
+              onClick={() => setActiveLeague(i)}
               className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0"
               style={{
                 background: activeLeague === i ? "var(--p-odds-active)" : "transparent",
-                border: activeLeague === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
+                border:
+                  activeLeague === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
                 color: activeLeague === i ? "var(--p-primary)" : "var(--p-muted)",
-              }}>⚽ {l.split(" - ")[0]}</button>
+              }}
+            >
+              ⚽ {l.split(" - ")[0]}
+            </button>
           ))}
         </div>
 
         <div className="flex gap-1.5 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {BET_TYPE_TABS.slice(0, 5).map((b, i) => (
-            <button key={b} onClick={() => setActiveBetType(i)}
+            <button
+              key={b}
+              onClick={() => setActiveBetType(i)}
               className="px-2.5 h-6 rounded-md text-[9.5px] font-semibold flex-shrink-0"
               style={{
                 background: activeBetType === i ? "var(--p-odds-active)" : "transparent",
-                border: activeBetType === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
+                border:
+                  activeBetType === i ? "1px solid var(--p-primary)" : "1px solid var(--p-divider)",
                 color: activeBetType === i ? "var(--p-primary)" : "var(--p-muted)",
-              }}>{b}</button>
+              }}
+            >
+              {b}
+            </button>
           ))}
         </div>
 
         <div className="space-y-2">
           {MATCHES.slice(0, 4).map((m, i) => (
-            <div key={i} className="rounded-md p-2.5"
-              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+            <div
+              key={i}
+              className="rounded-md p-2.5"
+              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+            >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[9px] font-semibold" style={{ color: m.live ? "var(--p-live)" : "var(--p-primary)" }}>{m.date}</span>
-                <div className="flex gap-5 text-[9px] font-bold" style={{ color: "var(--p-muted)" }}>
-                  <span>1</span><span>X</span><span>2</span>
+                <span
+                  className="text-[9px] font-semibold"
+                  style={{ color: m.live ? "var(--p-live)" : "var(--p-primary)" }}
+                >
+                  {m.date}
+                </span>
+                <div
+                  className="flex gap-5 text-[9px] font-bold"
+                  style={{ color: "var(--p-muted)" }}
+                >
+                  <span>1</span>
+                  <span>X</span>
+                  <span>2</span>
                 </div>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center gap-1.5">
                     <TeamDot label={m.home} />
-                    <span className="text-[10.5px] font-medium truncate" style={{ color: "var(--p-text)" }}>{m.home}</span>
+                    <span
+                      className="text-[10.5px] font-medium truncate"
+                      style={{ color: "var(--p-text)" }}
+                    >
+                      {m.home}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <TeamDot label={m.away} />
-                    <span className="text-[10.5px] font-medium truncate" style={{ color: "var(--p-text)" }}>{m.away}</span>
+                    <span
+                      className="text-[10.5px] font-medium truncate"
+                      style={{ color: "var(--p-text)" }}
+                    >
+                      {m.away}
+                    </span>
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
                   {m.odds.map((o, j) => (
-                    <button key={j} className="w-10 h-10 rounded-md text-[11px] font-bold"
-                      style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}>{o}</button>
+                    <button
+                      key={j}
+                      className="w-10 h-10 rounded-md text-[11px] font-bold"
+                      style={{
+                        background: "var(--p-odds-active)",
+                        border: "1px solid var(--p-primary)",
+                        color: "var(--p-primary)",
+                      }}
+                    >
+                      {o}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -2074,18 +2257,26 @@ interface SocialPost {
   payout: string;
 }
 
-
 const FRIENDS_POSTS: SocialPost[] = [
   {
-    user: "Alex M.", initial: "A",
-    league: "Premier League", status: "PENDING",
-    title: "4 Selection Multi", stake: "500", payout: "8,450",
+    user: "Alex M.",
+    initial: "A",
+    league: "Premier League",
+    status: "PENDING",
+    title: "4 Selection Multi",
+    stake: "500",
+    payout: "8,450",
     pick: { market: "1X2", selection: "Man City Win", odds: "1.85" },
   },
   {
-    user: "Jordan K.", initial: "J", boost: "20% PROFIT BOOST",
-    league: "Champions League", status: "WON",
-    title: "3 Selection Accumulator", stake: "100", payout: "1,750",
+    user: "Jordan K.",
+    initial: "J",
+    boost: "20% PROFIT BOOST",
+    league: "Champions League",
+    status: "WON",
+    title: "3 Selection Accumulator",
+    stake: "100",
+    payout: "1,750",
     legs: [
       { market: "1X2", selection: "Arsenal Win", vs: "Arsenal vs Chelsea", odds: "2.10" },
       { market: "O/U", selection: "Over 2.5", vs: "Spurs vs Wolves", odds: "1.65" },
@@ -2093,9 +2284,13 @@ const FRIENDS_POSTS: SocialPost[] = [
     ],
   },
   {
-    user: "Sam T.", initial: "S",
-    league: "Bundesliga", status: "LIVE",
-    title: "Single Bet", stake: "200", payout: "420",
+    user: "Sam T.",
+    initial: "S",
+    league: "Bundesliga",
+    status: "LIVE",
+    title: "Single Bet",
+    stake: "200",
+    payout: "420",
     match: { home: "Bayern", away: "Dortmund", date: "LIVE", score: "1 - 1" },
     pick: { market: "BTTS", selection: "Yes", odds: "1.75" },
   },
@@ -2109,39 +2304,64 @@ function AllSportsView() {
       {/* Search bar */}
       <div className="px-3 pt-3 pb-2 flex items-center gap-2">
         <ChevronRight className="h-4 w-4 rotate-180" style={{ color: "var(--p-text)" }} />
-        <div className="flex-1 flex items-center gap-2 px-3 h-9 rounded-full"
-          style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+        <div
+          className="flex-1 flex items-center gap-2 px-3 h-9 rounded-full"
+          style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+        >
           <Search className="h-3.5 w-3.5" style={{ color: "var(--p-muted)" }} />
-          <span className="text-[10.5px]" style={{ color: "var(--p-muted)" }}>{strings.SEARCH}</span>
+          <span className="text-[10.5px]" style={{ color: "var(--p-muted)" }}>
+            {strings.SEARCH}
+          </span>
         </div>
       </div>
 
       {/* Popular */}
       <div className="px-3 pt-2 pb-3">
-        <div className="text-[11px] font-semibold mb-2" style={{ color: "var(--p-muted)" }}>{strings.POPULAR}</div>
+        <div className="text-[11px] font-semibold mb-2" style={{ color: "var(--p-muted)" }}>
+          {strings.POPULAR}
+        </div>
         <div className="flex flex-col items-start gap-1">
-          <div className="h-12 w-12 rounded-xl grid place-items-center"
-            style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
-            <span className="text-[18px] font-black" style={{ color: "var(--p-text)" }}>V</span>
+          <div
+            className="h-12 w-12 rounded-xl grid place-items-center"
+            style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+          >
+            <span className="text-[18px] font-black" style={{ color: "var(--p-text)" }}>
+              V
+            </span>
           </div>
-          <span className="text-[10px]" style={{ color: "var(--p-muted)" }}>Virtuals</span>
+          <span className="text-[10px]" style={{ color: "var(--p-muted)" }}>
+            Virtuals
+          </span>
         </div>
       </div>
 
       {/* All Sports */}
       <div className="px-3">
-        <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>{strings.ALL_SPORTS}</div>
+        <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>
+          {strings.ALL_SPORTS}
+        </div>
         <div className="space-y-2 pb-3">
           {ALL_SPORTS_LIST.map((s) => (
-            <div key={s.name}
+            <div
+              key={s.name}
               className="flex items-center gap-2.5 px-3 h-11 rounded-xl"
-              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
-              <div className="h-6 w-6 rounded-full grid place-items-center text-[12px]"
-                style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)" }}>
+              style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+            >
+              <div
+                className="h-6 w-6 rounded-full grid place-items-center text-[12px]"
+                style={{ background: "var(--p-odds-active)", border: "1px solid var(--p-primary)" }}
+              >
                 <span style={{ color: "var(--p-primary)" }}>{s.icon}</span>
               </div>
-              <span className="flex-1 text-[11.5px] font-semibold" style={{ color: "var(--p-text)" }}>{s.name}</span>
-              <span className="text-[11px] font-medium" style={{ color: "var(--p-muted)" }}>{s.count}</span>
+              <span
+                className="flex-1 text-[11.5px] font-semibold"
+                style={{ color: "var(--p-text)" }}
+              >
+                {s.name}
+              </span>
+              <span className="text-[11px] font-medium" style={{ color: "var(--p-muted)" }}>
+                {s.count}
+              </span>
               <ChevronDown className="h-3.5 w-3.5" style={{ color: "var(--p-primary)" }} />
             </div>
           ))}
@@ -2154,30 +2374,50 @@ function AllSportsView() {
 function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySymbol: string }) {
   const { strings } = useStudio();
   const statusLabel = (s: string) =>
-    s === "WON" ? strings.STATUS_WON :
-    s === "LOST" ? strings.STATUS_LOST :
-    s === "PENDING" ? strings.STATUS_PENDING :
-    s === "LIVE" ? strings.STATUS_LIVE : s;
+    s === "WON"
+      ? strings.STATUS_WON
+      : s === "LOST"
+        ? strings.STATUS_LOST
+        : s === "PENDING"
+          ? strings.STATUS_PENDING
+          : s === "LIVE"
+            ? strings.STATUS_LIVE
+            : s;
   const statusBg =
-    post.status === "PENDING" ? "rgba(0,0,0,0.5)" :
-    post.status === "LIVE" ? "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))" :
-    post.status === "WON" ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))" :
-    post.status === "LOST" ? "var(--p-secondary)" :
-    "transparent";
+    post.status === "PENDING"
+      ? "rgba(0,0,0,0.5)"
+      : post.status === "LIVE"
+        ? "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))"
+        : post.status === "WON"
+          ? "linear-gradient(135deg, var(--p-won1), var(--p-won2))"
+          : post.status === "LOST"
+            ? "var(--p-secondary)"
+            : "transparent";
 
   return (
-    <div className="rounded-xl p-3 mb-2"
-      style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+    <div
+      className="rounded-xl p-3 mb-2"
+      style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+    >
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
-        <div className="h-7 w-7 rounded-full grid place-items-center text-[11px] font-black"
-          style={{ background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))", color: "var(--p-text)" }}>
+        <div
+          className="h-7 w-7 rounded-full grid place-items-center text-[11px] font-black"
+          style={{
+            background: "linear-gradient(135deg, var(--p-btn), var(--p-btn-grad))",
+            color: "var(--p-text)",
+          }}
+        >
           {post.initial}
         </div>
-        <span className="text-[12px] font-bold flex-1" style={{ color: "var(--p-text)" }}>{post.user}</span>
+        <span className="text-[12px] font-bold flex-1" style={{ color: "var(--p-text)" }}>
+          {post.user}
+        </span>
         {post.boost && (
-          <span className="text-[8.5px] font-bold px-2 py-1 rounded-md"
-            style={{ background: "rgba(0,0,0,0.4)", color: "var(--p-primary)" }}>
+          <span
+            className="text-[8.5px] font-bold px-2 py-1 rounded-md"
+            style={{ background: "rgba(0,0,0,0.4)", color: "var(--p-primary)" }}
+          >
             {post.boost}
           </span>
         )}
@@ -2188,11 +2428,15 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <Trophy className="h-3 w-3 flex-shrink-0" style={{ color: "var(--p-muted)" }} />
-            <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>{post.league}</span>
+            <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>
+              {post.league}
+            </span>
           </div>
           {post.status && (
-            <span className="text-[8.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
-              style={{ background: statusBg, color: "var(--p-text)" }}>
+            <span
+              className="text-[8.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
+              style={{ background: statusBg, color: "var(--p-text)" }}
+            >
               {post.status === "LIVE" && <span className="h-1 w-1 rounded-full bg-white" />}
               {statusLabel(post.status)}
             </span>
@@ -2201,12 +2445,17 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
       )}
 
       {/* Title */}
-      <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>{post.title}</div>
+      <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-text)" }}>
+        {post.title}
+      </div>
 
       {/* Match w/ pick */}
       {post.match && (
         <div className="rounded-lg p-2 mb-2" style={{ background: "rgba(0,0,0,0.25)" }}>
-          <div className="flex items-center justify-between text-[10px] mb-1" style={{ color: "var(--p-muted)" }}>
+          <div
+            className="flex items-center justify-between text-[10px] mb-1"
+            style={{ color: "var(--p-muted)" }}
+          >
             <div className="flex items-center gap-1">
               <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive)" }} />
               <span style={{ color: "var(--p-text)" }}>{post.match.home}</span>
@@ -2218,16 +2467,26 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
             </div>
           </div>
           {post.match.score && (
-            <div className="text-center text-[11px] font-bold" style={{ color: "var(--p-text)" }}>{post.match.score}</div>
+            <div className="text-center text-[11px] font-bold" style={{ color: "var(--p-text)" }}>
+              {post.match.score}
+            </div>
           )}
           {post.pick && (
-            <div className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
-              style={{ background: "var(--p-bg)", border: "1px solid var(--p-primary)" }}>
+            <div
+              className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
+              style={{ background: "var(--p-bg)", border: "1px solid var(--p-primary)" }}
+            >
               <div className="min-w-0">
-                <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>{post.pick.market}</div>
-                <div className="text-[11px] font-bold truncate" style={{ color: "var(--p-text)" }}>{post.pick.selection}</div>
+                <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
+                  {post.pick.market}
+                </div>
+                <div className="text-[11px] font-bold truncate" style={{ color: "var(--p-text)" }}>
+                  {post.pick.selection}
+                </div>
               </div>
-              <span className="text-[12px] font-black ml-2" style={{ color: "var(--p-primary)" }}>{post.pick.odds}</span>
+              <span className="text-[12px] font-black ml-2" style={{ color: "var(--p-primary)" }}>
+                {post.pick.odds}
+              </span>
             </div>
           )}
         </div>
@@ -2240,13 +2499,26 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
             <div key={i} className="rounded-md p-2" style={{ background: "rgba(0,0,0,0.25)" }}>
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <div className="text-[8.5px] font-bold mb-0.5" style={{ color: "var(--p-primary)" }}>{leg.market}</div>
-                  <div className="text-[11px] font-bold truncate" style={{ color: "var(--p-text)" }}>{leg.selection}</div>
+                  <div
+                    className="text-[8.5px] font-bold mb-0.5"
+                    style={{ color: "var(--p-primary)" }}
+                  >
+                    {leg.market}
+                  </div>
+                  <div
+                    className="text-[11px] font-bold truncate"
+                    style={{ color: "var(--p-text)" }}
+                  >
+                    {leg.selection}
+                  </div>
                   <div className="text-[8.5px] mt-0.5 truncate" style={{ color: "var(--p-muted)" }}>
-                    <span style={{ color: "var(--p-secondary)" }}>vs</span> {leg.vs.split(" vs ")[1] ?? leg.vs}
+                    <span style={{ color: "var(--p-secondary)" }}>vs</span>{" "}
+                    {leg.vs.split(" vs ")[1] ?? leg.vs}
                   </div>
                 </div>
-                <span className="text-[12px] font-black ml-2" style={{ color: "var(--p-primary)" }}>{leg.odds}</span>
+                <span className="text-[12px] font-black ml-2" style={{ color: "var(--p-primary)" }}>
+                  {leg.odds}
+                </span>
               </div>
             </div>
           ))}
@@ -2254,15 +2526,25 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
       )}
 
       {/* Stake/payout */}
-      <div className="flex items-center justify-between text-[9px] pt-2 border-t" style={{ borderColor: "var(--p-divider)" }}>
+      <div
+        className="flex items-center justify-between text-[9px] pt-2 border-t"
+        style={{ borderColor: "var(--p-divider)" }}
+      >
         <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-        <span className="font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol} {post.stake}</span>
-        <span className="font-bold" style={{ color: "var(--p-primary)" }}>{currencySymbol} {post.payout}</span>
+        <span className="font-bold" style={{ color: "var(--p-text)" }}>
+          {currencySymbol} {post.stake}
+        </span>
+        <span className="font-bold" style={{ color: "var(--p-primary)" }}>
+          {currencySymbol} {post.payout}
+        </span>
         <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
       </div>
 
       {/* Reactions */}
-      <div className="flex items-center gap-3 mt-2 pt-2 text-[10px]" style={{ color: "var(--p-muted)" }}>
+      <div
+        className="flex items-center gap-3 mt-2 pt-2 text-[10px]"
+        style={{ color: "var(--p-muted)" }}
+      >
         <span>♡ 0</span>
         <span>💬 0</span>
         <span style={{ color: "var(--p-primary)" }}>⚡ 0 Rebets</span>
@@ -2272,18 +2554,37 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
   );
 }
 
-function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "friends" | "explore"; setSocialTab: (t: "friends" | "explore") => void; currencySymbol: string }) {
+function SocialView({
+  socialTab,
+  setSocialTab,
+  currencySymbol,
+}: {
+  socialTab: "friends" | "explore";
+  setSocialTab: (t: "friends" | "explore") => void;
+  currencySymbol: string;
+}) {
   const { strings } = useStudio();
   const posts: SocialPost[] = FRIENDS_POSTS;
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       {/* Header bar */}
       <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
-        <div className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
-          style={{ background: "var(--p-primary)", color: "var(--p-text)" }}>✓</div>
-        <div className="flex items-center gap-1.5 px-2.5 h-6 rounded-full" style={{ background: "var(--p-card)" }}>
-          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol}</span>
-          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>****</span>
+        <div
+          className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
+          style={{ background: "var(--p-primary)", color: "var(--p-text)" }}
+        >
+          ✓
+        </div>
+        <div
+          className="flex items-center gap-1.5 px-2.5 h-6 rounded-full"
+          style={{ background: "var(--p-card)" }}
+        >
+          <span className="text-[10px] font-bold" style={{ color: "var(--p-text)" }}>
+            {currencySymbol}
+          </span>
+          <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text)" }}>
+            ****
+          </span>
           <Plus className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
           <EyeOff className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
         </div>
@@ -2298,13 +2599,18 @@ function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "f
         {(["friends", "explore"] as const).map((t) => {
           const active = socialTab === t;
           return (
-            <button key={t} onClick={() => setSocialTab(t)}
+            <button
+              key={t}
+              onClick={() => setSocialTab(t)}
               className="flex-1 h-9 text-[12px] font-bold relative"
-              style={{ color: active ? "var(--p-text)" : "var(--p-muted)" }}>
+              style={{ color: active ? "var(--p-text)" : "var(--p-muted)" }}
+            >
               {t === "friends" ? strings.TAB_FRIENDS : strings.TAB_EXPLORE}
               {active && (
-                <span className="absolute bottom-0 left-6 right-6 h-[2px] rounded-full"
-                  style={{ background: "var(--p-primary)" }} />
+                <span
+                  className="absolute bottom-0 left-6 right-6 h-[2px] rounded-full"
+                  style={{ background: "var(--p-primary)" }}
+                />
               )}
             </button>
           );
@@ -2313,7 +2619,9 @@ function SocialView({ socialTab, setSocialTab, currencySymbol }: { socialTab: "f
 
       {/* Posts */}
       <div className="flex-1 min-h-0 overflow-auto px-3 pt-2 pb-2">
-        {posts.map((p, i) => <SocialPostCard key={i} post={p} currencySymbol={currencySymbol} />)}
+        {posts.map((p, i) => (
+          <SocialPostCard key={i} post={p} currencySymbol={currencySymbol} />
+        ))}
       </div>
     </div>
   );
@@ -2323,21 +2631,33 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
   const { strings } = useStudio();
   return (
     <div className="flex-1 min-h-0 overflow-auto px-3 pt-3 pb-2">
-      <div className="rounded-xl p-3 mb-2"
-        style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}>
+      <div
+        className="rounded-xl p-3 mb-2"
+        style={{ background: "var(--p-card)", border: "1px solid var(--p-divider)" }}
+      >
         {/* Header */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <Trophy className="h-3 w-3" style={{ color: "var(--p-muted)" }} />
-            <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>Premier League, Serie A</span>
+            <span className="text-[10px] truncate" style={{ color: "var(--p-muted)" }}>
+              Premier League, Serie A
+            </span>
           </div>
-          <span className="text-[8.5px] font-black px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(0,0,0,0.5)", color: "var(--p-primary)" }}>{strings.STATUS_PENDING}</span>
+          <span
+            className="text-[8.5px] font-black px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(0,0,0,0.5)", color: "var(--p-primary)" }}
+          >
+            {strings.STATUS_PENDING}
+          </span>
         </div>
 
         <div className="flex items-baseline justify-between mb-2">
-          <div className="text-[14px] font-black" style={{ color: "var(--p-text)" }}>13 Selection Flex Multi</div>
-          <div className="text-[12px] font-bold" style={{ color: "var(--p-primary)" }}>214.22 ~ 27.46</div>
+          <div className="text-[14px] font-black" style={{ color: "var(--p-text)" }}>
+            13 Selection Flex Multi
+          </div>
+          <div className="text-[12px] font-bold" style={{ color: "var(--p-primary)" }}>
+            214.22 ~ 27.46
+          </div>
         </div>
 
         {/* Match */}
@@ -2348,21 +2668,33 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
               <span style={{ color: "var(--p-text)" }}>Crystal Palace</span>
             </div>
             <div className="text-center">
-              <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>20 APR</div>
-              <div className="text-[8.5px]" style={{ color: "var(--p-muted)" }}>9:00 PM</div>
+              <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
+                20 APR
+              </div>
+              <div className="text-[8.5px]" style={{ color: "var(--p-muted)" }}>
+                9:00 PM
+              </div>
             </div>
             <div className="flex items-center gap-1">
               <span style={{ color: "var(--p-text)" }}>West Ham United</span>
               <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive)" }} />
             </div>
           </div>
-          <div className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
-            style={{ background: "var(--p-bg)", border: "1px solid var(--p-primary)" }}>
+          <div
+            className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
+            style={{ background: "var(--p-bg)", border: "1px solid var(--p-primary)" }}
+          >
             <div>
-              <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>Total</div>
-              <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>over 2.5</div>
+              <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
+                Total
+              </div>
+              <div className="text-[12px] font-black" style={{ color: "var(--p-text)" }}>
+                over 2.5
+              </div>
             </div>
-            <span className="text-[13px] font-black" style={{ color: "var(--p-primary)" }}>1.92</span>
+            <span className="text-[13px] font-black" style={{ color: "var(--p-primary)" }}>
+              1.92
+            </span>
           </div>
         </div>
 
@@ -2370,50 +2702,89 @@ function BetDetailView({ currencySymbol }: { currencySymbol: string }) {
         <div className="flex items-center justify-center gap-1 mb-2">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-primary)" }} />
           {Array.from({ length: 12 }).map((_, i) => (
-            <span key={i} className="h-1 w-1 rounded-full" style={{ background: "var(--p-inactive)" }} />
+            <span
+              key={i}
+              className="h-1 w-1 rounded-full"
+              style={{ background: "var(--p-inactive)" }}
+            />
           ))}
         </div>
 
         {/* Flex Cuts */}
-        <div className="rounded-lg p-2 mb-2" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid var(--p-primary)" }}>
+        <div
+          className="rounded-lg p-2 mb-2"
+          style={{ background: "rgba(0,0,0,0.25)", border: "1px solid var(--p-primary)" }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--p-primary)" }}>
+            <span
+              className="text-[10px] font-bold flex items-center gap-1"
+              style={{ color: "var(--p-primary)" }}
+            >
               <Flame className="h-3 w-3" /> {strings.FLEX_CUTS}
             </span>
-            <span className="text-[10px] font-bold" style={{ color: "var(--p-primary)" }}>1.27 - 3.14</span>
+            <span className="text-[10px] font-bold" style={{ color: "var(--p-primary)" }}>
+              1.27 - 3.14
+            </span>
           </div>
-          <div className="grid grid-cols-3 text-[8.5px] font-bold pb-1 border-b" style={{ color: "var(--p-muted)", borderColor: "var(--p-divider)" }}>
-            <span>{strings.OUTCOME}</span><span>{strings.ODDS_LABEL}</span><span className="text-right">{strings.PAYOUT}</span>
+          <div
+            className="grid grid-cols-3 text-[8.5px] font-bold pb-1 border-b"
+            style={{ color: "var(--p-muted)", borderColor: "var(--p-divider)" }}
+          >
+            <span>{strings.OUTCOME}</span>
+            <span>{strings.ODDS_LABEL}</span>
+            <span className="text-right">{strings.PAYOUT}</span>
           </div>
           <div className="grid grid-cols-3 text-[10px] py-1.5" style={{ color: "var(--p-text)" }}>
-            <span>12 of 13 correct</span><span>1.27</span><span className="text-right">{currencySymbol} 155.53</span>
+            <span>12 of 13 correct</span>
+            <span>1.27</span>
+            <span className="text-right">{currencySymbol} 155.53</span>
           </div>
           <div className="grid grid-cols-3 text-[10px]" style={{ color: "var(--p-text)" }}>
-            <span>13 of 13 correct</span><span>3.14</span><span className="text-right">{currencySymbol} 383.35</span>
+            <span>13 of 13 correct</span>
+            <span>3.14</span>
+            <span className="text-right">{currencySymbol} 383.35</span>
           </div>
         </div>
 
         {/* Stake */}
-        <div className="flex items-center justify-between text-[9px] pt-1 border-t" style={{ borderColor: "var(--p-divider)" }}>
+        <div
+          className="flex items-center justify-between text-[9px] pt-1 border-t"
+          style={{ borderColor: "var(--p-divider)" }}
+        >
           <span style={{ color: "var(--p-muted)" }}>{strings.STAKE}</span>
-          <span className="font-bold" style={{ color: "var(--p-text)" }}>{currencySymbol} 122.00</span>
-          <span className="font-bold" style={{ color: "var(--p-primary)" }}>{currencySymbol} 26135.44</span>
+          <span className="font-bold" style={{ color: "var(--p-text)" }}>
+            {currencySymbol} 122.00
+          </span>
+          <span className="font-bold" style={{ color: "var(--p-primary)" }}>
+            {currencySymbol} 26135.44
+          </span>
           <span style={{ color: "var(--p-muted)" }}>{strings.PAYOUT}</span>
         </div>
-        <div className="flex items-center gap-3 mt-2 text-[10px]" style={{ color: "var(--p-muted)" }}>
-          <span>♡ 0</span><span>💬 0</span>
+        <div
+          className="flex items-center gap-3 mt-2 text-[10px]"
+          style={{ color: "var(--p-muted)" }}
+        >
+          <span>♡ 0</span>
+          <span>💬 0</span>
           <span style={{ color: "var(--p-primary)" }}>⚡ 0 Rebets</span>
           <span className="ml-auto">⤴</span>
         </div>
-        <div className="text-[8.5px] mt-1" style={{ color: "var(--p-muted)" }}>an hour ago</div>
+        <div className="text-[8.5px] mt-1" style={{ color: "var(--p-muted)" }}>
+          an hour ago
+        </div>
       </div>
 
       {/* Second card */}
       <SocialPostCard
         post={{
-          user: "Bosseysa", initial: "B", boost: "20% PROFIT BOOST",
-          league: "FA Cup, U21 Professional Development Lea…", status: "PENDING",
-          title: "9 Selection Multi", stake: "36.85", payout: "44.03",
+          user: "Bosseysa",
+          initial: "B",
+          boost: "20% PROFIT BOOST",
+          league: "FA Cup, U21 Professional Development Lea…",
+          status: "PENDING",
+          title: "9 Selection Multi",
+          stake: "36.85",
+          payout: "44.03",
         }}
         currencySymbol={currencySymbol}
       />
@@ -2428,6 +2799,7 @@ const BettingAppPreview = () => {
   const isMobile = previewMode === "mobile";
 
   const previewVars = {
+    // Primary mappings
     "--p-bg": themeColors.primaryBg,
     "--p-primary": themeColors.primary,
     "--p-secondary": themeColors.secondary,
@@ -2452,14 +2824,34 @@ const BettingAppPreview = () => {
     "--p-input-bg": themeColors.darkContainer,
     "--p-input-border": themeColors.borderAndGradientBg,
     "--p-divider": themeColors.borderAndGradientBg,
+    // Spec-required aliases
+    "--p-box1": themeColors.boxGradient1,
+    "--p-box2": themeColors.boxGradient2,
+    "--p-light-text": themeColors.lightText,
+    "--p-placeholder": themeColors.placeholderText,
+    "--p-navbar": themeColors.navbarLabel,
+    "--p-text-secondary": themeColors.textSecondary,
+    "--p-hd1": themeColors.headerGradient1,
+    "--p-hd2": themeColors.headerGradient2,
+    "--p-won-color": themeColors.wonColor,
+    "--p-lost-color": themeColors.lostColor,
+    "--p-payout-won": themeColors.payoutWonColor,
+    "--p-loss-text": themeColors.lossAmountText,
+    "--p-inactive-btn": themeColors.inactiveButtonBg,
+    "--p-inactive-text": themeColors.inactiveButtonText,
+    "--p-dark": themeColors.dark,
+    "--p-dark-container": themeColors.darkContainer,
+    "--p-betcard-header": themeColors.betcardHeaderBg,
+    "--p-modal": themeColors.modalBackground,
+    "--p-notification": themeColors.notificationBg,
+    "--p-flex-header": themeColors.flexBetHeaderBg,
+    "--p-flex-footer": themeColors.flexBetFooterBg,
+    "--p-vs": themeColors.vsColor,
     fontFamily: headingFont + ", sans-serif",
   } as React.CSSProperties;
 
   return (
-    <div
-      className="flex items-center justify-center w-full h-full p-4"
-      style={previewVars}
-    >
+    <div className="flex items-center justify-center w-full h-full p-4" style={previewVars}>
       {isMobile ? (
         <div
           className="relative overflow-hidden rounded-[36px] shadow-2xl"

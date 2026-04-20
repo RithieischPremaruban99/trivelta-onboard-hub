@@ -7,7 +7,11 @@ import { TriveltaLogo } from "@/components/TriveltaLogo";
 
 function BrandCorner() {
   return (
-    <Link to="/" className="fixed left-5 top-4 z-50 flex items-center sm:left-8" aria-label="Trivelta Studio">
+    <Link
+      to="/"
+      className="fixed left-5 top-4 z-50 flex items-center sm:left-8"
+      aria-label="Trivelta Studio"
+    >
       <TriveltaLogo size="md" withSubtitle />
     </Link>
   );

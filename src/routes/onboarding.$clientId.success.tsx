@@ -4,7 +4,18 @@ import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Copy, ExternalLink, Mail, Loader2, MessagesSquare, FolderOpen, Palette, ArrowRight, Sparkles } from "lucide-react";
+import {
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  Mail,
+  Loader2,
+  MessagesSquare,
+  FolderOpen,
+  Palette,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import { TriveltaNav } from "@/components/TriveltaNav";
 
@@ -15,14 +26,22 @@ export const Route = createFileRoute("/onboarding/$clientId/success")({
 function slackName(clientName: string) {
   return (
     "#" +
-    clientName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") +
+    clientName
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "") +
     "-onboarding"
   );
 }
 
 function initials(name: string | null | undefined) {
   if (!name) return "AM";
-  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function SuccessScreen() {
@@ -46,11 +65,7 @@ function SuccessScreen() {
           .select("submitted_at")
           .eq("client_id", clientId)
           .maybeSingle(),
-        supabase
-          .from("clients")
-          .select("studio_access")
-          .eq("id", clientId)
-          .maybeSingle(),
+        supabase.from("clients").select("studio_access").eq("id", clientId).maybeSingle(),
       ]);
       if (!formRes.data?.submitted_at) {
         navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
@@ -114,23 +129,33 @@ function SuccessScreen() {
                 Your onboarding is complete. Now let&apos;s build your brand.
               </p>
               <button
-                onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
+                onClick={() =>
+                  navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
+                }
                 className="group relative w-full overflow-hidden rounded-2xl p-px transition-all duration-300 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.7), rgba(99,102,241,0.5), rgba(37,99,235,0.3))" }}
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(37,99,235,0.7), rgba(99,102,241,0.5), rgba(37,99,235,0.3))",
+                }}
               >
-                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{ boxShadow: "0 0 40px 8px rgba(37,99,235,0.3)" }} />
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{ boxShadow: "0 0 40px 8px rgba(37,99,235,0.3)" }}
+                />
                 <div className="relative flex w-full flex-col items-center gap-4 rounded-2xl bg-card px-8 py-8 text-center sm:flex-row sm:text-left">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/20 ring-1 ring-primary/30 transition-colors group-hover:bg-primary/30">
                     <Palette className="h-7 w-7 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-center gap-2 sm:justify-start">
-                      <span className="text-[20px] font-semibold text-foreground">Customize Your Platform</span>
+                      <span className="text-[20px] font-semibold text-foreground">
+                        Customize Your Platform
+                      </span>
                       <Sparkles className="h-4 w-4 text-primary opacity-70" />
                     </div>
                     <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">
-                      Design your platform in Trivelta Studio — choose colors, generate your logo, and preview your app live.
+                      Design your platform in Trivelta Studio — choose colors, generate your logo,
+                      and preview your app live.
                     </p>
                   </div>
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/25 transition-all duration-200 group-hover:bg-primary group-hover:ring-primary">
@@ -150,7 +175,8 @@ function SuccessScreen() {
               <div>
                 <div className="text-[15px] font-semibold text-foreground">Trivelta Studio</div>
                 <p className="mt-0.5 text-[13px] text-muted-foreground">
-                  Your AM will enable your Studio workspace shortly. You'll be notified when it's ready.
+                  Your AM will enable your Studio workspace shortly. You'll be notified when it's
+                  ready.
                 </p>
               </div>
             </div>
@@ -269,8 +295,16 @@ function SuccessScreen() {
                 <div className="grid grid-cols-3 gap-6">
                   {[
                     { step: "1", label: "AM reviews submission", sub: "Within 24 hours" },
-                    { step: "2", label: "Platform configuration begins", sub: "Technical setup starts" },
-                    { step: "3", label: "MVP ready for your review", sub: "Preview & feedback round" },
+                    {
+                      step: "2",
+                      label: "Platform configuration begins",
+                      sub: "Technical setup starts",
+                    },
+                    {
+                      step: "3",
+                      label: "MVP ready for your review",
+                      sub: "Preview & feedback round",
+                    },
                   ].map((item) => (
                     <div key={item.step} className="flex flex-col items-center text-center">
                       <div className="relative z-10 mb-4 grid h-9 w-9 place-items-center rounded-full bg-card font-mono text-xs font-semibold text-primary ring-2 ring-primary/30">
@@ -288,7 +322,11 @@ function SuccessScreen() {
             <div className="flex flex-col gap-0 sm:hidden">
               {[
                 { step: "1", label: "AM reviews submission", sub: "Within 24 hours" },
-                { step: "2", label: "Platform configuration begins", sub: "Technical setup starts" },
+                {
+                  step: "2",
+                  label: "Platform configuration begins",
+                  sub: "Technical setup starts",
+                },
                 { step: "3", label: "MVP ready for your review", sub: "Preview & feedback round" },
               ].map((item, i, arr) => (
                 <div key={item.step} className="flex items-start gap-4">
@@ -299,7 +337,9 @@ function SuccessScreen() {
                     {i < arr.length - 1 && <div className="my-1 h-8 w-px bg-border" />}
                   </div>
                   <div className={i < arr.length - 1 ? "pb-6" : ""}>
-                    <div className="mt-1.5 text-[13px] font-semibold text-foreground">{item.label}</div>
+                    <div className="mt-1.5 text-[13px] font-semibold text-foreground">
+                      {item.label}
+                    </div>
                     <div className="mt-0.5 text-[12px] text-muted-foreground">{item.sub}</div>
                   </div>
                 </div>

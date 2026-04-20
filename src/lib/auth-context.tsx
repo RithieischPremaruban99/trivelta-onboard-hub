@@ -46,10 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const roles = (data ?? []).map((r) => r.role as AppRole);
     const best = ROLE_PRIORITY.find((r) => roles.includes(r)) ?? null;
     setRole(best);

@@ -9,7 +9,10 @@ export interface AmLite {
 function initials(am: AmLite): string {
   const source = am.name?.trim() || am.email;
   const parts = source.split(/\s+|[._-]/).filter(Boolean);
-  const letters = parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
+  const letters = parts
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
   return letters || source[0]?.toUpperCase() || "?";
 }
 

@@ -22,10 +22,27 @@ import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
-  Send, Loader2, Smartphone, Monitor, Sparkles,
-  RefreshCw, CheckCircle2, Upload, ArrowRight,
-  Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown, Download, Undo2,
-  ShieldAlert, Mail, Clapperboard, Info,
+  Send,
+  Loader2,
+  Smartphone,
+  Monitor,
+  Sparkles,
+  RefreshCw,
+  CheckCircle2,
+  Upload,
+  ArrowRight,
+  Lock,
+  Palette,
+  ChevronDown,
+  ChevronUp,
+  ChevronsUp,
+  ChevronsDown,
+  Download,
+  Undo2,
+  ShieldAlert,
+  Mail,
+  Clapperboard,
+  Info,
 } from "lucide-react";
 import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
@@ -37,21 +54,46 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as strin
 
 // Allowed JSON Patch paths — mirrors ALLOWED_PATCH_PATHS in edge function exactly
 const ALLOWED_PATCH_PATHS = new Set([
-  "/primaryBg", "/primary", "/secondary",
-  "/primaryButton", "/primaryButtonGradient",
-  "/boxGradient1", "/boxGradient2",
-  "/lightText", "/placeholderText", "/navbarLabel", "/textSecondary", "/darkTextColor",
-  "/headerGradient1", "/headerGradient2",
-  "/wonGradient1", "/wonGradient2", "/wonColor", "/lostColor",
-  "/payoutWonColor", "/lossAmountText",
-  "/winStatusGradient1", "/winStatusGradient2",
-  "/loseStatusGradient1", "/loseStatusGradient2",
-  "/inactiveButtonBg", "/inactiveButtonText", "/inactiveButtonTextSecondary",
+  "/primaryBg",
+  "/primary",
+  "/secondary",
+  "/primaryButton",
+  "/primaryButtonGradient",
+  "/boxGradient1",
+  "/boxGradient2",
+  "/lightText",
+  "/placeholderText",
+  "/navbarLabel",
+  "/textSecondary",
+  "/darkTextColor",
+  "/headerGradient1",
+  "/headerGradient2",
+  "/wonGradient1",
+  "/wonGradient2",
+  "/wonColor",
+  "/lostColor",
+  "/payoutWonColor",
+  "/lossAmountText",
+  "/winStatusGradient1",
+  "/winStatusGradient2",
+  "/loseStatusGradient1",
+  "/loseStatusGradient2",
+  "/inactiveButtonBg",
+  "/inactiveButtonText",
+  "/inactiveButtonTextSecondary",
   "/inactiveTabUnderline",
-  "/dark", "/darkContainer", "/betcardHeaderBg", "/modalBackground",
-  "/notificationBg", "/freeBetBackground", "/bgColor",
-  "/flexBetHeaderBg", "/flexBetFooterBg",
-  "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
+  "/dark",
+  "/darkContainer",
+  "/betcardHeaderBg",
+  "/modalBackground",
+  "/notificationBg",
+  "/freeBetBackground",
+  "/bgColor",
+  "/flexBetHeaderBg",
+  "/flexBetFooterBg",
+  "/vsColor",
+  "/borderAndGradientBg",
+  "/activeSecondaryGradient",
   "/language",
   "/appName",
 ]);
@@ -91,7 +133,10 @@ export const Route = createFileRoute("/onboarding/$clientId/studio")({
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 
-interface ApiMessage { role: "user" | "assistant"; content: string }
+interface ApiMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 interface DisplayMessage {
   role: "user" | "assistant";
@@ -106,7 +151,9 @@ interface DisplayMessage {
 function isImageRequest(text: string): boolean {
   const lower = text.toLowerCase();
   const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want)\b/.test(lower);
-  const isAsset = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
+  const isAsset = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bapp icon\b|\bicon\b|\bfavicon\b/.test(
+    lower,
+  );
   return wantsCreate && isAsset;
 }
 
@@ -114,11 +161,11 @@ function isImageRequest(text: string): boolean {
 
 function sanitizeChatText(raw: string): string {
   let t = raw
-    .replace(/\*\*/g, "")       // strip markdown bold
-    .replace(/\*/g, "")         // strip markdown italic
-    .replace(/—/g, "-")         // em dash -> hyphen
-    .replace(/!+\s*$/g, ".")    // trailing exclamation mark -> period
-    .replace(/!(?=\s)/g, ".")   // mid-sentence exclamation -> period
+    .replace(/\*\*/g, "") // strip markdown bold
+    .replace(/\*/g, "") // strip markdown italic
+    .replace(/—/g, "-") // em dash -> hyphen
+    .replace(/!+\s*$/g, ".") // trailing exclamation mark -> period
+    .replace(/!(?=\s)/g, ".") // mid-sentence exclamation -> period
     .trim();
   // Hard cap at 150 chars (first 2 sentences)
   if (t.length > 150) {
@@ -181,15 +228,25 @@ function colorDist(a: [number, number, number], b: [number, number, number]): nu
 /** Build the brand palette candidates we'll snap Lottie colors to. */
 function buildBrandPalette(tc: StudioThemeColors): Array<[number, number, number]> {
   const keys: Array<keyof StudioThemeColors> = [
-    "primaryBg", "primary", "secondary", "primaryButton",
-    "primaryButtonGradient", "wonGradient1", "wonGradient2", "lightText",
+    "primaryBg",
+    "primary",
+    "secondary",
+    "primaryButton",
+    "primaryButtonGradient",
+    "wonGradient1",
+    "wonGradient2",
+    "lightText",
   ];
-  return keys.map((k) => parseRgbaTo01(tc[k])).filter((c): c is [number, number, number] => c !== null);
+  return keys
+    .map((k) => parseRgbaTo01(tc[k]))
+    .filter((c): c is [number, number, number] => c !== null);
 }
 
 function isColorArr(arr: unknown[]): arr is number[] {
-  return (arr.length === 3 || arr.length === 4) &&
-    (arr as number[]).every((v) => typeof v === "number" && v >= -0.001 && v <= 1.001);
+  return (
+    (arr.length === 3 || arr.length === 4) &&
+    (arr as number[]).every((v) => typeof v === "number" && v >= -0.001 && v <= 1.001)
+  );
 }
 
 function snapColor(arr: number[], palette: Array<[number, number, number]>): void {
@@ -198,14 +255,23 @@ function snapColor(arr: number[], palette: Array<[number, number, number]>): voi
   let bestDist = Infinity;
   for (const p of palette) {
     const d = colorDist(src, p);
-    if (d < bestDist) { bestDist = d; best = p; }
+    if (d < bestDist) {
+      bestDist = d;
+      best = p;
+    }
   }
-  arr[0] = best[0]; arr[1] = best[1]; arr[2] = best[2];
+  arr[0] = best[0];
+  arr[1] = best[1];
+  arr[2] = best[2];
   // alpha (arr[3]) is intentionally preserved
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function walkLottieColors(node: unknown, isColorK: boolean, palette: Array<[number, number, number]>): void {
+function walkLottieColors(
+  node: unknown,
+  isColorK: boolean,
+  palette: Array<[number, number, number]>,
+): void {
   if (Array.isArray(node)) {
     if (isColorK) {
       if (isColorArr(node as unknown[])) {
@@ -262,7 +328,9 @@ function StudioColorField({
   const alpha = extractAlpha(rgba);
   const [hexInput, setHexInput] = useState(() => rgbaToHex(rgba));
 
-  useEffect(() => { setHexInput(rgbaToHex(rgba)); }, [rgba]);
+  useEffect(() => {
+    setHexInput(rgbaToHex(rgba));
+  }, [rgba]);
 
   const applyHex = (v: string) => {
     if (readOnly) return;
@@ -274,7 +342,10 @@ function StudioColorField({
     <div className={cn("flex items-center gap-2", readOnly && "pointer-events-none opacity-50")}>
       <label className={cn("relative shrink-0", readOnly ? "cursor-default" : "cursor-pointer")}>
         <div
-          className={cn("rounded-md border border-border/60 shadow-sm", compact ? "h-7 w-7" : "h-8 w-8")}
+          className={cn(
+            "rounded-md border border-border/60 shadow-sm",
+            compact ? "h-7 w-7" : "h-8 w-8",
+          )}
           style={{ background: rgba }}
         />
         <input
@@ -295,7 +366,10 @@ function StudioColorField({
         <Input
           value={hexInput}
           readOnly={readOnly}
-          onChange={(e) => { setHexInput(e.target.value); applyHex(e.target.value); }}
+          onChange={(e) => {
+            setHexInput(e.target.value);
+            applyHex(e.target.value);
+          }}
           onBlur={() => setHexInput(rgbaToHex(rgba))}
           className={cn("font-mono", compact ? "h-7 text-[10px]" : "h-7 text-[11px]")}
           placeholder="#000000"
@@ -349,33 +423,60 @@ function AssetUploadZone({
         accept="image/png,image/jpeg,image/svg+xml,image/webp"
         className="hidden"
         disabled={readOnly}
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) applyFile(f); e.target.value = ""; }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) applyFile(f);
+          e.target.value = "";
+        }}
       />
       <button
         type="button"
         disabled={readOnly}
         onClick={() => !readOnly && fileRef.current?.click()}
-        onDragEnter={() => { if (!readOnly) setDragging(true); }}
+        onDragEnter={() => {
+          if (!readOnly) setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f?.type.startsWith("image/")) applyFile(f); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          const f = e.dataTransfer.files?.[0];
+          if (f?.type.startsWith("image/")) applyFile(f);
+        }}
         className={cn(
           "w-full rounded-xl border-2 border-dashed transition-all text-left",
           compact ? "px-3 py-2" : "px-4 py-3",
-          readOnly ? "cursor-default border-border/30 bg-background/10" :
-          dragging ? "border-primary bg-primary/10" :
-          "border-border bg-background/30 hover:border-primary/40 hover:bg-accent/20",
+          readOnly
+            ? "cursor-default border-border/30 bg-background/10"
+            : dragging
+              ? "border-primary bg-primary/10"
+              : "border-border bg-background/30 hover:border-primary/40 hover:bg-accent/20",
         )}
       >
         {currentUrl ? (
           <div className="flex items-center gap-2.5">
-            {type === "logo"
-              ? <img src={currentUrl} alt="Logo" className="h-7 max-w-[80px] rounded object-contain" />
-              : <img src={currentUrl} alt="Icon" className="h-8 w-8 rounded-lg object-contain" />
-            }
+            {type === "logo" ? (
+              <img
+                src={currentUrl}
+                alt="Logo"
+                className="h-7 max-w-[80px] rounded object-contain"
+              />
+            ) : (
+              <img src={currentUrl} alt="Icon" className="h-8 w-8 rounded-lg object-contain" />
+            )}
             <div>
-              <div className={cn("font-semibold text-foreground", compact ? "text-[11px]" : "text-[12px]")}>{label}</div>
-              {!readOnly && <div className="text-[10px] text-muted-foreground">Click to replace</div>}
+              <div
+                className={cn(
+                  "font-semibold text-foreground",
+                  compact ? "text-[11px]" : "text-[12px]",
+                )}
+              >
+                {label}
+              </div>
+              {!readOnly && (
+                <div className="text-[10px] text-muted-foreground">Click to replace</div>
+              )}
             </div>
           </div>
         ) : (
@@ -384,7 +485,14 @@ function AssetUploadZone({
               <Upload className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div>
-              <div className={cn("font-semibold text-foreground", compact ? "text-[11px]" : "text-[12px]")}>{label}</div>
+              <div
+                className={cn(
+                  "font-semibold text-foreground",
+                  compact ? "text-[11px]" : "text-[12px]",
+                )}
+              >
+                {label}
+              </div>
               <div className="text-[10px] text-muted-foreground">
                 {readOnly ? "Not uploaded" : "PNG, SVG · drag or click"}
               </div>
@@ -427,12 +535,19 @@ function ImageMessage({
       )}
       {/* Full-width image */}
       <div className="w-full overflow-hidden rounded-lg border border-white/10">
-        <img src={msg.imageUrl} alt={`Generated ${msg.imageType}`} className="w-full object-cover" />
+        <img
+          src={msg.imageUrl}
+          alt={`Generated ${msg.imageType}`}
+          className="w-full object-cover"
+        />
       </div>
       {/* Action buttons */}
       <div className="flex flex-wrap gap-1.5 pt-0.5">
         <button
-          onClick={() => { onUse(msg.imageUrl!, "logo"); setUsedAs("logo"); }}
+          onClick={() => {
+            onUse(msg.imageUrl!, "logo");
+            setUsedAs("logo");
+          }}
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all"
           style={{
             background: usedAs === "logo" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.1)",
@@ -444,7 +559,10 @@ function ImageMessage({
           {usedAs === "logo" ? "Applied as Logo" : "Use as Logo"}
         </button>
         <button
-          onClick={() => { onUse(msg.imageUrl!, "icon"); setUsedAs("icon"); }}
+          onClick={() => {
+            onUse(msg.imageUrl!, "icon");
+            setUsedAs("icon");
+          }}
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all"
           style={{
             background: usedAs === "icon" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.08)",
@@ -459,7 +577,11 @@ function ImageMessage({
           <button
             onClick={() => onRegenerate(msg.sourcePrompt!)}
             className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
-            style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              color: "rgba(255,255,255,0.45)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
           >
             <RefreshCw className="h-3 w-3" /> Try again
           </button>
@@ -468,7 +590,11 @@ function ImageMessage({
           href={msg.imageUrl}
           download="trivelta-logo.png"
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium"
-          style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            color: "rgba(255,255,255,0.45)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
         >
           <Download className="h-3 w-3" /> Download PNG
         </a>
@@ -498,8 +624,8 @@ function SaveConfirmModal({
           <span className="text-[16px] font-semibold text-foreground">Lock your design?</span>
         </div>
         <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-          Once saved, your design will be sent to your Account Manager for implementation.
-          You won't be able to make changes after this point - contact your AM if adjustments are needed.
+          Once saved, your design will be sent to your Account Manager for implementation. You won't
+          be able to make changes after this point - contact your AM if adjustments are needed.
         </p>
         <div className="mt-6 flex justify-end gap-2.5">
           <button
@@ -514,7 +640,11 @@ function SaveConfirmModal({
             disabled={loading}
             className="flex items-center gap-2 rounded-xl bg-success px-5 py-2.5 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+            {loading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Lock className="h-3.5 w-3.5" />
+            )}
             Lock &amp; Submit Design
           </button>
         </div>
@@ -540,7 +670,8 @@ function LockModal({
           <span className="text-[15px] font-semibold">Lock My Design?</span>
         </div>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Once locked, colors and brand assets can't be changed from the Studio. Your Trivelta team will use these values to configure your platform.
+          Once locked, colors and brand assets can't be changed from the Studio. Your Trivelta team
+          will use these values to configure your platform.
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <button
@@ -555,7 +686,11 @@ function LockModal({
             disabled={loading}
             className="flex items-center gap-2 rounded-lg bg-success px-4 py-2 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+            {loading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Lock className="h-3.5 w-3.5" />
+            )}
             Lock Design
           </button>
         </div>
@@ -577,7 +712,18 @@ export function StudioInner({
 }) {
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
-  const { themeColors, setThemeColors, appIcons, setAppIcons, previewMode, setPreviewMode, language, setLanguage, appName, setAppName } = useStudio();
+  const {
+    themeColors,
+    setThemeColors,
+    appIcons,
+    setAppIcons,
+    previewMode,
+    setPreviewMode,
+    language,
+    setLanguage,
+    appName,
+    setAppName,
+  } = useStudio();
 
   /* ── State ── */
   const [locked, setLocked] = useState(initialLocked);
@@ -587,19 +733,28 @@ export function StudioInner({
   const [locking, setLocking] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(() => {
-    try { return localStorage.getItem("studio-chat-open") !== "false"; } catch { return true; }
+    try {
+      return localStorage.getItem("studio-chat-open") !== "false";
+    } catch {
+      return true;
+    }
   });
   const [saving, setSaving] = useState(false);
 
   // Persist chat panel open/close state
   useEffect(() => {
-    try { localStorage.setItem("studio-chat-open", String(chatOpen)); } catch { /* ignore */ }
+    try {
+      localStorage.setItem("studio-chat-open", String(chatOpen));
+    } catch {
+      /* ignore */
+    }
   }, [chatOpen]);
 
   const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
     {
       role: "assistant",
-      content: "Hi! I'm your platform design assistant. Describe the look and feel you want, or ask me to generate a logo.",
+      content:
+        "Hi! I'm your platform design assistant. Describe the look and feel you want, or ask me to generate a logo.",
     },
   ]);
   const [apiHistory, setApiHistory] = useState<ApiMessage[]>([]);
@@ -608,24 +763,30 @@ export function StudioInner({
   const [pendingIsImage, setPendingIsImage] = useState(false);
   const [patchPending, setPatchPending] = useState(false);
   // Undo history: stack of previous themeColors snapshots + description
-  const [undoStack, setUndoStack] = useState<Array<{ colors: StudioThemeColors; label: string }>>([]);
+  const [undoStack, setUndoStack] = useState<Array<{ colors: StudioThemeColors; label: string }>>(
+    [],
+  );
   const [animationsOpen, setAnimationsOpen] = useState(false);
   const [animationsPulse, setAnimationsPulse] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [lottieData, setLottieData] = useState<Record<string, any | null>>({
-    loading: null, splash: null, live: null,
+    loading: null,
+    splash: null,
+    live: null,
   });
   useEffect(() => {
     const slots = [
       { key: "loading", url: "https://assets3.lottiefiles.com/packages/lf20_poqmycou.json" },
-      { key: "splash",  url: "https://assets3.lottiefiles.com/packages/lf20_kkflmtur.json" },
-      { key: "live",    url: "https://assets3.lottiefiles.com/packages/lf20_xl5uw1a2.json" },
+      { key: "splash", url: "https://assets3.lottiefiles.com/packages/lf20_kkflmtur.json" },
+      { key: "live", url: "https://assets3.lottiefiles.com/packages/lf20_xl5uw1a2.json" },
     ];
     slots.forEach(({ key, url }) => {
       fetch(url)
         .then((r) => r.json())
         .then((data) => setLottieData((prev) => ({ ...prev, [key]: data })))
-        .catch(() => { /* silently ignore — placeholder just won't render */ });
+        .catch(() => {
+          /* silently ignore — placeholder just won't render */
+        });
     });
   }, []);
 
@@ -686,8 +847,12 @@ export function StudioInner({
   const tourFineTuneRef = useRef<HTMLDivElement>(null);
   const tourPreviewRef = useRef<HTMLDivElement>(null);
   const tourLockRef = useRef<HTMLDivElement>(null);
-  const tourRefs = { chat: tourChatRef, fineTune: tourFineTuneRef, preview: tourPreviewRef, lock: tourLockRef } as
-    Record<string, React.RefObject<HTMLDivElement>>;
+  const tourRefs = {
+    chat: tourChatRef,
+    fineTune: tourFineTuneRef,
+    preview: tourPreviewRef,
+    lock: tourLockRef,
+  } as Record<string, React.RefObject<HTMLDivElement>>;
 
   // Tour state — show automatically on first visit, show help button after
   const [tourActive, setTourActive] = useState(
@@ -717,10 +882,12 @@ export function StudioInner({
   /* ── Save helpers ── */
   const saveNow = useCallback(async () => {
     const payload: StudioSavedConfig = { colors: themeColors, icons: appIcons, language, appName };
-    await supabase.from("onboarding_forms").upsert(
-      { client_id: clientId, studio_config: payload as never },
-      { onConflict: "client_id" },
-    );
+    await supabase
+      .from("onboarding_forms")
+      .upsert(
+        { client_id: clientId, studio_config: payload as never },
+        { onConflict: "client_id" },
+      );
   }, [clientId, themeColors, appIcons, language, appName]);
 
   const scheduleAutoSave = useCallback(
@@ -728,10 +895,12 @@ export function StudioInner({
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(async () => {
-        await supabase.from("onboarding_forms").upsert(
-          { client_id: clientId, studio_config: { colors, icons, language, appName } as never },
-          { onConflict: "client_id" },
-        );
+        await supabase
+          .from("onboarding_forms")
+          .upsert(
+            { client_id: clientId, studio_config: { colors, icons, language, appName } as never },
+            { onConflict: "client_id" },
+          );
       }, 2000);
     },
     [clientId, locked, language, appName],
@@ -739,7 +908,9 @@ export function StudioInner({
 
   useEffect(() => {
     scheduleAutoSave(themeColors, appIcons);
-    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
   }, [themeColors, appIcons, scheduleAutoSave]);
 
   /* ── Save & Continue ── */
@@ -754,7 +925,9 @@ export function StudioInner({
   /* ── Call design-locked edge function; returns true on success ── */
   const callDesignLocked = useCallback(async (): Promise<boolean> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const res = await fetch(`${SUPABASE_URL}/functions/v1/design-locked`, {
         method: "POST",
         headers: {
@@ -799,10 +972,9 @@ export function StudioInner({
         toast.success("Design locked! Your Trivelta team has been notified.");
       } else {
         toast.warning("Design locked locally. Notion sync will retry automatically.");
-        await supabase.from("onboarding_forms").upsert(
-          { client_id: clientId, notion_sync_pending: true },
-          { onConflict: "client_id" },
-        );
+        await supabase
+          .from("onboarding_forms")
+          .upsert({ client_id: clientId, notion_sync_pending: true }, { onConflict: "client_id" });
       }
     } catch {
       toast.error("Failed to lock design - try again.");
@@ -835,10 +1007,9 @@ export function StudioInner({
         toast.success("Design locked and submitted!");
       } else {
         toast.warning("Design locked locally. Notion sync will retry automatically.");
-        await supabase.from("onboarding_forms").upsert(
-          { client_id: clientId, notion_sync_pending: true },
-          { onConflict: "client_id" },
-        );
+        await supabase
+          .from("onboarding_forms")
+          .upsert({ client_id: clientId, notion_sync_pending: true }, { onConflict: "client_id" });
       }
 
       navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
@@ -850,44 +1021,47 @@ export function StudioInner({
   };
 
   /* ── Use AI-generated image ── */
-  const handleUseImage = useCallback((url: string, type: "logo" | "icon") => {
-    if (type === "logo") {
-      setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url, appNameLogo: url }));
-    } else {
-      setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
-    }
-  }, [setAppIcons]);
+  const handleUseImage = useCallback(
+    (url: string, type: "logo" | "icon") => {
+      if (type === "logo") {
+        setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url, appNameLogo: url }));
+      } else {
+        setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
+      }
+    },
+    [setAppIcons],
+  );
 
   /* ── Apply color patch (JSON Patch ops) ── */
-  const applyColorPatch = useCallback((ops: Operation[], label: string) => {
-    setThemeColors((prev) => {
-      // Push current snapshot to undo stack (capped at MAX_UNDO)
-      setUndoStack((stack) => [
-        { colors: prev, label },
-        ...stack.slice(0, MAX_UNDO - 1),
-      ]);
+  const applyColorPatch = useCallback(
+    (ops: Operation[], label: string) => {
+      setThemeColors((prev) => {
+        // Push current snapshot to undo stack (capped at MAX_UNDO)
+        setUndoStack((stack) => [{ colors: prev, label }, ...stack.slice(0, MAX_UNDO - 1)]);
 
-      // Tier-1: write CSS vars directly to preview container before React re-renders
-      const previewEl = previewContainerRef.current;
-      if (previewEl) {
-        for (const op of ops) {
-          if (op.op === "replace") {
-            const key = op.path.slice(1) as keyof StudioThemeColors;
-            const cssVar = THEME_TO_CSS_VAR[key];
-            if (cssVar) previewEl.style.setProperty(cssVar, op.value as string);
+        // Tier-1: write CSS vars directly to preview container before React re-renders
+        const previewEl = previewContainerRef.current;
+        if (previewEl) {
+          for (const op of ops) {
+            if (op.op === "replace") {
+              const key = op.path.slice(1) as keyof StudioThemeColors;
+              const cssVar = THEME_TO_CSS_VAR[key];
+              if (cssVar) previewEl.style.setProperty(cssVar, op.value as string);
+            }
           }
         }
-      }
 
-      // Apply patch atomically to a clone of themeColors
-      try {
-        const result = applyPatch({ ...prev }, ops as Operation[], false, false);
-        return result.newDocument as StudioThemeColors;
-      } catch {
-        return prev; // if patch fails, leave colors unchanged
-      }
-    });
-  }, [setThemeColors]);
+        // Apply patch atomically to a clone of themeColors
+        try {
+          const result = applyPatch({ ...prev }, ops as Operation[], false, false);
+          return result.newDocument as StudioThemeColors;
+        } catch {
+          return prev; // if patch fails, leave colors unchanged
+        }
+      });
+    },
+    [setThemeColors],
+  );
 
   /* ── Undo last color patch ── */
   const handleUndo = useCallback(() => {
@@ -921,235 +1095,241 @@ export function StudioInner({
   }, [handleUndo]);
 
   /* ── AI send (streaming SSE) ── */
-  const sendMessage = useCallback(async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || thinking) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || thinking) return;
 
-    // Auto-expand Animations panel and pulse it when message is animation-related
-    const lower = trimmed.toLowerCase();
-    const isAnimationMsg = /\b(animation|animations|splash|loading\s+screen|lottie|live\s+icon|loading\s+anim)\b/.test(lower);
-    if (isAnimationMsg) {
-      setAnimationsOpen(true);
-      setAnimationsPulse(true);
-      setTimeout(() => setAnimationsPulse(false), 1600);
-    }
-
-    const isImg = isImageRequest(trimmed);
-    setDisplayMessages((prev) => [...prev, { role: "user", content: trimmed }]);
-    const nextHistory = [...apiHistory, { role: "user" as const, content: trimmed }];
-    setApiHistory(nextHistory);
-    setInput("");
-    setThinking(true);
-    setPendingIsImage(isImg);
-    setPatchPending(false);
-
-    // Add a blank assistant message that we'll stream tokens into
-    const assistantMsgIndex = nextHistory.length; // position in displayMessages after user msg
-    setDisplayMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-    // Snapshot + clear the recent-change hint so it's only sent once
-    lastPatchLabel.current = null;
-
-    let fullChatText = "";
-    let appliedPatch = false;
-    let imageReceived = false;
-
-    try {
-      // Get auth token for direct fetch (supabase.functions.invoke doesn't support SSE)
-      const { data: sessionData } = await supabase.auth.getSession();
-      const authToken = sessionData.session?.access_token ?? SUPABASE_ANON_KEY;
-
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/studio-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`,
-          "apikey": SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          message: trimmed,
-          history: apiHistory,
-          logoUrl: stableLogoUrl.current || appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
-          context: {
-            clientName: welcomeInfo?.clientName ?? "Client",
-            currentColors: themeColors,
-            hasLogo: !!(appIcons.appNameLogo || stableLogoUrl.current),
-            hasIcon: !!appIcons.topLeftAppIcon,
-            isLocked: locked,
-            platform: "sportsbook",
-            recentChange: lastPatchLabel.current,
-            clientId,
-          },
-        }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+      // Auto-expand Animations panel and pulse it when message is animation-related
+      const lower = trimmed.toLowerCase();
+      const isAnimationMsg =
+        /\b(animation|animations|splash|loading\s+screen|lottie|live\s+icon|loading\s+anim)\b/.test(
+          lower,
+        );
+      if (isAnimationMsg) {
+        setAnimationsOpen(true);
+        setAnimationsPulse(true);
+        setTimeout(() => setAnimationsPulse(false), 1600);
       }
 
-      const reader = resp.body.getReader();
-      const dec = new TextDecoder();
-      let sseBuffer = "";
+      const isImg = isImageRequest(trimmed);
+      setDisplayMessages((prev) => [...prev, { role: "user", content: trimmed }]);
+      const nextHistory = [...apiHistory, { role: "user" as const, content: trimmed }];
+      setApiHistory(nextHistory);
+      setInput("");
+      setThinking(true);
+      setPendingIsImage(isImg);
+      setPatchPending(false);
 
-      const updateLastMsg = (updater: (msg: DisplayMessage) => DisplayMessage) => {
-        setDisplayMessages((prev) => {
-          const msgs = [...prev];
-          const lastIdx = msgs.length - 1;
-          if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
-            msgs[lastIdx] = updater(msgs[lastIdx]);
-          }
-          return msgs;
+      // Add a blank assistant message that we'll stream tokens into
+      const assistantMsgIndex = nextHistory.length; // position in displayMessages after user msg
+      setDisplayMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      // Snapshot + clear the recent-change hint so it's only sent once
+      lastPatchLabel.current = null;
+
+      let fullChatText = "";
+      let appliedPatch = false;
+      let imageReceived = false;
+
+      try {
+        // Get auth token for direct fetch (supabase.functions.invoke doesn't support SSE)
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authToken = sessionData.session?.access_token ?? SUPABASE_ANON_KEY;
+
+        const resp = await fetch(`${SUPABASE_URL}/functions/v1/studio-chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            message: trimmed,
+            history: apiHistory,
+            logoUrl:
+              stableLogoUrl.current || appIcons.appNameLogo || appIcons.topLeftAppIcon || null,
+            context: {
+              clientName: welcomeInfo?.clientName ?? "Client",
+              currentColors: themeColors,
+              hasLogo: !!(appIcons.appNameLogo || stableLogoUrl.current),
+              hasIcon: !!appIcons.topLeftAppIcon,
+              isLocked: locked,
+              platform: "sportsbook",
+              recentChange: lastPatchLabel.current,
+              clientId,
+            },
+          }),
         });
-      };
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        if (!resp.ok || !resp.body) {
+          throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+        }
 
-        sseBuffer += dec.decode(value, { stream: true });
-        const lines = sseBuffer.split("\n");
-        sseBuffer = lines.pop()!; // keep partial last line
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        let sseBuffer = "";
 
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          let event: Record<string, unknown>;
-          try { event = JSON.parse(line.slice(6)); } catch { continue; }
+        const updateLastMsg = (updater: (msg: DisplayMessage) => DisplayMessage) => {
+          setDisplayMessages((prev) => {
+            const msgs = [...prev];
+            const lastIdx = msgs.length - 1;
+            if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
+              msgs[lastIdx] = updater(msgs[lastIdx]);
+            }
+            return msgs;
+          });
+        };
 
-          if (event.type === "token") {
-            // Stream <chat> text into the assistant message
-            const tok = event.text as string;
-            fullChatText += tok;
-            updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-          } else if (event.type === "thinking") {
-            // Server confirmed receipt; typing indicator is already shown via empty content
-            // Nothing extra needed — this event exists to make round-trip latency visible
+          sseBuffer += dec.decode(value, { stream: true });
+          const lines = sseBuffer.split("\n");
+          sseBuffer = lines.pop()!; // keep partial last line
 
-          } else if (event.type === "patch") {
-            // Validate and apply patch atomically
-            const ops = event.ops as unknown;
-            if (validateOps(ops)) {
-              setPatchPending(true);
-              const langOps = ops.filter((o) => o.path === "/language");
-              const appNameOps = ops.filter((o) => o.path === "/appName");
-              const colorOps = ops.filter((o) => o.path !== "/language" && o.path !== "/appName");
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            let event: Record<string, unknown>;
+            try {
+              event = JSON.parse(line.slice(6));
+            } catch {
+              continue;
+            }
 
-              if (langOps.length > 0) {
-                const lastLangOp = langOps[langOps.length - 1];
-                if ("value" in lastLangOp) {
-                  const newLang = lastLangOp.value as Language;
+            if (event.type === "token") {
+              // Stream <chat> text into the assistant message
+              const tok = event.text as string;
+              fullChatText += tok;
+              updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
+            } else if (event.type === "thinking") {
+              // Server confirmed receipt; typing indicator is already shown via empty content
+              // Nothing extra needed — this event exists to make round-trip latency visible
+            } else if (event.type === "patch") {
+              // Validate and apply patch atomically
+              const ops = event.ops as unknown;
+              if (validateOps(ops)) {
+                setPatchPending(true);
+                const langOps = ops.filter((o) => o.path === "/language");
+                const appNameOps = ops.filter((o) => o.path === "/appName");
+                const colorOps = ops.filter((o) => o.path !== "/language" && o.path !== "/appName");
+
+                if (langOps.length > 0) {
+                  const newLang = langOps[langOps.length - 1].value as Language;
                   setLanguage(newLang);
                   toast.success(`Language: ${LANGUAGE_NAMES[newLang]}`, { duration: 1500 });
                 }
-              }
 
-              if (appNameOps.length > 0) {
-                const lastNameOp = appNameOps[appNameOps.length - 1];
-                if ("value" in lastNameOp) {
-                  const newName = String(lastNameOp.value).trim();
+                if (appNameOps.length > 0) {
+                  const newName = appNameOps[appNameOps.length - 1].value.trim();
                   setAppName(newName);
                   toast.success(`App name: ${newName}`, { duration: 1500 });
                 }
+
+                if (colorOps.length > 0) {
+                  const label = colorOps.map((o) => o.path.slice(1)).join(", ") + " change";
+                  applyColorPatch(colorOps as Operation[], label);
+                  lastPatchLabel.current = label;
+                  appliedPatch = true;
+                  toast.success("Colors updated", { duration: 1500 });
+                }
+              } else {
+                console.warn("[studio] Invalid patch ops - skipped:", ops);
               }
-
-              if (colorOps.length > 0) {
-                const label = colorOps.map((o) => o.path.slice(1)).join(", ") + " change";
-                applyColorPatch(colorOps as Operation[], label);
-                lastPatchLabel.current = label;
-                appliedPatch = true;
-                toast.success("Colors updated", { duration: 1500 });
+              setPatchPending(false);
+            } else if (event.type === "generating") {
+              // DALL-E has started - show progress bar in the message
+              // The pendingIsImage indicator at the bottom handles this visually already,
+              // but we also flag it on the message itself so the progress bar shows inline
+              setPendingIsImage(true);
+            } else if (event.type === "image") {
+              const imageUrl = event.imageUrl as string | null;
+              const imageType = (event.imageType ?? "logo") as "logo" | "icon";
+              const imageError = event.imageError as string | null;
+              imageReceived = true;
+              if (imageUrl) {
+                stableLogoUrl.current = imageUrl;
+                updateLastMsg((msg) => ({ ...msg, imageUrl, imageType, sourcePrompt: trimmed }));
+              } else if (imageError) {
+                updateLastMsg((msg) => ({
+                  ...msg,
+                  content:
+                    (msg.content || sanitizeChatText(fullChatText)) +
+                    "\n\nImage generation failed - please try again.",
+                }));
               }
-            } else {
-              console.warn("[studio] Invalid patch ops - skipped:", ops);
-            }
-            setPatchPending(false);
-
-          } else if (event.type === "generating") {
-            // DALL-E has started - show progress bar in the message
-            // The pendingIsImage indicator at the bottom handles this visually already,
-            // but we also flag it on the message itself so the progress bar shows inline
-            setPendingIsImage(true);
-
-          } else if (event.type === "image") {
-            const imageUrl = event.imageUrl as string | null;
-            const imageType = (event.imageType ?? "logo") as "logo" | "icon";
-            const imageError = event.imageError as string | null;
-            imageReceived = true;
-            if (imageUrl) {
-              stableLogoUrl.current = imageUrl;
-              updateLastMsg((msg) => ({ ...msg, imageUrl, imageType, sourcePrompt: trimmed }));
-            } else if (imageError) {
+            } else if (event.type === "error") {
+              const errStr = String(event.message ?? "");
+              const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
               updateLastMsg((msg) => ({
                 ...msg,
-                content: (msg.content || sanitizeChatText(fullChatText)) +
-                  "\n\nImage generation failed - please try again.",
+                content: isKeyErr
+                  ? "API key not configured - contact your administrator."
+                  : "Something went wrong. Please try again.",
               }));
+            } else if (event.type === "done") {
+              // Finalize: ensure chat text is sanitized
+              updateLastMsg((msg) => ({
+                ...msg,
+                content: sanitizeChatText(fullChatText) || msg.content,
+              }));
+              // Record final chat text in API history
+              setApiHistory((prev) => [
+                ...prev,
+                { role: "assistant", content: sanitizeChatText(fullChatText) },
+              ]);
             }
+          }
+        }
 
-          } else if (event.type === "error") {
-            const errStr = String(event.message ?? "");
-            const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
-            updateLastMsg((msg) => ({
-              ...msg,
+        // Fallback: if stream ended without a "done" event
+        if (fullChatText) {
+          updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
+          setApiHistory((prev) => {
+            // Only append if not already added
+            const last = prev[prev.length - 1];
+            if (last?.role !== "assistant") {
+              return [...prev, { role: "assistant", content: sanitizeChatText(fullChatText) }];
+            }
+            return prev;
+          });
+        }
+      } catch (err) {
+        const errStr = String(err);
+        const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
+        setDisplayMessages((prev) => {
+          const msgs = [...prev];
+          const lastIdx = msgs.length - 1;
+          if (lastIdx >= 0 && msgs[lastIdx].role === "assistant" && !msgs[lastIdx].content) {
+            msgs[lastIdx] = {
+              role: "assistant",
               content: isKeyErr
                 ? "API key not configured - contact your administrator."
                 : "Something went wrong. Please try again.",
-            }));
-
-          } else if (event.type === "done") {
-            // Finalize: ensure chat text is sanitized
-            updateLastMsg((msg) => ({
-              ...msg,
-              content: sanitizeChatText(fullChatText) || msg.content,
-            }));
-            // Record final chat text in API history
-            setApiHistory((prev) => [...prev, { role: "assistant", content: sanitizeChatText(fullChatText) }]);
+            };
           }
-        }
-      }
-
-      // Fallback: if stream ended without a "done" event
-      if (fullChatText) {
-        updateLastMsg((msg) => ({ ...msg, content: sanitizeChatText(fullChatText) }));
-        setApiHistory((prev) => {
-          // Only append if not already added
-          const last = prev[prev.length - 1];
-          if (last?.role !== "assistant") {
-            return [...prev, { role: "assistant", content: sanitizeChatText(fullChatText) }];
-          }
-          return prev;
+          return msgs;
         });
+      } finally {
+        setThinking(false);
+        setPendingIsImage(false);
+        setPatchPending(false);
       }
-
-    } catch (err) {
-      const errStr = String(err);
-      const isKeyErr = errStr.includes("API_KEY") || errStr.includes("not configured");
-      setDisplayMessages((prev) => {
-        const msgs = [...prev];
-        const lastIdx = msgs.length - 1;
-        if (lastIdx >= 0 && msgs[lastIdx].role === "assistant" && !msgs[lastIdx].content) {
-          msgs[lastIdx] = {
-            role: "assistant",
-            content: isKeyErr
-              ? "API key not configured - contact your administrator."
-              : "Something went wrong. Please try again.",
-          };
-        }
-        return msgs;
-      });
-    } finally {
-      setThinking(false);
-      setPendingIsImage(false);
-      setPatchPending(false);
-    }
-  }, [thinking, apiHistory, clientId, applyColorPatch]);
+    },
+    [thinking, apiHistory, clientId, applyColorPatch],
+  );
 
   /* ── Fine-tune accordion groups ── */
   type ColorGroup = {
     id: string;
     label: string;
     fields: { label: string; key: keyof StudioThemeColors }[];
-    gradients?: { label: string; startKey: keyof StudioThemeColors; endKey: keyof StudioThemeColors }[];
+    gradients?: {
+      label: string;
+      startKey: keyof StudioThemeColors;
+      endKey: keyof StudioThemeColors;
+    }[];
   };
 
   const COLOR_GROUPS: ColorGroup[] = [
@@ -1192,9 +1372,7 @@ export function StudioInner({
       id: "header",
       label: "Header & Nav",
       fields: [],
-      gradients: [
-        { label: "Header", startKey: "headerGradient1", endKey: "headerGradient2" },
-      ],
+      gradients: [{ label: "Header", startKey: "headerGradient1", endKey: "headerGradient2" }],
     },
     {
       id: "winloss",
@@ -1237,18 +1415,20 @@ export function StudioInner({
   ];
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ brand: true });
-  const toggleGroup = (id: string) =>
-    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleGroup = (id: string) => setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const canLock = !!appIcons.appNameLogo;
   const bothCollapsed = !chatOpen && !controlsOpen;
   const lockedDate = lockedAt
-    ? new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(lockedAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
     : null;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
         <div className="flex w-[35%] shrink-0 items-center">
@@ -1257,7 +1437,9 @@ export function StudioInner({
         <div className="flex flex-1 items-center justify-center gap-2">
           {welcomeInfo && (
             <>
-              <span className="text-[13px] font-semibold text-foreground">{welcomeInfo.clientName}</span>
+              <span className="text-[13px] font-semibold text-foreground">
+                {welcomeInfo.clientName}
+              </span>
               <span className="text-muted-foreground/40">·</span>
             </>
           )}
@@ -1268,7 +1450,9 @@ export function StudioInner({
         <div className="flex w-[35%] shrink-0 items-center justify-end">
           {locked ? (
             <button
-              onClick={() => navigate({ to: "/onboarding/$clientId/success", params: { clientId } })}
+              onClick={() =>
+                navigate({ to: "/onboarding/$clientId/success", params: { clientId } })
+              }
               className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-2 text-[12px] font-semibold text-success transition-colors hover:bg-success/15"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -1297,15 +1481,15 @@ export function StudioInner({
 
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
-
         {/* ══ LEFT PANEL ═══════════════════════════════════════════════ */}
-        <div className={cn(
-          "flex flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200",
-          bothCollapsed
-            ? "w-[210px] min-w-[210px] max-w-[210px]"
-            : "w-[35%] min-w-[300px] max-w-[440px]",
-        )}>
-
+        <div
+          className={cn(
+            "flex flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200",
+            bothCollapsed
+              ? "w-[210px] min-w-[210px] max-w-[210px]"
+              : "w-[35%] min-w-[300px] max-w-[440px]",
+          )}
+        >
           {/* Always-visible identity strip + collapse-all button */}
           <div className="shrink-0 flex items-center justify-between border-b border-border px-3 py-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -1318,135 +1502,164 @@ export function StudioInner({
             </div>
             <button
               onClick={() => {
-                if (bothCollapsed) { setChatOpen(true); }
-                else { setChatOpen(false); setControlsOpen(false); }
+                if (bothCollapsed) {
+                  setChatOpen(true);
+                } else {
+                  setChatOpen(false);
+                  setControlsOpen(false);
+                }
               }}
               className="ml-2 flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               title={bothCollapsed ? "Expand panels" : "Collapse all"}
             >
-              {bothCollapsed
-                ? <><ChevronsDown className="h-3 w-3" /> Expand</>
-                : <><ChevronsUp className="h-3 w-3" /> Collapse</>
-              }
+              {bothCollapsed ? (
+                <>
+                  <ChevronsDown className="h-3 w-3" /> Expand
+                </>
+              ) : (
+                <>
+                  <ChevronsUp className="h-3 w-3" /> Collapse
+                </>
+              )}
             </button>
           </div>
 
           {/* ── AI Assistant section (chat toggle + expanded content) ─────── */}
           {/* tourChatRef wraps both the toggle and the expanded chat body */}
           <div ref={tourChatRef}>
-          <button
-            type="button"
-            onClick={() => setChatOpen((v) => !v)}
-            className="shrink-0 flex w-full items-center justify-between border-b border-border px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
-          >
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[11px] font-semibold text-foreground">AI Assistant</span>
-              {!chatOpen && locked && (
-                <CheckCircle2 className="h-3 w-3 text-success" />
+            <button
+              type="button"
+              onClick={() => setChatOpen((v) => !v)}
+              className="shrink-0 flex w-full items-center justify-between border-b border-border px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[11px] font-semibold text-foreground">AI Assistant</span>
+                {!chatOpen && locked && <CheckCircle2 className="h-3 w-3 text-success" />}
+              </div>
+              {chatOpen ? (
+                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               )}
-            </div>
-            {chatOpen
-              ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-              : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-            }
-          </button>
+            </button>
 
-          {/* ── AI chat expanded content ─────────────────────────────────── */}
-          {chatOpen && (
-            <>
-              {/* Locked status bar (only shown when design is locked) */}
-              {locked && (
-                <div className="shrink-0 flex items-center gap-1.5 border-b border-border px-4 py-2 text-[11px] font-semibold text-success">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
+            {/* ── AI chat expanded content ─────────────────────────────────── */}
+            {chatOpen && (
+              <>
+                {/* Locked status bar (only shown when design is locked) */}
+                {locked && (
+                  <div className="shrink-0 flex items-center gap-1.5 border-b border-border px-4 py-2 text-[11px] font-semibold text-success">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Design Locked{lockedDate ? ` · ${lockedDate}` : ""}
+                  </div>
+                )}
+
+                {/* Chat messages */}
+                <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3">
+                  {displayMessages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}
+                    >
+                      <div
+                        className={cn(
+                          "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
+                          msg.role === "user"
+                            ? "bg-primary text-primary-foreground rounded-tr-sm"
+                            : "bg-secondary text-secondary-foreground rounded-tl-sm",
+                        )}
+                      >
+                        {msg.role === "assistant" && msg.imageUrl ? (
+                          <ImageMessage
+                            msg={msg}
+                            onUse={handleUseImage}
+                            onRegenerate={sendMessage}
+                          />
+                        ) : msg.role === "assistant" &&
+                          !msg.content &&
+                          thinking &&
+                          i === displayMessages.length - 1 ? (
+                          // Typing indicator: three bouncing dots while waiting for first token
+                          <div className="flex items-center gap-1 px-0.5 py-1">
+                            {[0, 1, 2].map((d) => (
+                              <span
+                                key={d}
+                                className="block h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
+                                style={{
+                                  animation: `typing-dot 1.2s ease-in-out infinite ${d * 0.18}s`,
+                                }}
+                              />
+                            ))}
+                          </div>
+                        ) : msg.role === "assistant" ? (
+                          <div className="text-[12px] leading-relaxed prose-chat">
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <span className="whitespace-pre-wrap text-[12px]">{msg.content}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Image generation progress indicator (shown while DALL-E is running) */}
+                  {thinking && pendingIsImage && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
+                        <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                          <span>Generating your logo - this takes 10-15 seconds</span>
+                        </div>
+                        <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
+                          <div className="progress-shimmer h-full rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
-              )}
 
-              {/* Chat messages */}
-              <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3">
-                {displayMessages.map((msg, i) => (
-                  <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-                    <div className={cn(
-                      "max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-tr-sm"
-                        : "bg-secondary text-secondary-foreground rounded-tl-sm",
-                    )}>
-                      {msg.role === "assistant" && msg.imageUrl ? (
-                        <ImageMessage msg={msg} onUse={handleUseImage} onRegenerate={sendMessage} />
-                      ) : msg.role === "assistant" && !msg.content && thinking && i === displayMessages.length - 1 ? (
-                        // Typing indicator: three bouncing dots while waiting for first token
-                        <div className="flex items-center gap-1 px-0.5 py-1">
-                          {[0, 1, 2].map((d) => (
-                            <span
-                              key={d}
-                              className="block h-1.5 w-1.5 rounded-full bg-muted-foreground/50"
-                              style={{ animation: `typing-dot 1.2s ease-in-out infinite ${d * 0.18}s` }}
-                            />
-                          ))}
-                        </div>
-                      ) : msg.role === "assistant" ? (
-                        <div className="text-[12px] leading-relaxed prose-chat">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        <span className="whitespace-pre-wrap text-[12px]">{msg.content}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Image generation progress indicator (shown while DALL-E is running) */}
-                {thinking && pendingIsImage && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-                      <div className="flex items-center gap-2 text-[12px] font-medium text-secondary-foreground">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                        <span>Generating your logo - this takes 10-15 seconds</span>
-                      </div>
-                      <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
-                        <div className="progress-shimmer h-full rounded-full" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Chat input + undo */}
-              <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
-                {undoStack.length > 0 && (
+                {/* Chat input + undo */}
+                <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
+                  {undoStack.length > 0 && (
+                    <button
+                      onClick={handleUndo}
+                      title="Undo last color change (Ctrl+Z)"
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  <input
+                    ref={chatInputRef}
+                    className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    placeholder="Describe your brand colors... or ask for a logo"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage(input);
+                      }
+                    }}
+                  />
                   <button
-                    onClick={handleUndo}
-                    title="Undo last color change (Ctrl+Z)"
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    onClick={() => sendMessage(input)}
+                    disabled={!input.trim() || thinking}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
                   >
-                    <Undo2 className="h-3.5 w-3.5" />
+                    {thinking && !pendingIsImage ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Send className="h-3.5 w-3.5" />
+                    )}
                   </button>
-                )}
-                <input
-                  ref={chatInputRef}
-                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                  placeholder="Describe your brand colors... or ask for a logo"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
-                  }}
-                />
-                <button
-                  onClick={() => sendMessage(input)}
-                  disabled={!input.trim() || thinking}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
-                >
-                  {thinking && !pendingIsImage ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                </button>
-              </div>
-            </>
-          )}
-
-          </div>{/* end tourChatRef wrapper */}
+                </div>
+              </>
+            )}
+          </div>
+          {/* end tourChatRef wrapper */}
 
           {/* ── Fine-tune manually (collapsible) ────────────────────────── */}
           <div ref={tourFineTuneRef} className="shrink-0 border-t border-border">
@@ -1457,19 +1670,24 @@ export function StudioInner({
             >
               <div className="flex items-center gap-2">
                 <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-semibold text-foreground">Fine-tune manually</span>
+                <span className="text-[11px] font-semibold text-foreground">
+                  Fine-tune manually
+                </span>
               </div>
-              {controlsOpen
-                ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-                : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              }
+              {controlsOpen ? (
+                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
             </button>
 
             {controlsOpen && (
               <div className="max-h-[380px] overflow-y-auto border-t border-border">
                 {/* Language */}
                 <div className="px-4 py-3 border-b border-border">
-                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Language</div>
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                    Language
+                  </div>
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value as Language)}
@@ -1477,13 +1695,17 @@ export function StudioInner({
                     className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
-                      <option key={code} value={code}>{name}</option>
+                      <option key={code} value={code}>
+                        {name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 {/* App Name */}
                 <div className="px-4 py-3 border-b border-border">
-                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">App Name</div>
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                    App Name
+                  </div>
                   <Input
                     value={appName}
                     onChange={(e) => !locked && setAppName(e.target.value)}
@@ -1495,10 +1717,24 @@ export function StudioInner({
                 </div>
                 {/* Brand Assets */}
                 <div className="px-4 py-3 border-b border-border">
-                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Brand Assets</div>
+                  <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                    Brand Assets
+                  </div>
                   <div className="space-y-2">
-                    <AssetUploadZone label="Logo" type="logo" currentUrl={appIcons.appNameLogo} readOnly={locked} compact />
-                    <AssetUploadZone label="App Icon" type="icon" currentUrl={appIcons.topLeftAppIcon} readOnly={locked} compact />
+                    <AssetUploadZone
+                      label="Logo"
+                      type="logo"
+                      currentUrl={appIcons.appNameLogo}
+                      readOnly={locked}
+                      compact
+                    />
+                    <AssetUploadZone
+                      label="App Icon"
+                      type="icon"
+                      currentUrl={appIcons.topLeftAppIcon}
+                      readOnly={locked}
+                      compact
+                    />
                   </div>
                 </div>
 
@@ -1513,16 +1749,22 @@ export function StudioInner({
                       <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                         {group.label}
                       </span>
-                      {openGroups[group.id]
-                        ? <ChevronUp className="h-3 w-3 text-muted-foreground/50" />
-                        : <ChevronDown className="h-3 w-3 text-muted-foreground/50" />
-                      }
+                      {openGroups[group.id] ? (
+                        <ChevronUp className="h-3 w-3 text-muted-foreground/50" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3 text-muted-foreground/50" />
+                      )}
                     </button>
 
                     {openGroups[group.id] && (
                       <div className="px-4 pb-3 space-y-2">
                         {group.fields.map(({ label, key }) => (
-                          <StudioColorField key={key} label={label} colorKey={key} readOnly={locked} />
+                          <StudioColorField
+                            key={key}
+                            label={label}
+                            colorKey={key}
+                            readOnly={locked}
+                          />
                         ))}
                         {group.gradients?.map(({ label, startKey, endKey }) => (
                           <div key={label} className="pt-1">
@@ -1530,12 +1772,24 @@ export function StudioInner({
                               <span className="text-[10px] text-muted-foreground">{label}</span>
                               <div
                                 className="h-1.5 flex-1 rounded-full border border-border/40"
-                                style={{ background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})` }}
+                                style={{
+                                  background: `linear-gradient(90deg, ${themeColors[startKey]}, ${themeColors[endKey]})`,
+                                }}
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <StudioColorField label={`${label} start`} colorKey={startKey} compact readOnly={locked} />
-                              <StudioColorField label={`${label} end`} colorKey={endKey} compact readOnly={locked} />
+                              <StudioColorField
+                                label={`${label} start`}
+                                colorKey={startKey}
+                                compact
+                                readOnly={locked}
+                              />
+                              <StudioColorField
+                                label={`${label} end`}
+                                colorKey={endKey}
+                                compact
+                                readOnly={locked}
+                              />
                             </div>
                           </div>
                         ))}
@@ -1548,7 +1802,12 @@ export function StudioInner({
           </div>
 
           {/* ── Animations (collapsible) ────────────────────────────────── */}
-          <div className={cn("shrink-0 border-t border-border transition-all", animationsPulse && "animate-pulse-highlight")}>
+          <div
+            className={cn(
+              "shrink-0 border-t border-border transition-all",
+              animationsPulse && "animate-pulse-highlight",
+            )}
+          >
             <button
               type="button"
               onClick={() => setAnimationsOpen((v) => !v)}
@@ -1558,10 +1817,11 @@ export function StudioInner({
                 <Clapperboard className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-[11px] font-semibold text-foreground">Animations</span>
               </div>
-              {animationsOpen
-                ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-                : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              }
+              {animationsOpen ? (
+                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
             </button>
 
             {animationsOpen && (
@@ -1570,16 +1830,17 @@ export function StudioInner({
                 <div className="flex gap-2.5 rounded-lg border border-primary/20 bg-primary/8 p-3">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                   <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    Animations are created by your Trivelta design team based on your brand colors and logo.
-                    After locking your design, your Account Manager will commission the animations.
+                    Animations are created by your Trivelta design team based on your brand colors
+                    and logo. After locking your design, your Account Manager will commission the
+                    animations.
                   </p>
                 </div>
 
                 {/* Animation slots */}
                 {[
                   { key: "loading", label: "Loading Animation" },
-                  { key: "splash",  label: "Splash Screen" },
-                  { key: "live",    label: "Live Icon" },
+                  { key: "splash", label: "Splash Screen" },
+                  { key: "live", label: "Live Icon" },
                 ].map(({ key, label }) => {
                   const uploaded = uploadedAnimations[key];
                   const previewData = uploaded?.data ?? lottieData[key];
@@ -1594,10 +1855,11 @@ export function StudioInner({
                         {/* Upload button */}
                         {!locked && (
                           <label className="flex cursor-pointer items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-0.5 text-[9px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary">
-                            {isUploading
-                              ? <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                              : <Upload className="h-2.5 w-2.5" />
-                            }
+                            {isUploading ? (
+                              <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                            ) : (
+                              <Upload className="h-2.5 w-2.5" />
+                            )}
                             {isUploaded ? "Replace" : "Upload"}
                             <input
                               type="file"
@@ -1626,12 +1888,14 @@ export function StudioInner({
                         ) : (
                           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/40" />
                         )}
-                        <span className={cn(
-                          "absolute bottom-1.5 right-2 rounded-sm px-1 py-0.5 font-mono text-[8px] uppercase tracking-wide",
-                          isUploaded
-                            ? "bg-primary/15 text-primary"
-                            : "bg-background/80 text-muted-foreground/60",
-                        )}>
+                        <span
+                          className={cn(
+                            "absolute bottom-1.5 right-2 rounded-sm px-1 py-0.5 font-mono text-[8px] uppercase tracking-wide",
+                            isUploaded
+                              ? "bg-primary/15 text-primary"
+                              : "bg-background/80 text-muted-foreground/60",
+                          )}
+                        >
                           {isUploaded ? "Brand colors applied" : "Placeholder"}
                         </span>
                       </div>
@@ -1671,7 +1935,6 @@ export function StudioInner({
 
         {/* ══ RIGHT PANEL - Preview (65%) ══════════════════════════════ */}
         <div ref={tourPreviewRef} className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
-
           {/* Mobile / Web toggle */}
           <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
             <button
@@ -1715,7 +1978,10 @@ export function StudioInner({
       {tourActive && (
         <StudioTour
           clientId={clientId}
-          onDone={() => { setTourActive(false); setShowHelp(true); }}
+          onDone={() => {
+            setTourActive(false);
+            setShowHelp(true);
+          }}
           refs={tourRefs}
         />
       )}
@@ -1845,7 +2111,13 @@ function StudioTour({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     if (!spotRect) {
-      return { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: CARD_W };
+      return {
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%,-50%)",
+        width: CARD_W,
+      };
     }
     const cx = spotRect.left + spotRect.width / 2;
     const left = Math.max(PAD, Math.min(cx - CARD_W / 2, vw - CARD_W - PAD));
@@ -1857,7 +2129,10 @@ function StudioTour({
     } else if (spaceAbove >= CARD_H) {
       top = spotRect.top - CARD_H - PAD;
     } else {
-      top = Math.max(PAD, Math.min(spotRect.top + (spotRect.height - CARD_H) / 2, vh - CARD_H - PAD));
+      top = Math.max(
+        PAD,
+        Math.min(spotRect.top + (spotRect.height - CARD_H) / 2, vh - CARD_H - PAD),
+      );
     }
     return { position: "fixed", top, left, width: CARD_W };
   };
@@ -1865,8 +2140,12 @@ function StudioTour({
   return createPortal(
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "all",
-        opacity: fading ? 0 : 1, transition: "opacity 250ms ease",
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        pointerEvents: "all",
+        opacity: fading ? 0 : 1,
+        transition: "opacity 250ms ease",
       }}
     >
       {/* Spotlight / dark backdrop */}
@@ -1886,7 +2165,14 @@ function StudioTour({
           }}
         />
       ) : (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", pointerEvents: "none" }} />
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.78)",
+            pointerEvents: "none",
+          }}
+        />
       )}
 
       {/* Tour card */}
@@ -2006,7 +2292,10 @@ function StudioPage() {
           setInitialColors({ ...defaultStudioColors, ...saved.colors });
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else {
-          setInitialColors({ ...defaultStudioColors, ...(data.studio_config as Partial<StudioThemeColors>) });
+          setInitialColors({
+            ...defaultStudioColors,
+            ...(data.studio_config as Partial<StudioThemeColors>),
+          });
         }
         if (saved.language) setInitialLanguage(saved.language);
         if (saved.appName) setInitialAppName(saved.appName);
@@ -2046,8 +2335,8 @@ function StudioPage() {
             Studio Access Coming Soon
           </h1>
           <p className="mx-auto mt-4 max-w-[380px] text-[15px] leading-relaxed text-muted-foreground">
-            Your Trivelta team is preparing your Studio workspace. You'll receive an update
-            from your Account Manager once it's ready.
+            Your Trivelta team is preparing your Studio workspace. You'll receive an update from
+            your Account Manager once it's ready.
           </p>
 
           {welcomeInfo?.amName && (
@@ -2057,7 +2346,12 @@ function StudioPage() {
               </div>
               <div className="mt-3 flex items-center gap-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
-                  {welcomeInfo.amName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  {welcomeInfo.amName
+                    .split(" ")
+                    .map((w) => w[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">{welcomeInfo.amName}</div>
@@ -2107,7 +2401,12 @@ function StudioPage() {
               </div>
               <div className="mt-3 flex items-center gap-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
-                  {welcomeInfo.amName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  {welcomeInfo.amName
+                    .split(" ")
+                    .map((w) => w[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">{welcomeInfo.amName}</div>
@@ -2135,7 +2434,12 @@ function StudioPage() {
   }
 
   return (
-    <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage} initialAppName={initialAppName}>
+    <StudioProvider
+      initialColors={initialColors}
+      initialIcons={initialIcons}
+      initialLanguage={initialLanguage}
+      initialAppName={initialAppName}
+    >
       <StudioInner
         clientId={clientId}
         initialLocked={initialLocked}

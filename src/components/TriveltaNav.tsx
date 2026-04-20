@@ -31,9 +31,7 @@ export function TriveltaNav({
         <Link to={homeHref} className="flex items-center">
           <TriveltaLogo size="md" withSubtitle />
         </Link>
-        {right && (
-          <div className="ml-auto flex items-center gap-3">{right}</div>
-        )}
+        {right && <div className="ml-auto flex items-center gap-3">{right}</div>}
       </div>
       {bottomSlot}
     </header>

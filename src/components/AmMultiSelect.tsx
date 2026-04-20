@@ -2,7 +2,14 @@ import { useState } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -11,7 +18,10 @@ import type { AmLite } from "@/components/AmAvatars";
 function initials(am: AmLite): string {
   const source = am.name?.trim() || am.email;
   const parts = source.split(/\s+|[._-]/).filter(Boolean);
-  const letters = parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
+  const letters = parts
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
   return letters || source[0]?.toUpperCase() || "?";
 }
 
@@ -83,8 +93,14 @@ export function AmMultiSelect({
               {ams.map((a) => {
                 const isSelected = value.includes(a.email);
                 return (
-                  <CommandItem key={a.email} value={a.name ?? a.email} onSelect={() => toggle(a.email)}>
-                    <Check className={cn("mr-2 h-4 w-4", isSelected ? "opacity-100" : "opacity-0")} />
+                  <CommandItem
+                    key={a.email}
+                    value={a.name ?? a.email}
+                    onSelect={() => toggle(a.email)}
+                  >
+                    <Check
+                      className={cn("mr-2 h-4 w-4", isSelected ? "opacity-100" : "opacity-0")}
+                    />
                     <Avatar className="h-7 w-7 mr-2">
                       <AvatarFallback className="text-[10px] font-medium bg-primary/15 text-primary">
                         {initials(a)}

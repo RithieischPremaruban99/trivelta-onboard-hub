@@ -7,9 +7,25 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Loader2, ExternalLink, Hash, FolderOpen, Globe, FileText, Inbox,
-  Palette, Lock, CheckCircle2, Copy, Download, Clock, AlertCircle,
-  ShieldCheck, ShieldAlert, Unlock, Info,
+  Loader2,
+  ExternalLink,
+  Hash,
+  FolderOpen,
+  Globe,
+  FileText,
+  Inbox,
+  Palette,
+  Lock,
+  CheckCircle2,
+  Copy,
+  Download,
+  Clock,
+  AlertCircle,
+  ShieldCheck,
+  ShieldAlert,
+  Unlock,
+  Info,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -54,49 +70,49 @@ const PHASE_NAMES = [
 ];
 
 const CORE_COLORS: { key: keyof StudioThemeColors; label: string }[] = [
-  { key: "primaryBg",              label: "primaryBg" },
-  { key: "primary",                label: "primary" },
-  { key: "secondary",              label: "secondary" },
-  { key: "primaryButton",          label: "primaryButton" },
-  { key: "primaryButtonGradient",  label: "primaryButtonGradient" },
-  { key: "headerGradient1",        label: "headerGradient1" },
-  { key: "headerGradient2",        label: "headerGradient2" },
-  { key: "wonGradient1",           label: "wonGradient1" },
-  { key: "wonGradient2",           label: "wonGradient2" },
-  { key: "boxGradient1",           label: "boxGradient1" },
-  { key: "boxGradient2",           label: "boxGradient2" },
-  { key: "lightText",              label: "lightText" },
-  { key: "placeholderText",        label: "placeholderText" },
+  { key: "primaryBg", label: "primaryBg" },
+  { key: "primary", label: "primary" },
+  { key: "secondary", label: "secondary" },
+  { key: "primaryButton", label: "primaryButton" },
+  { key: "primaryButtonGradient", label: "primaryButtonGradient" },
+  { key: "headerGradient1", label: "headerGradient1" },
+  { key: "headerGradient2", label: "headerGradient2" },
+  { key: "wonGradient1", label: "wonGradient1" },
+  { key: "wonGradient2", label: "wonGradient2" },
+  { key: "boxGradient1", label: "boxGradient1" },
+  { key: "boxGradient2", label: "boxGradient2" },
+  { key: "lightText", label: "lightText" },
+  { key: "placeholderText", label: "placeholderText" },
 ];
 
 const EXTENDED_COLORS: { key: keyof StudioThemeColors; label: string }[] = [
-  { key: "navbarLabel",            label: "navbarLabel" },
-  { key: "textSecondary",          label: "textSecondary" },
-  { key: "darkTextColor",          label: "darkTextColor" },
-  { key: "inactiveButtonBg",       label: "inactiveButtonBg" },
-  { key: "inactiveButtonText",     label: "inactiveButtonText" },
+  { key: "navbarLabel", label: "navbarLabel" },
+  { key: "textSecondary", label: "textSecondary" },
+  { key: "darkTextColor", label: "darkTextColor" },
+  { key: "inactiveButtonBg", label: "inactiveButtonBg" },
+  { key: "inactiveButtonText", label: "inactiveButtonText" },
   { key: "inactiveButtonTextSecondary", label: "inactiveButtonTextSecondary" },
-  { key: "inactiveTabUnderline",   label: "inactiveTabUnderline" },
+  { key: "inactiveTabUnderline", label: "inactiveTabUnderline" },
   { key: "activeSecondaryGradient", label: "activeSecondaryGradient" },
-  { key: "dark",                   label: "dark" },
-  { key: "darkContainer",          label: "darkContainer" },
-  { key: "betcardHeaderBg",        label: "betcardHeaderBg" },
-  { key: "modalBackground",        label: "modalBackground" },
-  { key: "notificationBg",         label: "notificationBg" },
-  { key: "freeBetBackground",      label: "freeBetBackground" },
-  { key: "bgColor",                label: "bgColor" },
-  { key: "flexBetHeaderBg",        label: "flexBetHeaderBg" },
-  { key: "flexBetFooterBg",        label: "flexBetFooterBg" },
-  { key: "wonColor",               label: "wonColor" },
-  { key: "lostColor",              label: "lostColor" },
-  { key: "payoutWonColor",         label: "payoutWonColor" },
-  { key: "lossAmountText",         label: "lossAmountText" },
-  { key: "winStatusGradient1",     label: "winStatusGradient1" },
-  { key: "winStatusGradient2",     label: "winStatusGradient2" },
-  { key: "loseStatusGradient1",    label: "loseStatusGradient1" },
-  { key: "loseStatusGradient2",    label: "loseStatusGradient2" },
-  { key: "vsColor",                label: "vsColor" },
-  { key: "borderAndGradientBg",    label: "borderAndGradientBg" },
+  { key: "dark", label: "dark" },
+  { key: "darkContainer", label: "darkContainer" },
+  { key: "betcardHeaderBg", label: "betcardHeaderBg" },
+  { key: "modalBackground", label: "modalBackground" },
+  { key: "notificationBg", label: "notificationBg" },
+  { key: "freeBetBackground", label: "freeBetBackground" },
+  { key: "bgColor", label: "bgColor" },
+  { key: "flexBetHeaderBg", label: "flexBetHeaderBg" },
+  { key: "flexBetFooterBg", label: "flexBetFooterBg" },
+  { key: "wonColor", label: "wonColor" },
+  { key: "lostColor", label: "lostColor" },
+  { key: "payoutWonColor", label: "payoutWonColor" },
+  { key: "lossAmountText", label: "lossAmountText" },
+  { key: "winStatusGradient1", label: "winStatusGradient1" },
+  { key: "winStatusGradient2", label: "winStatusGradient2" },
+  { key: "loseStatusGradient1", label: "loseStatusGradient1" },
+  { key: "loseStatusGradient2", label: "loseStatusGradient2" },
+  { key: "vsColor", label: "vsColor" },
+  { key: "borderAndGradientBg", label: "borderAndGradientBg" },
 ];
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
@@ -155,7 +171,9 @@ function DashboardPage() {
       setLoading(true);
       const { data } = await supabase
         .from("clients")
-        .select("id, name, status, country, platform_url, drive_link, studio_access, studio_access_locked")
+        .select(
+          "id, name, status, country, platform_url, drive_link, studio_access, studio_access_locked",
+        )
         .order("created_at", { ascending: false });
       setClients((data ?? []) as ClientLite[]);
       if (data?.length) setSelectedId((data[0] as ClientLite).id);
@@ -269,7 +287,9 @@ function DashboardPage() {
                 key={selectedId}
                 onStudioAccessChange={(clientId, locked) =>
                   setClients((prev) =>
-                    prev.map((c) => c.id === clientId ? { ...c, studio_access_locked: locked } : c)
+                    prev.map((c) =>
+                      c.id === clientId ? { ...c, studio_access_locked: locked } : c,
+                    ),
                   )
                 }
               />
@@ -287,10 +307,17 @@ function DashboardPage() {
 
 /* ── Client detail ──────────────────────────────────────────────────────── */
 
-function ClientDetail({ client, onStudioAccessChange }: {
+const ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com", "jay@trivelta.com"];
+
+function ClientDetail({
+  client,
+  onStudioAccessChange,
+}: {
   client: ClientLite;
   onStudioAccessChange: (clientId: string, locked: boolean) => void;
 }) {
+  const { role, user } = useAuth();
+  const isAdminOrAE = role === "admin" || role === "account_executive";
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [formData, setFormData] = useState<FormShape | null>(null);
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
@@ -370,9 +397,7 @@ function ClientDetail({ client, onStudioAccessChange }: {
       setStudioAccessLocked(next);
       onStudioAccessChange(client.id, next);
       toast.success(
-        next
-          ? `Studio locked for ${client.name}`
-          : `Studio unlocked for ${client.name}`,
+        next ? `Studio locked for ${client.name}` : `Studio unlocked for ${client.name}`,
       );
     }
     setTogglingAccess(false);
@@ -399,11 +424,7 @@ function ClientDetail({ client, onStudioAccessChange }: {
             <p className="mt-1 text-sm text-muted-foreground">{client.country ?? "-"}</p>
           </div>
           <Button asChild variant="outline" size="sm">
-            <a
-              href={`/onboarding/${client.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={`/onboarding/${client.id}`} target="_blank" rel="noreferrer">
               Open onboarding form <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </Button>
@@ -416,7 +437,9 @@ function ClientDetail({ client, onStudioAccessChange }: {
           >
             <Hash className="h-4 w-4 text-primary" />
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Slack</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Slack
+              </div>
               <div className="truncate font-mono text-xs">{slackChannel}</div>
             </div>
           </button>
@@ -431,7 +454,9 @@ function ClientDetail({ client, onStudioAccessChange }: {
           >
             <FolderOpen className="h-4 w-4 text-primary" />
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Drive</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Drive
+              </div>
               <div className="truncate text-xs">{client.drive_link ?? "Not set"}</div>
             </div>
           </a>
@@ -446,7 +471,9 @@ function ClientDetail({ client, onStudioAccessChange }: {
           >
             <Globe className="h-4 w-4 text-primary" />
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Platform</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Platform
+              </div>
               <div className="truncate text-xs">{client.platform_url ?? "Not set"}</div>
             </div>
           </a>
@@ -472,21 +499,38 @@ function ClientDetail({ client, onStudioAccessChange }: {
           <div className="rounded-lg border border-border bg-secondary/30 p-4">
             <div className="flex items-center gap-2 mb-2">
               <ShieldAlert className="h-4 w-4 text-muted-foreground/60" />
-              <span className="text-sm font-medium text-muted-foreground">Studio not yet granted</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Studio not yet granted
+              </span>
             </div>
             <p className="text-xs text-muted-foreground/80 mb-4">
-              Studio access has not been enabled for this client. Only an Account Executive can grant access.
+              Studio access has not been enabled for this client. An Account Executive can grant
+              access.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
-                onClick={() =>
-                  window.open(`/studio-preview/${client.id}`, "_blank")
-                }
+                onClick={() => window.open(`/studio-preview/${client.id}`, "_blank")}
                 className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
               >
                 <Palette className="h-3.5 w-3.5" />
-                Preview Studio (admin only)
+                Preview Studio
               </button>
+              {!isAdminOrAE && (
+                <button
+                  onClick={() => {
+                    const subject = encodeURIComponent(`Studio Access Request — ${client.name}`);
+                    const body = encodeURIComponent(
+                      `Hi,\n\nPlease grant Trivelta Studio access for ${client.name} (ID: ${client.id}).\n\nRequested by: ${user?.email ?? "AM"}\n\nThank you.`,
+                    );
+                    window.location.href = `mailto:${ADMIN_EMAILS[0]}?subject=${subject}&body=${body}`;
+                    toast.success("Opening email to request Studio access…");
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  Request Studio Access
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -494,17 +538,17 @@ function ClientDetail({ client, onStudioAccessChange }: {
         {/* State 2 — access granted, not locked */}
         {client.studio_access && !studioAccessLocked && (
           <div className="rounded-lg border border-success/30 bg-success/5 p-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+            <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-success" />
-                <span className="text-sm font-medium text-success">Studio Active — client can design</span>
+                <span className="text-sm font-medium text-success">
+                  Studio Active — client can design
+                </span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() =>
-                  window.open(`/studio-preview/${client.id}`, "_blank")
-                }
+                onClick={() => window.open(`/studio-preview/${client.id}`, "_blank")}
                 className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
               >
                 <Palette className="h-3.5 w-3.5" />
@@ -515,7 +559,11 @@ function ClientDetail({ client, onStudioAccessChange }: {
                 disabled={togglingAccess}
                 className="inline-flex items-center gap-2 rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-600 dark:text-amber-400 transition-colors hover:bg-amber-400/20 disabled:opacity-60"
               >
-                {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+                {togglingAccess ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Lock className="h-3.5 w-3.5" />
+                )}
                 Lock for TCM
               </button>
               <div className="flex items-start gap-1.5 rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground self-center">
@@ -529,30 +577,51 @@ function ClientDetail({ client, onStudioAccessChange }: {
         {/* State 3 — access granted, locked by AM */}
         {client.studio_access && studioAccessLocked && (
           <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+            <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">Studio Locked — TCM implementation in progress</span>
+                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                  Studio Locked — TCM implementation in progress
+                </span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() =>
-                  window.open(`/studio-preview/${client.id}`, "_blank")
-                }
+                onClick={() => window.open(`/studio-preview/${client.id}`, "_blank")}
                 className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
               >
                 <Palette className="h-3.5 w-3.5" />
                 Preview Studio
               </button>
-              <button
-                onClick={toggleStudioAccess}
-                disabled={togglingAccess}
-                className="inline-flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-60"
-              >
-                {togglingAccess ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
-                Unlock Studio
-              </button>
+              {isAdminOrAE ? (
+                <button
+                  onClick={toggleStudioAccess}
+                  disabled={togglingAccess}
+                  className="inline-flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-60"
+                >
+                  {togglingAccess ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Unlock className="h-3.5 w-3.5" />
+                  )}
+                  Unlock Studio
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    const subject = encodeURIComponent(`Studio Unlock Request — ${client.name}`);
+                    const body = encodeURIComponent(
+                      `Hi,\n\nPlease unlock Trivelta Studio for ${client.name} (ID: ${client.id}). TCM implementation appears to be complete.\n\nRequested by: ${user?.email ?? "AM"}\n\nThank you.`,
+                    );
+                    window.location.href = `mailto:${ADMIN_EMAILS[0]}?subject=${subject}&body=${body}`;
+                    toast.success("Opening email to request Studio unlock…");
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  Request Unlock
+                </button>
+              )}
               <button
                 onClick={() => {
                   if (studioConfig?.icons?.appNameLogo || studioConfig?.icons?.topLeftAppIcon) {
@@ -565,7 +634,7 @@ function ClientDetail({ client, onStudioAccessChange }: {
                       studioConfig?.icons,
                       studioLocked,
                       studioLockedAt,
-                    )
+                    ),
                   );
                   toast.success("Studio config copied for TCM");
                 }}
@@ -634,10 +703,7 @@ function ClientDetail({ client, onStudioAccessChange }: {
                   </span>
                 </div>
                 <div className="mb-3 h-1 w-full overflow-hidden rounded-full bg-secondary">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
+                  <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <ul className="space-y-1.5">
                   {phaseTasks.map((t) => (
@@ -699,7 +765,11 @@ function StudioConfigSection({
   const hasConfig = !!studioConfig;
 
   const lockedDate = lockedAt
-    ? new Date(lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(lockedAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
     : null;
 
   const copyHex = (key: keyof StudioThemeColors) => {
@@ -797,7 +867,9 @@ function StudioConfigSection({
                         className="h-8 max-w-[120px] object-contain"
                       />
                       <div className="min-w-0">
-                        <div className="text-[11px] font-semibold text-foreground">App Name Logo</div>
+                        <div className="text-[11px] font-semibold text-foreground">
+                          App Name Logo
+                        </div>
                         <div className="text-[10px] text-muted-foreground">1792x1024</div>
                       </div>
                       <a
@@ -963,11 +1035,7 @@ function FormDataSummary({ data }: { data: FormShape }) {
     ["Compliance contact", data.contact_compliance?.name || "-"],
     [
       "PSPs",
-      [
-        data.psp_opay && "Opay",
-        data.psp_palmpay && "PalmPay",
-        data.psp_paystack && "Paystack",
-      ]
+      [data.psp_opay && "Opay", data.psp_palmpay && "PalmPay", data.psp_paystack && "Paystack"]
         .filter(Boolean)
         .join(", ") || "-",
     ],
@@ -993,7 +1061,10 @@ function FormDataSummary({ data }: { data: FormShape }) {
   return (
     <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
       {items.map(([k, v]) => (
-        <div key={k} className="flex items-center justify-between gap-3 border-b border-border/50 py-1.5">
+        <div
+          key={k}
+          className="flex items-center justify-between gap-3 border-b border-border/50 py-1.5"
+        >
           <dt className="text-xs uppercase tracking-wider text-muted-foreground">{k}</dt>
           <dd className="truncate text-sm">{v}</dd>
         </div>

@@ -20,7 +20,13 @@ export interface OnboardingCtxValue {
 
 export const OnboardingCtx = createContext<OnboardingCtxValue | undefined>(undefined);
 
-export function OnboardingProvider({ clientId, children }: { clientId: string; children: ReactNode }) {
+export function OnboardingProvider({
+  clientId,
+  children,
+}: {
+  clientId: string;
+  children: ReactNode;
+}) {
   const { user, loading: authLoading } = useAuth();
   const [welcomeInfo, setWelcomeInfo] = useState<WelcomeInfo | null>(null);
   const [clientRole, setClientRole] = useState<"client_owner" | "client_member" | null>(null);
@@ -80,7 +86,9 @@ export function OnboardingProvider({ clientId, children }: { clientId: string; c
   }, [clientId, user, authLoading]);
 
   return (
-    <OnboardingCtx.Provider value={{ clientId, welcomeInfo, clientRole, ownerEmail, loadingPublic, loadingAuth }}>
+    <OnboardingCtx.Provider
+      value={{ clientId, welcomeInfo, clientRole, ownerEmail, loadingPublic, loadingAuth }}
+    >
       {children}
     </OnboardingCtx.Provider>
   );

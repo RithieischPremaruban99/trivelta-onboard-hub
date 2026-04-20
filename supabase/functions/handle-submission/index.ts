@@ -5,8 +5,8 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
-const NOTION_API   = "https://api.notion.com/v1/pages";
-const NOTION_VER   = "2022-06-28";
+const NOTION_API = "https://api.notion.com/v1/pages";
+const NOTION_VER = "2022-06-28";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,61 +15,64 @@ const corsHeaders = {
 
 // ─── Payload shape ────────────────────────────────────────────────────────────
 
-interface ContactBlock { name: string; email: string; phone: string }
+interface ContactBlock {
+  name: string;
+  email: string;
+  phone: string;
+}
 
 interface FormData {
-  contact_sportsbook:  ContactBlock;
+  contact_sportsbook: ContactBlock;
   contact_operational: ContactBlock;
-  contact_compliance:  ContactBlock;
-  slack_team_emails:   string;
-  logo_drive_link:     string;
-  icon_drive_link:     string;
+  contact_compliance: ContactBlock;
+  slack_team_emails: string;
+  logo_drive_link: string;
+  icon_drive_link: string;
   animation_drive_link: string;
-  platform_url:  string;
-  country:       string;
-  dns_provider:  string;
-  dns_access:    string;
+  platform_url: string;
+  country: string;
+  dns_provider: string;
+  dns_access: string;
   color_background: string;
-  color_primary:    string;
-  terms_url:     string;
-  privacy_url:   string;
-  rg_url:        string;
+  color_primary: string;
+  terms_url: string;
+  privacy_url: string;
+  rg_url: string;
   footer_required: string;
-  landing_page:    string;
+  landing_page: string;
   landing_page_url: string;
-  psp_opay:     boolean;
-  psp_palmpay:  boolean;
+  psp_opay: boolean;
+  psp_palmpay: boolean;
   psp_paystack: boolean;
   psp_priority: string;
-  kyc_surt:     string;
-  kyc_notes:    string;
+  kyc_surt: string;
+  kyc_notes: string;
   sms_provider: string;
   sms_provider_other: string;
-  duns_status:  string;
-  duns_number:  string;
-  zendesk:      string;
+  duns_status: string;
+  duns_number: string;
+  zendesk: string;
   zendesk_script: string;
-  analytics_meta:     boolean;
-  analytics_ga:       boolean;
-  analytics_gtm:      boolean;
+  analytics_meta: boolean;
+  analytics_ga: boolean;
+  analytics_gtm: boolean;
   analytics_snapchat: boolean;
-  analytics_reddit:   boolean;
+  analytics_reddit: boolean;
 }
 
 interface Payload {
-  client_id:       string;
-  client_name:     string;
-  drive_link:      string | null;
-  am_name:         string | null;
-  am_email:        string | null;
-  sportsbook_name:  string;
+  client_id: string;
+  client_name: string;
+  drive_link: string | null;
+  am_name: string | null;
+  am_email: string | null;
+  sportsbook_name: string;
   sportsbook_email: string;
-  platform_url:    string;
-  country:         string;
-  psps:            string[];          // e.g. ["Opay", "Paystack"]
-  form_data:       FormData;
+  platform_url: string;
+  country: string;
+  psps: string[]; // e.g. ["Opay", "Paystack"]
+  form_data: FormData;
 }
-
 
 // ─── Notion block helpers ─────────────────────────────────────────────────────
 
@@ -109,11 +112,10 @@ function slackChannel(clientName: string): string {
 
 function buildNotes(p: Payload): string {
   const f = p.form_data;
-  const analytics = (
-    ["meta", "ga", "gtm", "snapchat", "reddit"] as const
-  )
-    .filter((k) => f[`analytics_${k}` as keyof FormData])
-    .join(", ") || "—";
+  const analytics =
+    (["meta", "ga", "gtm", "snapchat", "reddit"] as const)
+      .filter((k) => f[`analytics_${k}` as keyof FormData])
+      .join(", ") || "—";
 
   const lines = [
     "TEAM CONTACTS",
@@ -241,7 +243,7 @@ Deno.serve(async (req) => {
     // then look up which AMs are assigned to this client.
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     const [{ data: raRows }, { data: camRows }] = await Promise.all([
@@ -249,10 +251,7 @@ Deno.serve(async (req) => {
         .from("role_assignments")
         .select("email, notion_user_id")
         .eq("role", "account_manager"),
-      supabase
-        .from("client_account_managers")
-        .select("am_email")
-        .eq("client_id", client_id),
+      supabase.from("client_account_managers").select("am_email").eq("client_id", client_id),
     ]);
 
     // Cache for this invocation: email → notion_user_id
@@ -276,12 +275,12 @@ Deno.serve(async (req) => {
     // ── Properties ───────────────────────────────────────────────────────────
 
     const properties: Record<string, unknown> = {
-      "Client Name":     { title: rt(client_name) },
-      "Status":          { status: { name: "Onboarding" } },
+      "Client Name": { title: rt(client_name) },
+      Status: { status: { name: "Onboarding" } },
       "Primary Contact": { rich_text: rt(sportsbook_name || "") },
-      "Contact Email":   { email: sportsbook_email || null },
-      "Website":         { url: platform_url || null },
-      "Notes":           { rich_text: rt(buildNotes(payload)) },
+      "Contact Email": { email: sportsbook_email || null },
+      Website: { url: platform_url || null },
+      Notes: { rich_text: rt(buildNotes(payload)) },
     };
 
     if (country) {
@@ -305,7 +304,9 @@ Deno.serve(async (req) => {
     // ── Children blocks ───────────────────────────────────────────────────────
 
     const date = new Date().toLocaleDateString("en-GB", {
-      day: "numeric", month: "long", year: "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
 
     const children = [
@@ -342,15 +343,14 @@ Deno.serve(async (req) => {
 
     console.log("[handle-submission] Notion page created", page.id, "for client", client_name);
 
-    return new Response(
-      JSON.stringify({ success: true, notion_page_id: page.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: true, notion_page_id: page.id }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("[handle-submission] Error:", err);
-    return new Response(
-      JSON.stringify({ success: false, error: (err as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: false, error: (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

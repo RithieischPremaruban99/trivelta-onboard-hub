@@ -27,15 +27,22 @@ import {
 } from "@/contexts/StudioContext";
 import { OnboardingCtx, type OnboardingCtxValue } from "@/lib/onboarding-context";
 import { StudioInner } from "@/routes/onboarding.$clientId.studio";
-import { Loader2, ArrowLeft, ShieldCheck, ShieldAlert, Lock, Unlock, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  ShieldCheck,
+  ShieldAlert,
+  Lock,
+  Unlock,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+} from "lucide-react";
 import { toast } from "sonner";
 
 /* ── Admin email allow-list ─────────────────────────────────────────────── */
 
-const ADMIN_EMAILS = [
-  "rithieisch.premaruban@trivelta.com",
-  "jay@trivelta.com",
-];
+const ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com", "jay@trivelta.com"];
 
 export const Route = createFileRoute("/studio-preview/$clientId")({
   component: StudioPreviewPage,
@@ -106,10 +113,7 @@ function StudioPreviewPage() {
           .select("studio_config, studio_locked, studio_locked_at")
           .eq("client_id", clientId)
           .maybeSingle(),
-        supabase
-          .from("clients")
-          .select("id, name")
-          .order("created_at", { ascending: true }),
+        supabase.from("clients").select("id, name").order("created_at", { ascending: true }),
       ]);
 
       setClientName(clientRes.data?.name ?? "Client");
@@ -149,10 +153,7 @@ function StudioPreviewPage() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       // Ignore when typing in an input/textarea
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       if (e.key === "ArrowLeft" && currentIndex > 0) {
         navigateRef.current({
@@ -201,7 +202,10 @@ function StudioPreviewPage() {
       )
       .eq("id", clientId);
     setTogglingAccess(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setStudioAccess(next);
     toast.success(next ? "Studio access granted" : "Studio access revoked");
   };
@@ -209,9 +213,15 @@ function StudioPreviewPage() {
   const toggleStudioLock = async () => {
     setTogglingLock(true);
     const next = !studioAccessLocked;
-    const { error } = await supabase.from("clients").update({ studio_access_locked: next }).eq("id", clientId);
+    const { error } = await supabase
+      .from("clients")
+      .update({ studio_access_locked: next })
+      .eq("id", clientId);
     setTogglingLock(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setStudioAccessLocked(next);
     toast.success(next ? "Studio locked for client" : "Studio unlocked for client");
   };
@@ -235,8 +245,7 @@ function StudioPreviewPage() {
   const hasNext = currentIndex < allClients.length - 1;
   const prevClient = hasPrev ? allClients[currentIndex - 1] : null;
   const nextClient = hasNext ? allClients[currentIndex + 1] : null;
-  const counter =
-    allClients.length > 0 ? `${currentIndex + 1} / ${allClients.length}` : null;
+  const counter = allClients.length > 0 ? `${currentIndex + 1} / ${allClients.length}` : null;
 
   /* Provide OnboardingCtx directly — no visitor registration, no side effects */
   const ctxValue: OnboardingCtxValue = {
@@ -274,11 +283,8 @@ function StudioPreviewPage() {
         <div className="flex items-center gap-3 flex-wrap justify-center">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-3.5 w-3.5" />
-            Admin Preview —{" "}
-            <span className="max-w-[200px] truncate">{clientName ?? "…"}</span>
-            {counter && (
-              <span className="opacity-60 font-normal">({counter})</span>
-            )}
+            Admin Preview — <span className="max-w-[200px] truncate">{clientName ?? "…"}</span>
+            {counter && <span className="opacity-60 font-normal">({counter})</span>}
           </div>
           {/* Studio Access toggle */}
           <button
@@ -369,7 +375,12 @@ function StudioPreviewPage() {
       {/* Push content below the banner */}
       <div className="pt-10 h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
-          <StudioProvider initialColors={initialColors} initialIcons={initialIcons} initialLanguage={initialLanguage} initialAppName={initialAppName}>
+          <StudioProvider
+            initialColors={initialColors}
+            initialIcons={initialIcons}
+            initialLanguage={initialLanguage}
+            initialAppName={initialAppName}
+          >
             <StudioInner
               clientId={clientId}
               initialLocked={initialLocked}

@@ -69,17 +69,20 @@ interface ClientRow {
 function AdminPage() {
   const { user, role, loading: authLoading } = useAuth();
   const [clients, setClients] = useState<ClientRow[]>([]);
-  const [taskCounts, setTaskCounts] = useState<
-    Record<string, { total: number; done: number }>
-  >({});
+  const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({});
   const [ams, setAms] = useState<AmLite[]>([]);
   // clientId -> list of AM emails
   const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
-  const [studioData, setStudioData] = useState<Record<string, {
-    config: StudioSavedConfig | null;
-    locked: boolean;
-    lockedAt: string | null;
-  }>>({});
+  const [studioData, setStudioData] = useState<
+    Record<
+      string,
+      {
+        config: StudioSavedConfig | null;
+        locked: boolean;
+        lockedAt: string | null;
+      }
+    >
+  >({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -88,27 +91,42 @@ function AdminPage() {
     const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes] = await Promise.all([
       supabase
         .from("clients")
-        .select("id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access")
+        .select(
+          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access",
+        )
         .order("created_at", { ascending: false }),
       supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
       supabase.from("onboarding_tasks").select("client_id, completed"),
       supabase.from("client_account_managers").select("client_id, am_email"),
-      supabase.from("onboarding_forms").select("client_id, studio_config, studio_locked, studio_locked_at"),
+      supabase
+        .from("onboarding_forms")
+        .select("client_id, studio_config, studio_locked, studio_locked_at"),
     ]);
     setClients((clientsRes.data ?? []) as ClientRow[]);
 
-    const sdMap: Record<string, { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null }> = {};
-    ((studioRes.data ?? []) as Array<{ client_id: string; studio_config: unknown; studio_locked: boolean | null; studio_locked_at: string | null }>)
-      .forEach((r) => {
-        sdMap[r.client_id] = {
-          config: (r.studio_config as StudioSavedConfig | null) ?? null,
-          locked: r.studio_locked ?? false,
-          lockedAt: r.studio_locked_at ?? null,
-        };
-      });
+    const sdMap: Record<
+      string,
+      { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null }
+    > = {};
+    (
+      (studioRes.data ?? []) as Array<{
+        client_id: string;
+        studio_config: unknown;
+        studio_locked: boolean | null;
+        studio_locked_at: string | null;
+      }>
+    ).forEach((r) => {
+      sdMap[r.client_id] = {
+        config: (r.studio_config as StudioSavedConfig | null) ?? null,
+        locked: r.studio_locked ?? false,
+        lockedAt: r.studio_locked_at ?? null,
+      };
+    });
     setStudioData(sdMap);
 
-    const amList: AmLite[] = ((amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>)
+    const amList: AmLite[] = (
+      (amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>
+    )
       .map((r) => ({ email: r.email, name: r.name }))
       .sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email));
     setAms(amList);
@@ -179,7 +197,13 @@ function AdminPage() {
                 <Plus className="h-4 w-4" /> New client
               </Button>
             </DialogTrigger>
-            <NewClientDialog ams={ams} onCreated={() => { setOpen(false); refresh(); }} />
+            <NewClientDialog
+              ams={ams}
+              onCreated={() => {
+                setOpen(false);
+                refresh();
+              }}
+            />
           </Dialog>
         </div>
 
@@ -206,15 +230,33 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-secondary/40 text-left">
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Client</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Country</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Account Managers</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Status</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Progress</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Created</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Studio Access</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Studio Config</th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">Onboarding link</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Client
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Country
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Account Managers
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Progress
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Created
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Studio Access
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Studio Config
+                    </th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                      Onboarding link
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -227,7 +269,10 @@ function AdminPage() {
                     );
                     const onboardingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding/${c.id}`;
                     return (
-                      <tr key={c.id} className="border-b border-border/60 transition-colors hover:bg-accent/40">
+                      <tr
+                        key={c.id}
+                        className="border-b border-border/60 transition-colors hover:bg-accent/40"
+                      >
                         <td className="px-4 py-3">
                           <div className="font-medium">{c.name}</div>
                           {c.primary_contact_email && (
@@ -245,7 +290,9 @@ function AdminPage() {
                             onChanged={refresh}
                           />
                         </td>
-                        <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={c.status} />
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="h-1.5 w-24 overflow-hidden rounded-full bg-secondary">
@@ -263,18 +310,13 @@ function AdminPage() {
                             hasAccess={c.studio_access}
                             onChanged={(val) =>
                               setClients((prev) =>
-                                prev.map((r) =>
-                                  r.id === c.id ? { ...r, studio_access: val } : r,
-                                ),
+                                prev.map((r) => (r.id === c.id ? { ...r, studio_access: val } : r)),
                               )
                             }
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <StudioConfigCell
-                            clientName={c.name}
-                            data={studioData[c.id] ?? null}
-                          />
+                          <StudioConfigCell clientName={c.name} data={studioData[c.id] ?? null} />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -299,12 +341,7 @@ function AdminPage() {
                               size="sm"
                               variant="ghost"
                               title="Open Studio (admin preview)"
-                              onClick={() =>
-                                window.open(
-                                  `/studio-preview/${c.id}`,
-                                  "_blank",
-                                )
-                              }
+                              onClick={() => window.open(`/studio-preview/${c.id}`, "_blank")}
                             >
                               <Palette className="h-3.5 w-3.5" />
                             </Button>
@@ -338,8 +375,8 @@ function StatCard({
     accent === "primary"
       ? "bg-primary/15 text-primary ring-primary/30"
       : accent === "success"
-      ? "bg-success/15 text-success ring-success/30"
-      : "bg-secondary text-foreground ring-border";
+        ? "bg-success/15 text-success ring-success/30"
+        : "bg-secondary text-foreground ring-border";
   return (
     <div className="surface-card flex items-center gap-4 p-4">
       <div className={`grid h-10 w-10 place-items-center rounded-md ring-1 ${ring}`}>
@@ -419,7 +456,9 @@ function ClientAmCell({
         </DialogHeader>
         <AmMultiSelect ams={ams} value={selected} onChange={setSelected} />
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+            Cancel
+          </Button>
           <Button onClick={save} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save
@@ -522,7 +561,9 @@ function buildTcmText(
       : "Status: Not locked",
     "",
     "COLORS",
-    ...STUDIO_COLOR_LABELS.map(({ label, key }) => `${label.padEnd(15)} ${rgbaToHex(colors[key])}  (${colors[key]})`),
+    ...STUDIO_COLOR_LABELS.map(
+      ({ label, key }) => `${label.padEnd(15)} ${rgbaToHex(colors[key])}  (${colors[key]})`,
+    ),
     "",
     "BRAND ASSETS",
     `Logo:  ${data.config?.icons?.appNameLogo ? (data.config.icons.appNameLogo.startsWith("data:") ? "(embedded file)" : data.config.icons.appNameLogo) : "Not uploaded"}`,
@@ -555,7 +596,10 @@ function StudioConfigCell({
             </>
           ) : (
             <>
-              <div className="h-3 w-3 rounded-sm border border-border/60" style={{ background: data.config.colors?.primary ?? "#888" }} />
+              <div
+                className="h-3 w-3 rounded-sm border border-border/60"
+                style={{ background: data.config.colors?.primary ?? "#888" }}
+              />
               <span className="text-muted-foreground">View</span>
             </>
           )}
@@ -573,28 +617,46 @@ function StudioConfigCell({
           {data.locked && data.lockedAt && (
             <div className="flex items-center gap-2 rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-[12px] font-semibold text-success">
               <Lock className="h-3.5 w-3.5" />
-              Locked on {new Date(data.lockedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+              Locked on{" "}
+              {new Date(data.lockedAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
             </div>
           )}
 
           {/* Color grid */}
           <div>
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Colors</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+              Colors
+            </div>
             <div className="grid grid-cols-2 gap-1.5">
               {STUDIO_COLOR_LABELS.map(({ label, key }) => {
-                const colors: StudioThemeColors = { ...defaultStudioColors, ...(data.config?.colors ?? {}) };
+                const colors: StudioThemeColors = {
+                  ...defaultStudioColors,
+                  ...(data.config?.colors ?? {}),
+                };
                 const hex = rgbaToHex(colors[key]);
                 return (
                   <button
                     key={key}
-                    onClick={() => { navigator.clipboard.writeText(hex); toast.success(`Copied ${hex}`); }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(hex);
+                      toast.success(`Copied ${hex}`);
+                    }}
                     className="flex items-center gap-2 rounded-md border border-border/60 px-2.5 py-1.5 text-left transition-colors hover:bg-accent/40"
                     title={`Copy ${hex}`}
                   >
-                    <div className="h-5 w-5 shrink-0 rounded-sm shadow-sm" style={{ background: colors[key] }} />
+                    <div
+                      className="h-5 w-5 shrink-0 rounded-sm shadow-sm"
+                      style={{ background: colors[key] }}
+                    />
                     <div className="min-w-0">
                       <div className="text-[10px] text-muted-foreground leading-none">{label}</div>
-                      <div className="font-mono text-[11px] font-semibold text-foreground">{hex}</div>
+                      <div className="font-mono text-[11px] font-semibold text-foreground">
+                        {hex}
+                      </div>
                     </div>
                   </button>
                 );
@@ -605,18 +667,28 @@ function StudioConfigCell({
           {/* Brand assets */}
           {(data.config.icons?.appNameLogo || data.config.icons?.topLeftAppIcon) && (
             <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Brand Assets</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                Brand Assets
+              </div>
               <div className="flex gap-4">
                 {data.config.icons?.appNameLogo && (
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground">Logo</div>
-                    <img src={data.config.icons.appNameLogo} alt="Logo" className="h-8 max-w-[120px] rounded object-contain border border-border/40 p-1" />
+                    <img
+                      src={data.config.icons.appNameLogo}
+                      alt="Logo"
+                      className="h-8 max-w-[120px] rounded object-contain border border-border/40 p-1"
+                    />
                   </div>
                 )}
                 {data.config.icons?.topLeftAppIcon && (
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground">Icon</div>
-                    <img src={data.config.icons.topLeftAppIcon} alt="Icon" className="h-10 w-10 rounded-lg object-contain border border-border/40 p-0.5" />
+                    <img
+                      src={data.config.icons.topLeftAppIcon}
+                      alt="Icon"
+                      className="h-10 w-10 rounded-lg object-contain border border-border/40 p-0.5"
+                    />
                   </div>
                 )}
               </div>
@@ -625,7 +697,10 @@ function StudioConfigCell({
         </div>
         <div className="flex justify-end pt-2">
           <Button
-            onClick={() => { navigator.clipboard.writeText(buildTcmText(clientName, data)); toast.success("Copied for TCM"); }}
+            onClick={() => {
+              navigator.clipboard.writeText(buildTcmText(clientName, data));
+              toast.success("Copied for TCM");
+            }}
           >
             <Copy className="h-4 w-4" /> Copy for TCM
           </Button>
@@ -635,13 +710,7 @@ function StudioConfigCell({
   );
 }
 
-function NewClientDialog({
-  ams,
-  onCreated,
-}: {
-  ams: AmLite[];
-  onCreated: () => void;
-}) {
+function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => void }) {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [platformUrl, setPlatformUrl] = useState("");
@@ -650,11 +719,21 @@ function NewClientDialog({
   const [amIds, setAmIds] = useState<string[]>([]);
   const [grantStudioAccess, setGrantStudioAccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [createdClient, setCreatedClient] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [createdClient, setCreatedClient] = useState<{
+    id: string;
+    name: string;
+    email: string;
+  } | null>(null);
 
   const reset = () => {
-    setName(""); setCountry(""); setPlatformUrl(""); setDriveLink(DEFAULT_DRIVE_LINK);
-    setContactEmail(""); setAmIds([]); setGrantStudioAccess(false); setCreatedClient(null);
+    setName("");
+    setCountry("");
+    setPlatformUrl("");
+    setDriveLink(DEFAULT_DRIVE_LINK);
+    setContactEmail("");
+    setAmIds([]);
+    setGrantStudioAccess(false);
+    setCreatedClient(null);
   };
 
   const create = async () => {
@@ -734,7 +813,9 @@ function NewClientDialog({
           </div>
         </div>
         <DialogFooter className="gap-2 sm:justify-between">
-          <Button variant="outline" onClick={reset}>Create another</Button>
+          <Button variant="outline" onClick={reset}>
+            Create another
+          </Button>
           <Button
             onClick={() => {
               const subject = encodeURIComponent(
@@ -766,9 +847,15 @@ function NewClientDialog({
         <div className="space-y-1.5">
           <Label>Country</Label>
           <Select value={country} onValueChange={setCountry}>
-            <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Select country" />
+            </SelectTrigger>
             <SelectContent>
-              {COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {COUNTRIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -781,7 +868,8 @@ function NewClientDialog({
             placeholder="contact@client.com"
           />
           <p className="text-[11px] text-muted-foreground">
-            They'll receive the onboarding link and be the only one who can hit Submit. Other team members can still fill in fields.
+            They'll receive the onboarding link and be the only one who can hit Submit. Other team
+            members can still fill in fields.
           </p>
         </div>
         <div className="space-y-1.5">

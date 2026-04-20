@@ -93,8 +93,8 @@ function AuthScreen() {
               </div>
               <h2 className="text-lg font-semibold text-foreground">Check your inbox</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                A magic link was sent to{" "}
-                <span className="font-mono text-foreground">{email}</span>. Click it to continue.
+                A magic link was sent to <span className="font-mono text-foreground">{email}</span>.
+                Click it to continue.
               </p>
               <Button
                 variant="ghost"
@@ -134,11 +134,7 @@ function AuthScreen() {
                     className="h-11"
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={sending}
-                  className="btn-trivelta h-11 w-full"
-                >
+                <Button type="submit" disabled={sending} className="btn-trivelta h-11 w-full">
                   {sending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" /> Sending…
@@ -150,8 +146,8 @@ function AuthScreen() {
                   )}
                 </Button>
                 <p className="text-center text-[12px] text-muted-foreground">
-                  Enter any email to receive a magic link. The form owner can submit; all
-                  other signers can fill in fields.
+                  Enter any email to receive a magic link. The form owner can submit; all other
+                  signers can fill in fields.
                 </p>
               </form>
             </>

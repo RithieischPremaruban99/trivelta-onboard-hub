@@ -87,9 +87,7 @@ function LoginPage() {
               >
                 Welcome to Trivelta.
                 <br />
-                <span style={{ color: "#2563eb" }}>
-                  Your platform is ready to be built.
-                </span>
+                <span style={{ color: "#2563eb" }}>Your platform is ready to be built.</span>
               </h1>
 
               <p
@@ -137,8 +135,7 @@ function LoginPage() {
                       <h2 className="text-lg font-semibold text-white">Check your inbox</h2>
                       <p className="mt-2 text-sm" style={{ color: "#8896ab" }}>
                         A sign-in link was sent to{" "}
-                        <span className="font-mono text-white">{email}</span>. Click it to
-                        continue.
+                        <span className="font-mono text-white">{email}</span>. Click it to continue.
                       </p>
                       <Button
                         variant="ghost"
@@ -171,10 +168,7 @@ function LoginPage() {
                       >
                         Sign in to your onboarding portal
                       </h2>
-                      <p
-                        className="text-[14px]"
-                        style={{ color: "#8896ab", marginTop: "6px" }}
-                      >
+                      <p className="text-[14px]" style={{ color: "#8896ab", marginTop: "6px" }}>
                         We'll email you a magic link. No password needed.
                       </p>
 

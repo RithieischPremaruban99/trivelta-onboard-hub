@@ -9,8 +9,8 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
-const NOTION_API   = "https://api.notion.com/v1";
-const NOTION_VER   = "2022-06-28";
+const NOTION_API = "https://api.notion.com/v1";
+const NOTION_VER = "2022-06-28";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -118,28 +118,35 @@ function bulletedListItem(richText: RichTextEntry[]) {
 
 // Color key → human-readable label
 const COLOR_LABELS: Record<string, string> = {
-  primaryBg:             "Background",
-  primary:               "Primary",
-  secondary:             "Secondary",
-  primaryButton:         "Button",
+  primaryBg: "Background",
+  primary: "Primary",
+  secondary: "Secondary",
+  primaryButton: "Button",
   primaryButtonGradient: "Button Gradient",
-  wonGradient1:          "Win Gradient 1",
-  wonGradient2:          "Win Gradient 2",
-  boxGradient1:          "Box Gradient 1",
-  boxGradient2:          "Box Gradient 2",
-  headerGradient1:       "Header Gradient 1",
-  headerGradient2:       "Header Gradient 2",
-  lightText:             "Light Text",
-  placeholderText:       "Placeholder Text",
+  wonGradient1: "Win Gradient 1",
+  wonGradient2: "Win Gradient 2",
+  boxGradient1: "Box Gradient 1",
+  boxGradient2: "Box Gradient 2",
+  headerGradient1: "Header Gradient 1",
+  headerGradient2: "Header Gradient 2",
+  lightText: "Light Text",
+  placeholderText: "Placeholder Text",
 };
 
 const COLOR_ORDER = [
-  "primaryBg", "primary", "secondary",
-  "primaryButton", "primaryButtonGradient",
-  "wonGradient1", "wonGradient2",
-  "boxGradient1", "boxGradient2",
-  "headerGradient1", "headerGradient2",
-  "lightText", "placeholderText",
+  "primaryBg",
+  "primary",
+  "secondary",
+  "primaryButton",
+  "primaryButtonGradient",
+  "wonGradient1",
+  "wonGradient2",
+  "boxGradient1",
+  "boxGradient2",
+  "headerGradient1",
+  "headerGradient2",
+  "lightText",
+  "placeholderText",
 ];
 
 function buildColorTableBlocks(colors: StudioColors): object[] {
@@ -149,11 +156,7 @@ function buildColorTableBlocks(colors: StudioColors): object[] {
   rows.push({
     type: "table_row",
     table_row: {
-      cells: [
-        rt("Color"),
-        rt("Hex"),
-        rt("RGBA"),
-      ],
+      cells: [rt("Color"), rt("Hex"), rt("RGBA")],
     },
   });
 
@@ -165,11 +168,7 @@ function buildColorTableBlocks(colors: StudioColors): object[] {
     rows.push({
       type: "table_row",
       table_row: {
-        cells: [
-          rt(label),
-          rt(hex),
-          rt(val, { code: true }),
-        ],
+        cells: [rt(label), rt(hex), rt(val, { code: true })],
       },
     });
   }
@@ -189,12 +188,11 @@ function buildColorTableBlocks(colors: StudioColors): object[] {
 
 /* ── Build the full append block list ────────────────────────────────────── */
 
-function buildDesignLockedBlocks(
-  config: StudioConfig,
-  lockedAt: string,
-): object[] {
+function buildDesignLockedBlocks(config: StudioConfig, lockedAt: string): object[] {
   const date = new Date(lockedAt).toLocaleDateString("en-GB", {
-    day: "numeric", month: "long", year: "numeric",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 
   const blocks: object[] = [
@@ -221,14 +219,10 @@ function buildDesignLockedBlocks(
   if (hasLogo || hasIcon) {
     blocks.push(heading3("Brand Assets"));
     if (hasLogo) {
-      blocks.push(bulletedListItem(
-        rtLink("App Name Logo", config.icons!.appNameLogo!),
-      ));
+      blocks.push(bulletedListItem(rtLink("App Name Logo", config.icons!.appNameLogo!)));
     }
     if (hasIcon) {
-      blocks.push(bulletedListItem(
-        rtLink("Top-Left App Icon", config.icons!.topLeftAppIcon!),
-      ));
+      blocks.push(bulletedListItem(rtLink("Top-Left App Icon", config.icons!.topLeftAppIcon!)));
     }
   }
 
@@ -237,10 +231,7 @@ function buildDesignLockedBlocks(
 
 /* ── Notion: look up page by client name ─────────────────────────────────── */
 
-async function findNotionPageId(
-  clientName: string,
-  notionToken: string,
-): Promise<string | null> {
+async function findNotionPageId(clientName: string, notionToken: string): Promise<string | null> {
   const resp = await fetch(`${NOTION_API}/databases/${NOTION_DB_ID}/query`, {
     method: "POST",
     headers: {
@@ -397,10 +388,7 @@ Deno.serve(async (req) => {
 
       if (notionPageId) {
         // Cache it back in clients table
-        await supabase
-          .from("clients")
-          .update({ notion_page_id: notionPageId })
-          .eq("id", client_id);
+        await supabase.from("clients").update({ notion_page_id: notionPageId }).eq("id", client_id);
         console.log("[design-locked] Cached notion_page_id:", notionPageId);
       }
     }
@@ -416,31 +404,25 @@ Deno.serve(async (req) => {
 
     // 5. Append to Notes property
     const date = new Date(lockedAt).toLocaleDateString("en-GB", {
-      day: "numeric", month: "long", year: "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
-    await appendToNotesProperty(
-      notionPageId,
-      `Studio design locked on ${date}.`,
-      NOTION_TOKEN,
-    );
+    await appendToNotesProperty(notionPageId, `Studio design locked on ${date}.`, NOTION_TOKEN);
 
     // 6. Update clients.studio_locked_at
-    await supabase
-      .from("clients")
-      .update({ studio_locked_at: lockedAt })
-      .eq("id", client_id);
+    await supabase.from("clients").update({ studio_locked_at: lockedAt }).eq("id", client_id);
 
     console.log("[design-locked] Done for client", client.name);
 
-    return new Response(
-      JSON.stringify({ success: true, notion_page_id: notionPageId }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: true, notion_page_id: notionPageId }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("[design-locked] Error:", err);
-    return new Response(
-      JSON.stringify({ success: false, error: (err as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: false, error: (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

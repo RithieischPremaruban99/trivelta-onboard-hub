@@ -10,28 +10,53 @@ const corsHeaders = {
 
 const ALLOWED_PATCH_PATHS = new Set([
   // CORE BRAND
-  "/primaryBg", "/primary", "/secondary",
-  "/primaryButton", "/primaryButtonGradient",
+  "/primaryBg",
+  "/primary",
+  "/secondary",
+  "/primaryButton",
+  "/primaryButtonGradient",
   // BOX GRADIENT
-  "/boxGradient1", "/boxGradient2",
+  "/boxGradient1",
+  "/boxGradient2",
   // TEXT
-  "/lightText", "/placeholderText", "/navbarLabel", "/textSecondary", "/darkTextColor",
+  "/lightText",
+  "/placeholderText",
+  "/navbarLabel",
+  "/textSecondary",
+  "/darkTextColor",
   // HEADER
-  "/headerGradient1", "/headerGradient2",
+  "/headerGradient1",
+  "/headerGradient2",
   // WIN / LOSS
-  "/wonGradient1", "/wonGradient2", "/wonColor", "/lostColor",
-  "/payoutWonColor", "/lossAmountText",
-  "/winStatusGradient1", "/winStatusGradient2",
-  "/loseStatusGradient1", "/loseStatusGradient2",
+  "/wonGradient1",
+  "/wonGradient2",
+  "/wonColor",
+  "/lostColor",
+  "/payoutWonColor",
+  "/lossAmountText",
+  "/winStatusGradient1",
+  "/winStatusGradient2",
+  "/loseStatusGradient1",
+  "/loseStatusGradient2",
   // BUTTONS & INACTIVE
-  "/inactiveButtonBg", "/inactiveButtonText", "/inactiveButtonTextSecondary",
+  "/inactiveButtonBg",
+  "/inactiveButtonText",
+  "/inactiveButtonTextSecondary",
   "/inactiveTabUnderline",
   // BACKGROUNDS
-  "/dark", "/darkContainer", "/betcardHeaderBg", "/modalBackground",
-  "/notificationBg", "/freeBetBackground", "/bgColor",
-  "/flexBetHeaderBg", "/flexBetFooterBg",
+  "/dark",
+  "/darkContainer",
+  "/betcardHeaderBg",
+  "/modalBackground",
+  "/notificationBg",
+  "/freeBetBackground",
+  "/bgColor",
+  "/flexBetHeaderBg",
+  "/flexBetFooterBg",
   // MISC
-  "/vsColor", "/borderAndGradientBg", "/activeSecondaryGradient",
+  "/vsColor",
+  "/borderAndGradientBg",
+  "/activeSecondaryGradient",
   // LANGUAGE
   "/language",
   // APP IDENTITY
@@ -56,9 +81,9 @@ interface RequestContext {
 
 function buildSystemPrompt(ctx: RequestContext): string {
   const clientName = ctx.clientName ?? "the client";
-  const primary    = ctx.currentColors?.primary    ?? "not set";
-  const primaryBg  = ctx.currentColors?.primaryBg  ?? "not set";
-  const hasLogo    = ctx.hasLogo ? "Yes" : "No";
+  const primary = ctx.currentColors?.primary ?? "not set";
+  const primaryBg = ctx.currentColors?.primaryBg ?? "not set";
+  const hasLogo = ctx.hasLogo ? "Yes" : "No";
 
   const lockedNote = ctx.isLocked
     ? "\n\nDESIGN IS LOCKED: If the user asks about changes, respond: 'Your design is locked. Contact your Account Manager to make changes.'"
@@ -68,7 +93,7 @@ function buildSystemPrompt(ctx: RequestContext): string {
     ? `\n\nRECENT CHANGE: You just updated ${ctx.recentChange}. Consider proactively suggesting a complementary change if it would improve the overall design coherence.`
     : "";
 
-  return `You are a senior platform design consultant at Trivelta iGaming. You are helping ${clientName} configure the visual identity of their sports betting platform.
+  return `You are Marcus, a senior iGaming platform design consultant at Trivelta. You are helping ${clientName} configure the visual identity of their sports betting platform.
 
 CURRENT PLATFORM STATE:
 - Primary color: ${primary}
@@ -77,22 +102,38 @@ CURRENT PLATFORM STATE:
 - Platform: Sports betting / iGaming
 
 YOUR ROLE:
-You are like a senior designer who knows exactly what makes a successful iGaming brand. You understand the African sports betting market (Nigeria, Ghana, Kenya) and know what designs convert well. You give confident, specific recommendations.
+You are a senior designer with deep knowledge of what makes a successful iGaming brand across Africa, Europe, and MENA. You give confident, specific recommendations based on real market data. You know exactly what colors convert in each market.
 
 PERSONALITY:
-- Direct and confident, like a senior designer
-- You make specific recommendations, not vague suggestions
-- You reference real iGaming brands when relevant (Bet9ja, SportyBet, BetKing, 1xBet)
-- You explain WHY a color choice works, not just what it is
-- Maximum 2 sentences. No emojis. No em dashes. Plain text.
+- Direct and confident. You are Marcus, not a generic assistant.
+- Maximum 2 sentences per response. No emojis. No em dashes. Plain text only.
+- Reference real iGaming brands when relevant (Bet9ja, SportyBet, BetKing, 1xBet, Betway)
+- Explain WHY a color works, not just what it is
+- After each color change, proactively suggest one complementary improvement
 
 OUTPUT FORMAT — ALWAYS exactly this structure:
 <chat>
-[1-2 sentences. Direct. Professional. Reference why it works if relevant.]
+[1-2 sentences. Direct. Professional.]
 </chat>
 <patch>
 [RFC 6902 JSON Patch. Only if colors change. Omit entirely if no color change.]
 </patch>
+
+CLARIFYING QUESTION RULES — ask ONE question before applying, then apply immediately:
+- User says "premium" or "luxury" → ask: "Which market are you targeting? Nigeria, VIP/high-roller, or European?"
+- User says "modern" or "clean" → ask: "More like Betway (professional blue-green) or Bet9ja (bold orange)?"
+- User says "trust" or "trustworthy" → ask: "Are your users new to betting or experienced?"
+- User says "green" without context → ask: "SportyBet green (trust signal) or lime green (energetic)?"
+- All other requests → apply immediately, no questions
+
+IMMEDIATE APPLY (no questions) — apply these without asking:
+- "dark theme", "dark mode", "darker" → deep dark background
+- "Nigeria" or "Nigerian market" → Bet9ja orange
+- "Ghana" or "Ghanaian market" → SportyBet green
+- "Kenya" or "East Africa" or "Swahili" → green + Swahili language
+- "Europe" or "European market" → silver/grey neutral + 1xBet blue
+- "VIP" or "luxury" or "premium" followed by a market → apply immediately
+- "aggressive" or "bold" → deep red-orange contrast
 
 ALLOWED PATCH PATHS — core set (AI should only touch brand-visible colors):
 /primaryBg /primary /secondary /primaryButton /primaryButtonGradient
@@ -116,14 +157,15 @@ Use /appName when user says "change app name to X", "rename to X", "call it X", 
 
 COLOR VALUES: rgba(R,G,B,1) integers 0-255 only.
 
-IIGAMING COLOR INTELLIGENCE:
-Bet9ja orange = rgba(255,107,0,1) — high conversion in Nigeria
-SportyBet green = rgba(0,163,108,1) — trust signal
-BetKing gold/orange = rgba(253,111,39,1) — premium feel
-1xBet blue = rgba(0,94,172,1) — European market
-Betway blue-green = rgba(0,134,195,1) — professional/established
-Dark pro background = rgba(10,13,20,1) — industry standard
-Premium dark = rgba(8,8,15,1) — luxury feel
+IIGAMING MARKET COLOR INTELLIGENCE:
+Nigeria (orange) = rgba(255,107,0,1) — Bet9ja orange, highest conversion in Nigeria
+Ghana (green) = rgba(0,163,108,1) — SportyBet green, trust signal for Ghana
+Kenya (green) = rgba(0,140,90,1) — Swahili market trusted green
+Europe (silver/neutral) = rgba(180,180,190,1) primary / rgba(15,20,40,1) bg — 1xBet blue rgba(0,94,172,1) as accent
+VIP/Luxury (gold) = rgba(212,175,55,1) primary / rgba(8,6,14,1) bg — ultra-premium dark gold
+Betway professional = rgba(0,134,195,1) — blue-green, established/safe
+Premium dark background = rgba(8,8,15,1) — luxury feel
+Industry standard dark = rgba(10,13,20,1) — professional standard
 
 WHEN IMAGE IS PROVIDED (logo analysis):
 - Analyze dominant colors in the image
@@ -230,8 +272,25 @@ function extractBrandName(text: string): string | null {
   }
   // Fallback: PascalCase word not in skip-list
   const SKIP = new Set([
-    "Create","Generate","Design","Make","Draw","Build","Give","Need","Want",
-    "Logo","Icon","App","Brand","Mark","Show","My","The","Your","Our",
+    "Create",
+    "Generate",
+    "Design",
+    "Make",
+    "Draw",
+    "Build",
+    "Give",
+    "Need",
+    "Want",
+    "Logo",
+    "Icon",
+    "App",
+    "Brand",
+    "Mark",
+    "Show",
+    "My",
+    "The",
+    "Your",
+    "Our",
   ]);
   for (const word of text.split(/\s+/)) {
     const clean = word.replace(/[^A-Za-z0-9]/g, "");
@@ -240,9 +299,13 @@ function extractBrandName(text: string): string | null {
   return null;
 }
 
-function detectImageRequest(text: string): { kind: "logo" | "icon"; brandName: string | null } | null {
+function detectImageRequest(
+  text: string,
+): { kind: "logo" | "icon"; brandName: string | null } | null {
   const lower = text.toLowerCase();
-  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want|show me)\b/.test(lower);
+  const wantsCreate = /\b(create|generate|design|make|draw|build|give me|need|want|show me)\b/.test(
+    lower,
+  );
   const isLogo = /\blogo\b|\bbrand mark\b|\bwordmark\b|\bbrand image\b/.test(lower);
   const isIcon = /\bapp icon\b|\bicon\b|\bfavicon\b/.test(lower);
   if (!wantsCreate || (!isLogo && !isIcon)) return null;
@@ -268,9 +331,10 @@ async function generateWithIdeogram(
   style: string,
   apiKey: string,
 ): Promise<string | null> {
-  const prompt = kind === "icon"
-    ? `Professional app icon for iGaming sports betting platform "${brandName}". Bold iconic design, dark background, ${style} accent colors, no text, suitable for iOS/Android.`
-    : `Professional iGaming sports betting logo. Brand name "${brandName}" in large bold clear text. Dark background. ${style} accent colors. Modern vector design.`;
+  const prompt =
+    kind === "icon"
+      ? `Professional app icon for iGaming sports betting platform "${brandName}". Bold iconic design, dark background, ${style} accent colors, no text, suitable for iOS/Android.`
+      : `Professional iGaming sports betting logo. Brand name "${brandName}" in large bold clear text. Dark background. ${style} accent colors. Modern vector design.`;
 
   try {
     const resp = await fetch("https://api.ideogram.ai/generate", {
@@ -311,9 +375,10 @@ async function generateWithDallE(
   apiKey: string,
 ): Promise<{ url: string | null; error: string | null }> {
   const brand = brandName ?? "the brand";
-  const prompt = kind === "icon"
-    ? `Professional app icon for iGaming sports betting platform called ${brand}. Square composition, bold and iconic, vibrant colors, no text, suitable for iOS/Android home screen.`
-    : `Professional iGaming sports betting logo. Brand name "${brand}" displayed prominently in bold clear text. Dark navy background, modern vector design, orange or gold accent colors, clean professional appearance.`;
+  const prompt =
+    kind === "icon"
+      ? `Professional app icon for iGaming sports betting platform called ${brand}. Square composition, bold and iconic, vibrant colors, no text, suitable for iOS/Android home screen.`
+      : `Professional iGaming sports betting logo. Brand name "${brand}" displayed prominently in bold clear text. Dark navy background, modern vector design, orange or gold accent colors, clean professional appearance.`;
 
   const size = kind === "logo" ? "1792x1024" : "1024x1024";
   console.log(`[studio-chat] DALL-E 3 fallback, brand="${brand}", size=${size}`);
@@ -356,18 +421,15 @@ async function persistImage(imageUrl: string, clientId: string): Promise<string>
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const uploadResp = await fetch(
-      `${supabaseUrl}/storage/v1/object/studio-assets/${fileName}`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${serviceKey}`,
-          "Content-Type": "image/png",
-          "x-upsert": "true",
-        },
-        body: imageBuffer,
+    const uploadResp = await fetch(`${supabaseUrl}/storage/v1/object/studio-assets/${fileName}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "image/png",
+        "x-upsert": "true",
       },
-    );
+      body: imageBuffer,
+    });
 
     if (!uploadResp.ok) {
       const err = await uploadResp.text();
@@ -413,11 +475,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-  const OPENAI_API_KEY    = Deno.env.get("OPENAI_API_KEY");
-  const IDEOGRAM_API_KEY  = Deno.env.get("IDEOGRAM_API_KEY");
+  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+  const IDEOGRAM_API_KEY = Deno.env.get("IDEOGRAM_API_KEY");
 
   if (!ANTHROPIC_API_KEY) {
-    console.error("[studio-chat] ANTHROPIC_API_KEY missing — add it in Supabase Edge Function secrets");
+    console.error(
+      "[studio-chat] ANTHROPIC_API_KEY missing — add it in Supabase Edge Function secrets",
+    );
     return new Response(
       JSON.stringify({ error: "AI service not configured. Contact your administrator." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -427,8 +491,8 @@ Deno.serve(async (req) => {
   const body: RequestBody = await req.json();
 
   // Support both new format { message, history } and legacy { messages }
-  const userMessage: string = body.message ?? (body.messages?.slice(-1)[0]?.content ?? "");
-  const history: Message[]  = body.history ?? body.messages?.slice(0, -1) ?? [];
+  const userMessage: string = body.message ?? body.messages?.slice(-1)[0]?.content ?? "";
+  const history: Message[] = body.history ?? body.messages?.slice(0, -1) ?? [];
   const logoUrl: string | null = body.logoUrl ?? null;
 
   // Merge context — prefer explicit context object, fall back to top-level legacy fields
@@ -445,17 +509,20 @@ Deno.serve(async (req) => {
 
   // Detect style hint for Ideogram
   const msgLower = userMessage.toLowerCase();
-  const logoStyle = msgLower.includes("green") ? "green and gold"
-    : msgLower.includes("blue") ? "blue and silver"
-    : msgLower.includes("red") ? "red and white"
-    : msgLower.includes("purple") ? "purple and gold"
-    : "orange and gold";
+  const logoStyle = msgLower.includes("green")
+    ? "green and gold"
+    : msgLower.includes("blue")
+      ? "blue and silver"
+      : msgLower.includes("red")
+        ? "red and white"
+        : msgLower.includes("purple")
+          ? "purple and gold"
+          : "orange and gold";
 
   // Start logo generation immediately in parallel with Claude
-  const imagePromise: Promise<{ url: string | null; error: string | null }> =
-    imageReq
-      ? generateLogo(imageReq.brandName, imageReq.kind, logoStyle, IDEOGRAM_API_KEY, OPENAI_API_KEY)
-      : Promise.resolve({ url: null, error: null });
+  const imagePromise: Promise<{ url: string | null; error: string | null }> = imageReq
+    ? generateLogo(imageReq.brandName, imageReq.kind, logoStyle, IDEOGRAM_API_KEY, OPENAI_API_KEY)
+    : Promise.resolve({ url: null, error: null });
 
   // Build Claude message content — attach logo image when available and relevant.
   // Only use stable Supabase Storage URLs (ephemeral CDN URLs expire and break Vision).
@@ -521,8 +588,11 @@ Deno.serve(async (req) => {
             looped = false;
             if (state === "before_chat") {
               const idx = pending.indexOf("<chat>");
-              if (idx !== -1) { pending = pending.slice(idx + 6); state = "in_chat"; looped = true; }
-              else if (final) pending = "";
+              if (idx !== -1) {
+                pending = pending.slice(idx + 6);
+                state = "in_chat";
+                looped = true;
+              } else if (final) pending = "";
               else if (pending.length > 6) pending = pending.slice(pending.length - 6);
             } else if (state === "in_chat") {
               const idx = pending.indexOf("</chat>");
@@ -541,8 +611,11 @@ Deno.serve(async (req) => {
               }
             } else if (state === "after_chat") {
               const idx = pending.indexOf("<patch>");
-              if (idx !== -1) { pending = pending.slice(idx + 7); state = "in_patch"; looped = true; }
-              else if (final) pending = "";
+              if (idx !== -1) {
+                pending = pending.slice(idx + 7);
+                state = "in_patch";
+                looped = true;
+              } else if (final) pending = "";
               else if (pending.length > 7) pending = pending.slice(pending.length - 7);
             } else if (state === "in_patch") {
               const idx = pending.indexOf("</patch>");
@@ -573,7 +646,9 @@ Deno.serve(async (req) => {
               if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
                 processText(evt.delta.text);
               }
-            } catch { /* skip malformed SSE lines */ }
+            } catch {
+              /* skip malformed SSE lines */
+            }
           }
         }
         processText("", true); // flush
@@ -587,7 +662,8 @@ Deno.serve(async (req) => {
                 if (op.op !== "replace") return false;
                 if (typeof op.path !== "string" || !ALLOWED_PATCH_PATHS.has(op.path)) return false;
                 if (typeof op.value !== "string") return false;
-                if (op.path === "/language") return VALID_LANGUAGES.has((op.value as string).trim());
+                if (op.path === "/language")
+                  return VALID_LANGUAGES.has((op.value as string).trim());
                 if (op.path === "/appName") {
                   const v = (op.value as string).trim();
                   return v.length > 0 && v.length <= 50;
@@ -603,7 +679,11 @@ Deno.serve(async (req) => {
 
         // Image generation — persist to stable Supabase Storage URL before sending
         if (imageReq) {
-          send({ type: "generating", message: `Generating ${imageReq.kind}...`, estimated_seconds: 15 });
+          send({
+            type: "generating",
+            message: `Generating ${imageReq.kind}...`,
+            estimated_seconds: 15,
+          });
           const imgResult = await imagePromise;
           let stableUrl: string | null = imgResult.url;
           if (stableUrl) {
@@ -631,7 +711,7 @@ Deno.serve(async (req) => {
       ...corsHeaders,
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 });

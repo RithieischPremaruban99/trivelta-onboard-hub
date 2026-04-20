@@ -1,8 +1,16 @@
 // All field-level definitions for the onboarding form, in one place.
 
 export const COUNTRIES = [
-  "Nigeria", "Ghana", "Kenya", "Tanzania", "South Africa",
-  "Brazil", "Mexico", "United States", "United Kingdom", "Other",
+  "Nigeria",
+  "Ghana",
+  "Kenya",
+  "Tanzania",
+  "South Africa",
+  "Brazil",
+  "Mexico",
+  "United States",
+  "United Kingdom",
+  "Other",
 ];
 
 export type ContactBlock = { name: string; email: string; phone: string };
@@ -154,7 +162,8 @@ export const validators: Record<number, (f: FormShape) => boolean> = {
     ),
   5: (f) => {
     const pspOk = f.psp_opay || f.psp_palmpay || f.psp_paystack;
-    const smsOk = f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
+    const smsOk =
+      f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
     return !!(pspOk && f.kyc_surt && smsOk && f.duns_status && f.zendesk);
   },
 };
