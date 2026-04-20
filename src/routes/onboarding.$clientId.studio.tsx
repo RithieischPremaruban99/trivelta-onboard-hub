@@ -22,8 +22,9 @@ import {
   Send, Loader2, Smartphone, Monitor, Sparkles,
   RefreshCw, CheckCircle2, Upload, ArrowRight,
   Lock, Palette, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown, Download, Undo2,
-  ShieldAlert, Mail,
+  ShieldAlert, Mail, Clapperboard, Info,
 } from "lucide-react";
+import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
@@ -507,6 +508,24 @@ function StudioInner({
   const [patchPending, setPatchPending] = useState(false);
   // Undo history: stack of previous themeColors snapshots + description
   const [undoStack, setUndoStack] = useState<Array<{ colors: StudioThemeColors; label: string }>>([]);
+  const [animationsOpen, setAnimationsOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [lottieData, setLottieData] = useState<Record<string, any | null>>({
+    loading: null, splash: null, live: null,
+  });
+  useEffect(() => {
+    const slots = [
+      { key: "loading", url: "https://assets3.lottiefiles.com/packages/lf20_poqmycou.json" },
+      { key: "splash",  url: "https://assets3.lottiefiles.com/packages/lf20_kkflmtur.json" },
+      { key: "live",    url: "https://assets3.lottiefiles.com/packages/lf20_xl5uw1a2.json" },
+    ];
+    slots.forEach(({ key, url }) => {
+      fetch(url)
+        .then((r) => r.json())
+        .then((data) => setLottieData((prev) => ({ ...prev, [key]: data })))
+        .catch(() => { /* silently ignore — placeholder just won't render */ });
+    });
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
@@ -1169,6 +1188,64 @@ function StudioInner({
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Animations (collapsible) ────────────────────────────────── */}
+          <div className="shrink-0 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setAnimationsOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-secondary/40"
+            >
+              <div className="flex items-center gap-2">
+                <Clapperboard className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-semibold text-foreground">Animations</span>
+              </div>
+              {animationsOpen
+                ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              }
+            </button>
+
+            {animationsOpen && (
+              <div className="border-t border-border px-4 py-3 space-y-4">
+                {/* Info message */}
+                <div className="flex gap-2.5 rounded-lg border border-primary/20 bg-primary/8 p-3">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    Animations are created by your Trivelta design team based on your brand colors and logo.
+                    After locking your design, your Account Manager will commission the animations.
+                  </p>
+                </div>
+
+                {/* Placeholder Lottie previews */}
+                {[
+                  { key: "loading", label: "Loading Animation" },
+                  { key: "splash",  label: "Splash Screen" },
+                  { key: "live",    label: "Live Icon" },
+                ].map(({ key, label }) => (
+                  <div key={key}>
+                    <div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                      {label}
+                    </div>
+                    <div className="relative flex items-center justify-center overflow-hidden rounded-lg border border-border bg-background/60" style={{ height: 120 }}>
+                      {lottieData[key] ? (
+                        <Lottie
+                          animationData={lottieData[key]}
+                          loop
+                          style={{ height: 100, width: "100%" }}
+                        />
+                      ) : (
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/40" />
+                      )}
+                      <span className="absolute bottom-1.5 right-2 rounded-sm bg-background/80 px-1 py-0.5 font-mono text-[8px] uppercase tracking-wide text-muted-foreground/60">
+                        Placeholder
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
