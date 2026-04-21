@@ -205,15 +205,15 @@ function AdminPage() {
 
   return (
     <AppShell badge="Admin">
-      <div className="mx-auto w-full max-w-[1400px] px-6 py-10">
+      <div className="mx-auto w-full max-w-[1400px] px-6 pb-10 pt-6">
         {/* Page header */}
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="micro-label mb-3">Trivelta · Control Plane</div>
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            <div className="micro-label mb-1.5">Trivelta · Control Plane</div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Admin overview
             </h1>
-            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+            <p className="mt-1 max-w-xl text-sm leading-snug text-muted-foreground">
               Every client, account manager and onboarding signal — in one premium control surface.
             </p>
           </div>
@@ -234,7 +234,7 @@ function AdminPage() {
         </div>
 
         {/* Hero stats */}
-        <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total clients" value={stats.total} />
           <StatCard label="Onboarding" value={stats.onboarding} accent="primary" />
           <StatCard label="Active" value={stats.active} accent="success" />
@@ -431,7 +431,7 @@ function StatCard({
         ? "bg-success shadow-[0_0_12px_2px_color-mix(in_oklab,var(--color-success)_60%,transparent)]"
         : "bg-foreground/30";
   return (
-    <div className="card-premium group relative overflow-hidden p-6">
+    <div className="card-premium group relative overflow-hidden p-4">
       <div
         className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
         aria-hidden
@@ -440,8 +440,8 @@ function StatCard({
         <span className="micro-label">{label}</span>
         <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       </div>
-      <div className="relative mt-5">
-        <span className="stat-hero">{value}</span>
+      <div className="relative mt-2.5">
+        <span className="stat-hero text-4xl">{value}</span>
       </div>
     </div>
   );
