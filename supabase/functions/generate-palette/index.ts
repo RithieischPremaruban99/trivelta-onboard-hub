@@ -234,6 +234,32 @@ When generating 344 fields from a brand description, apply these heuristics to m
 - Do NOT generate palettes where wonColor and primary are indistinguishable (both green-ish).
 - Do NOT make primaryBackgroundColor red — red is reserved for loss/error states.
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTRAST GRAMMAR — NEVER VIOLATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Text must always be readable against its background. For every foreground/background pair below, apply the contrast rule:
+
+If the BACKGROUND is light (gold, yellow, bright green, bright blue, white, cream):
+  → Foreground text MUST be dark (near-black, dark charcoal, deep navy)
+If the BACKGROUND is dark (black, charcoal, deep purple, navy):
+  → Foreground text MUST be light (white, off-white, light gray)
+
+Apply this to these pairs:
+- primaryButton ↔ primaryTextColor
+- primaryButtonGradient ↔ primaryTextColor (use same text color as primaryButton)
+- secondary ↔ darkTextColor
+- wonGradient1/2 ↔ lightTextColor
+- loseStatusGradient1/2 ↔ lightTextColor
+- inactiveButtonBg ↔ inactiveButtonTextPrimary
+- freeBetBackground ↔ primaryTextColor
+- modalBackground ↔ lightTextColor
+- notificationSectionBg ↔ lightTextColor
+
+Common violation to avoid: Generating gold/yellow primaryButton WITH gold primaryTextColor. This is unreadable. Use dark text on light buttons, always.
+
+If user explicitly requests a monochrome look (e.g. 'all gold' or 'pure dark'), still apply contrast to text — the rule is absolute for readability.
+
 ═══ CONSTRAINT PRESERVATION ═══
 
 If the input message contains manualOverrides array + currentPalette:
@@ -442,6 +468,81 @@ const MIN_REQUIRED_FIELDS: (keyof TCMPalette)[] = [
   "inactiveButtonBg",
 ];
 
+function parseRgba(rgba: string): { r: number; g: number; b: number; a: number } | null {
+  const match = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/);
+  if (!match) return null;
+  return {
+    r: parseInt(match[1]),
+    g: parseInt(match[2]),
+    b: parseInt(match[3]),
+    a: match[4] ? parseFloat(match[4]) : 1,
+  };
+}
+
+function relativeLuminance(r: number, g: number, b: number): number {
+  const [rs, gs, bs] = [r, g, b].map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+function contrastRatio(rgba1: string, rgba2: string): number {
+  const c1 = parseRgba(rgba1);
+  const c2 = parseRgba(rgba2);
+  if (!c1 || !c2) return 1;
+  const l1 = relativeLuminance(c1.r, c1.g, c1.b);
+  const l2 = relativeLuminance(c2.r, c2.g, c2.b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function pickContrastingText(backgroundRgba: string): string {
+  const bg = parseRgba(backgroundRgba);
+  if (!bg) return "rgba(255,255,255,1)";
+  const lum = relativeLuminance(bg.r, bg.g, bg.b);
+  return lum > 0.5 ? "rgba(20,20,25,1)" : "rgba(255,255,255,1)";
+}
+
+function enforceContrast(palette: TCMPalette): TCMPalette {
+  const contrastPairs: Array<{ bg: keyof TCMPalette; text: keyof TCMPalette }> = [
+    { bg: "primaryButton", text: "primaryTextColor" },
+    { bg: "freeBetBackground", text: "primaryTextColor" },
+    { bg: "inactiveButtonBg", text: "inactiveButtonTextPrimary" },
+    { bg: "modalBackground", text: "lightTextColor" },
+    { bg: "notificationSectionBg", text: "lightTextColor" },
+    { bg: "wonGradient1", text: "lightTextColor" },
+    { bg: "loseStatusGradient1", text: "lightTextColor" },
+    { bg: "primaryBackgroundColor", text: "lightTextColor" },
+  ];
+
+  const MIN_WCAG_AA = 4.5;
+  const corrected = { ...palette } as TCMPalette;
+  let correctionCount = 0;
+
+  for (const { bg, text } of contrastPairs) {
+    const bgColor = corrected[bg] as string;
+    const textColor = corrected[text] as string;
+    if (!bgColor || !textColor) continue;
+    const ratio = contrastRatio(bgColor, textColor);
+    if (ratio < MIN_WCAG_AA) {
+      const newTextColor = pickContrastingText(bgColor);
+      console.log(
+        `[generate-palette] Contrast fix: ${text} ${textColor} → ${newTextColor} (${bg}=${bgColor}, ratio was ${ratio.toFixed(2)})`
+      );
+      (corrected as Record<string, string>)[text] = newTextColor;
+      correctionCount++;
+    }
+  }
+
+  if (correctionCount > 0) {
+    console.log(`[generate-palette] Auto-contrast enforced on ${correctionCount} text field(s)`);
+  }
+
+  return corrected;
+}
+
 function validateAndEnforce(
   raw: Record<string, unknown>,
   req: GeneratePaletteRequest,
@@ -507,6 +608,12 @@ function validateAndEnforce(
   if (gpResets > 0) {
     console.log(`[generate-palette] Enforced ${gpResets} Gamepass Gold fields to defaults`);
   }
+
+  // Auto-contrast safety net — runs before manual override restoration so user overrides win
+  const contrastPalette = enforceContrast(palette);
+  (Object.keys(contrastPalette) as (keyof TCMPalette)[]).forEach((k) => {
+    (palette as Record<string, string>)[k] = (contrastPalette as Record<string, string>)[k];
+  });
 
   // Manual overrides enforcement
   if (req.manualOverrides && req.manualOverrides.length > 0 && req.currentPalette) {
