@@ -714,6 +714,8 @@ function FormScreen() {
                 update={update}
                 driveLink={welcomeInfo?.driveLink ?? null}
                 showErrors={submitAttempted}
+                clientId={clientId}
+                navigate={navigate}
               />
             </SectionShell>
             <SectionShell
@@ -1354,11 +1356,15 @@ function SectionMedia({
   update,
   driveLink,
   showErrors,
+  clientId,
+  navigate,
 }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   driveLink: string | null;
   showErrors?: boolean;
+  clientId: string;
+  navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
     <div className="space-y-6">
