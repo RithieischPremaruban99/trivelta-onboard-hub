@@ -474,6 +474,10 @@ Deno.serve(async (req) => {
     const { client_id } = body;
     if (!client_id) throw new Error("client_id is required");
 
+    const fnStart = Date.now();
+    console.log(`[design-locked] Triggered for client_id: ${client_id} at ${new Date().toISOString()}`);
+    console.log(`[design-locked] NOTION_TOKEN present: ${!!NOTION_TOKEN}`);
+
     // 1. Read client record
     const { data: client, error: clientErr } = await supabase
       .from("clients")
@@ -508,8 +512,13 @@ Deno.serve(async (req) => {
     const studioConfig = (form.studio_config ?? {}) as StudioConfig;
     const lockedAt: string = form.studio_locked_at ?? new Date().toISOString();
 
+    console.log(`[design-locked] Loaded studio_config: palette=${!!studioConfig.palette}, legacy_colors=${!!studioConfig.colors}, appName=${studioConfig.appName}, language=${studioConfig.language}`);
+    console.log(`[design-locked] Has logo URL: ${!!studioConfig.icons?.appNameLogo}`);
+    console.log(`[design-locked] Manual overrides count: ${studioConfig.manualOverrides?.length ?? 0}`);
+
     // 4. Find Notion page ID (use cached or look up by client name)
     let notionPageId: string | null = client.notion_page_id ?? null;
+    console.log(`[design-locked] Cached notion_page_id from clients table: ${notionPageId ?? "NOT_SET"}`);
 
     if (!notionPageId) {
       console.log("[design-locked] notion_page_id not cached, querying Notion DB...");
@@ -528,7 +537,7 @@ Deno.serve(async (req) => {
     // 5. Build blocks and append to Notion (Notion sync errors don't fail the lock)
     try {
       const blocks = buildAllBlocks(studioConfig, lockedAt, client.name, client_id, amName);
-      console.log(`[design-locked] Appending ${blocks.length} total blocks to page ${notionPageId}`);
+      console.log(`[design-locked] About to sync to Notion. Page ID: ${notionPageId}, blocks: ${blocks.length}`);
       await appendBlocksToPage(notionPageId, blocks, NOTION_TOKEN);
 
       const date = new Date(lockedAt).toLocaleDateString("en-GB", {
@@ -540,13 +549,18 @@ Deno.serve(async (req) => {
 
       console.log("[design-locked] Notion sync complete for client", client.name);
     } catch (notionErr) {
-      console.error("[design-locked] Notion sync failed (non-fatal):", notionErr);
+      console.error("[design-locked] Notion sync failed (non-fatal):", {
+        error: String(notionErr),
+        client_id,
+        notion_page_id: notionPageId,
+      });
     }
 
     // 6. Update clients.studio_locked_at
     await supabase.from("clients").update({ studio_locked_at: lockedAt }).eq("id", client_id);
 
-    console.log("[design-locked] Done for client", client.name);
+    const elapsedMs = Date.now() - fnStart;
+    console.log(`[design-locked] Complete for client ${client.name}. Duration: ${elapsedMs}ms`);
 
     return new Response(JSON.stringify({ success: true, notion_page_id: notionPageId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

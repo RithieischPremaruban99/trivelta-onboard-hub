@@ -403,8 +403,9 @@ export function StudioInner({
   initialLocked: boolean;
   initialLockedAt: string | null;
 }) {
-  const { welcomeInfo } = useOnboardingCtx();
+  const { welcomeInfo, clientRole, ownerEmail } = useOnboardingCtx();
   const navigate = useNavigate();
+  const canSubmit = clientRole === "client_owner";
   const {
     palette,
     manualOverrides,
@@ -425,8 +426,6 @@ export function StudioInner({
   const [locked, setLocked] = useState(initialLocked);
   const [lockedAt, setLockedAt] = useState<string | null>(initialLockedAt);
   const [lockModalOpen, setLockModalOpen] = useState(false);
-  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
-
   type SaveStatus = "idle" | "saving" | "saved" | "error";
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
@@ -435,7 +434,6 @@ export function StudioInner({
   type ActivePanel = "chat" | "quickEdit" | "advanced" | "animations" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>("chat");
   const [controlsOpen, setControlsOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [lottieData, setLottieData] = useState<Record<string, any | null>>({
     loading: null,
@@ -600,21 +598,14 @@ export function StudioInner({
     };
   }, [palette, manualOverrides, brandPromptHistory, appIcons, scheduleAutoSave]);
 
-  /* ── Save & Continue ── */
-  const handleSaveAndContinue = () => {
-    if (locked) {
-      navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } });
-    } else {
-      setSaveConfirmOpen(true);
-    }
-  };
-
   /* ── Call design-locked edge function; returns true on success ── */
   const callDesignLocked = useCallback(async (): Promise<boolean> => {
+    console.log("[Studio] Triggering design-locked function for client", clientId);
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      console.log("[Studio] Auth session present:", !!session?.access_token);
       const res = await fetch(`${SUPABASE_URL}/functions/v1/design-locked`, {
         method: "POST",
         headers: {
@@ -624,22 +615,26 @@ export function StudioInner({
         },
         body: JSON.stringify({ client_id: clientId }),
       });
+      const responseText = await res.text();
+      console.log("[Studio] design-locked response:", res.status, responseText);
       if (!res.ok) {
-        console.error("[studio] design-locked HTTP", res.status, await res.text());
+        console.error("[Studio] design-locked HTTP error", res.status, responseText);
         return false;
       }
       return true;
     } catch (e) {
-      console.error("[studio] design-locked fetch error:", e);
+      console.error("[Studio] design-locked fetch error:", e);
       return false;
     }
   }, [clientId]);
 
   /* ── Lock design ── */
   const handleLock = async () => {
+    if (!canSubmit) return;
     setLocking(true);
     try {
       const now = new Date().toISOString();
+      console.log("[Studio] Writing studio_locked=true to DB for client", clientId);
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
@@ -658,60 +653,16 @@ export function StudioInner({
         },
         { onConflict: "client_id" },
       );
+      console.log("[Studio] DB upsert complete. Calling design-locked edge function…");
       setLocked(true);
       setLockedAt(now);
       setLockModalOpen(false);
 
       const notionOk = await callDesignLocked();
       if (notionOk) {
-        toast.success("Design locked! Your Trivelta team has been notified.");
+        toast.success("Design submitted! Your Trivelta team has been notified.");
       } else {
-        toast.warning("Design locked locally. Notion sync will retry automatically.");
-        await supabase
-          .from("onboarding_forms")
-          .upsert({ client_id: clientId, notion_sync_pending: true }, { onConflict: "client_id" });
-      }
-
-      navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } });
-    } catch {
-      toast.error("Failed to lock design - try again.");
-    } finally {
-      setLocking(false);
-    }
-  };
-
-  /* -- Lock & submit (from Save & Continue modal) -- */
-  const handleLockAndSubmit = async () => {
-    setLocking(true);
-    try {
-      const now = new Date().toISOString();
-      await supabase.from("onboarding_forms").upsert(
-        {
-          client_id: clientId,
-          studio_config: {
-            palette,
-            manualOverrides: Array.from(manualOverrides),
-            brandPromptHistory,
-            icons: appIcons,
-            language,
-            appName,
-            appLabels,
-          } as never,
-          studio_locked: true,
-          studio_locked_at: now,
-          notion_sync_pending: false,
-        },
-        { onConflict: "client_id" },
-      );
-      setLocked(true);
-      setLockedAt(now);
-      setSaveConfirmOpen(false);
-
-      const notionOk = await callDesignLocked();
-      if (notionOk) {
-        toast.success("Design locked and submitted!");
-      } else {
-        toast.warning("Design locked locally. Notion sync will retry automatically.");
+        toast.warning("Design submitted. Notion sync will complete automatically.");
         await supabase
           .from("onboarding_forms")
           .upsert({ client_id: clientId, notion_sync_pending: true }, { onConflict: "client_id" });
@@ -787,7 +738,7 @@ export function StudioInner({
               )}
             </div>
           )}
-          {locked ? (
+          {locked && (
             <button
               onClick={() =>
                 navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } })
@@ -797,16 +748,6 @@ export function StudioInner({
               <CheckCircle2 className="h-3.5 w-3.5" />
               Design Submitted
             </button>
-          ) : (
-            <button
-              onClick={handleSaveAndContinue}
-              disabled={saving}
-              className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-[12px] font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
-            >
-              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Save &amp; Continue
-              {!saving && <ArrowRight className="h-3.5 w-3.5 text-primary" />}
-            </button>
           )}
         </div>
       </header>
@@ -815,6 +756,15 @@ export function StudioInner({
         <div className="shrink-0 flex items-center justify-center gap-2 border-b border-success/20 bg-success/8 px-5 py-2 text-[12px] font-semibold text-success">
           <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
           Design locked on {lockedDate} - Your Account Manager will be in touch
+        </div>
+      )}
+
+      {!locked && !canSubmit && (
+        <div className="shrink-0 flex items-center justify-center gap-2 border-b border-border bg-muted/40 px-5 py-2 text-[12px] text-muted-foreground">
+          <Info className="h-3.5 w-3.5 shrink-0" />
+          You can edit this design. Only{" "}
+          <span className="font-semibold text-foreground">{ownerEmail ?? "the account owner"}</span>{" "}
+          can submit the final version.
         </div>
       )}
 
@@ -1054,14 +1004,22 @@ export function StudioInner({
                     Upload or generate a logo to enable
                   </p>
                 )}
+                {canLock && !canSubmit && (
+                  <p className="mb-1.5 text-center text-[11px] text-muted-foreground">
+                    Only {ownerEmail ?? "the account owner"} can submit
+                  </p>
+                )}
                 <button
-                  onClick={() => setLockModalOpen(true)}
-                  disabled={!canLock}
+                  onClick={() => canSubmit && setLockModalOpen(true)}
+                  disabled={!canLock || !canSubmit}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-success py-3 text-[13px] font-bold text-white shadow-md transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   <Lock className="h-4 w-4" />
-                  Lock My Design
+                  Submit for Platform Setup
                 </button>
+                <p className="mt-1.5 text-center text-[10px] text-muted-foreground/60">
+                  Sends your design to the Trivelta team. Cannot be undone.
+                </p>
               </div>
             )}
           </div>
@@ -1141,13 +1099,6 @@ export function StudioInner({
         />
       )}
 
-      {saveConfirmOpen && (
-        <LockConfirmModal
-          onConfirm={handleLockAndSubmit}
-          onCancel={() => setSaveConfirmOpen(false)}
-          loading={locking}
-        />
-      )}
     </div>
   );
 }
