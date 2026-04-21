@@ -36,7 +36,21 @@ import {
   ShieldCheck,
   ShieldAlert,
   Trash2,
+  Check,
+  Circle,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  calculateProgress,
+  getProgressLabel,
+  getMilestoneList,
+  type ClientProgressInput,
+} from "@/lib/client-progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,6 +89,7 @@ interface ClientRow {
   primary_contact_email: string | null;
   created_at: string;
   studio_access: boolean;
+  platform_live: boolean;
 }
 
 function AdminPage() {
@@ -94,6 +109,17 @@ function AdminPage() {
       }
     >
   >({});
+  const [progressData, setProgressData] = useState<
+    Record<
+      string,
+      {
+        formExists: boolean;
+        formHasData: boolean;
+        formSubmitted: boolean;
+        studioStarted: boolean;
+      }
+    >
+  >({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -107,7 +133,7 @@ function AdminPage() {
       supabase
         .from("clients")
         .select(
-          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access",
+          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
         )
         .order("created_at", { ascending: false }),
       supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
@@ -115,9 +141,9 @@ function AdminPage() {
       supabase.from("client_account_managers").select("client_id, am_email"),
       supabase
         .from("onboarding_forms")
-        .select("client_id, studio_config, studio_locked, studio_locked_at"),
+        .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
     ]);
-    setClients((clientsRes.data ?? []) as ClientRow[]);
+    setClients((clientsRes.data ?? []) as unknown as ClientRow[]);
 
     const sdMap: Record<
       string,
@@ -138,6 +164,31 @@ function AdminPage() {
       };
     });
     setStudioData(sdMap);
+
+    const pdMap: Record<
+      string,
+      { formExists: boolean; formHasData: boolean; formSubmitted: boolean; studioStarted: boolean }
+    > = {};
+    (
+      (studioRes.data ?? []) as Array<{
+        client_id: string;
+        studio_config: unknown;
+        studio_locked: boolean | null;
+        submitted_at: string | null;
+        data: Record<string, unknown> | null;
+      }>
+    ).forEach((r) => {
+      const formData = r.data ?? {};
+      const formHasData = Object.keys(formData).length > 0;
+      const studioConfig = r.studio_config as StudioSavedConfig | null;
+      pdMap[r.client_id] = {
+        formExists: true,
+        formHasData,
+        formSubmitted: !!r.submitted_at,
+        studioStarted: !!(studioConfig?.palette || studioConfig?.colors),
+      };
+    });
+    setProgressData(pdMap);
 
     const amList: AmLite[] = (
       (amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>
@@ -180,19 +231,30 @@ function AdminPage() {
     return <Navigate to="/" />;
   }
 
+  const clientsWithProgress = clients.map((c) => {
+    const pd = progressData[c.id];
+    const sd = studioData[c.id];
+    const input: ClientProgressInput = {
+      hasOnboardingForm: pd?.formExists ?? false,
+      formHasData: pd?.formHasData ?? false,
+      formSubmitted: pd?.formSubmitted ?? false,
+      studioStarted: pd?.studioStarted ?? false,
+      studioLocked: sd?.locked ?? false,
+      platformLive: c.platform_live ?? false,
+    };
+    return { ...c, progress: calculateProgress(input), milestones: getMilestoneList(input) };
+  });
+
   const stats = {
     total: clients.length,
-    active: clients.filter((c) => c.status === "active").length,
+    active: clientsWithProgress.filter((c) => c.progress > 0 && c.progress < 100).length,
     onboarding: clients.filter((c) => c.status === "onboarding").length,
     avgCompletion:
-      clients.length === 0
+      clientsWithProgress.length === 0
         ? 0
         : Math.round(
-            clients.reduce((sum, c) => {
-              const t = taskCounts[c.id];
-              if (!t || t.total === 0) return sum;
-              return sum + (t.done / t.total) * 100;
-            }, 0) / clients.length,
+            clientsWithProgress.reduce((sum, c) => sum + c.progress, 0) /
+              clientsWithProgress.length,
           ),
   };
 
@@ -301,9 +363,8 @@ function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {clients.map((c) => {
-                    const t = taskCounts[c.id];
-                    const pct = t && t.total > 0 ? Math.round((t.done / t.total) * 100) : 0;
+                  {clientsWithProgress.map((c) => {
+                    const pct = c.progress;
                     const assignedEmails = clientAms[c.id] ?? [];
                     const assignedAms: AmLite[] = assignedEmails.map(
                       (email) => ams.find((a) => a.email === email) ?? { email, name: null },
@@ -335,17 +396,51 @@ function AdminPage() {
                           <StatusBadge status={c.status} />
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-                              <div
-                                className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all"
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                            <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
-                              {pct}%
-                            </span>
-                          </div>
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex cursor-default items-center gap-2.5">
+                                  <div className="relative h-1.5 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+                                    <div
+                                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                  <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
+                                    {pct}%
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="right"
+                                className="bg-card border border-border px-3 py-2.5 text-foreground shadow-xl"
+                              >
+                                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                  {getProgressLabel(pct)}
+                                </div>
+                                <div className="space-y-1.5">
+                                  {c.milestones.map((m) => (
+                                    <div key={m.order} className="flex items-center gap-2 text-xs">
+                                      {m.completed ? (
+                                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
+                                      ) : (
+                                        <Circle className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />
+                                      )}
+                                      <span
+                                        className={
+                                          m.completed
+                                            ? "text-foreground"
+                                            : "text-muted-foreground/60"
+                                        }
+                                      >
+                                        {m.label}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-muted-foreground">
                           {new Date(c.created_at).toLocaleDateString("en-GB", {
