@@ -12,7 +12,11 @@ interface ChatMessage {
   content: string;
   isError?: boolean;
   logoVariants?: LogoVariant[];
+  isStreaming?: boolean;
 }
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 /* ── Logo request detector ────────────────────────────────────────────────── */
 
@@ -195,37 +199,106 @@ export function AIChatPanel() {
       try {
         const isRefinement = brandPromptHistory.length > 0;
 
-        const { data, error } = await supabase.functions.invoke("generate-palette", {
-          body: {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-palette`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
             brandPrompt: trimmed,
             language,
             logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
             currentPalette: isRefinement ? palette : undefined,
             manualOverrides: Array.from(manualOverrides),
             ...(isRefinement && { regenerationFeedback: trimmed }),
-          },
+          }),
         });
 
-        if (error) throw error;
+        if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
-        if (!data?.palette) {
-          throw new Error("No palette returned from AI");
-        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let streamingStarted = false;
+        let streamedReasoning = "";
 
-        setPalette(data.palette as TCMPalette);
-        const reasoning: string | undefined =
-          typeof data.reasoning === "string" ? data.reasoning : undefined;
-        const keyColorsSummary: string | undefined =
-          typeof data.keyColorsSummary === "string" ? data.keyColorsSummary : undefined;
-        addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
+        outer: while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const summaryText: string =
-          reasoning || keyColorsSummary || "Palette applied — check the preview on the right.";
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() ?? "";
 
-        setMessages((prev) => [...prev, { role: "assistant", content: summaryText }]);
+          for (const part of parts) {
+            if (!part.startsWith("data: ")) continue;
+            const jsonStr = part.slice(6).trim();
+            if (!jsonStr) continue;
 
-        if (Array.isArray(data.warnings) && data.warnings.length > 0) {
-          toast.warning((data.warnings as string[]).join("; "), { duration: 4000 });
+            let evt: Record<string, unknown>;
+            try {
+              evt = JSON.parse(jsonStr);
+            } catch {
+              continue;
+            }
+
+            if (evt.type === "reasoning_chunk" && typeof evt.text === "string") {
+              if (!streamingStarted) {
+                streamingStarted = true;
+                setLoading(false);
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "assistant", content: "", isStreaming: true },
+                ]);
+              }
+              streamedReasoning += evt.text;
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: streamedReasoning,
+                };
+                return updated;
+              });
+            } else if (evt.type === "complete" && evt.palette) {
+              setPalette(evt.palette as TCMPalette);
+              const reasoning =
+                typeof evt.reasoning === "string" ? evt.reasoning : undefined;
+              const keyColorsSummary =
+                typeof evt.keyColorsSummary === "string" ? evt.keyColorsSummary : undefined;
+              addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
+              const displayText =
+                reasoning || keyColorsSummary || "Palette applied — check the preview on the right.";
+
+              setMessages((prev) => {
+                const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
+                updated[updated.length - 1] = {
+                  role: "assistant",
+                  content: displayText,
+                  isStreaming: false,
+                };
+                return updated;
+              });
+
+              if (Array.isArray(evt.warnings) && evt.warnings.length > 0) {
+                toast.warning((evt.warnings as string[]).join("; "), { duration: 4000 });
+              }
+              break outer;
+            } else if (evt.type === "error") {
+              setMessages((prev) => {
+                const base = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
+                base[base.length - 1] = {
+                  role: "assistant",
+                  content: "Something went wrong generating your palette. Please try again.",
+                  isError: true,
+                  isStreaming: false,
+                };
+                return base;
+              });
+              break outer;
+            }
+          }
         }
       } catch (err) {
         console.error("[AIChatPanel] generate-palette error:", err);
@@ -306,6 +379,9 @@ export function AIChatPanel() {
               )}
             >
               {msg.content}
+              {msg.isStreaming && (
+                <span className="ml-0.5 inline-block h-[0.85em] w-0.5 animate-pulse bg-current align-middle opacity-70" />
+              )}
 
               {/* Logo variant picker */}
               {msg.logoVariants && msg.logoVariants.length > 0 && (

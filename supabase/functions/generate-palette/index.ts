@@ -65,11 +65,12 @@ const SYSTEM_PROMPT = `You are the Trivelta Assistant, a senior iGaming brand de
 
 ═══ OUTPUT FORMAT — STRICT ═══
 
-Return ONLY valid JSON. No markdown fences. No prose outside JSON. Schema:
+STREAMING FORMAT: Write 1-2 sentences of brand reasoning as plain text on the FIRST line. Then on a new line, output ONLY the raw JSON object starting with {. No markdown fences. No other prose.
 
+JSON schema (starts on line 2):
 {
   "palette": { ...only fields that deviate from default... },
-  "reasoning": "2-3 sentences explaining your choices",
+  "reasoning": "same 2-3 sentences (also inside JSON for compatibility)",
   "keyColorsSummary": "1-2 short punchy sentences naming the key colors applied (e.g. 'Applied SportyBet signature red on a dark charcoal base, with green win indicators and red loss states.')"
 }
 
@@ -635,6 +636,27 @@ function validateAndEnforce(
 }
 
 // ---------------------------------------------------------------------------
+// Haiku routing — detect simple refinements
+// ---------------------------------------------------------------------------
+
+function isSimpleRefinement(userPrompt: string, hasExistingPalette: boolean): boolean {
+  if (!hasExistingPalette) return false;
+  const lower = userPrompt.toLowerCase().trim();
+  if (lower.length > 80) return false;
+  const refinePatterns = [
+    /\b(make|keep|adjust|tweak|change|set|update|fix|ensure|align|match)\b.*\b(darker|lighter|brighter|softer|bolder|warmer|cooler|more|less|smaller|bigger)\b/,
+    /\b(darker|lighter|brighter|softer|bolder|warmer|cooler|more|less|too)\b/,
+    /\b(contrast|saturation|brightness|hue|tone|shade)\b/,
+    /\b(background|text|button|primary|secondary|accent|won|lost)\b.*\b(darker|lighter|brighter|softer|bolder|warmer|cooler|more|less)\b/,
+    /^(a bit|slightly|just|only)\b/,
+  ];
+  return refinePatterns.some((p) => p.test(lower));
+}
+
+const REFINEMENT_PREFIX =
+  "REFINEMENT MODE: User is making a small adjustment to an existing palette. Return ONLY the fields that need to change — not a full palette. Keep reasoning to 1-2 sentences. Preserve unrelated colors.\n\n";
+
+// ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
 
@@ -709,124 +731,168 @@ Deno.serve(async (req: Request) => {
     `overrides_count=${body.manualOverrides?.length ?? 0}`
   );
 
-  // ── Build Anthropic client ─────────────────────────────────────────────────
+  // ── Build Anthropic client + model selection ──────────────────────────────
   const client = new Anthropic({ apiKey });
 
-  // Primary model: claude-sonnet-4-20250514 (verified)
-  // Fallback: claude-3-5-sonnet-20241022
   const PRIMARY_MODEL = "claude-sonnet-4-20250514";
-  const FALLBACK_MODEL = "claude-3-5-sonnet-20241022";
-
-  const userMessage = buildUserMessage(body);
-  let aiText: string;
-  let inputTokens: number;
-  let outputTokens: number;
-  let usedModel = PRIMARY_MODEL;
-
-  // ── Call Anthropic ─────────────────────────────────────────────────────────
-  try {
-    console.log(
-      `[generate-palette] Anthropic call: model=${PRIMARY_MODEL}, ` +
-      `tokens_in≈${Math.round(userMessage.length / 4)}`
-    );
-    const result = await callAnthropicWithRetry(client, userMessage, PRIMARY_MODEL);
-    aiText = result.text;
-    inputTokens = result.inputTokens;
-    outputTokens = result.outputTokens;
-  } catch (err: unknown) {
-    // If primary model fails, try fallback
-    const errMsg = err instanceof Error ? err.message : String(err);
-    const isModelError =
-      errMsg.includes("model") ||
-      errMsg.includes("not found") ||
-      errMsg.includes("invalid_request");
-
-    if (isModelError) {
-      console.warn(`[generate-palette] Primary model failed, trying fallback`);
-      console.warn(
-        `[generate-palette] Primary model ${PRIMARY_MODEL} failed (${errMsg}), falling back to ${FALLBACK_MODEL}`
-      );
-      usedModel = FALLBACK_MODEL;
-      try {
-        const result = await callAnthropicWithRetry(client, userMessage, FALLBACK_MODEL);
-        aiText = result.text;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } catch (fallbackErr: unknown) {
-        const fbMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
-        console.error("[generate-palette] Fallback model also failed:", fbMsg);
-        return new Response(
-          JSON.stringify({ error: "Upstream AI error", detail: fbMsg }),
-          { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-        );
-      }
-    } else {
-      console.error("[generate-palette] Anthropic API error:", errMsg);
-      return new Response(
-        JSON.stringify({ error: "Upstream AI error", detail: errMsg }),
-        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-      );
-    }
-  }
-
-  // ── Parse JSON response ────────────────────────────────────────────────────
-  let parsed: {
-    palette: Record<string, unknown>;
-    reasoning: string;
-    keyColorsSummary: string;
-  };
-
-  try {
-    parsed = JSON.parse(aiText);
-  } catch {
-    console.error("[generate-palette] AI response could not be parsed after retry. First 500 chars:", aiText.slice(0, 500));
-    return new Response(
-      JSON.stringify({
-        error: "AI response could not be parsed",
-        detail: "Response was not valid JSON after retry",
-      }),
-      { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
-
-  if (!parsed.palette || typeof parsed.palette !== "object") {
-    return new Response(
-      JSON.stringify({ error: "AI response missing palette object" }),
-      { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
-
-  // ── Validate + enforce palette ─────────────────────────────────────────────
-  const warnings: string[] = [];
-  const palette = validateAndEnforce(parsed.palette, body, warnings);
-
-  const durationMs = Date.now() - startMs;
-  const fieldsFromDefault = warnings.filter(
-    (w) => w.includes("missing from AI") || w.includes("invalid value")
-  ).length;
+  const isRefine = isSimpleRefinement(body.brandPrompt, !!body.currentPalette);
+  const model = isRefine ? HAIKU_MODEL : PRIMARY_MODEL;
+  const maxTokens = isRefine ? 2000 : 16000;
+  const effectiveSystemPrompt = isRefine ? REFINEMENT_PREFIX + SYSTEM_PROMPT : SYSTEM_PROMPT;
 
   console.log(
-    `[generate-palette] Response: model=${usedModel}, tokens_out=${outputTokens}, ` +
-    `fields_filled_from_default=${fieldsFromDefault}, warnings=${warnings.length}, ` +
-    `duration_ms=${durationMs}`
+    `[generate-palette] Model: ${model} (isRefine=${isRefine}, prompt_length=${body.brandPrompt.length})`
   );
 
-  // ── Build response ─────────────────────────────────────────────────────────
-  const response: GeneratePaletteResponse = {
-    palette,
-    reasoning:
-      typeof parsed.reasoning === "string"
-        ? parsed.reasoning
-        : "Palette generated from brand description.",
-    keyColorsSummary:
-      typeof parsed.keyColorsSummary === "string" && parsed.keyColorsSummary.trim().length > 0
-        ? parsed.keyColorsSummary
-        : "Palette applied — check the preview on the right.",
-    ...(warnings.length > 0 && { warnings }),
-  };
+  const userMessage = buildUserMessage(body);
 
-  return new Response(JSON.stringify(response), {
+  // ── SSE streaming response ─────────────────────────────────────────────────
+  const encoder = new TextEncoder();
+
+  const sseStream = new ReadableStream({
+    async start(controller) {
+      const send = (data: unknown) =>
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+
+      try {
+        let accumulated = "";
+        let reasoningDone = false;
+        let reasoningSentUpTo = 0;
+
+        const stream = client.messages.stream({
+          model,
+          max_tokens: maxTokens,
+          temperature: 0.7,
+          system: effectiveSystemPrompt,
+          messages: [{ role: "user", content: userMessage }],
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            accumulated += event.delta.text;
+
+            // Stream pre-JSON text as reasoning chunks
+            if (!reasoningDone) {
+              const boundary = accumulated.indexOf("\n{");
+              if (boundary !== -1) {
+                // Found JSON boundary — stream anything unsent before it
+                const unsent = accumulated.slice(reasoningSentUpTo, boundary);
+                if (unsent.trim()) send({ type: "reasoning_chunk", text: unsent });
+                reasoningDone = true;
+                reasoningSentUpTo = boundary;
+              } else {
+                // Stream up to 2 chars before end to avoid splitting \n{ boundary
+                const safeEnd = Math.max(reasoningSentUpTo, accumulated.length - 2);
+                if (safeEnd > reasoningSentUpTo) {
+                  const chunk = accumulated.slice(reasoningSentUpTo, safeEnd);
+                  if (chunk) send({ type: "reasoning_chunk", text: chunk });
+                  reasoningSentUpTo = safeEnd;
+                }
+              }
+            }
+          }
+        }
+
+        // ── Parse accumulated response ───────────────────────────────────────
+        const trimmed = accumulated.trim();
+        const boundaryIdx = trimmed.indexOf("\n{");
+
+        let preJsonReasoning = "";
+        let jsonText = trimmed;
+
+        if (boundaryIdx !== -1) {
+          preJsonReasoning = trimmed.slice(0, boundaryIdx).trim();
+          jsonText = trimmed.slice(boundaryIdx + 1).trim();
+        }
+
+        let parsed: { palette?: Record<string, unknown>; reasoning?: string; keyColorsSummary?: string };
+
+        try {
+          parsed = JSON.parse(jsonText);
+        } catch {
+          // Fallback: try full text as JSON (old format with reasoning inside)
+          try {
+            parsed = JSON.parse(trimmed);
+            preJsonReasoning = typeof parsed.reasoning === "string" ? parsed.reasoning : preJsonReasoning;
+          } catch {
+            // Last resort: retry with explicit JSON instruction
+            console.warn("[generate-palette] JSON parse failed, doing inline retry");
+            const retryResult = await streamAnthropic(
+              client,
+              [
+                { role: "user", content: userMessage },
+                { role: "assistant", content: accumulated },
+                {
+                  role: "user",
+                  content:
+                    "Your last response was not valid JSON. Return ONLY valid JSON starting with { and ending with }. No prose, no markdown.",
+                },
+              ],
+              model,
+              0.3
+            );
+            try {
+              parsed = JSON.parse(retryResult.text.trim());
+            } catch {
+              send({ type: "error", message: "AI response could not be parsed after retry" });
+              controller.close();
+              return;
+            }
+          }
+        }
+
+        if (!parsed.palette || typeof parsed.palette !== "object") {
+          send({ type: "error", message: "AI response missing palette object" });
+          controller.close();
+          return;
+        }
+
+        const warnings: string[] = [];
+        const palette = validateAndEnforce(parsed.palette, body, warnings);
+
+        const finalReasoning =
+          preJsonReasoning ||
+          (typeof parsed.reasoning === "string" ? parsed.reasoning : "") ||
+          "Palette applied — check the preview on the right.";
+
+        const keyColorsSummary =
+          typeof parsed.keyColorsSummary === "string" && parsed.keyColorsSummary.trim()
+            ? parsed.keyColorsSummary
+            : "Palette applied — check the preview on the right.";
+
+        console.log(
+          `[generate-palette] Complete: model=${model}, isRefine=${isRefine}, duration=${Date.now() - startMs}ms, warnings=${warnings.length}`
+        );
+
+        send({
+          type: "complete",
+          palette,
+          reasoning: finalReasoning,
+          keyColorsSummary,
+          model,
+          ...(warnings.length > 0 && { warnings }),
+        });
+
+        controller.close();
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[generate-palette] Stream error:", msg);
+        send({ type: "error", message: msg });
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(sseStream, {
     status: 200,
-    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    },
   });
 });
