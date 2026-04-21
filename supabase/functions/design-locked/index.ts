@@ -421,6 +421,29 @@ function buildAllBlocks(
 
 /* ── Notion API calls ─────────────────────────────────────────────────────── */
 
+async function isNotionPageAccessible(pageId: string, token: string): Promise<boolean> {
+  const res = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Notion-Version": "2022-06-28",
+    },
+  });
+
+  if (!res.ok) {
+    console.log(`[design-locked] Cached page ${pageId} returned ${res.status} — treating as stale`);
+    return false;
+  }
+
+  const data = await res.json();
+  if (data.archived === true || data.in_trash === true) {
+    console.log(`[design-locked] Cached page ${pageId} is archived/in_trash — treating as stale`);
+    return false;
+  }
+
+  return true;
+}
+
 async function findNotionPageId(clientName: string, notionToken: string): Promise<string | null> {
   const resp = await fetch(`${NOTION_API}/databases/${NOTION_DB_ID}/query`, {
     method: "POST",
@@ -640,6 +663,16 @@ Deno.serve(async (req) => {
     // 4. Find Notion page ID (use cached or look up by client name)
     let notionPageId: string | null = client.notion_page_id ?? null;
     console.log(`[design-locked] Cached notion_page_id from clients table: ${notionPageId ?? "NOT_SET"}`);
+
+    // Health-check: verify cached page is still accessible (not archived/trashed)
+    if (notionPageId) {
+      const accessible = await isNotionPageAccessible(notionPageId, NOTION_TOKEN);
+      if (!accessible) {
+        console.log(`[design-locked] Cached page stale — clearing and creating fresh`);
+        notionPageId = null;
+        await supabase.from("clients").update({ notion_page_id: null }).eq("id", client_id);
+      }
+    }
 
     if (!notionPageId) {
       console.log("[design-locked] notion_page_id not cached, querying Notion DB...");
