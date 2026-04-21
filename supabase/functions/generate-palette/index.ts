@@ -314,6 +314,48 @@ function buildUserMessage(req: GeneratePaletteRequest): string {
 // Parse AI response — with one retry on JSON parse failure
 // ---------------------------------------------------------------------------
 
+async function streamAnthropic(
+  client: Anthropic,
+  messages: Anthropic.MessageParam[],
+  model: string,
+  temperature: number
+): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+  const streamStart = Date.now();
+  console.log(`[generate-palette] Starting stream with model: ${model}`);
+
+  let accumulated = "";
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  const stream = client.messages.stream({
+    model,
+    max_tokens: 16000,
+    temperature,
+    system: SYSTEM_PROMPT,
+    messages,
+  });
+
+  for await (const event of stream) {
+    if (
+      event.type === "content_block_delta" &&
+      event.delta.type === "text_delta"
+    ) {
+      accumulated += event.delta.text;
+    } else if (event.type === "message_start") {
+      inputTokens = event.message.usage?.input_tokens ?? 0;
+    } else if (event.type === "message_delta") {
+      outputTokens = event.usage?.output_tokens ?? outputTokens;
+    }
+  }
+
+  const elapsedMs = Date.now() - streamStart;
+  console.log(
+    `[generate-palette] Stream completed in ${elapsedMs}ms, total chars: ${accumulated.length}`
+  );
+
+  return { text: accumulated, inputTokens, outputTokens };
+}
+
 async function callAnthropicWithRetry(
   client: Anthropic,
   userMessage: string,
@@ -323,35 +365,22 @@ async function callAnthropicWithRetry(
     { role: "user", content: userMessage },
   ];
 
-  const callStart = Date.now();
-  console.log(`[generate-palette] Calling Anthropic with model: ${model}`);
-
-  const resp = await client.messages.create({
-    model,
-    max_tokens: 16000,
-    temperature: 0.7,
-    system: SYSTEM_PROMPT,
-    messages,
-  });
-
-  const elapsedMs = Date.now() - callStart;
-  console.log(`[generate-palette] Anthropic responded in ${elapsedMs}ms`);
-
-  const text = resp.content[0].type === "text" ? resp.content[0].text : "";
-  const inputTokens = resp.usage.input_tokens;
-  const outputTokens = resp.usage.output_tokens;
+  const first = await streamAnthropic(client, messages, model, 0.7);
 
   // Try parse — if fails, retry once with corrective instruction
   try {
-    JSON.parse(text);
-    return { text, inputTokens, outputTokens };
+    JSON.parse(first.text);
+    return first;
   } catch {
-    console.error(`[generate-palette] JSON parse failed. First 500 chars:`, text.slice(0, 500));
+    console.error(
+      `[generate-palette] JSON parse failed. First 500 chars:`,
+      first.text.slice(0, 500)
+    );
     console.log("[generate-palette] JSON parse failed on first attempt, retrying");
 
     const retryMessages: Anthropic.MessageParam[] = [
       { role: "user", content: userMessage },
-      { role: "assistant", content: text },
+      { role: "assistant", content: first.text },
       {
         role: "user",
         content:
@@ -359,21 +388,12 @@ async function callAnthropicWithRetry(
       },
     ];
 
-    const retryResp = await client.messages.create({
-      model,
-      max_tokens: 16000,
-      temperature: 0.3,
-      system: SYSTEM_PROMPT,
-      messages: retryMessages,
-    });
-
-    const retryText =
-      retryResp.content[0].type === "text" ? retryResp.content[0].text : "";
+    const retry = await streamAnthropic(client, retryMessages, model, 0.3);
 
     return {
-      text: retryText,
-      inputTokens: inputTokens + retryResp.usage.input_tokens,
-      outputTokens: outputTokens + retryResp.usage.output_tokens,
+      text: retry.text,
+      inputTokens: first.inputTokens + retry.inputTokens,
+      outputTokens: first.outputTokens + retry.outputTokens,
     };
   }
 }
