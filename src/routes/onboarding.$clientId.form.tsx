@@ -529,57 +529,125 @@ function FormScreen() {
 
       {/* Scrollable content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[860px] px-4 py-8 sm:px-6 pb-32">
-          {/* Section pills */}
-          <div className="mb-6 flex flex-wrap gap-2">
-            {[
-              { id: "1", label: "01 Team Contacts" },
-              { id: "2", label: "02 Media & Branding" },
-              { id: "3", label: "03 Platform Setup" },
-              { id: "4", label: "04 Legal & Policies" },
-              { id: "5", label: "05 3rd Party" },
-            ].map((s) => {
-              const done = sectionDone[s.id];
-              const { filled } = sectionFieldStats(s.id, form);
-              const hasError = submitAttempted && !done;
-              const status = done
-                ? "complete"
-                : hasError
-                  ? "error"
-                  : filled > 0
-                    ? "progress"
-                    : "empty";
-              return (
-                <button
-                  key={s.id}
-                  onClick={() =>
-                    setOpen((prev) =>
-                      prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id],
-                    )
-                  }
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] transition-colors",
-                    status === "complete" && "border-success/40 bg-success/10 text-success",
-                    status === "error" &&
-                      "border-destructive/40 bg-destructive/10 text-destructive",
-                    status === "progress" && "border-primary/40 bg-primary/10 text-primary",
-                    status === "empty" &&
-                      "border-border bg-card text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {status === "complete" && <CheckCircle2 className="h-3 w-3" />}
-                  {status === "error" && <AlertTriangle className="h-3 w-3" />}
-                  {status === "progress" && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  )}
-                  {status === "empty" && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
-                  )}
-                  {s.label}
-                </button>
-              );
-            })}
+        <div className="mx-auto max-w-[860px] px-4 py-10 sm:px-6 pb-32">
+          {/* Owner-only access notice (top, subtle) */}
+          {!isOwner && (
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-border bg-card/60 px-4 py-3">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div className="text-[13px] leading-relaxed text-muted-foreground">
+                You can fill in any field — only{" "}
+                <span className="font-medium text-foreground">
+                  {ownerEmail ?? "the account owner"}
+                </span>{" "}
+                can submit this form for review.
+              </div>
+            </div>
+          )}
+
+          {/* Page heading */}
+          <div className="mb-8">
+            <div className="micro-label mb-2">Onboarding · Setup</div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-[34px]">
+              Build your platform
+            </h1>
+            <p className="mt-1.5 text-[14px] text-muted-foreground">
+              Five sections, all auto-saved. Jump in and out — your team can collaborate live.
+            </p>
           </div>
+
+          {/* Connected stepper */}
+          <nav className="mb-8" aria-label="Onboarding progress">
+            <ol className="flex items-start justify-between">
+              {[
+                { id: "1", label: "Team" },
+                { id: "2", label: "Branding" },
+                { id: "3", label: "Platform" },
+                { id: "4", label: "Legal" },
+                { id: "5", label: "3rd Party" },
+              ].map((s, idx, arr) => {
+                const done = sectionDone[s.id];
+                const { filled, total } = sectionFieldStats(s.id, form);
+                const isActive = open.includes(s.id);
+                const hasError = submitAttempted && !done;
+                const inProgress = !done && filled > 0;
+                const nextDone = idx < arr.length - 1 && sectionDone[arr[idx + 1].id];
+                return (
+                  <li key={s.id} className="relative flex flex-1 flex-col items-center">
+                    {/* Connector to next */}
+                    {idx < arr.length - 1 && (
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "absolute left-1/2 top-[18px] h-[2px] w-full",
+                          done && nextDone ? "stepper-line-active" : "stepper-line",
+                        )}
+                      />
+                    )}
+                    <button
+                      onClick={() =>
+                        setOpen((prev) =>
+                          prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id],
+                        )
+                      }
+                      className="group relative z-10 flex flex-col items-center gap-2"
+                    >
+                      <span
+                        className={cn(
+                          "grid h-9 w-9 place-items-center rounded-full text-[12px] font-semibold transition-all",
+                          done &&
+                            "bg-success text-success-foreground shadow-[0_0_0_4px_color-mix(in_oklab,var(--color-success)_18%,transparent)]",
+                          !done &&
+                            hasError &&
+                            "bg-destructive/15 text-destructive ring-1 ring-destructive/40",
+                          !done &&
+                            !hasError &&
+                            isActive &&
+                            "scale-110 bg-primary text-primary-foreground shadow-[0_0_0_4px_color-mix(in_oklab,var(--color-primary)_18%,transparent)]",
+                          !done &&
+                            !hasError &&
+                            !isActive &&
+                            inProgress &&
+                            "bg-primary/15 text-primary ring-1 ring-primary/30",
+                          !done &&
+                            !hasError &&
+                            !isActive &&
+                            !inProgress &&
+                            "bg-card text-muted-foreground ring-1 ring-border group-hover:text-foreground",
+                        )}
+                      >
+                        {done ? (
+                          <CheckCircle2 className="h-4 w-4" />
+                        ) : hasError ? (
+                          <AlertTriangle className="h-4 w-4" />
+                        ) : (
+                          <span className="font-mono">{idx + 1}</span>
+                        )}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-mono text-[10px] uppercase tracking-[0.14em] transition-colors",
+                          done
+                            ? "text-success"
+                            : hasError
+                              ? "text-destructive"
+                              : isActive || inProgress
+                                ? "text-foreground"
+                                : "text-muted-foreground group-hover:text-foreground",
+                        )}
+                      >
+                        {s.label}
+                      </span>
+                      {total > 0 && (
+                        <span className="font-mono text-[9px] tabular-nums text-muted-foreground/70">
+                          {filled}/{total}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
 
           {/* Accordion */}
           <Accordion
