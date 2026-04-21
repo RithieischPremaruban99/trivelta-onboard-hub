@@ -256,6 +256,34 @@ export function AIChatPanel() {
     ],
   );
 
+  /* ── Cycling progress hints ─────────────────────────────────────────────── */
+
+  const PALETTE_HINTS = [
+    "Analyzing brand direction…",
+    "Mapping semantic colors…",
+    "Applying contrast grammar…",
+    "Finalizing palette…",
+  ];
+  const LOGO_HINTS = [
+    "Understanding your brand…",
+    "Designing variants…",
+    "Rendering high-resolution PNG…",
+  ];
+  const [hintIndex, setHintIndex] = useState(0);
+  useEffect(() => {
+    if (!loading) {
+      setHintIndex(0);
+      return;
+    }
+    const id = setInterval(() => setHintIndex((i) => i + 1), 3500);
+    return () => clearInterval(id);
+  }, [loading]);
+
+  const hints = loadingType === "logo" ? LOGO_HINTS : PALETTE_HINTS;
+  const currentHint = hints[hintIndex % hints.length];
+  const headline =
+    loadingType === "logo" ? "Creating logo variants…" : "Generating your color palette…";
+
   /* ── Render ─────────────────────────────────────────────────────────────── */
 
   return (
