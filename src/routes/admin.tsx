@@ -27,8 +27,6 @@ import {
   Plus,
   Users,
   CheckCircle2,
-  Clock,
-  Percent,
   Copy,
   ExternalLink,
   Mail,
@@ -36,7 +34,6 @@ import {
   Palette,
   ShieldCheck,
   ShieldAlert,
-  Unlock,
   Trash2,
 } from "lucide-react";
 
