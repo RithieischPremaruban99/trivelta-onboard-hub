@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Send, ImageIcon } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
