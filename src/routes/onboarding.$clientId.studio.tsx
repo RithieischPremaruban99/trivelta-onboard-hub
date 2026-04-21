@@ -1541,20 +1541,58 @@ function StudioPage() {
   }
 
   return (
-    <StudioProvider
-      initialPalette={initialPalette}
-      initialManualOverrides={initialManualOverrides}
-      initialBrandPromptHistory={initialBrandPromptHistory ?? []}
-      initialIcons={initialIcons}
-      initialLanguage={initialLanguage}
-      initialAppName={initialAppName}
-      initialAppLabels={initialAppLabels}
+    <StudioFadeWrapper clientId={clientId}>
+      <StudioProvider
+        initialPalette={initialPalette}
+        initialManualOverrides={initialManualOverrides}
+        initialBrandPromptHistory={initialBrandPromptHistory ?? []}
+        initialIcons={initialIcons}
+        initialLanguage={initialLanguage}
+        initialAppName={initialAppName}
+        initialAppLabels={initialAppLabels}
+      >
+        <StudioInner
+          clientId={clientId}
+          initialLocked={initialLocked}
+          initialLockedAt={initialLockedAt}
+        />
+      </StudioProvider>
+    </StudioFadeWrapper>
+  );
+}
+
+/** Subtle fade-in on first mount when user arrives via the studio-intro splash. */
+function StudioFadeWrapper({
+  clientId,
+  children,
+}: {
+  clientId: string;
+  children: React.ReactNode;
+}) {
+  const [fromIntro, setFromIntro] = useState(false);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    try {
+      const key = `studio-from-intro-${clientId}`;
+      if (sessionStorage.getItem(key) === "true") {
+        sessionStorage.removeItem(key);
+        setFromIntro(true);
+        setVisible(false);
+        const t = setTimeout(() => setVisible(true), 100);
+        return () => clearTimeout(t);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [clientId]);
+
+  if (!fromIntro) return <>{children}</>;
+  return (
+    <div
+      className={`transition-opacity duration-500 ease-out ${visible ? "opacity-100" : "opacity-0"}`}
     >
-      <StudioInner
-        clientId={clientId}
-        initialLocked={initialLocked}
-        initialLockedAt={initialLockedAt}
-      />
-    </StudioProvider>
+      {children}
+    </div>
   );
 }

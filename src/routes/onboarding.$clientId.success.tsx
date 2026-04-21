@@ -135,7 +135,10 @@ function SuccessScreen() {
               </p>
               <button
                 onClick={() =>
-                  navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
+                  navigate({
+                    to: "/onboarding/$clientId/studio-intro",
+                    params: { clientId },
+                  })
                 }
                 className="group relative w-full overflow-hidden rounded-2xl p-px transition-all duration-300 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 style={{
