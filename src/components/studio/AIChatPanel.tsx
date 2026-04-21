@@ -276,7 +276,7 @@ export function AIChatPanel() {
       setHintIndex(0);
       return;
     }
-    const id = setInterval(() => setHintIndex((i) => i + 1), 3500);
+    const id = setInterval(() => setHintIndex((i) => i + 1), 3000);
     return () => clearInterval(id);
   }, [loading]);
 
