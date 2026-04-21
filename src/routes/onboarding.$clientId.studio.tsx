@@ -419,7 +419,7 @@ export function StudioInner({
   const [lockModalOpen, setLockModalOpen] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [locking, setLocking] = useState(false);
-  type ActivePanel = "chat" | "quickEdit" | "advanced" | "animations";
+  type ActivePanel = "chat" | "quickEdit" | "advanced" | "animations" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>("chat");
   const [controlsOpen, setControlsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -856,7 +856,7 @@ export function StudioInner({
               title="AI Palette Generator"
               icon={<Sparkles className="h-3.5 w-3.5" />}
               active={activePanel === "chat"}
-              onClick={() => setActivePanel("chat")}
+              onClick={() => setActivePanel((prev) => (prev === "chat" ? null : "chat"))}
               badge={locked ? "Locked" : undefined}
             >
               {locked && (
@@ -875,7 +875,7 @@ export function StudioInner({
               icon={<Sliders className="h-3.5 w-3.5" />}
               subtitle="25 key fields"
               active={activePanel === "quickEdit"}
-              onClick={() => setActivePanel("quickEdit")}
+              onClick={() => setActivePanel((prev) => (prev === "quickEdit" ? null : "quickEdit"))}
               badge={manualOverrides.size > 0 ? `${manualOverrides.size} edited` : undefined}
             >
               <QuickEditPanel />
@@ -887,7 +887,7 @@ export function StudioInner({
               icon={<Settings2 className="h-3.5 w-3.5" />}
               subtitle="All 344 fields"
               active={activePanel === "advanced"}
-              onClick={() => setActivePanel("advanced")}
+              onClick={() => setActivePanel((prev) => (prev === "advanced" ? null : "advanced"))}
             >
               <AdvancedModePanel />
             </AccordionSection>
@@ -897,7 +897,7 @@ export function StudioInner({
               title="Animations"
               icon={<Clapperboard className="h-3.5 w-3.5" />}
               active={activePanel === "animations"}
-              onClick={() => setActivePanel("animations")}
+              onClick={() => setActivePanel((prev) => (prev === "animations" ? null : "animations"))}
             >
               <div className="px-4 py-3 space-y-4">
                 <div className="flex gap-2.5 rounded-lg border border-primary/20 bg-primary/8 p-3">

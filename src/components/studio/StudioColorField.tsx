@@ -3,6 +3,7 @@ import { RotateCcw } from "lucide-react";
 import { useStudio } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 function rgbaToHex(rgba: string): string {
@@ -91,7 +92,12 @@ export function StudioColorField({
 
       <div className="min-w-0 flex-1">
         {!compact && (
-          <div className="mb-0.5 text-[10px] leading-none text-muted-foreground">{label}</div>
+          <div className="mb-0.5 flex items-center gap-1 text-[10px] leading-none text-muted-foreground">
+            {label}
+            {overridden && !effectiveReadOnly && (
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" title="Manually edited" />
+            )}
+          </div>
         )}
         <Input
           value={hexInput}
@@ -104,7 +110,7 @@ export function StudioColorField({
           className={cn(
             "font-mono",
             compact ? "h-7 text-[10px]" : "h-7 text-[11px]",
-            overridden && !effectiveReadOnly && "ring-1 ring-primary/40",
+            overridden && !effectiveReadOnly && "ring-2 ring-primary/50",
           )}
           placeholder="#000000"
           maxLength={7}
@@ -113,14 +119,20 @@ export function StudioColorField({
       </div>
 
       {overridden && !effectiveReadOnly && (
-        <button
-          type="button"
-          onClick={() => resetPaletteField(fieldName)}
-          title="Reset to AI value"
-          className="shrink-0 rounded p-0.5 text-muted-foreground/60 transition-colors hover:text-primary"
-        >
-          <RotateCcw className="h-3 w-3" />
-        </button>
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => resetPaletteField(fieldName)}
+                className="shrink-0 rounded p-1 text-primary transition-colors hover:bg-muted/40 hover:text-primary"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Reset to AI value</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );
