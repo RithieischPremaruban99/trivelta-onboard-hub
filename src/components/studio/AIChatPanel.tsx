@@ -93,7 +93,7 @@ export function AIChatPanel() {
         addBrandPrompt(trimmed);
 
         const summaryText: string =
-          data.keyColorsSummary || "Palette applied — check the preview on the right.";
+          data.reasoning || data.keyColorsSummary || "Palette applied — check the preview on the right.";
 
         setMessages((prev) => [...prev, { role: "assistant", content: summaryText }]);
 
