@@ -395,7 +395,7 @@ function AdminPreviewPill({
   return (
     <>
       {/* Compact pill */}
-      <div ref={pillRef} className="fixed top-3 left-3 z-[9999]">
+      <div ref={pillRef} className="fixed top-3 right-3 z-[9999]">
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-1.5 rounded-full bg-amber-400 text-amber-950 shadow-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:bg-amber-300 active:scale-95"
@@ -410,7 +410,7 @@ function AdminPreviewPill({
 
         {/* Popover */}
         {open && (
-          <div className="absolute top-full left-0 mt-2 w-[280px] rounded-xl border border-amber-300 bg-amber-50 shadow-xl text-amber-950 text-[12px]">
+          <div className="absolute top-full right-0 mt-2 w-[280px] rounded-xl border border-amber-300 bg-amber-50 shadow-xl text-amber-950 text-[12px]">
             {/* Header */}
             <div className="flex items-center justify-between px-3 py-2.5 border-b border-amber-200">
               <div className="flex items-center gap-1.5 font-semibold">
