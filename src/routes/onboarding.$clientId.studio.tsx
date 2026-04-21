@@ -1598,7 +1598,7 @@ function StudioFadeWrapper({
         sessionStorage.removeItem(key);
         setFromIntro(true);
         setVisible(false);
-        const t = setTimeout(() => setVisible(true), 100);
+        const t = setTimeout(() => setVisible(true), 50);
         return () => clearTimeout(t);
       }
     } catch {
@@ -1609,7 +1609,10 @@ function StudioFadeWrapper({
   if (!fromIntro) return <>{children}</>;
   return (
     <div
-      className={`transition-opacity duration-500 ease-out ${visible ? "opacity-100" : "opacity-0"}`}
+      className={cn(
+        "transition-all duration-700 ease-out",
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+      )}
     >
       {children}
     </div>
