@@ -585,12 +585,26 @@ function FormScreen() {
                       />
                     )}
                     <button
-                      onClick={() =>
-                        setOpen((prev) =>
-                          prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id],
-                        )
-                      }
-                      className="group relative z-10 flex flex-col items-center gap-2"
+                      type="button"
+                      aria-label={`Go to step ${idx + 1}: ${s.label}`}
+                      onClick={() => {
+                        setOpen((prev) => (prev.includes(s.id) ? prev : [...prev, s.id]));
+                        setCurrentSection(s.id);
+                        if (myPresenceRef.current && presenceChannelRef.current) {
+                          const updated: PresencePayload = {
+                            ...myPresenceRef.current,
+                            current_section: s.id,
+                            last_active: new Date().toISOString(),
+                          };
+                          myPresenceRef.current = updated;
+                          presenceChannelRef.current.track(updated);
+                        }
+                        setTimeout(() => {
+                          const el = document.querySelector(`[data-section-id="${s.id}"]`);
+                          el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 60);
+                      }}
+                      className="group relative z-10 flex cursor-pointer flex-col items-center gap-2 rounded-lg p-1 transition-transform active:scale-95 focus-visible:outline-none"
                     >
                       <span
                         className={cn(
