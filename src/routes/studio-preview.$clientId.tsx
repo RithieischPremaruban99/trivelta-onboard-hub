@@ -13,7 +13,7 @@
  * returning to the dashboard. ArrowLeft/ArrowRight keyboard shortcuts work too.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -37,6 +37,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -267,73 +268,21 @@ function StudioPreviewPage() {
   };
 
   return (
-    <>
-      {/* Admin banner */}
-      <div className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between px-4 py-1.5 bg-amber-400 text-amber-950 text-[12px] font-semibold shadow-sm gap-3">
-        <button
-          onClick={() => {
-            if (window.history.length > 1) {
-              window.history.back();
-            } else {
-              navigate({ to: "/admin" });
-            }
-          }}
-          className="flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Admin
-        </button>
-
-        <div className="flex items-center gap-3 flex-wrap justify-center">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Admin Preview — <span className="max-w-[200px] truncate">{clientName ?? "…"}</span>
-            {counter && <span className="opacity-60 font-normal">({counter})</span>}
-          </div>
-          {/* Studio Access toggle */}
-          <button
-            onClick={toggleStudioAccess}
-            disabled={togglingAccess}
-            className="flex items-center gap-1.5 rounded-full border border-amber-600/40 bg-amber-500/30 px-2.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-amber-500/50 disabled:opacity-50"
-          >
-            {togglingAccess ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : studioAccess ? (
-              <ShieldCheck className="h-3 w-3" />
-            ) : (
-              <ShieldAlert className="h-3 w-3" />
-            )}
-            Studio: {studioAccess ? "Granted" : "No Access"}
-          </button>
-          {/* Design Lock toggle */}
-          <button
-            onClick={toggleStudioLock}
-            disabled={togglingLock || !studioAccess}
-            className="flex items-center gap-1.5 rounded-full border border-amber-600/40 bg-amber-500/30 px-2.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-amber-500/50 disabled:opacity-40"
-            title={!studioAccess ? "Grant studio access first" : undefined}
-          >
-            {togglingLock ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : studioAccessLocked ? (
-              <Lock className="h-3 w-3" />
-            ) : (
-              <Unlock className="h-3 w-3" />
-            )}
-            Design: {studioAccessLocked ? "Locked" : "Unlocked"}
-          </button>
-        </div>
-
-        <a
-          href={`/onboarding/${clientId}`}
-          target="_blank"
-          rel="noreferrer"
-          className="flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 hover:bg-amber-500/50 transition-colors"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          Onboarding Form
-        </a>
-      </div>
-
+    <AdminPreviewPill
+      clientName={clientName}
+      counter={counter}
+      studioAccess={studioAccess}
+      studioAccessLocked={studioAccessLocked}
+      togglingAccess={togglingAccess}
+      togglingLock={togglingLock}
+      clientId={clientId}
+      onBack={() => {
+        if (window.history.length > 1) window.history.back();
+        else navigate({ to: "/admin" });
+      }}
+      onToggleAccess={toggleStudioAccess}
+      onToggleLock={toggleStudioLock}
+    >
       {/* Prev arrow */}
       <button
         onClick={goToPrev}
@@ -376,8 +325,8 @@ function StudioPreviewPage() {
         </div>
       )}
 
-      {/* Push content below the banner */}
-      <div className="pt-10 h-screen overflow-hidden">
+      {/* Studio — full height, no banner offset */}
+      <div className="h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
           <StudioProvider
             initialColors={initialColors}
@@ -393,6 +342,155 @@ function StudioPreviewPage() {
           </StudioProvider>
         </OnboardingCtx.Provider>
       </div>
+    </AdminPreviewPill>
+  );
+}
+
+/* ── AdminPreviewPill ─────────────────────────────────────────────────────── */
+
+function AdminPreviewPill({
+  clientName,
+  counter,
+  studioAccess,
+  studioAccessLocked,
+  togglingAccess,
+  togglingLock,
+  clientId,
+  onBack,
+  onToggleAccess,
+  onToggleLock,
+  children,
+}: {
+  clientName: string | null;
+  counter: string | null;
+  studioAccess: boolean;
+  studioAccessLocked: boolean;
+  togglingAccess: boolean;
+  togglingLock: boolean;
+  clientId: string;
+  onBack: () => void;
+  onToggleAccess: () => void;
+  onToggleLock: () => void;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const pillRef = useRef<HTMLDivElement>(null);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (pillRef.current && !pillRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const displayName = clientName
+    ? clientName.length > 18 ? clientName.slice(0, 18) + "…" : clientName
+    : "…";
+
+  return (
+    <>
+      {/* Compact pill */}
+      <div ref={pillRef} className="fixed top-3 left-3 z-[9999]">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1.5 rounded-full bg-amber-400 text-amber-950 shadow-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:bg-amber-300 active:scale-95"
+          title="Admin Preview — click for controls"
+        >
+          <ShieldCheck className="h-3 w-3 shrink-0" />
+          <span>{displayName}</span>
+          {counter && <span className="opacity-60 font-normal text-[10px]">{counter}</span>}
+          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${studioAccess ? "bg-green-700" : "bg-red-700"}`} title={studioAccess ? "Studio: Granted" : "Studio: No Access"} />
+          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${studioAccessLocked ? "bg-amber-700" : "bg-blue-700"}`} title={studioAccessLocked ? "Design: Locked" : "Design: Unlocked"} />
+        </button>
+
+        {/* Popover */}
+        {open && (
+          <div className="absolute top-full left-0 mt-2 w-[280px] rounded-xl border border-amber-300 bg-amber-50 shadow-xl text-amber-950 text-[12px]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-3 py-2.5 border-b border-amber-200">
+              <div className="flex items-center gap-1.5 font-semibold">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Admin Preview
+              </div>
+              <button onClick={() => setOpen(false)} className="rounded p-0.5 hover:bg-amber-200 transition-colors">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Client info */}
+            <div className="px-3 py-2 border-b border-amber-200">
+              <div className="font-medium truncate">{clientName ?? "Unknown"}</div>
+              {counter && <div className="text-[10px] text-amber-700">Client {counter}</div>}
+            </div>
+
+            {/* Controls */}
+            <div className="px-3 py-2.5 space-y-2">
+              {/* Studio Access toggle */}
+              <button
+                onClick={onToggleAccess}
+                disabled={togglingAccess}
+                className="flex w-full items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-[11px] font-medium transition-colors hover:bg-amber-100 disabled:opacity-50"
+              >
+                {togglingAccess ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                ) : studioAccess ? (
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-green-700" />
+                ) : (
+                  <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-red-700" />
+                )}
+                <span>Studio Access: <strong>{studioAccess ? "Granted" : "No Access"}</strong></span>
+                <span className="ml-auto text-amber-600 text-[10px]">toggle</span>
+              </button>
+
+              {/* Design Lock toggle */}
+              <button
+                onClick={onToggleLock}
+                disabled={togglingLock || !studioAccess}
+                className="flex w-full items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-[11px] font-medium transition-colors hover:bg-amber-100 disabled:opacity-40"
+                title={!studioAccess ? "Grant studio access first" : undefined}
+              >
+                {togglingLock ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                ) : studioAccessLocked ? (
+                  <Lock className="h-3.5 w-3.5 shrink-0 text-amber-700" />
+                ) : (
+                  <Unlock className="h-3.5 w-3.5 shrink-0 text-blue-700" />
+                )}
+                <span>Design: <strong>{studioAccessLocked ? "Locked" : "Unlocked"}</strong></span>
+                <span className="ml-auto text-amber-600 text-[10px]">toggle</span>
+              </button>
+            </div>
+
+            {/* Links */}
+            <div className="flex items-center gap-2 px-3 pb-2.5">
+              <button
+                onClick={() => { setOpen(false); onBack(); }}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-amber-100"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                Back to Admin
+              </button>
+              <a
+                href={`/onboarding/${clientId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-amber-100"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Onboarding Form
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Page content */}
+      {children}
     </>
   );
 }
