@@ -225,26 +225,69 @@ function buildSection4(language: string): object[] {
     heading3("Human Readable"),
   ];
 
-  // Table
-  const tableRows: object[] = [
-    {
-      type: "table_row",
-      table_row: { cells: [rt("String Key"), rt("Value")] },
-    },
-    ...entries.map(([key, value]) => ({
-      type: "table_row",
-      table_row: { cells: [rt(key, { code: true }), rt(String(value))] },
-    })),
-  ];
+  // Notion limit: a single table block can have at most 100 children (rows).
+  // We reserve 1 row for the header and cap data rows per table at 90 for safety.
+  const MAX_DATA_ROWS_PER_TABLE = 90;
 
-  blocks.push({
-    type: "table",
-    table: {
-      table_width: 2,
-      has_column_header: true,
-      has_row_header: false,
-      children: tableRows,
-    },
+  // Group entries by semantic prefix (e.g. "sport.", "casino.") so a chunk
+  // boundary doesn't split a logical section. Keys without a "." form a
+  // "(general)" group. Within each group, entries keep alphabetical order.
+  const prefixGroups = new Map<string, Array<[string, unknown]>>();
+  for (const [key, value] of entries) {
+    const dotIdx = key.indexOf(".");
+    const prefix = dotIdx > 0 ? key.slice(0, dotIdx) : "(general)";
+    if (!prefixGroups.has(prefix)) prefixGroups.set(prefix, []);
+    prefixGroups.get(prefix)!.push([key, value]);
+  }
+
+  // Pack prefix groups into chunks of ≤ MAX_DATA_ROWS_PER_TABLE rows.
+  // If a single prefix exceeds the cap, it is split sequentially.
+  const chunks: Array<Array<[string, unknown]>> = [];
+  let current: Array<[string, unknown]> = [];
+  for (const group of prefixGroups.values()) {
+    if (group.length > MAX_DATA_ROWS_PER_TABLE) {
+      if (current.length > 0) {
+        chunks.push(current);
+        current = [];
+      }
+      for (let i = 0; i < group.length; i += MAX_DATA_ROWS_PER_TABLE) {
+        chunks.push(group.slice(i, i + MAX_DATA_ROWS_PER_TABLE));
+      }
+      continue;
+    }
+    if (current.length + group.length > MAX_DATA_ROWS_PER_TABLE) {
+      chunks.push(current);
+      current = [];
+    }
+    current.push(...group);
+  }
+  if (current.length > 0) chunks.push(current);
+
+  // Emit one heading + table per chunk.
+  chunks.forEach((chunk, idx) => {
+    const partLabel = chunks.length > 1 ? ` (Part ${idx + 1} of ${chunks.length})` : "";
+    blocks.push(heading3(`Strings${partLabel} — ${chunk.length} entries`));
+
+    const tableRows: object[] = [
+      {
+        type: "table_row",
+        table_row: { cells: [rt("String Key"), rt("Value")] },
+      },
+      ...chunk.map(([key, value]) => ({
+        type: "table_row",
+        table_row: { cells: [rt(key, { code: true }), rt(String(value))] },
+      })),
+    ];
+
+    blocks.push({
+      type: "table",
+      table: {
+        table_width: 2,
+        has_column_header: true,
+        has_row_header: false,
+        children: tableRows,
+      },
+    });
   });
 
   blocks.push(heading3("JSON Export"));
