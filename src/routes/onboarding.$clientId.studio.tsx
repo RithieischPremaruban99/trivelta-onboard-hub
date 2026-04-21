@@ -13,6 +13,7 @@ import {
   type StudioThemeColors,
   type StudioAppIcons,
   type StudioSavedConfig,
+  type StudioAppLabels,
   type BrandPromptEntry,
   type Language,
   LANGUAGE_NAMES,
@@ -45,6 +46,7 @@ import {
   Info,
   Sliders,
   Settings2,
+  AlertTriangle,
 } from "lucide-react";
 import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
@@ -291,7 +293,7 @@ function AssetUploadZone({
 
 /* ── Save & Lock modals ──────────────────────────────────────────────────── */
 
-function SaveConfirmModal({
+function LockConfirmModal({
   onConfirm,
   onCancel,
   loading,
@@ -300,20 +302,71 @@ function SaveConfirmModal({
   onCancel: () => void;
   loading: boolean;
 }) {
+  const [confirmInput, setConfirmInput] = useState("");
+  const confirmed = confirmInput === "LOCK";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-[420px] rounded-2xl border border-border bg-card p-7 shadow-2xl">
-        <div className="mb-1 flex items-center gap-2.5">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-success/15">
-            <Lock className="h-4 w-4 text-success" />
+      <div className="w-[460px] rounded-2xl border border-border bg-card p-7 shadow-2xl">
+        {/* Header */}
+        <div className="mb-4 flex items-start gap-3">
+          <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-destructive/10">
+            <ShieldAlert className="h-4.5 w-4.5 text-destructive" />
           </div>
-          <span className="text-[16px] font-semibold text-foreground">Lock your design?</span>
+          <div>
+            <div className="text-[16px] font-semibold text-foreground leading-tight">
+              Lock Design &amp; Send to Trivelta Team?
+            </div>
+            <div className="mt-0.5 text-[11px] text-destructive font-medium">This action is permanent and cannot be undone.</div>
+          </div>
         </div>
-        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-          Once saved, your design will be sent to your Account Manager for implementation. You won't
-          be able to make changes after this point - contact your AM if adjustments are needed.
-        </p>
-        <div className="mt-6 flex justify-end gap-2.5">
+
+        {/* Body */}
+        <div className="space-y-3 text-[13px] leading-relaxed text-muted-foreground">
+          <p>
+            Once locked, you cannot modify colors, brand assets, language, or any other
+            configuration from this Studio.
+          </p>
+          <p>
+            Your complete design package will be sent to your Trivelta Account Manager immediately.
+            Our technical team will begin configuring your platform based on these exact
+            specifications.
+          </p>
+          <p className="text-[12px]">
+            If you need changes after locking, contact your Account Manager directly — changes may
+            cause deployment delays.
+          </p>
+        </div>
+
+        {/* What gets locked */}
+        <div className="mt-4 rounded-lg border border-border bg-muted/30 px-4 py-3">
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            This will lock:
+          </div>
+          <ul className="space-y-1 text-[12px] text-foreground">
+            <li className="flex items-center gap-2"><Lock className="h-3 w-3 text-muted-foreground shrink-0" /> All 344 color fields</li>
+            <li className="flex items-center gap-2"><Lock className="h-3 w-3 text-muted-foreground shrink-0" /> Your logo and app icon</li>
+            <li className="flex items-center gap-2"><Lock className="h-3 w-3 text-muted-foreground shrink-0" /> Language and app name</li>
+            <li className="flex items-center gap-2"><Lock className="h-3 w-3 text-muted-foreground shrink-0" /> All manual color overrides</li>
+          </ul>
+        </div>
+
+        {/* Typed confirmation */}
+        <div className="mt-5">
+          <label className="mb-1.5 block text-[12px] font-medium text-foreground">
+            Type <span className="font-mono font-bold text-destructive">LOCK</span> to confirm
+          </label>
+          <input
+            value={confirmInput}
+            onChange={(e) => setConfirmInput(e.target.value)}
+            placeholder="LOCK"
+            autoFocus
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-destructive/50"
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="mt-5 flex justify-end gap-2.5">
           <button
             onClick={onCancel}
             disabled={loading}
@@ -323,61 +376,15 @@ function SaveConfirmModal({
           </button>
           <button
             onClick={onConfirm}
-            disabled={loading}
-            className="flex items-center gap-2 rounded-xl bg-success px-5 py-2.5 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            disabled={loading || !confirmed}
+            className="flex items-center gap-2 rounded-xl bg-destructive px-5 py-2.5 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             {loading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <Lock className="h-3.5 w-3.5" />
             )}
-            Lock &amp; Submit Design
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LockModal({
-  onConfirm,
-  onCancel,
-  loading,
-}: {
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading: boolean;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-[340px] rounded-2xl border border-border bg-card p-6 shadow-2xl">
-        <div className="mb-1 flex items-center gap-2">
-          <Lock className="h-4 w-4 text-success" />
-          <span className="text-[15px] font-semibold">Lock My Design?</span>
-        </div>
-        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Once locked, colors and brand assets can't be changed from the Studio. Your Trivelta team
-          will use these values to configure your platform.
-        </p>
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-secondary disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-success px-4 py-2 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {loading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Lock className="h-3.5 w-3.5" />
-            )}
-            Lock Design
+            Lock &amp; Send to Team
           </button>
         </div>
       </div>
@@ -404,6 +411,7 @@ export function StudioInner({
     brandPromptHistory,
     appIcons,
     setAppIcons,
+    appLabels,
     previewMode,
     setPreviewMode,
     language,
@@ -418,6 +426,11 @@ export function StudioInner({
   const [lockedAt, setLockedAt] = useState<string | null>(initialLockedAt);
   const [lockModalOpen, setLockModalOpen] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+
+  type SaveStatus = "idle" | "saving" | "saved" | "error";
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const savedFadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [locking, setLocking] = useState(false);
   type ActivePanel = "chat" | "quickEdit" | "advanced" | "animations" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>("chat");
@@ -529,6 +542,7 @@ export function StudioInner({
       icons: appIcons,
       language,
       appName,
+      appLabels,
     };
     await supabase
       .from("onboarding_forms")
@@ -536,7 +550,7 @@ export function StudioInner({
         { client_id: clientId, studio_config: payload as never },
         { onConflict: "client_id" },
       );
-  }, [clientId, palette, manualOverrides, brandPromptHistory, appIcons, language, appName]);
+  }, [clientId, palette, manualOverrides, brandPromptHistory, appIcons, language, appName, appLabels]);
 
   const scheduleAutoSave = useCallback(
     (
@@ -547,26 +561,36 @@ export function StudioInner({
     ) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+      setSaveStatus("saving");
       autoSaveTimer.current = setTimeout(async () => {
-        await supabase
-          .from("onboarding_forms")
-          .upsert(
-            {
-              client_id: clientId,
-              studio_config: {
-                palette: pal,
-                manualOverrides: Array.from(overrides),
-                brandPromptHistory: history,
-                icons,
-                language,
-                appName,
-              } as never,
-            },
-            { onConflict: "client_id" },
-          );
+        try {
+          await supabase
+            .from("onboarding_forms")
+            .upsert(
+              {
+                client_id: clientId,
+                studio_config: {
+                  palette: pal,
+                  manualOverrides: Array.from(overrides),
+                  brandPromptHistory: history,
+                  icons,
+                  language,
+                  appName,
+                  appLabels,
+                } as never,
+              },
+              { onConflict: "client_id" },
+            );
+          setSaveStatus("saved");
+          setLastSavedAt(new Date());
+          if (savedFadeTimer.current) clearTimeout(savedFadeTimer.current);
+          savedFadeTimer.current = setTimeout(() => setSaveStatus("idle"), 2000);
+        } catch {
+          setSaveStatus("error");
+        }
       }, 2000);
     },
-    [clientId, locked, language, appName],
+    [clientId, locked, language, appName, appLabels],
   );
 
   useEffect(() => {
@@ -626,6 +650,7 @@ export function StudioInner({
             icons: appIcons,
             language,
             appName,
+            appLabels,
           } as never,
           studio_locked: true,
           studio_locked_at: now,
@@ -668,6 +693,7 @@ export function StudioInner({
             icons: appIcons,
             language,
             appName,
+            appLabels,
           } as never,
           studio_locked: true,
           studio_locked_at: now,
@@ -725,7 +751,40 @@ export function StudioInner({
             <Sparkles className="h-2.5 w-2.5" /> Platform Studio
           </span>
         </div>
-        <div className="flex w-[35%] shrink-0 items-center justify-end">
+        <div className="flex w-[35%] shrink-0 items-center justify-end gap-3">
+          {/* Save indicator — only when not locked */}
+          {!locked && (
+            <div className="flex items-center gap-1.5 text-[11px]">
+              {saveStatus === "saving" && (
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Saving…
+                </span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="flex items-center gap-1 text-success">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Saved
+                </span>
+              )}
+              {saveStatus === "error" && (
+                <span className="flex items-center gap-1 text-destructive">
+                  <AlertTriangle className="h-3 w-3" />
+                  Couldn't save
+                </span>
+              )}
+              {saveStatus === "idle" && lastSavedAt && (
+                <span className="text-muted-foreground/50">
+                  {(() => {
+                    const diff = Math.floor((Date.now() - lastSavedAt.getTime()) / 1000);
+                    if (diff < 60) return "Saved · just now";
+                    if (diff < 3600) return `Saved · ${Math.floor(diff / 60)}m ago`;
+                    return null;
+                  })()}
+                </span>
+              )}
+            </div>
+          )}
           {locked ? (
             <button
               onClick={() =>
@@ -1071,9 +1130,9 @@ export function StudioInner({
         </button>
       )}
 
-      {/* ── Lock modal ──────────────────────────────────────────────────── */}
+      {/* ── Unified lock confirmation modal ─────────────────────────────── */}
       {lockModalOpen && (
-        <LockModal
+        <LockConfirmModal
           onConfirm={handleLock}
           onCancel={() => setLockModalOpen(false)}
           loading={locking}
@@ -1081,7 +1140,7 @@ export function StudioInner({
       )}
 
       {saveConfirmOpen && (
-        <SaveConfirmModal
+        <LockConfirmModal
           onConfirm={handleLockAndSubmit}
           onCancel={() => setSaveConfirmOpen(false)}
           loading={locking}
@@ -1328,6 +1387,7 @@ function StudioPage() {
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
+  const [initialAppLabels, setInitialAppLabels] = useState<Partial<StudioAppLabels> | undefined>(undefined);
   const [initialLocked, setInitialLocked] = useState(false);
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
   const [accessLocked, setAccessLocked] = useState(false);
@@ -1392,6 +1452,7 @@ function StudioPage() {
 
         if (saved.language) setInitialLanguage(saved.language);
         if (saved.appName) setInitialAppName(saved.appName);
+        if (saved.appLabels) setInitialAppLabels(saved.appLabels);
       }
 
       if (data?.studio_locked) {
@@ -1534,6 +1595,7 @@ function StudioPage() {
       initialIcons={initialIcons}
       initialLanguage={initialLanguage}
       initialAppName={initialAppName}
+      initialAppLabels={initialAppLabels}
     >
       <StudioInner
         clientId={clientId}

@@ -33,9 +33,21 @@ export function AIChatPanel() {
 
   const hasLogo = !!(appIcons.appNameLogo || appIcons.topLeftAppIcon);
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { role: "assistant", content: buildWelcomeMessage(hasLogo) },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (brandPromptHistory.length === 0) {
+      return [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
+    }
+    // Reconstruct from persisted history (newest-first → reverse for chronological display)
+    const msgs: ChatMessage[] = [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
+    for (const entry of [...brandPromptHistory].reverse()) {
+      msgs.push({ role: "user", content: entry.prompt });
+      const reply = entry.reasoning || entry.keyColorsSummary;
+      if (reply) {
+        msgs.push({ role: "assistant", content: reply });
+      }
+    }
+    return msgs;
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -90,10 +102,12 @@ export function AIChatPanel() {
         }
 
         setPalette(data.palette as TCMPalette);
-        addBrandPrompt(trimmed);
+        const reasoning: string | undefined = typeof data.reasoning === "string" ? data.reasoning : undefined;
+        const keyColorsSummary: string | undefined = typeof data.keyColorsSummary === "string" ? data.keyColorsSummary : undefined;
+        addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
 
         const summaryText: string =
-          data.reasoning || data.keyColorsSummary || "Palette applied — check the preview on the right.";
+          reasoning || keyColorsSummary || "Palette applied — check the preview on the right.";
 
         setMessages((prev) => [...prev, { role: "assistant", content: summaryText }]);
 

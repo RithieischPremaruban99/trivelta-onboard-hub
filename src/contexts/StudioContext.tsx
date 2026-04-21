@@ -222,12 +222,13 @@ export interface StudioSavedConfig {
   // New format (Phase 3+)
   palette?: Partial<TCMPalette>;
   manualOverrides?: (keyof TCMPalette)[];
-  brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string }>;
+  brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string }>;
   // Legacy format (pre-Phase 3) — kept for backward compat reads
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
   language?: Language;
   appName?: string;
+  appLabels?: Partial<StudioAppLabels>;
 }
 
 // ---------------------------------------------------------------------------
@@ -238,6 +239,8 @@ export interface BrandPromptEntry {
   prompt: string;
   timestamp: string;
   feedback?: string;
+  reasoning?: string;
+  keyColorsSummary?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +261,7 @@ export interface StudioState {
 
   // Brand prompt history
   brandPromptHistory: BrandPromptEntry[];
-  addBrandPrompt: (prompt: string, feedback?: string) => void;
+  addBrandPrompt: (prompt: string, feedback?: string, reasoning?: string, keyColorsSummary?: string) => void;
 
   // App assets
   appIcons: StudioAppIcons;
@@ -313,6 +316,7 @@ export const StudioProvider: React.FC<{
   initialIcons?: StudioAppIcons;
   initialLanguage?: Language;
   initialAppName?: string;
+  initialAppLabels?: Partial<StudioAppLabels>;
   initialLocked?: boolean;
   /** @deprecated Pass initialPalette instead. Accepted for backward compat with studio-preview. */
   initialColors?: StudioThemeColors;
@@ -324,6 +328,7 @@ export const StudioProvider: React.FC<{
   initialIcons,
   initialLanguage,
   initialAppName,
+  initialAppLabels,
   initialLocked,
   initialColors,
 }) => {
@@ -348,7 +353,8 @@ export const StudioProvider: React.FC<{
   );
   const [appLabels, setAppLabels] = useState<StudioAppLabels>({
     ...defaultAppLabels,
-    appName: initialAppName ?? defaultAppLabels.appName,
+    ...initialAppLabels,
+    appName: initialAppName ?? initialAppLabels?.appName ?? defaultAppLabels.appName,
   });
   const [previewMode, setPreviewMode] = useState<"mobile" | "website">("mobile");
   const [language, setLanguage] = useState<Language>(initialLanguage ?? "en");
@@ -421,11 +427,13 @@ export const StudioProvider: React.FC<{
 
   /** Record a brand prompt in history (max 20 entries). */
   const addBrandPrompt = useCallback(
-    (prompt: string, feedback?: string) => {
+    (prompt: string, feedback?: string, reasoning?: string, keyColorsSummary?: string) => {
       const entry: BrandPromptEntry = {
         prompt,
         timestamp: new Date().toISOString(),
         ...(feedback && { feedback }),
+        ...(reasoning && { reasoning }),
+        ...(keyColorsSummary && { keyColorsSummary }),
       };
       setBrandPromptHistory((prev) =>
         [entry, ...prev].slice(0, MAX_HISTORY),
