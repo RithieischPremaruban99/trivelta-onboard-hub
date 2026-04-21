@@ -2919,9 +2919,9 @@ function paletteToInlineStyle(
   return { ...style, ...extraStyles } as React.CSSProperties;
 }
 
-const BettingAppPreview = () => {
+const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile" | "web"; readOnly?: boolean } = {}) => {
   const { palette, appIcons, previewMode, headingFont, strings } = useStudio();
-  const isMobile = previewMode === "mobile";
+  const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -2936,6 +2936,7 @@ const BettingAppPreview = () => {
       style={paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" })}
     >
       {/* Toolbar */}
+      {!readOnly && (
       <div
         className="flex items-center gap-2 px-4 py-2 w-full flex-shrink-0"
         style={{ background: "var(--p-dark)", borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}
@@ -2955,6 +2956,7 @@ const BettingAppPreview = () => {
           Simulate Notification
         </button>
       </div>
+      )}
 
       <div className="flex items-center justify-center w-full flex-1 p-4 relative overflow-hidden">
       {/* Toast notification */}
