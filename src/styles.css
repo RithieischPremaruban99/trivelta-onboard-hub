@@ -385,6 +385,7 @@
   .animate-spin-slow {
     animation: spin 2.4s linear infinite;
   }
+  .progress-shimmer {
     background: linear-gradient(
       90deg,
       var(--color-primary) 0%,
