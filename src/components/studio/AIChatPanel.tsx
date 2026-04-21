@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useStudio } from "@/contexts/StudioContext";
+import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -10,14 +10,28 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   isError?: boolean;
+  logoVariants?: LogoVariant[];
 }
+
+/* ── Logo request detector ────────────────────────────────────────────────── */
+
+function isLogoRequest(text: string): boolean {
+  const lower = text.toLowerCase();
+  const verbs = /\b(create|generate|design|make|draw|build|give\s+me|need|want|produce)\b/;
+  const subjects = /\b(logo|brand\s*mark|wordmark|app\s+icon|brand\s+identity|icon)\b/;
+  return verbs.test(lower) && subjects.test(lower);
+}
+
+/* ── Welcome message ──────────────────────────────────────────────────────── */
 
 function buildWelcomeMessage(hasLogo: boolean): string {
   if (hasLogo) {
-    return "Hi! I'm Marcus. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it.";
+    return "Hi! I'm Marcus. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it. Want me to generate alternative logos too? Just ask.";
   }
-  return "Hi! I'm Marcus, your brand designer. Describe your platform's brand in 1-2 sentences and I'll generate a complete palette. (Tip: upload your logo in Brand Assets first for better color matching.)";
+  return "Hi! I'm Marcus, your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos — just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
 }
+
+/* ── Component ────────────────────────────────────────────────────────────── */
 
 export function AIChatPanel() {
   const {
@@ -29,6 +43,8 @@ export function AIChatPanel() {
     locked,
     language,
     appIcons,
+    setAppIcons,
+    appName,
   } = useStudio();
 
   const hasLogo = !!(appIcons.appNameLogo || appIcons.topLeftAppIcon);
@@ -41,15 +57,25 @@ export function AIChatPanel() {
     const msgs: ChatMessage[] = [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
     for (const entry of [...brandPromptHistory].reverse()) {
       msgs.push({ role: "user", content: entry.prompt });
-      const reply = entry.reasoning || entry.keyColorsSummary;
-      if (reply) {
-        msgs.push({ role: "assistant", content: reply });
+      if (entry.logoVariants && entry.logoVariants.length > 0) {
+        msgs.push({
+          role: "assistant",
+          content: `Here are the logo variants I generated for ${appName || "your brand"}. Click one to apply it.`,
+          logoVariants: entry.logoVariants,
+        });
+      } else {
+        const reply = entry.reasoning || entry.keyColorsSummary;
+        if (reply) {
+          msgs.push({ role: "assistant", content: reply });
+        }
       }
     }
     return msgs;
   });
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingType, setLoadingType] = useState<"palette" | "logo">("palette");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +85,6 @@ export function AIChatPanel() {
     if (hasLogo !== prevHasLogoRef.current) {
       prevHasLogoRef.current = hasLogo;
       setMessages((prev) => {
-        // Only update if the first message is still the unmodified welcome
         if (prev.length === 1 && prev[0].role === "assistant") {
           return [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
         }
@@ -72,6 +97,84 @@ export function AIChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  /* ── Logo select handler ────────────────────────────────────────────────── */
+
+  const handleLogoSelect = useCallback(
+    (logoUrl: string) => {
+      setAppIcons((prev) => ({
+        ...prev,
+        appNameLogo: logoUrl,
+        topLeftAppIcon: logoUrl,
+      }));
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Logo applied! You can see it in Brand Assets on the left. Want me to adjust your color palette to complement it?",
+        },
+      ]);
+    },
+    [setAppIcons],
+  );
+
+  /* ── Logo generation ────────────────────────────────────────────────────── */
+
+  const handleLogoGeneration = useCallback(
+    async (userMessage: string) => {
+      setLoadingType("logo");
+      setLoading(true);
+
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-logo", {
+          body: {
+            brandPrompt: userMessage,
+            style: "combined",
+            primaryColor: palette.primary,
+            secondaryColor: palette.secondary,
+            brandName: appName || undefined,
+          },
+        });
+
+        if (error) throw new Error(error.message);
+
+        const logos = (data?.logos ?? []) as LogoVariant[];
+
+        if (logos.length === 0) {
+          throw new Error("No logo variants returned");
+        }
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `Here are 3 logo variants for ${appName || "your brand"}. Click one to use it.`,
+            logoVariants: logos,
+          },
+        ]);
+
+        addBrandPrompt(userMessage, "Logo variants generated", undefined, undefined, logos);
+      } catch (err) {
+        console.error("[AIChatPanel] generate-logo error:", err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              "I couldn't generate logos right now. Please try again, or upload your own logo in Brand Assets.",
+            isError: true,
+          },
+        ]);
+      } finally {
+        setLoading(false);
+        setTimeout(() => inputRef.current?.focus(), 0);
+      }
+    },
+    [palette.primary, palette.secondary, appName, addBrandPrompt],
+  );
+
+  /* ── Palette generation ─────────────────────────────────────────────────── */
+
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
@@ -79,6 +182,14 @@ export function AIChatPanel() {
 
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
       setInput("");
+
+      // Route logo requests to logo generation
+      if (isLogoRequest(trimmed)) {
+        await handleLogoGeneration(trimmed);
+        return;
+      }
+
+      setLoadingType("palette");
       setLoading(true);
 
       try {
@@ -102,8 +213,10 @@ export function AIChatPanel() {
         }
 
         setPalette(data.palette as TCMPalette);
-        const reasoning: string | undefined = typeof data.reasoning === "string" ? data.reasoning : undefined;
-        const keyColorsSummary: string | undefined = typeof data.keyColorsSummary === "string" ? data.keyColorsSummary : undefined;
+        const reasoning: string | undefined =
+          typeof data.reasoning === "string" ? data.reasoning : undefined;
+        const keyColorsSummary: string | undefined =
+          typeof data.keyColorsSummary === "string" ? data.keyColorsSummary : undefined;
         addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
 
         const summaryText: string =
@@ -139,8 +252,11 @@ export function AIChatPanel() {
       appIcons,
       setPalette,
       addBrandPrompt,
+      handleLogoGeneration,
     ],
   );
+
+  /* ── Render ─────────────────────────────────────────────────────────────── */
 
   return (
     <div className="flex flex-col h-full">
@@ -162,6 +278,31 @@ export function AIChatPanel() {
               )}
             >
               {msg.content}
+
+              {/* Logo variant picker */}
+              {msg.logoVariants && msg.logoVariants.length > 0 && (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {msg.logoVariants.map((logo, idx) => (
+                    <button
+                      key={logo.seed}
+                      onClick={() => handleLogoSelect(logo.url)}
+                      className="group relative aspect-square overflow-hidden rounded-lg border-2 border-border bg-muted/30 transition-all hover:border-primary hover:shadow-lg"
+                      title={`Use logo variant ${idx + 1}`}
+                    >
+                      <img
+                        src={logo.url}
+                        alt={`Logo variant ${idx + 1}`}
+                        className="h-full w-full object-contain p-2"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/70 opacity-0 transition-opacity group-hover:opacity-100">
+                        <span className="rounded-md bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
+                          Use this
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -170,8 +311,14 @@ export function AIChatPanel() {
           <div className="flex justify-start">
             <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
               <div className="flex items-center gap-2 text-[12px] text-secondary-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                <span>Generating palette…</span>
+                {loadingType === "logo" ? (
+                  <ImageIcon className="h-3.5 w-3.5 animate-pulse text-primary" />
+                ) : (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                )}
+                <span>
+                  {loadingType === "logo" ? "Generating logos…" : "Generating palette…"}
+                </span>
               </div>
               <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
                 <div className="progress-shimmer h-full rounded-full" />
@@ -188,7 +335,7 @@ export function AIChatPanel() {
         <input
           ref={inputRef}
           className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
-          placeholder={locked ? "Design is locked" : "Describe your brand colors…"}
+          placeholder={locked ? "Design is locked" : "Describe your brand, or ask for a logo…"}
           value={input}
           disabled={locked}
           onChange={(e) => setInput(e.target.value)}

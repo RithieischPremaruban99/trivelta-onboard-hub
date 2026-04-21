@@ -222,7 +222,7 @@ export interface StudioSavedConfig {
   // New format (Phase 3+)
   palette?: Partial<TCMPalette>;
   manualOverrides?: (keyof TCMPalette)[];
-  brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string }>;
+  brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string; logoVariants?: LogoVariant[] }>;
   // Legacy format (pre-Phase 3) — kept for backward compat reads
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
@@ -235,12 +235,19 @@ export interface StudioSavedConfig {
 // Brand prompt history entry
 // ---------------------------------------------------------------------------
 
+export interface LogoVariant {
+  url: string;
+  seed: number;
+  prompt: string;
+}
+
 export interface BrandPromptEntry {
   prompt: string;
   timestamp: string;
   feedback?: string;
   reasoning?: string;
   keyColorsSummary?: string;
+  logoVariants?: LogoVariant[];
 }
 
 // ---------------------------------------------------------------------------
@@ -261,7 +268,7 @@ export interface StudioState {
 
   // Brand prompt history
   brandPromptHistory: BrandPromptEntry[];
-  addBrandPrompt: (prompt: string, feedback?: string, reasoning?: string, keyColorsSummary?: string) => void;
+  addBrandPrompt: (prompt: string, feedback?: string, reasoning?: string, keyColorsSummary?: string, logoVariants?: LogoVariant[]) => void;
 
   // App assets
   appIcons: StudioAppIcons;
@@ -427,13 +434,14 @@ export const StudioProvider: React.FC<{
 
   /** Record a brand prompt in history (max 20 entries). */
   const addBrandPrompt = useCallback(
-    (prompt: string, feedback?: string, reasoning?: string, keyColorsSummary?: string) => {
+    (prompt: string, feedback?: string, reasoning?: string, keyColorsSummary?: string, logoVariants?: LogoVariant[]) => {
       const entry: BrandPromptEntry = {
         prompt,
         timestamp: new Date().toISOString(),
         ...(feedback && { feedback }),
         ...(reasoning && { reasoning }),
         ...(keyColorsSummary && { keyColorsSummary }),
+        ...(logoVariants && logoVariants.length > 0 && { logoVariants }),
       };
       setBrandPromptHistory((prev) =>
         [entry, ...prev].slice(0, MAX_HISTORY),
