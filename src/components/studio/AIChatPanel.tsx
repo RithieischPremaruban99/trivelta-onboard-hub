@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
@@ -26,9 +27,9 @@ function isLogoRequest(text: string): boolean {
 
 function buildWelcomeMessage(hasLogo: boolean): string {
   if (hasLogo) {
-    return "Hi! I'm Marcus. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it. Want me to generate alternative logos too? Just ask.";
+    return "Hi! I'm your Trivelta Assistant. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it. Want me to generate alternative logos too? Just ask.";
   }
-  return "Hi! I'm Marcus, your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos — just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
+  return "Hi! I'm your Trivelta Assistant — your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos — just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
 }
 
 /* ── Component ────────────────────────────────────────────────────────────── */
@@ -275,7 +276,7 @@ export function AIChatPanel() {
       setHintIndex(0);
       return;
     }
-    const id = setInterval(() => setHintIndex((i) => i + 1), 3500);
+    const id = setInterval(() => setHintIndex((i) => i + 1), 3000);
     return () => clearInterval(id);
   }, [loading]);
 
@@ -337,19 +338,21 @@ export function AIChatPanel() {
 
         {loading && (
           <div className="flex justify-start animate-fade-in">
-            <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-primary/15 bg-gradient-to-br from-secondary via-secondary to-primary/[0.04] px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-[12px] font-semibold text-secondary-foreground">
-                <span className="grid h-6 w-6 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/20">
-                  <Sparkles className="h-3.5 w-3.5 animate-spin-slow" />
-                </span>
-                <span>Marcus is thinking</span>
-                <span className="flex items-end gap-0.5 pb-0.5">
-                  <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-                  <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-                  <span className="h-1 w-1 animate-bounce rounded-full bg-primary" />
-                </span>
+            <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-primary/15 bg-gradient-to-br from-secondary via-secondary to-primary/[0.04] px-4 py-3.5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="animate-pulse-scale">
+                  <TriveltaLogo size="sm" withSubtitle={false} />
+                </div>
+                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-secondary-foreground">
+                  <span>Trivelta Assistant is thinking</span>
+                  <span className="flex items-end gap-0.5 pb-0.5">
+                    <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                    <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                    <span className="h-1 w-1 animate-bounce rounded-full bg-primary" />
+                  </span>
+                </div>
               </div>
-              <div className="mt-1.5 text-[11px] text-muted-foreground">{headline}</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">{headline}</div>
               <div
                 key={currentHint}
                 className="mt-0.5 animate-fade-in text-[10.5px] italic text-muted-foreground/70"
@@ -375,7 +378,7 @@ export function AIChatPanel() {
             locked
               ? "Design is locked"
               : loading
-                ? "Marcus is working…"
+                ? "Trivelta Assistant is working…"
                 : "Describe your brand, or ask for a logo…"
           }
           value={input}
