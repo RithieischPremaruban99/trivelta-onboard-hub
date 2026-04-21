@@ -58,6 +58,9 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as strin
 
 export const Route = createFileRoute("/onboarding/$clientId/studio")({
   component: StudioPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: typeof search.from === "string" ? (search.from as string) : undefined,
+  }),
 });
 
 /* ── Lottie recolor utilities ───────────────────────────────────────────── */
