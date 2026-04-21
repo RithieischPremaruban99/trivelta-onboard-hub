@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Send } from "lucide-react";
-import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { TriveltaIcon } from "@/components/TriveltaIcon";
 import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
@@ -339,9 +339,7 @@ export function AIChatPanel() {
           <div className="flex justify-start animate-fade-in">
             <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-primary/15 bg-gradient-to-br from-secondary via-secondary to-primary/[0.04] px-4 py-3.5 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="animate-pulse-scale">
-                  <TriveltaLogo size="sm" withSubtitle={false} />
-                </div>
+                <TriveltaIcon className="h-8 w-8 animate-pulse-scale" />
                 <div className="flex items-center gap-1.5 text-[12px] font-semibold text-secondary-foreground">
                   <span>Trivelta Assistant is thinking</span>
                   <span className="flex items-end gap-0.5 pb-0.5">
