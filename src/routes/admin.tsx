@@ -208,17 +208,21 @@ function AdminPage() {
 
   return (
     <AppShell badge="Admin">
-      <div className="mx-auto w-full max-w-[1400px] px-6 py-6">
-        <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mx-auto w-full max-w-[1400px] px-6 py-10">
+        {/* Page header */}
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-semibold">Admin overview</h1>
-            <p className="text-sm text-muted-foreground">
-              All clients, account managers, and onboarding progress.
+            <div className="micro-label mb-3">Trivelta · Control Plane</div>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+              Admin overview
+            </h1>
+            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+              Every client, account manager and onboarding signal — in one premium control surface.
             </p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="btn-premium h-11 px-6 text-[14px]">
                 <Plus className="h-4 w-4" /> New client
               </Button>
             </DialogTrigger>
@@ -232,56 +236,60 @@ function AdminPage() {
           </Dialog>
         </div>
 
-        {/* Stats */}
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={Users} label="Total clients" value={stats.total} />
-          <StatCard icon={Clock} label="Onboarding" value={stats.onboarding} accent="primary" />
-          <StatCard icon={CheckCircle2} label="Active" value={stats.active} accent="success" />
-          <StatCard icon={Percent} label="Avg completion" value={`${stats.avgCompletion}%`} />
+        {/* Hero stats */}
+        <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Total clients" value={stats.total} />
+          <StatCard label="Onboarding" value={stats.onboarding} accent="primary" />
+          <StatCard label="Active" value={stats.active} accent="success" />
+          <StatCard label="Avg completion" value={`${stats.avgCompletion}%`} />
+        </div>
+
+        {/* Section heading */}
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <div className="micro-label">All clients</div>
+            <h2 className="mt-1 text-xl font-semibold text-foreground">
+              {clients.length}{" "}
+              <span className="font-normal text-muted-foreground">in the pipeline</span>
+            </h2>
+          </div>
         </div>
 
         {/* Table */}
-        <div className="surface-card overflow-hidden">
+        <div className="card-premium overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center py-16">
+            <div className="flex items-center justify-center py-20">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : clients.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">
-              No clients yet. Create your first one to get started.
+            <div className="grid place-items-center gap-4 py-20 text-center">
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/20">
+                <Users className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-base font-semibold text-foreground">No clients yet</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  Create your first client to start the onboarding flow.
+                </div>
+              </div>
+              <Button onClick={() => setOpen(true)} className="btn-premium mt-2 h-10 px-5">
+                <Plus className="h-4 w-4" /> Add your first client
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-secondary/40 text-left">
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Client
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Country
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Account Managers
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Progress
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Created
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Studio Access
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Studio Config
-                    </th>
-                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider text-muted-foreground">
-                      Onboarding link
-                    </th>
+                  <tr className="border-b border-border/80 text-left">
+                    <th className="px-5 py-4 micro-label">Client</th>
+                    <th className="px-4 py-4 micro-label">Country</th>
+                    <th className="px-4 py-4 micro-label">Account Managers</th>
+                    <th className="px-4 py-4 micro-label">Status</th>
+                    <th className="px-4 py-4 micro-label">Progress</th>
+                    <th className="px-4 py-4 micro-label">Created</th>
+                    <th className="px-4 py-4 micro-label">Studio</th>
+                    <th className="px-4 py-4 micro-label">Config</th>
+                    <th className="px-4 py-4 micro-label">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -296,18 +304,18 @@ function AdminPage() {
                     return (
                       <tr
                         key={c.id}
-                        className="border-b border-border/60 transition-colors hover:bg-accent/40"
+                        className="row-premium border-b border-border/40 last:border-b-0"
                       >
-                        <td className="px-4 py-3">
-                          <div className="font-medium">{c.name}</div>
+                        <td className="px-5 py-4">
+                          <div className="font-semibold text-foreground">{c.name}</div>
                           {c.primary_contact_email && (
-                            <div className="text-xs text-muted-foreground font-mono">
+                            <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                               {c.primary_contact_email}
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{c.country ?? "-"}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-4 text-muted-foreground">{c.country ?? "—"}</td>
+                        <td className="px-4 py-4">
                           <ClientAmCell
                             clientId={c.id}
                             ams={ams}
@@ -315,21 +323,30 @@ function AdminPage() {
                             onChanged={refresh}
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-4">
                           <StatusBadge status={c.status} />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-24 overflow-hidden rounded-full bg-secondary">
-                              <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
                             </div>
-                            <span className="font-mono text-xs text-muted-foreground">{pct}%</span>
+                            <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
+                              {pct}%
+                            </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground font-mono whitespace-nowrap">
-                          {new Date(c.created_at).toLocaleDateString()}
+                        <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-muted-foreground">
+                          {new Date(c.created_at).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "2-digit",
+                          })}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-4">
                           <StudioAccessCell
                             clientId={c.id}
                             hasAccess={c.studio_access}
@@ -340,31 +357,36 @@ function AdminPage() {
                             }
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-4">
                           <StudioConfigCell clientName={c.name} data={studioData[c.id] ?? null} />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
+                        <td className="px-4 py-4">
+                          <div className="row-actions flex items-center gap-0.5">
                             <Button
-                              size="sm"
+                              size="icon"
                               variant="ghost"
+                              className="h-8 w-8"
+                              title="Copy onboarding link"
                               onClick={() => {
                                 navigator.clipboard.writeText(onboardingUrl);
                                 toast.success("Link copied");
                               }}
                             >
-                              <Copy className="h-3.5 w-3.5" /> Copy
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
                             <Button
-                              size="sm"
+                              size="icon"
                               variant="ghost"
+                              className="h-8 w-8"
+                              title="Open onboarding"
                               onClick={() => window.open(onboardingUrl, "_blank")}
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
                             </Button>
                             <Button
-                              size="sm"
+                              size="icon"
                               variant="ghost"
+                              className="h-8 w-8"
                               title="Open Studio (admin preview)"
                               onClick={() => window.open(`/studio-preview/${c.id}`, "_blank")}
                             >
@@ -372,11 +394,11 @@ function AdminPage() {
                             </Button>
                             {canDelete && (
                               <Button
-                                size="sm"
+                                size="icon"
                                 variant="ghost"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                 title="Delete client (permanent)"
                                 onClick={() => handleDelete(c.id, c.name)}
-                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -397,30 +419,32 @@ function AdminPage() {
 }
 
 function StatCard({
-  icon: Icon,
   label,
   value,
   accent,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string | number;
   accent?: "primary" | "success";
 }) {
-  const ring =
+  const dot =
     accent === "primary"
-      ? "bg-primary/15 text-primary ring-primary/30"
+      ? "bg-primary shadow-[0_0_12px_2px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]"
       : accent === "success"
-        ? "bg-success/15 text-success ring-success/30"
-        : "bg-secondary text-foreground ring-border";
+        ? "bg-success shadow-[0_0_12px_2px_color-mix(in_oklab,var(--color-success)_60%,transparent)]"
+        : "bg-foreground/30";
   return (
-    <div className="surface-card flex items-center gap-4 p-4">
-      <div className={`grid h-10 w-10 place-items-center rounded-md ring-1 ${ring}`}>
-        <Icon className="h-4 w-4" />
+    <div className="card-premium group relative overflow-hidden p-6">
+      <div
+        className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+        aria-hidden
+      />
+      <div className="relative flex items-center justify-between">
+        <span className="micro-label">{label}</span>
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       </div>
-      <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
-        <div className="text-2xl font-semibold font-mono">{value}</div>
+      <div className="relative mt-5">
+        <span className="stat-hero">{value}</span>
       </div>
     </div>
   );
