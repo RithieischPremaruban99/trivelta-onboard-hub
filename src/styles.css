@@ -505,6 +505,160 @@
   }
   .color-swatch { transition: transform 150ms ease; }
   .color-swatch:hover { transform: scale(1.1); }
+
+  /* ============================================================
+     Premium tokens — Revolut-inspired, Trivelta blue
+     ============================================================ */
+
+  /* Premium card: gradient hairline border, soft inner glow, lift on hover */
+  .card-premium {
+    position: relative;
+    background:
+      linear-gradient(180deg,
+        color-mix(in oklab, var(--color-card) 96%, white 4%) 0%,
+        var(--color-card) 100%);
+    border: 1px solid transparent;
+    border-radius: var(--radius-xl);
+    background-clip: padding-box;
+    box-shadow:
+      0 1px 0 0 rgba(255,255,255,0.04) inset,
+      0 8px 24px -12px rgba(0,0,0,0.5);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+  .card-premium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      color-mix(in oklab, var(--color-foreground) 14%, transparent) 0%,
+      color-mix(in oklab, var(--color-foreground) 4%, transparent) 40%,
+      color-mix(in oklab, var(--color-primary) 18%, transparent) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.9;
+    transition: opacity 200ms ease;
+  }
+  .card-premium:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 0 rgba(255,255,255,0.05) inset,
+      0 14px 36px -14px color-mix(in oklab, var(--color-primary) 35%, rgba(0,0,0,0.55));
+  }
+  .card-premium:hover::before { opacity: 1; }
+
+  /* Hero stat number — celebratory, tabular */
+  .stat-hero {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: clamp(2rem, 1.4rem + 1.6vw, 2.75rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(
+      180deg,
+      var(--color-foreground) 0%,
+      color-mix(in oklab, var(--color-foreground) 78%, var(--color-primary) 22%) 100%
+    );
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+  }
+
+  /* Micro label — Revolut-style uppercase metadata */
+  .micro-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-muted-foreground);
+  }
+
+  /* Premium gradient CTA */
+  .btn-premium {
+    background-image: linear-gradient(
+      135deg,
+      var(--color-primary) 0%,
+      color-mix(in oklab, var(--color-primary) 78%, white 22%) 100%
+    );
+    color: var(--color-primary-foreground);
+    font-weight: 600;
+    border-radius: 9999px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.18) inset,
+      0 10px 30px -10px color-mix(in oklab, var(--color-primary) 55%, transparent);
+    transition: transform 180ms ease, box-shadow 200ms ease, filter 180ms ease;
+  }
+  .btn-premium:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.22) inset,
+      0 16px 40px -12px color-mix(in oklab, var(--color-primary) 65%, transparent);
+  }
+  .btn-premium:active { transform: scale(0.98); }
+
+  /* Soft pill backgrounds for status chips */
+  .chip-success {
+    background: color-mix(in oklab, var(--color-success) 14%, transparent);
+    color: var(--color-success);
+    border: 1px solid color-mix(in oklab, var(--color-success) 28%, transparent);
+  }
+  .chip-primary {
+    background: color-mix(in oklab, var(--color-primary) 14%, transparent);
+    color: color-mix(in oklab, var(--color-primary) 65%, white 35%);
+    border: 1px solid color-mix(in oklab, var(--color-primary) 32%, transparent);
+  }
+  .chip-muted {
+    background: color-mix(in oklab, var(--color-foreground) 5%, transparent);
+    color: var(--color-muted-foreground);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Table row premium hover */
+  .row-premium {
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+  }
+  .row-premium:hover {
+    background: color-mix(in oklab, var(--color-foreground) 3%, transparent);
+  }
+  .row-premium:hover .row-actions { opacity: 1; transform: translateX(0); }
+  .row-actions {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+
+  /* Stepper connector line */
+  .stepper-line {
+    background: linear-gradient(
+      90deg,
+      var(--color-border) 0%,
+      var(--color-border) 100%
+    );
+  }
+  .stepper-line-active {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary) 0%,
+      color-mix(in oklab, var(--color-primary) 70%, white 30%) 100%
+    );
+  }
+}
+
+@layer base {
+  /* Always show row-actions on touch devices (no hover) */
+  @media (hover: none) {
+    .row-actions { opacity: 1; transform: none; }
+  }
 }
 
 @layer base {
