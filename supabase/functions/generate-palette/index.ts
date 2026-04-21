@@ -68,12 +68,7 @@ const SYSTEM_PROMPT = `You are Marcus, a senior iGaming brand designer with 10 y
 Return ONLY valid JSON. No markdown fences. No prose outside JSON. Schema:
 
 {
-  "palette": {
-    "primaryBackgroundColor": "rgba(R,G,B,A)",
-    "primary": "rgba(R,G,B,A)",
-    ...
-    (all 344 fields from the TCMPalette interface)
-  },
+  "palette": { ...only fields that deviate from default... },
   "reasoning": "2-3 sentences explaining your choices",
   "keyColorsSummary": {
     "primaryBackgroundColor": "rgba(...)",
@@ -82,6 +77,25 @@ Return ONLY valid JSON. No markdown fences. No prose outside JSON. Schema:
     "lostColor": "rgba(...)"
   }
 }
+
+Output ONLY the fields that should deviate from the default palette for this brand. Return a JSON object containing just the changed fields. Do not include fields that match the default. The system will automatically fill unchanged fields from the default palette.
+
+Minimum required fields you MUST always include:
+- primary
+- primaryBackgroundColor
+- secondary
+- lightTextColor
+- textSecondaryColor
+- wonColor (must be green family)
+- lostColor (must be red family)
+- wonGradient1, wonGradient2
+- primaryButton, primaryButtonGradient
+- dark, darkContainerBackground
+- headerBorderGradient1, headerBorderGradient2
+- activeSecondaryGradientColor
+- inactiveButtonBg
+
+All other fields: include only if you have a specific brand-driven reason to change them from default. Expect to output 60-150 fields total, not 344.
 
 Every rgba() string: valid format, alpha between 0 and 1.
 
@@ -402,6 +416,26 @@ async function callAnthropicWithRetry(
 // Validate + enforce palette
 // ---------------------------------------------------------------------------
 
+const MIN_REQUIRED_FIELDS: (keyof TCMPalette)[] = [
+  "primary",
+  "primaryBackgroundColor",
+  "secondary",
+  "lightTextColor",
+  "textSecondaryColor",
+  "wonColor",
+  "lostColor",
+  "wonGradient1",
+  "wonGradient2",
+  "primaryButton",
+  "primaryButtonGradient",
+  "dark",
+  "darkContainerBackground",
+  "headerBorderGradient1",
+  "headerBorderGradient2",
+  "activeSecondaryGradientColor",
+  "inactiveButtonBg",
+];
+
 function validateAndEnforce(
   raw: Record<string, unknown>,
   req: GeneratePaletteRequest,
@@ -410,31 +444,37 @@ function validateAndEnforce(
   const palette = { ...DEFAULT_TCM_PALETTE } as TCMPalette;
   const allKeys = Object.keys(DEFAULT_TCM_PALETTE) as (keyof TCMPalette)[];
 
-  let missingCount = 0;
+  let aiProvidedCount = 0;
   let invalidCount = 0;
 
   for (const key of allKeys) {
     const aiValue = raw[key];
     if (aiValue === undefined || aiValue === null) {
-      // Missing field — fill from default
-      missingCount++;
-      warnings.push(`Field "${key}" missing from AI response, filled from default`);
-    } else if (!isValidRgba(aiValue)) {
-      // Invalid rgba — fill from default
+      // Missing — silently fill from default (expected normal path)
+      continue;
+    }
+    if (!isValidRgba(aiValue)) {
       invalidCount++;
       warnings.push(
         `Field "${key}" has invalid value "${String(aiValue).slice(0, 40)}", replaced with default`
       );
-    } else {
-      (palette as Record<string, string>)[key] = aiValue as string;
+      continue;
+    }
+    (palette as Record<string, string>)[key] = aiValue as string;
+    aiProvidedCount++;
+  }
+
+  // Warn if any required field missing or invalid
+  for (const key of MIN_REQUIRED_FIELDS) {
+    const v = raw[key];
+    if (v === undefined || v === null || !isValidRgba(v)) {
+      warnings.push(`Required field "${key}" missing or invalid — using default`);
     }
   }
 
-  if (missingCount > 0) {
-    console.log(
-      `[generate-palette] ${missingCount} missing fields, ${invalidCount} invalid fields — filled from default`
-    );
-  }
+  console.log(
+    `[generate-palette] AI provided ${aiProvidedCount} valid fields, ${invalidCount} invalid, ${344 - aiProvidedCount} filled from defaults`
+  );
 
   // PAM enforcement
   let pamResets = 0;
