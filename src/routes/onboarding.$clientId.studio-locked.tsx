@@ -1,8 +1,15 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Palette, ClipboardList, ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/onboarding/$clientId/studio-locked")({
   component: StudioLockedPage,
@@ -13,6 +20,7 @@ function StudioLockedPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Trivelta Hub · Design Submitted";
@@ -93,7 +101,7 @@ function StudioLockedPage() {
         {/* CTAs */}
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })}
+            onClick={() => setViewDialogOpen(true)}
             className="rounded-xl border border-border bg-card hover:bg-muted/50 px-4 py-3 text-sm font-semibold text-foreground transition-colors"
           >
             View Locked Design
@@ -114,6 +122,76 @@ function StudioLockedPage() {
         </div>
 
       </div>
+
+      {/* View destination dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Where would you like to go?</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-2">
+              Your locked design lives in the Studio. The Onboarding Form collects your platform's
+              setup information — both are part of your account.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-3 mt-4">
+
+            {/* Studio option */}
+            <button
+              onClick={() => {
+                setViewDialogOpen(false);
+                navigate({ to: "/onboarding/$clientId/studio", params: { clientId } });
+              }}
+              className="group flex items-start gap-4 rounded-xl border border-border bg-card/50 p-4 text-left transition-all hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-0.5"
+            >
+              <div className="h-10 w-10 rounded-lg bg-primary/10 grid place-items-center flex-shrink-0">
+                <Palette className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-foreground mb-1">
+                  View Locked Design in Studio
+                </div>
+                <div className="text-[11px] text-muted-foreground leading-relaxed">
+                  See the final palette, logos, and brand assets you submitted. Read-only.
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:text-primary group-hover:translate-x-0.5 flex-shrink-0 mt-2" />
+            </button>
+
+            {/* Onboarding option */}
+            <button
+              onClick={() => {
+                setViewDialogOpen(false);
+                navigate({ to: "/onboarding/$clientId/form", params: { clientId } });
+              }}
+              className="group flex items-start gap-4 rounded-xl border border-border bg-card/50 p-4 text-left transition-all hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-0.5"
+            >
+              <div className="h-10 w-10 rounded-lg bg-primary/10 grid place-items-center flex-shrink-0">
+                <ClipboardList className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-foreground mb-1">
+                  Continue Onboarding Form
+                </div>
+                <div className="text-[11px] text-muted-foreground leading-relaxed">
+                  Fill out team contacts, platform setup, legal, and third-party details.
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:text-primary group-hover:translate-x-0.5 flex-shrink-0 mt-2" />
+            </button>
+
+          </div>
+
+          <div className="flex justify-center mt-2">
+            <button
+              onClick={() => setViewDialogOpen(false)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
