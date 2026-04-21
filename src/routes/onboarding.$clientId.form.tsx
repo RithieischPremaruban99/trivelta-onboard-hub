@@ -43,6 +43,7 @@ import {
   ExternalLink,
   Info,
   AlertTriangle,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -745,30 +746,47 @@ function FormScreen() {
         </div>
       </main>
 
-      {/* Fixed bottom submit bar */}
-      <footer className="sticky bottom-0 z-20 border-t border-border bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[860px] items-center justify-between gap-4 px-5 py-4">
-          <div>
-            <div className="text-sm font-medium text-foreground">
-              {isFormComplete(form)
-                ? "All sections complete — ready to submit"
-                : `${filled} of ${total} required fields complete`}
+      {/* Sticky bottom submit bar */}
+      <footer className="sticky bottom-0 z-20 border-t border-border bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[860px] flex-wrap items-center justify-between gap-4 px-5 py-4 sm:flex-nowrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-semibold tabular-nums text-foreground">
+                {isFormComplete(form) ? "All set" : `${filled}`}
+              </span>
+              {!isFormComplete(form) && (
+                <span className="text-[12px] text-muted-foreground">
+                  of {total} required fields
+                </span>
+              )}
+              {isFormComplete(form) && (
+                <span className="text-[12px] text-success">— ready to submit</span>
+              )}
             </div>
-            <div className="mt-0.5 text-[12px] text-muted-foreground">
+            <div className="mt-2 h-[3px] w-full max-w-[280px] overflow-hidden rounded-full bg-foreground/[0.06]">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  completion >= 100 ? "bg-success" : "progress-shimmer",
+                )}
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+            <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               {isOwner
-                ? "Progress is saved automatically."
-                : `Only ${ownerEmail ?? "the account owner"} can submit.`}
+                ? "Auto-saved · live sync"
+                : `Owner: ${ownerEmail ?? "unknown"} · view-only`}
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center">
             {isOwner ? (
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
                 className={cn(
-                  "h-11 min-w-[200px] px-6 font-medium",
+                  "h-11 min-w-[200px] px-6 text-[14px] font-semibold",
                   isFormComplete(form)
-                    ? "btn-trivelta"
+                    ? "btn-premium"
                     : "rounded-full bg-secondary text-muted-foreground hover:bg-secondary/80",
                 )}
               >
@@ -783,14 +801,9 @@ function FormScreen() {
                 )}
               </Button>
             ) : (
-              <p className="max-w-[280px] text-right text-sm text-muted-foreground">
-                Only{" "}
-                <span className="font-medium text-foreground">
-                  {ownerEmail ?? "the account owner"}
-                </span>{" "}
-                can submit this form.
-                <span className="mt-0.5 block text-[12px]">You can still fill in any fields.</span>
-              </p>
+              <div className="rounded-full border border-border bg-card/60 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                <Lock className="mr-1.5 inline h-3 w-3" /> Owner-only submit
+              </div>
             )}
           </div>
         </div>
