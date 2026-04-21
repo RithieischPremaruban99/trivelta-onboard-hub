@@ -428,7 +428,7 @@ function StudioPreviewPage() {
     (async () => {
       const { data } = await supabase
         .from("onboarding_forms")
-        .select("studio_config, studio_locked, studio_locked_at, submitted_by_email")
+        .select("studio_config, studio_locked, studio_locked_at")
         .eq("client_id", clientId)
         .maybeSingle();
 
@@ -473,7 +473,7 @@ function StudioPreviewPage() {
         appName,
         appLabels,
         lockedAt: data.studio_locked_at ?? null,
-        submittedByEmail: data.submitted_by_email ?? null,
+        submittedByEmail: null,
       });
       setReady(true);
     })();
