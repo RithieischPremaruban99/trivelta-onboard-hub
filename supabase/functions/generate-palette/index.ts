@@ -68,12 +68,7 @@ const SYSTEM_PROMPT = `You are Marcus, a senior iGaming brand designer with 10 y
 Return ONLY valid JSON. No markdown fences. No prose outside JSON. Schema:
 
 {
-  "palette": {
-    "primaryBackgroundColor": "rgba(R,G,B,A)",
-    "primary": "rgba(R,G,B,A)",
-    ...
-    (all 344 fields from the TCMPalette interface)
-  },
+  "palette": { ...only fields that deviate from default... },
   "reasoning": "2-3 sentences explaining your choices",
   "keyColorsSummary": {
     "primaryBackgroundColor": "rgba(...)",
@@ -82,6 +77,25 @@ Return ONLY valid JSON. No markdown fences. No prose outside JSON. Schema:
     "lostColor": "rgba(...)"
   }
 }
+
+Output ONLY the fields that should deviate from the default palette for this brand. Return a JSON object containing just the changed fields. Do not include fields that match the default. The system will automatically fill unchanged fields from the default palette.
+
+Minimum required fields you MUST always include:
+- primary
+- primaryBackgroundColor
+- secondary
+- lightTextColor
+- textSecondaryColor
+- wonColor (must be green family)
+- lostColor (must be red family)
+- wonGradient1, wonGradient2
+- primaryButton, primaryButtonGradient
+- dark, darkContainerBackground
+- headerBorderGradient1, headerBorderGradient2
+- activeSecondaryGradientColor
+- inactiveButtonBg
+
+All other fields: include only if you have a specific brand-driven reason to change them from default. Expect to output 60-150 fields total, not 344.
 
 Every rgba() string: valid format, alpha between 0 and 1.
 
