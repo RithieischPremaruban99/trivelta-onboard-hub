@@ -133,7 +133,7 @@ function AdminPage() {
       supabase
         .from("clients")
         .select(
-          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access",
+          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
         )
         .order("created_at", { ascending: false }),
       supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
