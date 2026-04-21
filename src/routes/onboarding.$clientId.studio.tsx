@@ -41,6 +41,7 @@ import {
   ChevronUp,
   Download,
   ShieldAlert,
+  ShieldCheck,
   Mail,
   Clapperboard,
   Info,
@@ -297,10 +298,12 @@ function LockConfirmModal({
   onConfirm,
   onCancel,
   loading,
+  isAdmin = false,
 }: {
   onConfirm: () => void;
   onCancel: () => void;
   loading: boolean;
+  isAdmin?: boolean;
 }) {
   const [confirmInput, setConfirmInput] = useState("");
   const confirmed = confirmInput === "LOCK";
@@ -313,13 +316,22 @@ function LockConfirmModal({
           <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-destructive/10">
             <ShieldAlert className="h-4.5 w-4.5 text-destructive" />
           </div>
-          <div>
+          <div className="flex-1">
             <div className="text-[16px] font-semibold text-foreground leading-tight">
               Lock Design &amp; Send to Trivelta Team?
             </div>
             <div className="mt-0.5 text-[11px] text-destructive font-medium">This action is permanent and cannot be undone.</div>
           </div>
         </div>
+
+        {/* Admin override pill */}
+        {isAdmin && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="text-[12px] font-semibold text-primary">Submitting as Admin</span>
+            <span className="text-[11px] text-muted-foreground">— overriding primary contact requirement</span>
+          </div>
+        )}
 
         {/* Body */}
         <div className="space-y-3 text-[13px] leading-relaxed text-muted-foreground">
@@ -404,8 +416,10 @@ export function StudioInner({
   initialLockedAt: string | null;
 }) {
   const { welcomeInfo, clientRole, ownerEmail } = useOnboardingCtx();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
-  const canSubmit = clientRole === "client_owner";
+  const isAdmin = role === "admin";
+  const canSubmit = clientRole === "client_owner" || isAdmin;
   const {
     palette,
     manualOverrides,
@@ -613,7 +627,11 @@ export function StudioInner({
           Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`,
           apikey: SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ client_id: clientId }),
+        body: JSON.stringify({
+          client_id: clientId,
+          submitted_by: isAdmin ? "admin" : "client_owner",
+          submitter_email: user?.email ?? null,
+        }),
       });
       const responseText = await res.text();
       console.log("[Studio] design-locked response:", res.status, responseText);
@@ -1096,6 +1114,7 @@ export function StudioInner({
           onConfirm={handleLock}
           onCancel={() => setLockModalOpen(false)}
           loading={locking}
+          isAdmin={isAdmin && clientRole !== "client_owner"}
         />
       )}
 

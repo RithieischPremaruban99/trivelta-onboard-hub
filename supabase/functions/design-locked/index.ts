@@ -34,6 +34,8 @@ const corsHeaders = {
 
 interface RequestBody {
   client_id: string;
+  submitted_by?: "admin" | "client_owner";
+  submitter_email?: string | null;
 }
 
 interface StudioIcons {
@@ -137,6 +139,8 @@ function buildSection1(
   clientId: string,
   lockedAt: string,
   amName: string | null,
+  submittedBy: string,
+  submitterEmail: string | null,
 ): object[] {
   const dateHuman = new Date(lockedAt).toLocaleString("en-GB", {
     day: "numeric",
@@ -147,12 +151,17 @@ function buildSection1(
     timeZone: "UTC",
   }) + " UTC";
 
+  const submitterLine = submittedBy === "admin"
+    ? `Admin override — submitted by ${submitterEmail ?? "Trivelta admin"}`
+    : `Client (${submitterEmail ?? "primary contact"})`;
+
   return [
     heading2("1. Client Metadata"),
     bulletedListItem(rt(`Client Name: ${clientName}`)),
     bulletedListItem(rt(`Client ID: ${clientId}`)),
     bulletedListItem(rt(`Lock Timestamp: ${dateHuman}`)),
     bulletedListItem(rt(`Account Manager: ${amName ?? "Not assigned"}`)),
+    bulletedListItem(rt(`Submitted By: ${submitterLine}`)),
   ];
 }
 
@@ -320,6 +329,8 @@ function buildAllBlocks(
   clientName: string,
   clientId: string,
   amName: string | null,
+  submittedBy: string,
+  submitterEmail: string | null,
 ): object[] {
   const date = new Date(lockedAt).toLocaleDateString("en-GB", {
     day: "numeric",
@@ -347,7 +358,7 @@ function buildAllBlocks(
       "green_background",
     ),
     divider(),
-    ...buildSection1(clientName, clientId, lockedAt, amName),
+    ...buildSection1(clientName, clientId, lockedAt, amName, submittedBy, submitterEmail),
     divider(),
     ...buildSection2(config),
     divider(),
@@ -471,11 +482,12 @@ Deno.serve(async (req) => {
     );
 
     const body: RequestBody = await req.json();
-    const { client_id } = body;
+    const { client_id, submitted_by = "client_owner", submitter_email = null } = body;
     if (!client_id) throw new Error("client_id is required");
 
     const fnStart = Date.now();
     console.log(`[design-locked] Triggered for client_id: ${client_id} at ${new Date().toISOString()}`);
+    console.log(`[design-locked] Submitted by: ${submitted_by} (${submitter_email ?? "unknown"})`);
     console.log(`[design-locked] NOTION_TOKEN present: ${!!NOTION_TOKEN}`);
 
     // 1. Read client record
@@ -536,7 +548,7 @@ Deno.serve(async (req) => {
 
     // 5. Build blocks and append to Notion (Notion sync errors don't fail the lock)
     try {
-      const blocks = buildAllBlocks(studioConfig, lockedAt, client.name, client_id, amName);
+      const blocks = buildAllBlocks(studioConfig, lockedAt, client.name, client_id, amName, submitted_by, submitter_email);
       console.log(`[design-locked] About to sync to Notion. Page ID: ${notionPageId}, blocks: ${blocks.length}`);
       await appendBlocksToPage(notionPageId, blocks, NOTION_TOKEN);
 
