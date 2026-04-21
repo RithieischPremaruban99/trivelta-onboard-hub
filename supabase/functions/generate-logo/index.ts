@@ -17,8 +17,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const IDEOGRAM_API = "https://api.ideogram.ai/generate";
-const IDEOGRAM_MODEL = "V_3";
+const IDEOGRAM_API = "https://api.ideogram.ai/v1/ideogram-v3/generate";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -155,13 +154,21 @@ Deno.serve(async (req: Request) => {
   const prompt = buildIdeogramPrompt(resolvedBrandName, style, primaryHex, secondaryHex);
 
   // Aspect ratio: wide for wordmark, square for icon/combined
-  const aspectRatio = style === "wordmark" ? "ASPECT_16_9" : "ASPECT_1_1";
+  const aspectRatio = style === "wordmark" ? "16x9" : "1x1";
 
   console.log(
-    `[generate-logo] Calling Ideogram with brand: ${resolvedBrandName}, style: ${style}, model: ${IDEOGRAM_MODEL}`
+    `[generate-logo] Calling Ideogram v3 with brand: ${resolvedBrandName}, style: ${style}, rendering_speed: DEFAULT`
   );
 
   const callStart = Date.now();
+
+  const formData = new FormData();
+  formData.append("prompt", prompt);
+  formData.append("rendering_speed", "DEFAULT");
+  formData.append("num_images", "3");
+  formData.append("aspect_ratio", aspectRatio);
+  formData.append("style_type", "DESIGN");
+  formData.append("magic_prompt", "ON");
 
   let ideogramResp: Response;
   try {
@@ -169,18 +176,8 @@ Deno.serve(async (req: Request) => {
       method: "POST",
       headers: {
         "Api-Key": IDEOGRAM_API_KEY,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        image_request: {
-          prompt,
-          aspect_ratio: aspectRatio,
-          model: IDEOGRAM_MODEL,
-          magic_prompt_option: "ON",
-          num_images: 3,
-          style_type: "DESIGN",
-        },
-      }),
+      body: formData,
     });
   } catch (networkErr) {
     console.error("[generate-logo] Network error calling Ideogram:", networkErr);
