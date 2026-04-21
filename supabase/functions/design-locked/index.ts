@@ -467,6 +467,72 @@ async function appendToNotesProperty(
   }
 }
 
+/**
+ * Create a minimal Notion page for a client who locked their design before
+ * submitting the onboarding form. A proper SOP page will be created by
+ * handle-submission when the form is submitted — this page exists solely so
+ * the design config can be appended now.
+ */
+async function createNotionPage(
+  clientName: string,
+  country: string | null,
+  driveLink: string | null,
+  notionToken: string,
+): Promise<string | null> {
+  const properties: Record<string, unknown> = {
+    "Client Name": { title: [{ text: { content: clientName } }] },
+    Status: { status: { name: "Onboarding" } },
+  };
+  if (country) properties["Country"] = { select: { name: country } };
+  if (driveLink) properties["Drive"] = { url: driveLink };
+
+  const date = new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const children = [
+    {
+      type: "callout",
+      callout: {
+        rich_text: [{ text: { content: `⚠️ Studio design locked on ${date} — onboarding form not yet submitted. This page was auto-created by design-locked. Full SOP checklist will be added when the client submits their onboarding form.` } }],
+        icon: { emoji: "⚠️" },
+        color: "yellow_background",
+      },
+    },
+  ];
+
+  try {
+    const resp = await fetch(`${NOTION_API}/pages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${notionToken}`,
+        "Content-Type": "application/json",
+        "Notion-Version": NOTION_VER,
+      },
+      body: JSON.stringify({
+        parent: { database_id: NOTION_DB_ID },
+        properties,
+        children,
+      }),
+    });
+
+    if (!resp.ok) {
+      const errBody = await resp.text();
+      console.error(`[design-locked] Failed to create Notion page (${resp.status}):`, errBody);
+      return null;
+    }
+
+    const page = await resp.json();
+    console.log("[design-locked] Created new Notion page on-the-fly:", page.id);
+    return page.id as string;
+  } catch (e) {
+    console.error("[design-locked] Network error creating Notion page:", e);
+    return null;
+  }
+}
+
 /* ── Main handler ────────────────────────────────────────────────────────── */
 
 Deno.serve(async (req) => {
@@ -493,7 +559,7 @@ Deno.serve(async (req) => {
     // 1. Read client record
     const { data: client, error: clientErr } = await supabase
       .from("clients")
-      .select("name, notion_page_id")
+      .select("name, notion_page_id, country, drive_link")
       .eq("id", client_id)
       .single();
 
@@ -543,7 +609,14 @@ Deno.serve(async (req) => {
     }
 
     if (!notionPageId) {
-      throw new Error(`No Notion page found for client "${client.name}"`);
+      console.log(`[design-locked] No Notion page for "${client.name}" — creating one on-the-fly (form not yet submitted)`);
+      notionPageId = await createNotionPage(client.name, client.country ?? null, client.drive_link ?? null, NOTION_TOKEN);
+      if (notionPageId) {
+        await supabase.from("clients").update({ notion_page_id: notionPageId }).eq("id", client_id);
+        console.log("[design-locked] On-the-fly page created and cached:", notionPageId);
+      } else {
+        throw new Error(`Failed to create Notion page on-the-fly for client "${client.name}"`);
+      }
     }
 
     // 5. Build blocks and append to Notion (Notion sync errors don't fail the lock)
