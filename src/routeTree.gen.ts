@@ -18,6 +18,7 @@ import { Route as StudioPreviewClientIdRouteImport } from './routes/studio-previ
 import { Route as OnboardingClientIdRouteImport } from './routes/onboarding.$clientId'
 import { Route as OnboardingClientIdIndexRouteImport } from './routes/onboarding.$clientId.index'
 import { Route as OnboardingClientIdSuccessRouteImport } from './routes/onboarding.$clientId.success'
+import { Route as OnboardingClientIdStudioLockedRouteImport } from './routes/onboarding.$clientId.studio-locked'
 import { Route as OnboardingClientIdStudioRouteImport } from './routes/onboarding.$clientId.studio'
 import { Route as OnboardingClientIdFormRouteImport } from './routes/onboarding.$clientId.form'
 import { Route as OnboardingClientIdAuthRouteImport } from './routes/onboarding.$clientId.auth'
@@ -68,6 +69,12 @@ const OnboardingClientIdSuccessRoute =
     path: '/success',
     getParentRoute: () => OnboardingClientIdRoute,
   } as any)
+const OnboardingClientIdStudioLockedRoute =
+  OnboardingClientIdStudioLockedRouteImport.update({
+    id: '/studio-locked',
+    path: '/studio-locked',
+    getParentRoute: () => OnboardingClientIdRoute,
+  } as any)
 const OnboardingClientIdStudioRoute =
   OnboardingClientIdStudioRouteImport.update({
     id: '/studio',
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
   '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
+  '/onboarding/$clientId/studio-locked': typeof OnboardingClientIdStudioLockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
 }
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
   '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
+  '/onboarding/$clientId/studio-locked': typeof OnboardingClientIdStudioLockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId': typeof OnboardingClientIdIndexRoute
 }
@@ -124,6 +133,7 @@ export interface FileRoutesById {
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
   '/onboarding/$clientId/studio': typeof OnboardingClientIdStudioRoute
+  '/onboarding/$clientId/studio-locked': typeof OnboardingClientIdStudioLockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
 }
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
     | '/onboarding/$clientId/studio'
+    | '/onboarding/$clientId/studio-locked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
     | '/onboarding/$clientId/studio'
+    | '/onboarding/$clientId/studio-locked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId'
   id:
@@ -167,6 +179,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/auth'
     | '/onboarding/$clientId/form'
     | '/onboarding/$clientId/studio'
+    | '/onboarding/$clientId/studio-locked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/'
   fileRoutesById: FileRoutesById
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingClientIdSuccessRouteImport
       parentRoute: typeof OnboardingClientIdRoute
     }
+    '/onboarding/$clientId/studio-locked': {
+      id: '/onboarding/$clientId/studio-locked'
+      path: '/studio-locked'
+      fullPath: '/onboarding/$clientId/studio-locked'
+      preLoaderRoute: typeof OnboardingClientIdStudioLockedRouteImport
+      parentRoute: typeof OnboardingClientIdRoute
+    }
     '/onboarding/$clientId/studio': {
       id: '/onboarding/$clientId/studio'
       path: '/studio'
@@ -274,6 +294,7 @@ interface OnboardingClientIdRouteChildren {
   OnboardingClientIdAuthRoute: typeof OnboardingClientIdAuthRoute
   OnboardingClientIdFormRoute: typeof OnboardingClientIdFormRoute
   OnboardingClientIdStudioRoute: typeof OnboardingClientIdStudioRoute
+  OnboardingClientIdStudioLockedRoute: typeof OnboardingClientIdStudioLockedRoute
   OnboardingClientIdSuccessRoute: typeof OnboardingClientIdSuccessRoute
   OnboardingClientIdIndexRoute: typeof OnboardingClientIdIndexRoute
 }
@@ -282,6 +303,7 @@ const OnboardingClientIdRouteChildren: OnboardingClientIdRouteChildren = {
   OnboardingClientIdAuthRoute: OnboardingClientIdAuthRoute,
   OnboardingClientIdFormRoute: OnboardingClientIdFormRoute,
   OnboardingClientIdStudioRoute: OnboardingClientIdStudioRoute,
+  OnboardingClientIdStudioLockedRoute: OnboardingClientIdStudioLockedRoute,
   OnboardingClientIdSuccessRoute: OnboardingClientIdSuccessRoute,
   OnboardingClientIdIndexRoute: OnboardingClientIdIndexRoute,
 }

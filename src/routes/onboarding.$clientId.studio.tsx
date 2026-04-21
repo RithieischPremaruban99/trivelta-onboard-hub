@@ -603,7 +603,7 @@ export function StudioInner({
   /* ── Save & Continue ── */
   const handleSaveAndContinue = () => {
     if (locked) {
-      navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+      navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } });
     } else {
       setSaveConfirmOpen(true);
     }
@@ -671,6 +671,8 @@ export function StudioInner({
           .from("onboarding_forms")
           .upsert({ client_id: clientId, notion_sync_pending: true }, { onConflict: "client_id" });
       }
+
+      navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } });
     } catch {
       toast.error("Failed to lock design - try again.");
     } finally {
@@ -715,7 +717,7 @@ export function StudioInner({
           .upsert({ client_id: clientId, notion_sync_pending: true }, { onConflict: "client_id" });
       }
 
-      navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+      navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } });
     } catch {
       toast.error("Failed to submit design - try again.");
     } finally {
@@ -788,7 +790,7 @@ export function StudioInner({
           {locked ? (
             <button
               onClick={() =>
-                navigate({ to: "/onboarding/$clientId/success", params: { clientId } })
+                navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } })
               }
               className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-2 text-[12px] font-semibold text-success transition-colors hover:bg-success/15"
             >
