@@ -476,9 +476,7 @@ function validateAndEnforce(
     }
   }
   if (pamResets > 0) {
-    warnings.push(
-      `${pamResets} PAM admin panel field(s) reset to default (admin panel colors cannot be changed)`
-    );
+    console.log(`[generate-palette] Enforced ${pamResets} PAM admin panel fields to defaults`);
   }
 
   // Gamepass Gold enforcement
@@ -491,9 +489,7 @@ function validateAndEnforce(
     }
   }
   if (gpResets > 0) {
-    warnings.push(
-      `${gpResets} Gamepass Gold field(s) reset to default (brand-independent fixed values)`
-    );
+    console.log(`[generate-palette] Enforced ${gpResets} Gamepass Gold fields to defaults`);
   }
 
   // Manual overrides enforcement
