@@ -2,3 +2,12 @@ project_id = "mityzsdqonwfhlahvkiw"
 
 [functions.notify-submission]
 verify_jwt = true
+
+[functions.generate-palette]
+verify_jwt = false
+
+[functions.generate-logo]
+verify_jwt = false
+
+[functions.design-locked]
+verify_jwt = false
