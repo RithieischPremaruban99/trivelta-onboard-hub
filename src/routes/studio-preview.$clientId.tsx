@@ -43,7 +43,11 @@ import { toast } from "sonner";
 
 /* ── Admin email allow-list ─────────────────────────────────────────────── */
 
-const ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com", "jay@trivelta.com"];
+const ADMIN_EMAILS = [
+  "rithieisch.premaruban@trivelta.com",
+  "jay@trivelta.com",
+  "davi.sirohi@trivelta.com",
+];
 
 export const Route = createFileRoute("/studio-preview/$clientId")({
   component: StudioPreviewPage,
