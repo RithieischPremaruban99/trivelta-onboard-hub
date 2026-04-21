@@ -323,6 +323,9 @@ async function callAnthropicWithRetry(
     { role: "user", content: userMessage },
   ];
 
+  const callStart = Date.now();
+  console.log(`[generate-palette] Calling Anthropic with model: ${model}`);
+
   const resp = await client.messages.create({
     model,
     max_tokens: 16000,
@@ -330,6 +333,9 @@ async function callAnthropicWithRetry(
     system: SYSTEM_PROMPT,
     messages,
   });
+
+  const elapsedMs = Date.now() - callStart;
+  console.log(`[generate-palette] Anthropic responded in ${elapsedMs}ms`);
 
   const text = resp.content[0].type === "text" ? resp.content[0].text : "";
   const inputTokens = resp.usage.input_tokens;
@@ -340,6 +346,7 @@ async function callAnthropicWithRetry(
     JSON.parse(text);
     return { text, inputTokens, outputTokens };
   } catch {
+    console.error(`[generate-palette] JSON parse failed. First 500 chars:`, text.slice(0, 500));
     console.log("[generate-palette] JSON parse failed on first attempt, retrying");
 
     const retryMessages: Anthropic.MessageParam[] = [
@@ -540,9 +547,9 @@ Deno.serve(async (req: Request) => {
   // ── Build Anthropic client ─────────────────────────────────────────────────
   const client = new Anthropic({ apiKey });
 
-  // Primary model: claude-sonnet-4-5-20250929 (task-specified)
+  // Primary model: claude-sonnet-4-20250514 (verified)
   // Fallback: claude-3-5-sonnet-20241022
-  const PRIMARY_MODEL = "claude-sonnet-4-5-20250929";
+  const PRIMARY_MODEL = "claude-sonnet-4-20250514";
   const FALLBACK_MODEL = "claude-3-5-sonnet-20241022";
 
   const userMessage = buildUserMessage(body);
@@ -570,7 +577,8 @@ Deno.serve(async (req: Request) => {
       errMsg.includes("invalid_request");
 
     if (isModelError) {
-      console.log(
+      console.warn(`[generate-palette] Primary model failed, trying fallback`);
+      console.warn(
         `[generate-palette] Primary model ${PRIMARY_MODEL} failed (${errMsg}), falling back to ${FALLBACK_MODEL}`
       );
       usedModel = FALLBACK_MODEL;
@@ -611,7 +619,7 @@ Deno.serve(async (req: Request) => {
   try {
     parsed = JSON.parse(aiText);
   } catch {
-    console.error("[generate-palette] AI response could not be parsed after retry");
+    console.error("[generate-palette] AI response could not be parsed after retry. First 500 chars:", aiText.slice(0, 500));
     return new Response(
       JSON.stringify({
         error: "AI response could not be parsed",
