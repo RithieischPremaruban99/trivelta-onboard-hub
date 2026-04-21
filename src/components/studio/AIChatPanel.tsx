@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Send, ImageIcon } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
@@ -256,6 +256,34 @@ export function AIChatPanel() {
     ],
   );
 
+  /* ── Cycling progress hints ─────────────────────────────────────────────── */
+
+  const PALETTE_HINTS = [
+    "Analyzing brand direction…",
+    "Mapping semantic colors…",
+    "Applying contrast grammar…",
+    "Finalizing palette…",
+  ];
+  const LOGO_HINTS = [
+    "Understanding your brand…",
+    "Designing variants…",
+    "Rendering high-resolution PNG…",
+  ];
+  const [hintIndex, setHintIndex] = useState(0);
+  useEffect(() => {
+    if (!loading) {
+      setHintIndex(0);
+      return;
+    }
+    const id = setInterval(() => setHintIndex((i) => i + 1), 3500);
+    return () => clearInterval(id);
+  }, [loading]);
+
+  const hints = loadingType === "logo" ? LOGO_HINTS : PALETTE_HINTS;
+  const currentHint = hints[hintIndex % hints.length];
+  const headline =
+    loadingType === "logo" ? "Creating logo variants…" : "Generating your color palette…";
+
   /* ── Render ─────────────────────────────────────────────────────────────── */
 
   return (
@@ -308,19 +336,27 @@ export function AIChatPanel() {
         ))}
 
         {loading && (
-          <div className="flex justify-start">
-            <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-secondary px-3.5 py-3">
-              <div className="flex items-center gap-2 text-[12px] text-secondary-foreground">
-                {loadingType === "logo" ? (
-                  <ImageIcon className="h-3.5 w-3.5 animate-pulse text-primary" />
-                ) : (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                )}
-                <span>
-                  {loadingType === "logo" ? "Generating logos…" : "Generating palette…"}
+          <div className="flex justify-start animate-fade-in">
+            <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-primary/15 bg-gradient-to-br from-secondary via-secondary to-primary/[0.04] px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-[12px] font-semibold text-secondary-foreground">
+                <span className="grid h-6 w-6 place-items-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/20">
+                  <Sparkles className="h-3.5 w-3.5 animate-spin-slow" />
+                </span>
+                <span>Marcus is thinking</span>
+                <span className="flex items-end gap-0.5 pb-0.5">
+                  <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                  <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                  <span className="h-1 w-1 animate-bounce rounded-full bg-primary" />
                 </span>
               </div>
-              <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border">
+              <div className="mt-1.5 text-[11px] text-muted-foreground">{headline}</div>
+              <div
+                key={currentHint}
+                className="mt-0.5 animate-fade-in text-[10.5px] italic text-muted-foreground/70"
+              >
+                {currentHint}
+              </div>
+              <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-border/60">
                 <div className="progress-shimmer h-full rounded-full" />
               </div>
             </div>
@@ -334,10 +370,16 @@ export function AIChatPanel() {
       <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
         <input
           ref={inputRef}
-          className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
-          placeholder={locked ? "Design is locked" : "Describe your brand, or ask for a logo…"}
+          className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder={
+            locked
+              ? "Design is locked"
+              : loading
+                ? "Marcus is working…"
+                : "Describe your brand, or ask for a logo…"
+          }
           value={input}
-          disabled={locked}
+          disabled={locked || loading}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -349,7 +391,7 @@ export function AIChatPanel() {
         <button
           onClick={() => sendMessage(input)}
           disabled={!input.trim() || loading || locked}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm disabled:opacity-40"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
