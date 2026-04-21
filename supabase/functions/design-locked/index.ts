@@ -2,15 +2,28 @@
 // Fires when a client locks their design in Trivelta Studio.
 // 1. Reads studio_config from onboarding_forms
 // 2. Finds the client's Notion page (by stored ID or DB query)
-// 3. Appends a "Studio Config" section to the Notion page
-// 4. Updates the Notes property to include lock confirmation
-// 5. Stores notion_page_id + studio_locked_at back in clients table
+// 3. Appends a 7-section "Studio Config" block to the Notion page
+// 4. Stores notion_page_id + studio_locked_at back in clients table
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import {
+  ADVANCED_FIELD_GROUPS,
+  FIELD_LABELS,
+  DEFAULT_TCM_PALETTE,
+  type TCMPalette,
+} from "../_shared/tcm-palette.ts";
+import {
+  getStrings,
+  DEFAULT_STRINGS,
+  type Language,
+} from "../_shared/tcm-strings.ts";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
 const NOTION_API = "https://api.notion.com/v1";
 const NOTION_VER = "2022-06-28";
+// Notion limits: 100 blocks per append request, 2000 chars per rich_text entry
+const BLOCK_CHUNK = 90;
+const RT_CHUNK = 1990;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,23 +36,6 @@ interface RequestBody {
   client_id: string;
 }
 
-interface StudioColors {
-  primaryBg?: string;
-  primary?: string;
-  secondary?: string;
-  primaryButton?: string;
-  primaryButtonGradient?: string;
-  wonGradient1?: string;
-  wonGradient2?: string;
-  boxGradient1?: string;
-  boxGradient2?: string;
-  headerGradient1?: string;
-  headerGradient2?: string;
-  lightText?: string;
-  placeholderText?: string;
-  [key: string]: string | undefined;
-}
-
 interface StudioIcons {
   appNameLogo?: string;
   topLeftAppIcon?: string;
@@ -47,23 +43,32 @@ interface StudioIcons {
 }
 
 interface StudioConfig {
-  colors?: StudioColors;
+  // New format (Phase 5+)
+  palette?: Record<string, string>;
+  language?: string;
+  appName?: string;
+  appLabels?: Record<string, string>;
   icons?: StudioIcons;
+  // Internal-only (excluded from Notion)
+  manualOverrides?: string[];
+  brandPromptHistory?: string[];
+  // Legacy format (pre-Phase 5)
+  colors?: Record<string, string>;
 }
 
-/* ── rgba → hex conversion ────────────────────────────────────────────────── */
-
-function rgbaToHex(rgba: string): string {
-  const m = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-  if (!m) return rgba;
-  const r = parseInt(m[1]).toString(16).padStart(2, "0");
-  const g = parseInt(m[2]).toString(16).padStart(2, "0");
-  const b = parseInt(m[3]).toString(16).padStart(2, "0");
-  return `#${r}${g}${b}`;
-}
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
 
 function isDataUri(s: string): boolean {
   return s.startsWith("data:");
+}
+
+/** Split a long string into chunks of ≤ RT_CHUNK chars for Notion rich_text arrays */
+function splitRichText(content: string): Array<{ text: { content: string } }> {
+  const chunks: Array<{ text: { content: string } }> = [];
+  for (let i = 0; i < content.length; i += RT_CHUNK) {
+    chunks.push({ text: { content: content.slice(i, i + RT_CHUNK) } });
+  }
+  return chunks.length > 0 ? chunks : [{ text: { content: "" } }];
 }
 
 /* ── Notion block helpers ─────────────────────────────────────────────────── */
@@ -81,6 +86,10 @@ function rt(content: string, annotations?: RichTextEntry["annotations"]): RichTe
 
 function rtLink(content: string, url: string): RichTextEntry[] {
   return [{ text: { content, link: { url } } }];
+}
+
+function heading1(content: string) {
+  return { type: "heading_1", heading_1: { rich_text: rt(content) } };
 }
 
 function heading2(content: string) {
@@ -102,11 +111,7 @@ function paragraph(richText: RichTextEntry[]) {
 function callout(content: string, emoji: string, color: string) {
   return {
     type: "callout",
-    callout: {
-      rich_text: rt(content),
-      icon: { emoji },
-      color,
-    },
+    callout: { rich_text: rt(content), icon: { emoji }, color },
   };
 }
 
@@ -114,122 +119,253 @@ function bulletedListItem(richText: RichTextEntry[]) {
   return { type: "bulleted_list_item", bulleted_list_item: { rich_text: richText } };
 }
 
-/* ── Build color table rows ───────────────────────────────────────────────── */
-
-// Color key → human-readable label
-const COLOR_LABELS: Record<string, string> = {
-  primaryBg: "Background",
-  primary: "Primary",
-  secondary: "Secondary",
-  primaryButton: "Button",
-  primaryButtonGradient: "Button Gradient",
-  wonGradient1: "Win Gradient 1",
-  wonGradient2: "Win Gradient 2",
-  boxGradient1: "Box Gradient 1",
-  boxGradient2: "Box Gradient 2",
-  headerGradient1: "Header Gradient 1",
-  headerGradient2: "Header Gradient 2",
-  lightText: "Light Text",
-  placeholderText: "Placeholder Text",
-};
-
-const COLOR_ORDER = [
-  "primaryBg",
-  "primary",
-  "secondary",
-  "primaryButton",
-  "primaryButtonGradient",
-  "wonGradient1",
-  "wonGradient2",
-  "boxGradient1",
-  "boxGradient2",
-  "headerGradient1",
-  "headerGradient2",
-  "lightText",
-  "placeholderText",
-];
-
-function buildColorTableBlocks(colors: StudioColors): object[] {
-  const rows: object[] = [];
-
-  // Header row
-  rows.push({
-    type: "table_row",
-    table_row: {
-      cells: [rt("Color"), rt("Hex"), rt("RGBA")],
-    },
-  });
-
-  for (const key of COLOR_ORDER) {
-    const val = colors[key];
-    if (!val) continue;
-    const label = COLOR_LABELS[key] ?? key;
-    const hex = rgbaToHex(val);
-    rows.push({
-      type: "table_row",
-      table_row: {
-        cells: [rt(label), rt(hex), rt(val, { code: true })],
-      },
-    });
-  }
-
-  const table = {
-    type: "table",
-    table: {
-      table_width: 3,
-      has_column_header: true,
-      has_row_header: false,
-      children: rows,
+function codeBlock(content: string, language = "json") {
+  return {
+    type: "code",
+    code: {
+      language,
+      rich_text: splitRichText(content),
     },
   };
-
-  return [table];
 }
 
-/* ── Build the full append block list ────────────────────────────────────── */
+/* ── Section builders ─────────────────────────────────────────────────────── */
 
-function buildDesignLockedBlocks(config: StudioConfig, lockedAt: string): object[] {
-  const date = new Date(lockedAt).toLocaleDateString("en-GB", {
+/** SECTION 1: Client Metadata */
+function buildSection1(
+  clientName: string,
+  clientId: string,
+  lockedAt: string,
+  amName: string | null,
+): object[] {
+  const dateHuman = new Date(lockedAt).toLocaleString("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  });
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }) + " UTC";
 
-  const blocks: object[] = [
-    divider(),
-    heading2("🎨 Studio Config – Design Locked"),
-    paragraph(rt(`Locked on ${date} via Trivelta Studio`, { italic: true })),
-    callout(
-      "Client has locked their platform design. Colors and brand assets are finalised below.",
-      "✅",
-      "green_background",
-    ),
+  return [
+    heading2("1. Client Metadata"),
+    bulletedListItem(rt(`Client Name: ${clientName}`)),
+    bulletedListItem(rt(`Client ID: ${clientId}`)),
+    bulletedListItem(rt(`Lock Timestamp: ${dateHuman}`)),
+    bulletedListItem(rt(`Account Manager: ${amName ?? "Not assigned"}`)),
   ];
+}
 
-  // Colors section
-  if (config.colors && Object.keys(config.colors).length > 0) {
-    blocks.push(heading3("Colors"));
-    blocks.push(...buildColorTableBlocks(config.colors));
+/** SECTION 2: App Configuration */
+function buildSection2(config: StudioConfig): object[] {
+  const icons = config.icons ?? {};
+  const logoUrl = icons.appNameLogo && !isDataUri(icons.appNameLogo) ? icons.appNameLogo : null;
+  const iconUrl = icons.topLeftAppIcon && !isDataUri(icons.topLeftAppIcon) ? icons.topLeftAppIcon : null;
+
+  const blocks: object[] = [heading2("2. App Configuration")];
+
+  blocks.push(bulletedListItem(rt(`Language Code: ${config.language ?? "en"}`)));
+  blocks.push(bulletedListItem(rt(`App Name: ${config.appName ?? "Not set"}`)));
+
+  if (logoUrl) {
+    blocks.push(bulletedListItem([
+      { text: { content: "Logo URL: " } },
+      ...rtLink(logoUrl, logoUrl),
+    ] as RichTextEntry[]));
+  } else {
+    blocks.push(bulletedListItem(rt("Logo URL: Not uploaded")));
   }
 
-  // Brand Assets section
-  const hasLogo = config.icons?.appNameLogo && !isDataUri(config.icons.appNameLogo);
-  const hasIcon = config.icons?.topLeftAppIcon && !isDataUri(config.icons.topLeftAppIcon);
+  if (iconUrl) {
+    blocks.push(bulletedListItem([
+      { text: { content: "App Icon URL: " } },
+      ...rtLink(iconUrl, iconUrl),
+    ] as RichTextEntry[]));
+  } else {
+    blocks.push(bulletedListItem(rt("App Icon URL: Not uploaded")));
+  }
 
-  if (hasLogo || hasIcon) {
-    blocks.push(heading3("Brand Assets"));
-    if (hasLogo) {
-      blocks.push(bulletedListItem(rtLink("App Name Logo", config.icons!.appNameLogo!)));
+  return blocks;
+}
+
+/** SECTION 3: App Labels Overrides */
+function buildSection3(config: StudioConfig): object[] {
+  const blocks: object[] = [heading2("3. App Labels Overrides")];
+  const appLabels = config.appLabels;
+
+  if (appLabels && Object.keys(appLabels).length > 0) {
+    for (const [key, value] of Object.entries(appLabels)) {
+      blocks.push(bulletedListItem(rt(`${key} → ${value}`)));
     }
-    if (hasIcon) {
-      blocks.push(bulletedListItem(rtLink("Top-Left App Icon", config.icons!.topLeftAppIcon!)));
+  } else {
+    blocks.push(paragraph(rt(`No label overrides — TCM defaults apply for language ${config.language ?? "en"}.`, { italic: true })));
+  }
+
+  return blocks;
+}
+
+/** SECTION 4: TCM Strings Full Package */
+function buildSection4(language: string): object[] {
+  const lang = (language ?? "en") as Language;
+  const strings = getStrings(lang);
+  const entries = Object.entries(strings).sort(([a], [b]) => a.localeCompare(b));
+
+  const blocks: object[] = [
+    heading2(`4. TCM Strings (${lang.toUpperCase()})`),
+    paragraph(rt("Complete language package for this client's chosen language.", { italic: true })),
+    heading3("Human Readable"),
+  ];
+
+  // Table
+  const tableRows: object[] = [
+    {
+      type: "table_row",
+      table_row: { cells: [rt("String Key"), rt("Value")] },
+    },
+    ...entries.map(([key, value]) => ({
+      type: "table_row",
+      table_row: { cells: [rt(key, { code: true }), rt(String(value))] },
+    })),
+  ];
+
+  blocks.push({
+    type: "table",
+    table: {
+      table_width: 2,
+      has_column_header: true,
+      has_row_header: false,
+      children: tableRows,
+    },
+  });
+
+  blocks.push(heading3("JSON Export"));
+
+  const jsonObj: Record<string, string> = {};
+  for (const [key, value] of entries) {
+    jsonObj[key] = String(value);
+  }
+  blocks.push(codeBlock(JSON.stringify(jsonObj, null, 2)));
+
+  return blocks;
+}
+
+/** SECTION 5: TCM Color Configuration — Human Readable */
+function buildSection5(palette: Record<string, string>): object[] {
+  const blocks: object[] = [
+    heading2("5. TCM Color Configuration (Human Readable)"),
+    paragraph(rt("All 344 color fields organized by functional group.", { italic: true })),
+  ];
+
+  for (const [groupName, fields] of Object.entries(ADVANCED_FIELD_GROUPS)) {
+    const fieldCount = fields.length;
+    blocks.push(heading3(`${groupName} (${fieldCount})`));
+
+    for (const fieldName of fields) {
+      const label = FIELD_LABELS[fieldName] ?? String(fieldName);
+      const value = palette[fieldName] ?? (DEFAULT_TCM_PALETTE as Record<string, string>)[fieldName] ?? "";
+      blocks.push(
+        paragraph([
+          { text: { content: label + ": " }, annotations: { bold: true } },
+          { text: { content: value }, annotations: { code: true } },
+        ] as RichTextEntry[])
+      );
     }
   }
 
   return blocks;
 }
 
-/* ── Notion: look up page by client name ─────────────────────────────────── */
+/** SECTION 6: TCM Color Configuration — JSON */
+function buildSection6(palette: Record<string, string>): object[] {
+  // Build the full 344-field palette (merge with defaults for any missing fields)
+  const fullPalette: Record<string, string> = {
+    ...(DEFAULT_TCM_PALETTE as unknown as Record<string, string>),
+    ...palette,
+  };
+
+  // Sort by key for readability
+  const sorted: Record<string, string> = {};
+  for (const key of Object.keys(fullPalette).sort()) {
+    sorted[key] = fullPalette[key];
+  }
+
+  return [
+    heading2("6. TCM Color Configuration (JSON)"),
+    paragraph(rt("Complete palette as JSON for direct paste into TCM runtime config.", { italic: true })),
+    codeBlock(JSON.stringify(sorted, null, 2)),
+  ];
+}
+
+/** SECTION 7: Raw Studio Config Dump */
+function buildSection7(config: StudioConfig): object[] {
+  // Exclude manualOverrides and brandPromptHistory (internal-only)
+  const dump: Record<string, unknown> = {};
+  if (config.palette) dump.palette = config.palette;
+  if (config.language) dump.language = config.language;
+  if (config.appName) dump.appName = config.appName;
+  if (config.appLabels) dump.appLabels = config.appLabels;
+  if (config.icons) dump.icons = config.icons;
+
+  return [
+    heading2("7. Full Studio Config (Raw)"),
+    paragraph(rt("Complete studio_config for this client. Excludes internal-only fields (manualOverrides, brandPromptHistory).", { italic: true })),
+    codeBlock(JSON.stringify(dump, null, 2)),
+  ];
+}
+
+/** Build the complete block list for the Notion page append */
+function buildAllBlocks(
+  config: StudioConfig,
+  lockedAt: string,
+  clientName: string,
+  clientId: string,
+  amName: string | null,
+): object[] {
+  const date = new Date(lockedAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  // Resolve palette — handle new format, legacy, or empty
+  let palette: Record<string, string> = {};
+  if (config.palette && Object.keys(config.palette).length > 0) {
+    palette = config.palette as Record<string, string>;
+  } else if (config.colors && Object.keys(config.colors).length > 0) {
+    palette = config.colors as Record<string, string>;
+  }
+
+  const language = config.language ?? "en";
+
+  const blocks: object[] = [
+    divider(),
+    heading1("🎨 Studio Config — Design Locked"),
+    paragraph(rt(`Locked on ${date} via Trivelta Studio`, { italic: true })),
+    callout(
+      "Client has locked their platform design. Colors, strings, and brand assets are finalised below.",
+      "✅",
+      "green_background",
+    ),
+    divider(),
+    ...buildSection1(clientName, clientId, lockedAt, amName),
+    divider(),
+    ...buildSection2(config),
+    divider(),
+    ...buildSection3(config),
+    divider(),
+    ...buildSection4(language),
+    divider(),
+    ...buildSection5(palette),
+    divider(),
+    ...buildSection6(palette),
+    divider(),
+    ...buildSection7(config),
+  ];
+
+  return blocks;
+}
+
+/* ── Notion API calls ─────────────────────────────────────────────────────── */
 
 async function findNotionPageId(clientName: string, notionToken: string): Promise<string | null> {
   const resp = await fetch(`${NOTION_API}/databases/${NOTION_DB_ID}/query`, {
@@ -240,10 +376,7 @@ async function findNotionPageId(clientName: string, notionToken: string): Promis
       "Notion-Version": NOTION_VER,
     },
     body: JSON.stringify({
-      filter: {
-        property: "Client Name",
-        title: { equals: clientName },
-      },
+      filter: { property: "Client Name", title: { equals: clientName } },
       page_size: 1,
     }),
   });
@@ -255,21 +388,16 @@ async function findNotionPageId(clientName: string, notionToken: string): Promis
   }
 
   const data = await resp.json();
-  const page = data.results?.[0];
-  return page?.id ?? null;
+  return data.results?.[0]?.id ?? null;
 }
-
-/* ── Notion: append blocks to page ──────────────────────────────────────── */
 
 async function appendBlocksToPage(
   pageId: string,
   blocks: object[],
   notionToken: string,
 ): Promise<void> {
-  // Notion limit: 100 blocks per request
-  const CHUNK = 100;
-  for (let i = 0; i < blocks.length; i += CHUNK) {
-    const chunk = blocks.slice(i, i + CHUNK);
+  for (let i = 0; i < blocks.length; i += BLOCK_CHUNK) {
+    const chunk = blocks.slice(i, i + BLOCK_CHUNK);
     const resp = await fetch(`${NOTION_API}/blocks/${pageId}/children`, {
       method: "PATCH",
       headers: {
@@ -283,10 +411,9 @@ async function appendBlocksToPage(
       const body = await resp.text();
       throw new Error(`Notion append blocks failed (${resp.status}): ${body}`);
     }
+    console.log(`[design-locked] Appended blocks ${i + 1}–${Math.min(i + BLOCK_CHUNK, blocks.length)} of ${blocks.length}`);
   }
 }
-
-/* ── Notion: get + update Notes property ───────────────────────────────── */
 
 async function appendToNotesProperty(
   pageId: string,
@@ -299,12 +426,7 @@ async function appendToNotesProperty(
     "Notion-Version": NOTION_VER,
   };
 
-  // GET current notes
-  const getResp = await fetch(`${NOTION_API}/pages/${pageId}`, {
-    method: "GET",
-    headers,
-  });
-
+  const getResp = await fetch(`${NOTION_API}/pages/${pageId}`, { method: "GET", headers });
   let existingNotes = "";
   if (getResp.ok) {
     const pageData = await getResp.json();
@@ -324,9 +446,7 @@ async function appendToNotesProperty(
     method: "PATCH",
     headers,
     body: JSON.stringify({
-      properties: {
-        Notes: { rich_text: rt(newNotes) },
-      },
+      properties: { Notes: { rich_text: rt(newNotes) } },
     }),
   });
 
@@ -365,7 +485,16 @@ Deno.serve(async (req) => {
       throw new Error(`Client not found: ${clientErr?.message}`);
     }
 
-    // 2. Read studio_config + studio_locked_at from onboarding_forms
+    // 2. Fetch AM name via RPC
+    let amName: string | null = null;
+    const { data: welcomeRows } = await supabase.rpc("get_client_welcome_info", {
+      _client_id: client_id,
+    });
+    if (Array.isArray(welcomeRows) && welcomeRows.length > 0) {
+      amName = (welcomeRows[0] as { am_name?: string }).am_name ?? null;
+    }
+
+    // 3. Read studio_config + studio_locked_at from onboarding_forms
     const { data: form, error: formErr } = await supabase
       .from("onboarding_forms")
       .select("studio_config, studio_locked_at")
@@ -379,7 +508,7 @@ Deno.serve(async (req) => {
     const studioConfig = (form.studio_config ?? {}) as StudioConfig;
     const lockedAt: string = form.studio_locked_at ?? new Date().toISOString();
 
-    // 3. Find Notion page ID (use cached or look up by client name)
+    // 4. Find Notion page ID (use cached or look up by client name)
     let notionPageId: string | null = client.notion_page_id ?? null;
 
     if (!notionPageId) {
@@ -387,7 +516,6 @@ Deno.serve(async (req) => {
       notionPageId = await findNotionPageId(client.name, NOTION_TOKEN);
 
       if (notionPageId) {
-        // Cache it back in clients table
         await supabase.from("clients").update({ notion_page_id: notionPageId }).eq("id", client_id);
         console.log("[design-locked] Cached notion_page_id:", notionPageId);
       }
@@ -397,18 +525,23 @@ Deno.serve(async (req) => {
       throw new Error(`No Notion page found for client "${client.name}"`);
     }
 
-    // 4. Build and append design-locked blocks to Notion page
-    const blocks = buildDesignLockedBlocks(studioConfig, lockedAt);
-    console.log(`[design-locked] Appending ${blocks.length} blocks to page ${notionPageId}`);
-    await appendBlocksToPage(notionPageId, blocks, NOTION_TOKEN);
+    // 5. Build blocks and append to Notion (Notion sync errors don't fail the lock)
+    try {
+      const blocks = buildAllBlocks(studioConfig, lockedAt, client.name, client_id, amName);
+      console.log(`[design-locked] Appending ${blocks.length} total blocks to page ${notionPageId}`);
+      await appendBlocksToPage(notionPageId, blocks, NOTION_TOKEN);
 
-    // 5. Append to Notes property
-    const date = new Date(lockedAt).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    await appendToNotesProperty(notionPageId, `Studio design locked on ${date}.`, NOTION_TOKEN);
+      const date = new Date(lockedAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      await appendToNotesProperty(notionPageId, `Studio design locked on ${date}.`, NOTION_TOKEN);
+
+      console.log("[design-locked] Notion sync complete for client", client.name);
+    } catch (notionErr) {
+      console.error("[design-locked] Notion sync failed (non-fatal):", notionErr);
+    }
 
     // 6. Update clients.studio_locked_at
     await supabase.from("clients").update({ studio_locked_at: lockedAt }).eq("id", client_id);
