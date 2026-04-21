@@ -44,6 +44,10 @@ import {
   Info,
   AlertTriangle,
   Lock,
+  Sparkles,
+  Image as ImageIcon,
+  MessageSquare,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
