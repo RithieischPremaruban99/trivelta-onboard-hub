@@ -89,7 +89,6 @@ interface ClientRow {
   primary_contact_email: string | null;
   created_at: string;
   studio_access: boolean;
-  platform_live: boolean;
 }
 
 function AdminPage() {
@@ -133,7 +132,7 @@ function AdminPage() {
       supabase
         .from("clients")
         .select(
-          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
+          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access",
         )
         .order("created_at", { ascending: false }),
       supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
@@ -240,7 +239,7 @@ function AdminPage() {
       formSubmitted: pd?.formSubmitted ?? false,
       studioStarted: pd?.studioStarted ?? false,
       studioLocked: sd?.locked ?? false,
-      platformLive: c.platform_live ?? false,
+      platformLive: c.status === "active",
     };
     return { ...c, progress: calculateProgress(input), milestones: getMilestoneList(input) };
   });
