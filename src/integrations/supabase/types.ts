@@ -56,6 +56,7 @@ export type Database = {
           id: string
           name: string
           notion_page_id: string | null
+          platform_live: boolean
           platform_url: string | null
           primary_contact_email: string | null
           status: Database["public"]["Enums"]["client_status"]
@@ -75,6 +76,7 @@ export type Database = {
           id?: string
           name: string
           notion_page_id?: string | null
+          platform_live?: boolean
           platform_url?: string | null
           primary_contact_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -94,6 +96,7 @@ export type Database = {
           id?: string
           name?: string
           notion_page_id?: string | null
+          platform_live?: boolean
           platform_url?: string | null
           primary_contact_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
