@@ -644,7 +644,7 @@ export function StudioInner({
       console.error("[Studio] design-locked fetch error:", e);
       return false;
     }
-  }, [clientId]);
+  }, [clientId, isAdmin, user]);
 
   /* ── Lock design ── */
   const handleLock = async () => {
