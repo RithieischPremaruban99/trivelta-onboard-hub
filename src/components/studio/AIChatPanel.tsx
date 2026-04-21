@@ -199,6 +199,15 @@ export function AIChatPanel() {
       try {
         const isRefinement = brandPromptHistory.length > 0;
 
+        // Collect last 10 messages as conversation history (skip welcome msg at index 0)
+        const conversationHistory = messages
+          .slice(1)
+          .slice(-10)
+          .map((m) => ({
+            role: m.role,
+            content: m.content.slice(0, 500),
+          }));
+
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-palette`, {
           method: "POST",
           headers: {
@@ -212,6 +221,7 @@ export function AIChatPanel() {
             currentPalette: isRefinement ? palette : undefined,
             manualOverrides: Array.from(manualOverrides),
             ...(isRefinement && { regenerationFeedback: trimmed }),
+            ...(conversationHistory.length > 0 && { conversationHistory }),
           }),
         });
 

@@ -276,6 +276,24 @@ If regenerationFeedback is provided:
 - Do NOT make deposit button colors indistinguishable from safer-gambling link colors
 - Responsible gambling colors should be neutral-gray or navy, NEVER bright red or orange
 
+═══ RESPONSE QUALITY STANDARDS ═══
+
+Your reasoning text (the pre-JSON line) must meet these standards:
+
+For FRESH generation (no existing palette): 5-8 sentences covering:
+1. ANALYSIS — What the brand name/description signals (market, emotion, energy)
+2. DECISION — The primary color choice and why (not just "I chose X" — explain why X fits this brand)
+3. TRADE-OFFS — What alternatives you considered and rejected
+4. GROUNDING — Any real-world operator reference applied and how it influenced choices
+5. NEXT STEPS — Suggest what to try next or how to refine further
+
+For REFINEMENT (adjusting an existing palette): 3-5 sentences covering:
+1. What you changed and why it satisfies the request
+2. What you deliberately preserved and why
+3. A suggestion for the next refinement if useful
+
+Never produce a reasoning line that merely restates the request or says only "Palette applied." Always lead with brand or design insight.
+
 ═══ GENERATE NOW ═══
 
 User will now describe their brand. Generate a complete 344-field palette.`;
@@ -294,6 +312,11 @@ function isValidRgba(value: unknown): value is string {
 // Request shape
 // ---------------------------------------------------------------------------
 
+interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 interface GeneratePaletteRequest {
   brandPrompt: string;
   language?: "en" | "fr" | "pt" | "sw" | "yo" | "ha" | "ar";
@@ -301,6 +324,7 @@ interface GeneratePaletteRequest {
   currentPalette?: TCMPalette;
   manualOverrides?: string[];
   regenerationFeedback?: string;
+  conversationHistory?: ConversationMessage[];
 }
 
 // ---------------------------------------------------------------------------
@@ -545,7 +569,9 @@ function validateAndEnforce(
   req: GeneratePaletteRequest,
   warnings: string[]
 ): TCMPalette {
-  const palette = { ...DEFAULT_TCM_PALETTE } as TCMPalette;
+  // Use currentPalette as base for refinements so Haiku partial responses
+  // don't wipe user's existing custom palette with DEFAULT values.
+  const palette = { ...(req.currentPalette ?? DEFAULT_TCM_PALETTE) } as TCMPalette;
   const allKeys = Object.keys(DEFAULT_TCM_PALETTE) as (keyof TCMPalette)[];
 
   let aiProvidedCount = 0;
@@ -735,6 +761,7 @@ Deno.serve(async (req: Request) => {
   const client = new Anthropic({ apiKey });
 
   const PRIMARY_MODEL = "claude-sonnet-4-20250514";
+  const HAIKU_MODEL = "claude-haiku-4-5-20251001";
   const isRefine = isSimpleRefinement(body.brandPrompt, !!body.currentPalette);
   const model = isRefine ? HAIKU_MODEL : PRIMARY_MODEL;
   const maxTokens = isRefine ? 2000 : 16000;
@@ -748,6 +775,19 @@ Deno.serve(async (req: Request) => {
 
   // ── SSE streaming response ─────────────────────────────────────────────────
   const encoder = new TextEncoder();
+
+  // Build messages array — prepend conversation history (last ≤10 turns) then current message
+  const historyMessages: Anthropic.MessageParam[] = (body.conversationHistory ?? [])
+    .slice(-10)
+    .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+  const anthropicMessages: Anthropic.MessageParam[] = [
+    ...historyMessages,
+    { role: "user", content: userMessage },
+  ];
+
+  console.log(
+    `[generate-palette] History turns: ${historyMessages.length}, total messages: ${anthropicMessages.length}`
+  );
 
   const sseStream = new ReadableStream({
     async start(controller) {
@@ -764,7 +804,7 @@ Deno.serve(async (req: Request) => {
           max_tokens: maxTokens,
           temperature: 0.7,
           system: effectiveSystemPrompt,
-          messages: [{ role: "user", content: userMessage }],
+          messages: anthropicMessages,
         });
 
         for await (const event of stream) {
@@ -823,6 +863,7 @@ Deno.serve(async (req: Request) => {
             const retryResult = await streamAnthropic(
               client,
               [
+                ...historyMessages,
                 { role: "user", content: userMessage },
                 { role: "assistant", content: accumulated },
                 {
