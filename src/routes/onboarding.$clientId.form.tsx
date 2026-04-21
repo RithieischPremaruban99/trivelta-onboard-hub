@@ -1357,6 +1357,46 @@ function SectionMedia({
 }) {
   return (
     <div className="space-y-6">
+      {/* Premium Studio teaser — what's coming after submit */}
+      <div className="relative my-2 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6">
+        <div className="pointer-events-none absolute -top-12 -right-12 h-48 w-48 rounded-full bg-primary/20 opacity-40 blur-3xl" />
+        <div className="relative z-10">
+          <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+            <Sparkles className="h-3 w-3" />
+            TRIVELTA STUDIO · AI-POWERED
+          </div>
+          <h3 className="mb-2 text-xl font-bold text-foreground">
+            Design your platform in minutes
+          </h3>
+          <p className="mb-5 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
+            After submitting this form, our AI generates your complete color system, creates custom
+            logos, and tunes every visual detail of your sportsbook — all from a single brand
+            description.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
+              <Palette className="h-3 w-3 text-primary" />
+              344 color fields
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
+              <ImageIcon className="h-3 w-3 text-primary" />
+              AI logo generation
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
+              <MessageSquare className="h-3 w-3 text-primary" />
+              Natural-language editing
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
+              <Eye className="h-3 w-3 text-primary" />
+              Live preview
+            </div>
+          </div>
+          <p className="mt-4 text-[11px] text-muted-foreground/70">
+            Your design auto-saves as you work — return anytime.
+          </p>
+        </div>
+      </div>
+
       {/* Info banner */}
       <div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
