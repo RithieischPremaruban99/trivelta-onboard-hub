@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject } from "react";
+import { type ReactNode, type RefObject, useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,9 @@ export function AccordionSection({
   children,
   sectionRef,
 }: AccordionSectionProps) {
+  const [hasBeenActive, setHasBeenActive] = useState(active);
+  useEffect(() => { if (active) setHasBeenActive(true); }, [active]);
+
   return (
     <div
       ref={sectionRef as RefObject<HTMLDivElement>}
@@ -64,9 +67,9 @@ export function AccordionSection({
         )}
       </button>
 
-      {/* Body — only rendered when active */}
-      {active && (
-        <div className="min-h-0 flex-1 overflow-y-auto">
+      {/* Body — lazy mount, then hidden instead of unmounted */}
+      {hasBeenActive && (
+        <div className={cn("flex flex-col min-h-0", active ? "flex-1 overflow-y-auto" : "hidden")}>
           {children}
         </div>
       )}
