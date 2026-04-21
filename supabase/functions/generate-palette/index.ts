@@ -70,12 +70,7 @@ Return ONLY valid JSON. No markdown fences. No prose outside JSON. Schema:
 {
   "palette": { ...only fields that deviate from default... },
   "reasoning": "2-3 sentences explaining your choices",
-  "keyColorsSummary": {
-    "primaryBackgroundColor": "rgba(...)",
-    "primary": "rgba(...)",
-    "wonColor": "rgba(...)",
-    "lostColor": "rgba(...)"
-  }
+  "keyColorsSummary": "1-2 short punchy sentences naming the key colors applied (e.g. 'Applied SportyBet signature red on a dark charcoal base, with green win indicators and red loss states.')"
 }
 
 Output ONLY the fields that should deviate from the default palette for this brand. Return a JSON object containing just the changed fields. Do not include fields that match the default. The system will automatically fill unchanged fields from the default palette.
@@ -276,12 +271,7 @@ interface GeneratePaletteRequest {
 interface GeneratePaletteResponse {
   palette: TCMPalette;
   reasoning: string;
-  keyColorsSummary: {
-    primaryBackgroundColor: string;
-    primary: string;
-    wonColor: string;
-    lostColor: string;
-  };
+  keyColorsSummary: string;
   warnings?: string[];
 }
 
@@ -668,12 +658,7 @@ Deno.serve(async (req: Request) => {
   let parsed: {
     palette: Record<string, unknown>;
     reasoning: string;
-    keyColorsSummary: {
-      primaryBackgroundColor: string;
-      primary: string;
-      wonColor: string;
-      lostColor: string;
-    };
+    keyColorsSummary: string;
   };
 
   try {
@@ -718,12 +703,10 @@ Deno.serve(async (req: Request) => {
       typeof parsed.reasoning === "string"
         ? parsed.reasoning
         : "Palette generated from brand description.",
-    keyColorsSummary: {
-      primaryBackgroundColor: palette.primaryBackgroundColor,
-      primary: palette.primary,
-      wonColor: palette.wonColor,
-      lostColor: palette.lostColor,
-    },
+    keyColorsSummary:
+      typeof parsed.keyColorsSummary === "string" && parsed.keyColorsSummary.trim().length > 0
+        ? parsed.keyColorsSummary
+        : "Palette applied — check the preview on the right.",
     ...(warnings.length > 0 && { warnings }),
   };
 
