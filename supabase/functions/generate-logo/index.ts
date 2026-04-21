@@ -1,23 +1,20 @@
 /**
  * Edge Function: generate-logo
  *
- * Generates iGaming brand logo variants via Ideogram v3 API.
- * Returns 3 image URLs for the user to choose from in the Studio chat.
+ * 1. Extracts brand intent from the user's raw natural-language request via Claude Haiku.
+ * 2. Makes 3 PARALLEL Ideogram v3 calls with different style directives for genuine diversity.
+ * 3. Returns { logos: [{url, seed, prompt}], extractedBrandName, generationTime }
  *
  * Request body:
- *   brandPrompt: string        — e.g. "BetNova — Nigerian sportsbook"
- *   style?: "wordmark" | "icon" | "combined"  (default: "combined")
- *   primaryColor?: string      — rgba string from current palette
- *   secondaryColor?: string    — rgba string from current palette
- *   brandName?: string         — explicit brand name if known
- *
- * Response:
- *   { logos: [{ url, seed, prompt }], generationTime: number }
+ *   userRequest: string          — raw user message, e.g. "create a logo for connor bet"
+ *   primaryColor?: string        — rgba string from current palette
+ *   secondaryColor?: string      — rgba string from current palette
+ *   fallbackBrandName?: string   — used only if extraction fails
  */
 
-import { createClient } from "jsr:@supabase/supabase-js@2";
-
 const IDEOGRAM_API = "https://api.ideogram.ai/v1/ideogram-v3/generate";
+const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -27,11 +24,16 @@ const CORS_HEADERS = {
 /* ── Types ─────────────────────────────────────────────────────────────────── */
 
 interface RequestBody {
-  brandPrompt: string;
-  style?: "wordmark" | "icon" | "combined";
+  userRequest: string;
   primaryColor?: string;
   secondaryColor?: string;
-  brandName?: string;
+  fallbackBrandName?: string;
+}
+
+interface BrandExtraction {
+  brandName: string;
+  designNotes: string;
+  mood: string;
 }
 
 interface IdeogramImage {
@@ -47,6 +49,23 @@ interface IdeogramResponse {
   data: IdeogramImage[];
 }
 
+/* ── Style variants for diversity ──────────────────────────────────────────── */
+
+const STYLE_VARIANTS = [
+  {
+    suffix: "Iconic symbol combined with wordmark, horizontal layout — icon on left, brand name on right. Bold, energetic.",
+    aspectRatio: "1x1",
+  },
+  {
+    suffix: "Bold wordmark only — stylized custom typography, tight letter spacing, no icon. Clean and modern.",
+    aspectRatio: "16x9",
+  },
+  {
+    suffix: "Abstract geometric mark — standalone minimal symbol, no text, strong silhouette, premium feel.",
+    aspectRatio: "1x1",
+  },
+] as const;
+
 /* ── RGBA → Hex ─────────────────────────────────────────────────────────────── */
 
 function rgbaToHex(rgba: string): string | null {
@@ -60,13 +79,71 @@ function rgbaToHex(rgba: string): string | null {
   );
 }
 
+/* ── Brand extraction via Claude Haiku ─────────────────────────────────────── */
+
+async function extractBrandIntent(
+  userRequest: string,
+  fallbackBrandName: string,
+  anthropicKey: string,
+): Promise<BrandExtraction> {
+  const system = `Extract the brand name and design direction from a logo creation request.
+Respond with valid JSON only — no markdown, no extra text.
+Format: {"brandName": string, "designNotes": string, "mood": string}
+
+Rules:
+- brandName: the actual brand/company name the user wants a logo for. Capitalise correctly (e.g. "Connor Bet", "BetNova", "SportyBet").
+- designNotes: brief description of the design context (e.g. "Nigerian sportsbook", "premium dark aesthetic", "sports betting app").
+- mood: 2-3 tone words (e.g. "bold, energetic", "luxury, sophisticated", "confident, dynamic").
+- If no clear brand name is given, use fallback: "${fallbackBrandName}".`;
+
+  try {
+    const resp = await fetch(ANTHROPIC_API, {
+      method: "POST",
+      headers: {
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: ANTHROPIC_MODEL,
+        max_tokens: 150,
+        system,
+        messages: [{ role: "user", content: userRequest }],
+      }),
+    });
+
+    if (!resp.ok) {
+      console.warn(`[generate-logo] Anthropic extraction failed (${resp.status}) — using fallback`);
+      return { brandName: fallbackBrandName, designNotes: "iGaming sportsbook", mood: "bold, dynamic" };
+    }
+
+    const json = await resp.json();
+    const raw: string = json.content?.[0]?.text ?? "";
+    // Strip potential markdown fences
+    const cleaned = raw.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+    const parsed = JSON.parse(cleaned) as BrandExtraction;
+
+    if (!parsed.brandName?.trim()) {
+      parsed.brandName = fallbackBrandName;
+    }
+
+    console.log(`[generate-logo] Extracted: brandName="${parsed.brandName}", mood="${parsed.mood}"`);
+    return parsed;
+  } catch (e) {
+    console.warn("[generate-logo] Brand extraction error — using fallback:", e);
+    return { brandName: fallbackBrandName, designNotes: "iGaming sportsbook", mood: "bold, dynamic" };
+  }
+}
+
 /* ── Prompt builder ─────────────────────────────────────────────────────────── */
 
-function buildIdeogramPrompt(
+function buildPrompt(
   brandName: string,
-  style: "wordmark" | "icon" | "combined",
+  designNotes: string,
+  mood: string,
   primaryHex: string | null,
   secondaryHex: string | null,
+  styleSuffix: string,
 ): string {
   const colorLine = [
     primaryHex ? `Primary color: ${primaryHex}.` : null,
@@ -75,33 +152,65 @@ function buildIdeogramPrompt(
     .filter(Boolean)
     .join(" ");
 
-  const styleGuide =
-    style === "wordmark"
-      ? "Focus on typography — wordmark only, bold modern sans-serif, tightly kerned, no icon."
-      : style === "icon"
-      ? "Focus on an iconic symbol — no text, standalone mark only."
-      : "Icon + wordmark horizontal layout, icon left, brand name right.";
-
   return [
-    `Professional iGaming sportsbook brand logo for ${brandName}.`,
-    "Style: bold, dynamic, modern, energetic, premium.",
-    "Composition: clean vector-style design, flat colors, strong silhouette, minimal details.",
-    "Tone: trustworthy yet exciting, suggests movement, energy, and winning.",
+    `Professional iGaming brand logo for "${brandName}".`,
+    `Context: ${designNotes}.`,
+    `Tone: ${mood}.`,
+    "Visual quality: bold, modern, premium, clean vector-style, strong silhouette, flat colors.",
     colorLine,
-    "Optional visual elements: lightning bolts, stylized sport elements, arrows suggesting velocity, crown or shield for premium feel.",
-    "Avoid: generic tech logos, casino chips, playing cards, dice, or gambling stereotypes unless explicitly requested.",
-    styleGuide,
-    "Background: transparent.",
-    "Output: high-resolution PNG on transparent background.",
+    "Avoid: generic tech logos, casino chips, playing cards, dice, gambling stereotypes.",
+    styleSuffix,
+    "Background: transparent. Output: high-resolution PNG on transparent background.",
   ]
     .filter(Boolean)
     .join(" ");
 }
 
+/* ── Single Ideogram call ───────────────────────────────────────────────────── */
+
+async function callIdeogram(
+  prompt: string,
+  aspectRatio: string,
+  apiKey: string,
+): Promise<IdeogramImage | null> {
+  const formData = new FormData();
+  formData.append("prompt", prompt);
+  formData.append("rendering_speed", "DEFAULT");
+  formData.append("num_images", "1");
+  formData.append("aspect_ratio", aspectRatio);
+  formData.append("style_type", "DESIGN");
+  formData.append("magic_prompt", "ON");
+
+  try {
+    const resp = await fetch(IDEOGRAM_API, {
+      method: "POST",
+      headers: { "Api-Key": apiKey },
+      body: formData,
+    });
+
+    if (resp.status === 429) {
+      const retryAfter = resp.headers.get("Retry-After") ?? "60";
+      console.warn(`[generate-logo] Ideogram rate limited. Retry-After: ${retryAfter}s`);
+      return null;
+    }
+
+    if (!resp.ok) {
+      const errBody = await resp.text();
+      console.error(`[generate-logo] Ideogram API error ${resp.status}:`, errBody);
+      return null;
+    }
+
+    const data: IdeogramResponse = await resp.json();
+    return data.data?.[0] ?? null;
+  } catch (e) {
+    console.error("[generate-logo] Ideogram network error:", e);
+    return null;
+  }
+}
+
 /* ── Main handler ───────────────────────────────────────────────────────────── */
 
 Deno.serve(async (req: Request) => {
-  // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });
   }
@@ -115,8 +224,15 @@ Deno.serve(async (req: Request) => {
 
   const IDEOGRAM_API_KEY = Deno.env.get("IDEOGRAM_API_KEY");
   if (!IDEOGRAM_API_KEY) {
-    console.error("[generate-logo] IDEOGRAM_API_KEY secret not configured");
     return new Response(JSON.stringify({ error: "IDEOGRAM_API_KEY not configured" }), {
+      status: 500,
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+
+  const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
@@ -132,113 +248,53 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const { brandPrompt, style = "combined", primaryColor, secondaryColor, brandName } = body;
+  const { userRequest, primaryColor, secondaryColor, fallbackBrandName = "the platform" } = body;
 
-  if (!brandPrompt || typeof brandPrompt !== "string" || brandPrompt.trim().length === 0) {
-    return new Response(JSON.stringify({ error: "brandPrompt is required" }), {
+  if (!userRequest || typeof userRequest !== "string" || userRequest.trim().length === 0) {
+    return new Response(JSON.stringify({ error: "userRequest is required" }), {
       status: 400,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
-  // Resolve brand name — use explicit name, or extract first capitalised token from prompt
-  const resolvedBrandName =
-    brandName?.trim() ||
-    (() => {
-      const m = brandPrompt.match(/\b([A-Z][A-Za-z0-9]+(?:\s[A-Z][A-Za-z0-9]+)*)\b/);
-      return m ? m[1] : brandPrompt.split(" ").slice(0, 3).join(" ");
-    })();
+  const fnStart = Date.now();
+  console.log(`[generate-logo] Request: "${userRequest.slice(0, 100)}", fallback: "${fallbackBrandName}"`);
+
+  // Step 1: Extract brand intent from user's raw message
+  const extraction = await extractBrandIntent(userRequest, fallbackBrandName, ANTHROPIC_API_KEY);
 
   const primaryHex = primaryColor ? rgbaToHex(primaryColor) : null;
   const secondaryHex = secondaryColor ? rgbaToHex(secondaryColor) : null;
-  const prompt = buildIdeogramPrompt(resolvedBrandName, style, primaryHex, secondaryHex);
 
-  // Aspect ratio: wide for wordmark, square for icon/combined
-  const aspectRatio = style === "wordmark" ? "16x9" : "1x1";
+  console.log(`[generate-logo] Launching 3 parallel Ideogram calls for "${extraction.brandName}"`);
 
-  console.log(
-    `[generate-logo] Calling Ideogram v3 with brand: ${resolvedBrandName}, style: ${style}, rendering_speed: DEFAULT`
+  // Step 2: 3 parallel Ideogram calls — each with a distinct style directive
+  const results = await Promise.all(
+    STYLE_VARIANTS.map(({ suffix, aspectRatio }) =>
+      callIdeogram(
+        buildPrompt(extraction.brandName, extraction.designNotes, extraction.mood, primaryHex, secondaryHex, suffix),
+        aspectRatio,
+        IDEOGRAM_API_KEY,
+      )
+    )
   );
 
-  const callStart = Date.now();
+  const logos = results
+    .filter((img): img is IdeogramImage => img !== null)
+    .map((img) => ({ url: img.url, seed: img.seed, prompt: img.prompt }));
 
-  const formData = new FormData();
-  formData.append("prompt", prompt);
-  formData.append("rendering_speed", "DEFAULT");
-  formData.append("num_images", "3");
-  formData.append("aspect_ratio", aspectRatio);
-  formData.append("style_type", "DESIGN");
-  formData.append("magic_prompt", "ON");
+  const elapsedMs = Date.now() - fnStart;
+  console.log(`[generate-logo] Done in ${elapsedMs}ms. Variants returned: ${logos.length}/3`);
 
-  let ideogramResp: Response;
-  try {
-    ideogramResp = await fetch(IDEOGRAM_API, {
-      method: "POST",
-      headers: {
-        "Api-Key": IDEOGRAM_API_KEY,
-      },
-      body: formData,
-    });
-  } catch (networkErr) {
-    console.error("[generate-logo] Network error calling Ideogram:", networkErr);
+  if (logos.length === 0) {
     return new Response(
-      JSON.stringify({ error: "Network error reaching Ideogram API" }),
-      { status: 504, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
-
-  const elapsedMs = Date.now() - callStart;
-
-  if (ideogramResp.status === 429) {
-    const retryAfter = ideogramResp.headers.get("Retry-After") ?? "60";
-    console.warn(`[generate-logo] Rate limited by Ideogram. Retry-After: ${retryAfter}s`);
-    return new Response(
-      JSON.stringify({ error: `Rate limited — try again in ${retryAfter} seconds` }),
-      { status: 429, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
-
-  if (!ideogramResp.ok) {
-    const errBody = await ideogramResp.text();
-    console.error(`[generate-logo] Ideogram API error ${ideogramResp.status}:`, errBody);
-    return new Response(
-      JSON.stringify({ error: `Ideogram API error (${ideogramResp.status})`, detail: errBody }),
+      JSON.stringify({ error: "All Ideogram calls failed — try again" }),
       { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   }
-
-  let ideogramData: IdeogramResponse;
-  try {
-    ideogramData = await ideogramResp.json();
-  } catch {
-    console.error("[generate-logo] Failed to parse Ideogram response");
-    return new Response(
-      JSON.stringify({ error: "Failed to parse Ideogram response" }),
-      { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
-
-  const images = ideogramData.data ?? [];
-  console.log(
-    `[generate-logo] Ideogram responded in ${elapsedMs}ms, images: ${images.length}`
-  );
-
-  if (images.length === 0) {
-    console.error("[generate-logo] Ideogram returned 0 images");
-    return new Response(
-      JSON.stringify({ error: "Ideogram returned no images" }),
-      { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
-
-  const logos = images.map((img) => ({
-    url: img.url,
-    seed: img.seed,
-    prompt: img.prompt,
-  }));
 
   return new Response(
-    JSON.stringify({ logos, generationTime: elapsedMs }),
+    JSON.stringify({ logos, extractedBrandName: extraction.brandName, generationTime: elapsedMs }),
     { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
   );
 });

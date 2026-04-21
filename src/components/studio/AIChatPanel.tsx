@@ -129,11 +129,10 @@ export function AIChatPanel() {
       try {
         const { data, error } = await supabase.functions.invoke("generate-logo", {
           body: {
-            brandPrompt: userMessage,
-            style: "combined",
+            userRequest: userMessage,
             primaryColor: palette.primary,
             secondaryColor: palette.secondary,
-            brandName: appName || undefined,
+            fallbackBrandName: appName || "the platform",
           },
         });
 
@@ -149,7 +148,7 @@ export function AIChatPanel() {
           ...prev,
           {
             role: "assistant",
-            content: `Here are 3 logo variants for ${appName || "your brand"}. Click one to use it.`,
+            content: `Here are 3 logo variants — ${data.extractedBrandName || appName || "your brand"}. Click one to use it.`,
             logoVariants: logos,
           },
         ]);
