@@ -48,6 +48,7 @@ import {
   Image as ImageIcon,
   MessageSquare,
   Eye,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -713,6 +714,8 @@ function FormScreen() {
                 update={update}
                 driveLink={welcomeInfo?.driveLink ?? null}
                 showErrors={submitAttempted}
+                clientId={clientId}
+                navigate={navigate}
               />
             </SectionShell>
             <SectionShell
@@ -1353,50 +1356,81 @@ function SectionMedia({
   update,
   driveLink,
   showErrors,
+  clientId,
+  navigate,
 }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   driveLink: string | null;
   showErrors?: boolean;
+  clientId: string;
+  navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
     <div className="space-y-6">
       {/* Premium Studio teaser — what's coming after submit */}
-      <div className="relative my-2 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6">
-        <div className="pointer-events-none absolute -top-12 -right-12 h-48 w-48 rounded-full bg-primary/20 opacity-40 blur-3xl" />
+      <div className="relative my-2 overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card/60 to-transparent p-7 shadow-premium transition-shadow hover:shadow-premium-hover">
+        {/* Gradient orb decoration */}
+        <div className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-primary/15 opacity-60 blur-[80px]" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-32 w-32 rounded-full bg-primary/5 blur-[60px]" />
+
         <div className="relative z-10">
-          <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-            <Sparkles className="h-3 w-3" />
+          {/* Micro-label */}
+          <div className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+            <span className="h-1 w-1 animate-pulse rounded-full bg-primary" />
             TRIVELTA STUDIO · AI-POWERED
           </div>
-          <h3 className="mb-2 text-xl font-bold text-foreground">
-            Design your platform in minutes
+
+          {/* Headline with gradient text */}
+          <h3 className="mb-3 text-2xl md:text-[28px] font-bold leading-tight tracking-tight text-foreground">
+            Design your platform
+            <br />
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
+              in minutes, not weeks
+            </span>
           </h3>
-          <p className="mb-5 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
-            After submitting this form, our AI generates your complete color system, creates custom
-            logos, and tunes every visual detail of your sportsbook — all from a single brand
-            description.
+
+          <p className="mb-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Our AI generates your complete color system, creates custom logos, and tunes every
+            visual detail of your sportsbook — all from a single brand description.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
-              <Palette className="h-3 w-3 text-primary" />
-              344 color fields
-            </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
-              <ImageIcon className="h-3 w-3 text-primary" />
-              AI logo generation
-            </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
-              <MessageSquare className="h-3 w-3 text-primary" />
-              Natural-language editing
-            </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card/60 px-3 py-1.5 text-[11px] font-medium">
-              <Eye className="h-3 w-3 text-primary" />
-              Live preview
-            </div>
+
+          {/* Feature pills */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {[
+              { Icon: Palette, label: "344 color fields" },
+              { Icon: Sparkles, label: "AI logo generation" },
+              { Icon: MessageSquare, label: "Natural language editing" },
+              { Icon: Eye, label: "Live preview" },
+            ].map(({ Icon, label }) => (
+              <div
+                key={label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-card/40 px-3 py-1.5 text-[11px] font-medium text-foreground/80 backdrop-blur-sm"
+              >
+                <Icon className="h-3 w-3 text-primary" />
+                {label}
+              </div>
+            ))}
           </div>
-          <p className="mt-4 text-[11px] text-muted-foreground/70">
-            Your design auto-saves as you work — return anytime.
+
+          {/* CTA Button */}
+          <button
+            type="button"
+            onClick={() =>
+              navigate({
+                to: "/onboarding/$clientId/studio-intro",
+                params: { clientId },
+              })
+            }
+            className="group inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
+          >
+            Open Trivelta Studio
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </button>
+
+          {/* Subtext */}
+          <p className="mt-3 text-[11px] text-muted-foreground/50">
+            Auto-saves as you work · Return anytime
           </p>
         </div>
       </div>
