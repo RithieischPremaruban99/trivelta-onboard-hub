@@ -37,10 +37,10 @@ function StudioIntro() {
     }
     try {
       if (localStorage.getItem(skipKey(clientId)) === "true") {
+        sessionStorage.setItem(`studio-from-intro-${clientId}`, "true");
         navigate({
           to: "/onboarding/$clientId/studio",
           params: { clientId },
-          search: { from: "intro" } as never,
           replace: true,
         });
       }
@@ -57,6 +57,7 @@ function StudioIntro() {
     try {
       if (skipNextTime) localStorage.setItem(skipKey(clientId), "true");
       else localStorage.removeItem(skipKey(clientId));
+      sessionStorage.setItem(`studio-from-intro-${clientId}`, "true");
     } catch {
       /* ignore */
     }
@@ -65,7 +66,6 @@ function StudioIntro() {
       navigate({
         to: "/onboarding/$clientId/studio",
         params: { clientId },
-        search: { from: "intro" } as never,
       });
     }, 220);
   };
