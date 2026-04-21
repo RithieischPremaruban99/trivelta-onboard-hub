@@ -311,7 +311,11 @@ function DashboardPage() {
 
 /* ── Client detail ──────────────────────────────────────────────────────── */
 
-const ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com", "jay@trivelta.com"];
+const ADMIN_EMAILS = [
+  "rithieisch.premaruban@trivelta.com",
+  "jay@trivelta.com",
+  "davi.sirohi@trivelta.com",
+];
 
 function ClientDetail({
   client,
