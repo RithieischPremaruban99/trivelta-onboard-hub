@@ -31,11 +31,22 @@ import {
   ExternalLink,
   Mail,
   Lock,
+  LockOpen,
   Palette,
   ShieldCheck,
   ShieldAlert,
   Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SUPER_ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com"];
 import {
@@ -355,7 +366,17 @@ function AdminPage() {
                           />
                         </td>
                         <td className="px-4 py-4">
-                          <StudioConfigCell clientName={c.name} data={studioData[c.id] ?? null} />
+                          <StudioLockCell
+                            clientId={c.id}
+                            clientName={c.name}
+                            data={studioData[c.id] ?? null}
+                            onChanged={(locked, lockedAt) =>
+                              setStudioData((prev) => ({
+                                ...prev,
+                                [c.id]: { ...prev[c.id], locked, lockedAt },
+                              }))
+                            }
+                          />
                         </td>
                         <td className="px-4 py-4">
                           <div className="row-actions flex items-center gap-0.5">
@@ -579,6 +600,123 @@ function StudioAccessCell({
         </>
       )}
     </button>
+  );
+}
+
+/* ── Studio Lock cell ────────────────────────────────────────────────────── */
+
+function StudioLockCell({
+  clientId,
+  clientName,
+  data,
+  onChanged,
+}: {
+  clientId: string;
+  clientName: string;
+  data: { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null } | null;
+  onChanged: (locked: boolean, lockedAt: string | null) => void;
+}) {
+  const [toggling, setToggling] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  if (!data) {
+    return <span className="text-xs text-muted-foreground/50">—</span>;
+  }
+
+  const doLock = async () => {
+    const now = new Date().toISOString();
+    setToggling(true);
+    // Optimistic
+    onChanged(true, now);
+    const { error } = await supabase
+      .from("onboarding_forms")
+      .update({ studio_locked: true, studio_locked_at: now })
+      .eq("client_id", clientId);
+    setToggling(false);
+    if (error) {
+      onChanged(false, null); // revert
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Design locked for ${clientName}`);
+  };
+
+  const doUnlock = async () => {
+    setConfirmOpen(false);
+    setToggling(true);
+    // Optimistic
+    onChanged(false, null);
+    const { error } = await supabase
+      .from("onboarding_forms")
+      .update({ studio_locked: false, studio_locked_at: null })
+      .eq("client_id", clientId);
+    setToggling(false);
+    if (error) {
+      onChanged(true, data.lockedAt); // revert
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Design unlocked for ${clientName}`);
+  };
+
+  return (
+    <>
+      {data.locked ? (
+        <button
+          onClick={() => setConfirmOpen(true)}
+          disabled={toggling}
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-accent/60 disabled:opacity-50 cursor-pointer"
+          title="Click to unlock design"
+        >
+          {toggling ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+          ) : (
+            <>
+              <Lock className="h-3.5 w-3.5 text-success" />
+              <span className="font-medium text-success">Locked</span>
+            </>
+          )}
+        </button>
+      ) : (
+        <button
+          onClick={doLock}
+          disabled={toggling || !data.config}
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-accent/60 disabled:opacity-50 cursor-pointer"
+          title={data.config ? "Click to lock design" : "No config yet"}
+        >
+          {toggling ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+          ) : (
+            <>
+              <LockOpen className="h-3.5 w-3.5 text-muted-foreground/50" />
+              <span className="text-muted-foreground/50">Unlocked</span>
+            </>
+          )}
+        </button>
+      )}
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlock design for {clientName}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The client will be able to edit their design again. This action does NOT remove the
+              existing Notion page — your tech team will see both the old locked design and any new
+              changes after re-lock.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={doUnlock}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Unlock Design
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
