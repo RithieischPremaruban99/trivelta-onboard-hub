@@ -708,6 +708,7 @@ function AdminPage() {
           open={createProspectOpen}
           onOpenChange={setCreateProspectOpen}
           currentUser={user}
+          ams={ams}
           onCreated={() => refresh()}
         />
       </div>
@@ -1407,11 +1408,13 @@ function NewProspectDialog({
   open,
   onOpenChange,
   currentUser,
+  ams,
   onCreated,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   currentUser: { id: string; email?: string } | null;
+  ams: AmLite[];
   onCreated: () => void;
 }) {
   const [companyName, setCompanyName] = useState("");
@@ -1553,11 +1556,18 @@ function NewProspectDialog({
               </div>
               <div className="space-y-1.5">
                 <Label>Assigned account manager (optional)</Label>
-                <Input
-                  value={assignedAM}
-                  onChange={(e) => setAssignedAM(e.target.value)}
-                  placeholder="your.email@trivelta.com"
-                />
+                <Select value={assignedAM} onValueChange={setAssignedAM}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="— Select account manager —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ams.map((am) => (
+                      <SelectItem key={am.email} value={am.email}>
+                        {am.name ? `${am.name} (${am.email})` : am.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter className="mt-6">
