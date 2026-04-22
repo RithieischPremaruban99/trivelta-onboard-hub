@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { CheckCircle2, Download, Loader2, MessageSquare, SendHorizonal } from "lucide-react";
+import {
+  CheckCircle2,
+  Download,
+  Edit3,
+  FileText,
+  Loader2,
+  Mail,
+  MessageSquare,
+  Phone,
+  SendHorizonal,
+  UserCircle,
+} from "lucide-react";
 import { StageHeader } from "@/components/StageHeader";
 import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
 import { PROSPECT_SECTIONS } from "@/lib/prospect-fields";
@@ -47,6 +58,173 @@ export function timeAgo(date: Date | string): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+/* ── Success Screen (shown when form is locked after submit) ─────────────── */
+
+function ProspectSuccessState({
+  prospect,
+  onRequestUpdate,
+  onDownloadPDF,
+}: {
+  prospect: ProspectData;
+  onRequestUpdate: () => void;
+  onDownloadPDF: () => void;
+}) {
+  const cards = [
+    {
+      icon: UserCircle,
+      label: "AM Review",
+      desc: "Your Account Manager reviews what you shared",
+    },
+    {
+      icon: Phone,
+      label: "Onboarding Call",
+      desc: "They reach out to schedule next steps",
+    },
+    {
+      icon: FileText,
+      label: "Contract",
+      desc: "Finalize terms and move to full onboarding",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background relative">
+      {/* Background gradients */}
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 120%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 60%)",
+        }}
+      />
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 55%)",
+        }}
+      />
+      <div className="pointer-events-none fixed left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[100px] animate-pulse-slow" />
+      <div
+        className="pointer-events-none fixed bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-primary/5 blur-[80px] animate-pulse-slow"
+        style={{ animationDelay: "2s" }}
+      />
+
+      <StageHeader
+        stage="PRE-ONBOARDING"
+        rightContent={
+          <div className="text-right">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+              {prospect.legal_company_name}
+            </div>
+            <div className="mt-0.5 text-[10px] font-medium text-success">Submitted</div>
+          </div>
+        }
+      />
+
+      <div className="relative z-10 flex min-h-[calc(100vh-73px)] items-center justify-center px-4 py-16">
+        <div className="w-full max-w-3xl">
+
+          {/* Success indicator */}
+          <div className="mb-8 flex justify-center animate-fade-in">
+            <div className="grid h-20 w-20 place-items-center rounded-2xl bg-success/10">
+              <CheckCircle2 className="h-10 w-10 text-success" strokeWidth={1.5} />
+            </div>
+          </div>
+
+          {/* Micro-label */}
+          <div
+            className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-success animate-fade-in"
+            style={{ animationDelay: "80ms" }}
+          >
+            SUBMITTED · {timeAgo(prospect.submitted_at!)}
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="mb-4 text-center text-4xl font-bold leading-[1.05] tracking-tight md:text-[52px] animate-fade-in-up"
+            style={{ animationDelay: "140ms" }}
+          >
+            Your information is in.
+            <br />
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
+              We'll be in touch.
+            </span>
+          </h1>
+
+          <p
+            className="mx-auto mb-10 max-w-xl text-center text-base leading-relaxed text-muted-foreground animate-fade-in-up"
+            style={{ animationDelay: "200ms" }}
+          >
+            Your Account Manager has received everything you shared. They'll reach out to discuss
+            next steps and schedule your onboarding call.
+          </p>
+
+          {/* What happens next — 3 cards */}
+          <div className="mb-10 grid grid-cols-1 gap-3 md:grid-cols-3">
+            {cards.map(({ icon: Icon, label, desc }, i) => (
+              <div
+                key={label}
+                className="group rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-md transition-all hover:-translate-y-1 hover:border-primary/30 hover:bg-card/50 animate-fade-in-up"
+                style={{ animationDelay: `${i * 80 + 260}ms` }}
+              >
+                <div className="mb-3 grid h-9 w-9 place-items-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <Icon className="h-4 w-4 text-primary" />
+                </div>
+                <div className="mb-1 text-sm font-semibold text-foreground">{label}</div>
+                <div className="text-xs leading-relaxed text-muted-foreground/80">{desc}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Reassurance callout */}
+          <div
+            className="mx-auto mb-10 flex max-w-xl items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-5 py-4 animate-fade-in-up"
+            style={{ animationDelay: "500ms" }}
+          >
+            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-[13px] leading-relaxed text-foreground/90">
+              <span className="font-semibold">Watch your inbox.</span>{" "}
+              <span className="text-muted-foreground/90">
+                Your AM will reach out within one business day.
+              </span>
+            </p>
+          </div>
+
+          {/* Primary CTA — Download PDF */}
+          <div
+            className="mb-4 flex flex-col items-center animate-fade-in-up"
+            style={{ animationDelay: "580ms" }}
+          >
+            <button
+              onClick={onDownloadPDF}
+              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
+            >
+              <Download className="h-5 w-5" />
+              Download Your Submission (PDF)
+            </button>
+          </div>
+
+          {/* Secondary action — Request Update */}
+          <div
+            className="flex flex-col items-center animate-fade-in-up"
+            style={{ animationDelay: "640ms" }}
+          >
+            <button
+              onClick={onRequestUpdate}
+              className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              Need to update something? Request changes from your AM
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ── Props ───────────────────────────────────────────────────────────────── */
@@ -100,6 +278,66 @@ export function ProspectFormContent({
     }
   };
 
+  const handleDownloadPDF = () => {
+    try {
+      const doc = buildProspectPDF({
+        ...prospect,
+        submitted_at: prospect.submitted_at!,
+      });
+      const safeName = prospect.legal_company_name.replace(/\s+/g, "-").toLowerCase();
+      doc.save(`${safeName}-pre-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (err) {
+      console.error("[PDF] prospect generation failed:", err);
+    }
+  };
+
+  /* ── Success screen: replaces form entirely when locked ── */
+  if (isLocked) {
+    return (
+      <>
+        <ProspectSuccessState
+          prospect={prospect}
+          onRequestUpdate={() => setReqDialogOpen(true)}
+          onDownloadPDF={handleDownloadPDF}
+        />
+
+        {/* Request Update Dialog — rendered via portal, works regardless of parent */}
+        <Dialog open={reqDialogOpen} onOpenChange={(v) => { if (!v) setReqDialogOpen(false); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Request an update</DialogTitle>
+              <DialogDescription>
+                Let us know what you'd like to change. Your form will be unlocked for editing.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-2">
+              <textarea
+                className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none transition-colors min-h-[100px] resize-y"
+                placeholder="Describe what you'd like to update (optional)…"
+                value={reqReason}
+                onChange={(e) => setReqReason(e.target.value)}
+              />
+            </div>
+            <DialogFooter className="mt-2">
+              <Button variant="outline" onClick={() => setReqDialogOpen(false)} disabled={reqSubmitting}>
+                Cancel
+              </Button>
+              <Button onClick={handleRequestUpdate} disabled={reqSubmitting}>
+                {reqSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageSquare className="h-4 w-4" />
+                )}
+                Request Update
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  /* ── Editable form (not locked) ── */
   return (
     <div className="min-h-screen bg-background">
       {/* Sticky header */}
@@ -166,56 +404,10 @@ export function ProspectFormContent({
         </div>
       </div>
 
-      {/* ── Banners ── */}
-
-      {/* Locked: submitted, no update pending (prospect view only) */}
-      {isLocked && (
-        <div className="mx-auto max-w-4xl px-6 mb-6">
-          <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-            <div className="flex-1 text-sm">
-              <div className="font-semibold text-foreground">Information was sent to Trivelta</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                {timeAgo(prospect.submitted_at!)} · Your form is locked. Request an update to make changes.
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    const doc = buildProspectPDF({
-                      ...prospect,
-                      submitted_at: prospect.submitted_at!,
-                    });
-                    const safeName = prospect.legal_company_name.replace(/\s+/g, "-").toLowerCase();
-                    doc.save(`${safeName}-pre-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
-                  } catch (err) {
-                    console.error("[PDF] prospect generation failed:", err);
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-background/60 px-3 py-1.5 text-[11px] font-medium text-foreground/70 hover:bg-card hover:border-primary/30 hover:text-foreground transition-all whitespace-nowrap"
-              >
-                <Download className="h-3 w-3" />
-                Download PDF
-              </button>
-              {onRequestUpdate && (
-                <button
-                  type="button"
-                  onClick={() => setReqDialogOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-medium text-amber-300 hover:bg-amber-500/20 transition-all whitespace-nowrap"
-                >
-                  <MessageSquare className="h-3 w-3" />
-                  Request Update
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Banners (non-locked states only) ── */}
 
       {/* Update pending — editing unlocked (prospect view) */}
-      {!isLocked && updatePending && mode === "token" && (
+      {updatePending && mode === "token" && (
         <div className="mx-auto max-w-4xl px-6 mb-6">
           <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
             <MessageSquare className="h-5 w-5 shrink-0 text-amber-400" />
@@ -276,68 +468,32 @@ export function ProspectFormContent({
             onChange={(fieldKey, value) => onFieldChange(section.storageKey, fieldKey, value)}
             isOpen={openSection === section.id}
             onToggle={() => onSectionToggle(openSection === section.id ? null : section.id)}
-            disabled={isLocked}
           />
         ))}
       </div>
 
-      {/* Fixed bottom bar — hidden when form is locked for prospect */}
-      {!isLocked && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-border/40 bg-background/80 backdrop-blur-md">
-          <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-            <div className="text-xs text-foreground/70">
-              {submitted
-                ? `Submitted ${timeAgo(prospect.submitted_at!)}`
-                : "Submit anytime — you can keep editing after."}
-            </div>
-            <button
-              onClick={onSubmit}
-              disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-50"
-            >
-              {submitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <SendHorizonal className="h-4 w-4" />
-              )}
-              {submitted ? "Resubmit to Team" : "Send to Trivelta Team"}
-            </button>
+      {/* Fixed bottom bar */}
+      <div className="fixed inset-x-0 bottom-0 border-t border-border/40 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          <div className="text-xs text-foreground/70">
+            {submitted
+              ? `Submitted ${timeAgo(prospect.submitted_at!)}`
+              : "Submit anytime — you can keep editing after."}
           </div>
+          <button
+            onClick={onSubmit}
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-50"
+          >
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <SendHorizonal className="h-4 w-4" />
+            )}
+            {submitted ? "Resubmit to Team" : "Send to Trivelta Team"}
+          </button>
         </div>
-      )}
-
-      {/* Request Update Dialog */}
-      <Dialog open={reqDialogOpen} onOpenChange={(v) => { if (!v) setReqDialogOpen(false); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Request an update</DialogTitle>
-            <DialogDescription>
-              Let us know what you'd like to change. Your form will be unlocked for editing.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-2">
-            <textarea
-              className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none transition-colors min-h-[100px] resize-y"
-              placeholder="Describe what you'd like to update (optional)…"
-              value={reqReason}
-              onChange={(e) => setReqReason(e.target.value)}
-            />
-          </div>
-          <DialogFooter className="mt-2">
-            <Button variant="outline" onClick={() => setReqDialogOpen(false)} disabled={reqSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleRequestUpdate} disabled={reqSubmitting}>
-              {reqSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <MessageSquare className="h-4 w-4" />
-              )}
-              Request Update
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   );
 }
