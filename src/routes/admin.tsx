@@ -72,6 +72,8 @@ import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/onboarding-schema";
 import { AmAvatars, type AmLite } from "@/components/AmAvatars";
 import { AmMultiSelect } from "@/components/AmMultiSelect";
+import { generateProspectToken, buildProspectUrl } from "@/lib/prospect-tokens";
+import { DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -92,13 +94,27 @@ interface ClientRow {
   platform_live?: boolean;
 }
 
+interface ProspectRow {
+  id: string;
+  legal_company_name: string;
+  primary_contact_email: string;
+  primary_contact_name: string | null;
+  assigned_account_manager: string | null;
+  contract_status: string;
+  form_progress: number;
+  access_token: string;
+  created_at: string;
+}
+
 function AdminPage() {
   const { user, role, loading: authLoading } = useAuth();
   const [clients, setClients] = useState<ClientRow[]>([]);
+  const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({});
   const [ams, setAms] = useState<AmLite[]>([]);
   // clientId -> list of AM emails
   const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
+  const [createProspectOpen, setCreateProspectOpen] = useState(false);
   const [studioData, setStudioData] = useState<
     Record<
       string,
@@ -129,21 +145,29 @@ function AdminPage() {
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes] = await Promise.all([
-      supabase
-        .from("clients")
-        .select(
-          "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
-        )
-        .order("created_at", { ascending: false }),
-      supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
-      supabase.from("onboarding_tasks").select("client_id, completed"),
-      supabase.from("client_account_managers").select("client_id, am_email"),
-      supabase
-        .from("onboarding_forms")
-        .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
-    ]);
+    const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes, prospectsRes] =
+      await Promise.all([
+        supabase
+          .from("clients")
+          .select(
+            "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
+          )
+          .order("created_at", { ascending: false }),
+        supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
+        supabase.from("onboarding_tasks").select("client_id, completed"),
+        supabase.from("client_account_managers").select("client_id, am_email"),
+        supabase
+          .from("onboarding_forms")
+          .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
+        (supabase as unknown as { from: (t: string) => any })
+          .from("prospects")
+          .select(
+            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at",
+          )
+          .order("created_at", { ascending: false }),
+      ]);
     setClients((clientsRes.data ?? []) as unknown as ClientRow[]);
+    setProspects((prospectsRes.data ?? []) as unknown as ProspectRow[]);
 
     const sdMap: Record<
       string,
@@ -247,6 +271,7 @@ function AdminPage() {
 
   const stats = {
     total: clients.length,
+    prospects: prospects.length,
     active: clientsWithProgress.filter((c) => c.progress > 0 && c.progress < 100).length,
     onboarding: clients.filter((c) => c.status === "onboarding").length,
     avgCompletion:
@@ -276,6 +301,21 @@ function AdminPage() {
     setClients((prev) => prev.filter((c) => c.id !== clientId));
   };
 
+  const handleDeleteProspect = async (prospectId: string, companyName: string) => {
+    if (!window.confirm(`Permanently delete prospect "${companyName}"? This cannot be undone.`))
+      return;
+    const { error } = await (supabase as unknown as { from: (t: string) => any })
+      .from("prospects")
+      .delete()
+      .eq("id", prospectId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Deleted prospect ${companyName}`);
+    setProspects((prev) => prev.filter((p) => p.id !== prospectId));
+  };
+
   return (
     <AppShell badge="Admin">
       <div className="mx-auto w-full max-w-[1400px] px-6 pb-10 pt-6">
@@ -290,25 +330,35 @@ function AdminPage() {
               Every client, account manager and onboarding signal — in one premium control surface.
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="btn-premium h-11 px-6 text-[14px]">
-                <Plus className="h-4 w-4" /> New client
-              </Button>
-            </DialogTrigger>
-            <NewClientDialog
-              ams={ams}
-              onCreated={() => {
-                setOpen(false);
-                refresh();
-              }}
-            />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="h-11 px-5 text-[13px] border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+              onClick={() => setCreateProspectOpen(true)}
+            >
+              <Plus className="h-4 w-4" /> New prospect
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button className="btn-premium h-11 px-6 text-[14px]">
+                  <Plus className="h-4 w-4" /> New client
+                </Button>
+              </DialogTrigger>
+              <NewClientDialog
+                ams={ams}
+                onCreated={() => {
+                  setOpen(false);
+                  refresh();
+                }}
+              />
+            </Dialog>
+          </div>
         </div>
 
         {/* Hero stats */}
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard label="Total clients" value={stats.total} />
+          <StatCard label="Prospects" value={stats.prospects} accent="amber" />
           <StatCard label="Onboarding" value={stats.onboarding} accent="primary" />
           <StatCard label="Active" value={stats.active} accent="success" />
           <StatCard label="Avg completion" value={`${stats.avgCompletion}%`} />
@@ -317,9 +367,9 @@ function AdminPage() {
         {/* Section heading */}
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <div className="micro-label">All clients</div>
+            <div className="micro-label">All clients &amp; prospects</div>
             <h2 className="mt-1 text-xl font-semibold text-foreground">
-              {clients.length}{" "}
+              {clients.length + prospects.length}{" "}
               <span className="font-normal text-muted-foreground">in the pipeline</span>
             </h2>
           </div>
@@ -331,7 +381,7 @@ function AdminPage() {
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-          ) : clients.length === 0 ? (
+          ) : clients.length === 0 && prospects.length === 0 ? (
             <div className="grid place-items-center gap-4 py-20 text-center">
               <div className="grid h-14 w-14 place-items-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/20">
                 <Users className="h-6 w-6" />
@@ -339,7 +389,7 @@ function AdminPage() {
               <div>
                 <div className="text-base font-semibold text-foreground">No clients yet</div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  Create your first client to start the onboarding flow.
+                  Create your first client or prospect to start the onboarding flow.
                 </div>
               </div>
               <Button onClick={() => setOpen(true)} className="btn-premium mt-2 h-10 px-5">
@@ -351,8 +401,7 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/80 text-left">
-                    <th className="px-5 py-4 micro-label">Client</th>
-                    <th className="px-4 py-4 micro-label">Country</th>
+                    <th className="px-5 py-4 micro-label">Client / Prospect</th>
                     <th className="px-4 py-4 micro-label">Account Managers</th>
                     <th className="px-4 py-4 micro-label">Status</th>
                     <th className="px-4 py-4 micro-label">Progress</th>
@@ -363,6 +412,7 @@ function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Client rows */}
                   {clientsWithProgress.map((c) => {
                     const pct = c.progress;
                     const assignedEmails = clientAms[c.id] ?? [];
@@ -382,8 +432,10 @@ function AdminPage() {
                               {c.primary_contact_email}
                             </div>
                           )}
+                          <div className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-primary/70">
+                            Client
+                          </div>
                         </td>
-                        <td className="px-4 py-4 text-muted-foreground">{c.country ?? "—"}</td>
                         <td className="px-4 py-4">
                           <ClientAmCell
                             clientId={c.id}
@@ -521,11 +573,122 @@ function AdminPage() {
                       </tr>
                     );
                   })}
+
+                  {/* Prospect rows */}
+                  {prospects.map((p) => {
+                    const prospectUrl = buildProspectUrl(p.access_token);
+                    const contractLabel: Record<string, string> = {
+                      in_discussion: "In discussion",
+                      term_sheet: "Term sheet",
+                      contract_sent: "Contract sent",
+                      under_legal_review: "Legal review",
+                      ready_to_sign: "Ready to sign",
+                      signed: "Signed",
+                    };
+                    return (
+                      <tr
+                        key={p.id}
+                        className="row-premium border-b border-border/40 last:border-b-0 bg-amber-500/[0.02]"
+                      >
+                        <td className="px-5 py-4">
+                          <div className="font-semibold text-foreground">
+                            {p.legal_company_name}
+                          </div>
+                          <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                            {p.primary_contact_email}
+                          </div>
+                          <div className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-400/80">
+                            Prospect
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-[11px] text-muted-foreground">
+                          {p.assigned_account_manager ?? "—"}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+                            {contractLabel[p.contract_status] ?? p.contract_status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="relative h-1.5 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+                              <div
+                                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-400/60 transition-all duration-500"
+                                style={{ width: `${p.form_progress}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
+                              {p.form_progress}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-muted-foreground">
+                          {new Date(p.created_at).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "2-digit",
+                          })}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-xs text-muted-foreground/40">—</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-xs text-muted-foreground/40">—</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="row-actions flex items-center gap-0.5">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              title="Copy magic link"
+                              onClick={() => {
+                                navigator.clipboard.writeText(prospectUrl);
+                                toast.success("Magic link copied");
+                              }}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              title="Open prospect form"
+                              onClick={() => window.open(prospectUrl, "_blank")}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </Button>
+                            {canDelete && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                title="Delete prospect (permanent)"
+                                onClick={() =>
+                                  handleDeleteProspect(p.id, p.legal_company_name)
+                                }
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
+
+        {/* New Prospect Dialog */}
+        <NewProspectDialog
+          open={createProspectOpen}
+          onOpenChange={setCreateProspectOpen}
+          currentUser={user}
+          onCreated={() => refresh()}
+        />
       </div>
     </AppShell>
   );
@@ -538,14 +701,16 @@ function StatCard({
 }: {
   label: string;
   value: string | number;
-  accent?: "primary" | "success";
+  accent?: "primary" | "success" | "amber";
 }) {
   const dot =
     accent === "primary"
       ? "bg-primary shadow-[0_0_12px_2px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]"
       : accent === "success"
         ? "bg-success shadow-[0_0_12px_2px_color-mix(in_oklab,var(--color-success)_60%,transparent)]"
-        : "bg-foreground/30";
+        : accent === "amber"
+          ? "bg-amber-400 shadow-[0_0_12px_2px_rgba(251,191,36,0.4)]"
+          : "bg-foreground/30";
   return (
     <div className="card-premium group relative overflow-hidden p-4">
       <div
@@ -1212,5 +1377,187 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
         </Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+/* ── New Prospect Dialog ─────────────────────────────────────────────────── */
+
+function NewProspectDialog({
+  open,
+  onOpenChange,
+  currentUser,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  currentUser: { id: string; email?: string } | null;
+  onCreated: () => void;
+}) {
+  const [companyName, setCompanyName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [assignedAM, setAssignedAM] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [magicLink, setMagicLink] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const reset = () => {
+    setCompanyName("");
+    setContactEmail("");
+    setContactName("");
+    setAssignedAM("");
+    setMagicLink(null);
+    setCopiedLink(false);
+  };
+
+  const handleClose = (v: boolean) => {
+    if (!v) reset();
+    onOpenChange(v);
+  };
+
+  const handleCreate = async () => {
+    if (!companyName.trim() || !contactEmail.trim() || !currentUser) return;
+    setSubmitting(true);
+    const token = generateProspectToken();
+    const { error } = await (supabase as unknown as { from: (t: string) => any })
+      .from("prospects")
+      .insert([
+        {
+          legal_company_name: companyName.trim(),
+          primary_contact_email: contactEmail.trim().toLowerCase(),
+          primary_contact_name: contactName.trim() || null,
+          assigned_account_manager: assignedAM.trim() || null,
+          access_token: token,
+          created_by: currentUser.id,
+        },
+      ]);
+    setSubmitting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setMagicLink(buildProspectUrl(token));
+    onCreated();
+  };
+
+  const copyLink = () => {
+    if (!magicLink) return;
+    navigator.clipboard.writeText(magicLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        {magicLink ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-success" /> Prospect created
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4 space-y-4">
+              <div className="flex items-start gap-3 rounded-md border border-success/30 bg-success/10 p-3 text-sm">
+                <div>
+                  <div className="font-medium">
+                    {companyName} is ready.
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Send this magic link to {contactEmail}. No account required.
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide mb-2">
+                  Magic Link
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={magicLink} className="font-mono text-[11px]" />
+                  <Button variant="outline" onClick={copyLink} className="shrink-0">
+                    {copiedLink ? (
+                      <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Expires in 30 days. The prospect doesn't need to create an account — this link is
+                  their access.
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="mt-4 gap-2 sm:justify-between">
+              <Button variant="outline" onClick={reset}>
+                Create another
+              </Button>
+              <Button onClick={() => handleClose(false)}>Done</Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Create pre-onboarding prospect</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Generate a magic link for a prospect to fill out pre-onboarding information before
+                contract signing.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-1.5">
+                <Label>Legal company name *</Label>
+                <Input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Acme Sportsbook Ltd."
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Primary contact email *</Label>
+                <Input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="ceo@acmesports.com"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Primary contact name (optional)</Label>
+                <Input
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Alex Johnson"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Assigned account manager (optional)</Label>
+                <Input
+                  value={assignedAM}
+                  onChange={(e) => setAssignedAM(e.target.value)}
+                  placeholder="your.email@trivelta.com"
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button variant="outline" onClick={() => handleClose(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreate}
+                disabled={submitting || !companyName.trim() || !contactEmail.trim()}
+              >
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                Generate magic link
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
