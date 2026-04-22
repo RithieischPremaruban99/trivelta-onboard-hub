@@ -352,6 +352,8 @@ export type Database = {
           submitted_at: string | null
           technical_requirements: Json | null
           token_expires_at: string
+          update_request_reason: string | null
+          update_requested_at: string | null
           updated_at: string | null
         }
         Insert: {
@@ -378,6 +380,8 @@ export type Database = {
           submitted_at?: string | null
           technical_requirements?: Json | null
           token_expires_at?: string
+          update_request_reason?: string | null
+          update_requested_at?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -404,6 +408,8 @@ export type Database = {
           submitted_at?: string | null
           technical_requirements?: Json | null
           token_expires_at?: string
+          update_request_reason?: string | null
+          update_requested_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
