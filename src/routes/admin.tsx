@@ -105,6 +105,7 @@ interface ProspectRow {
   access_token: string;
   created_at: string;
   submitted_at: string | null;
+  notion_page_id: string | null;
 }
 
 function AdminPage() {
@@ -163,7 +164,7 @@ function AdminPage() {
         (supabase as unknown as { from: (t: string) => any })
           .from("prospects")
           .select(
-            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at",
+            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id",
           )
           .order("created_at", { ascending: false }),
       ]);
@@ -638,7 +639,19 @@ function AdminPage() {
                           })}
                         </td>
                         <td className="px-4 py-4">
-                          <span className="text-xs text-muted-foreground/40">—</span>
+                          {p.notion_page_id ? (
+                            <a
+                              href={`https://www.notion.so/${p.notion_page_id.replace(/-/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-md bg-muted/30 px-2 py-1 text-[10px] font-medium text-foreground/80 hover:bg-muted/50 transition-colors"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Notion
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/40">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-4">
                           <span className="text-xs text-muted-foreground/40">—</span>

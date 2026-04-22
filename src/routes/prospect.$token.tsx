@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, SendHorizonal } from "lucide-react";
+import { CheckCircle2, Loader2, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
@@ -23,6 +23,8 @@ interface ProspectData {
   id: string;
   legal_company_name: string;
   primary_contact_name: string | null;
+  primary_contact_email: string;
+  notion_page_id: string | null;
   form_progress: number;
   token_expires_at: string;
   submitted_at: string | null;
@@ -75,7 +77,7 @@ function ProspectPage() {
       const { data, error } = await db
         .from("prospects")
         .select(
-          "id, legal_company_name, primary_contact_name, form_progress, token_expires_at, submitted_at, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
+          "id, legal_company_name, primary_contact_name, primary_contact_email, notion_page_id, form_progress, token_expires_at, submitted_at, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
         )
         .eq("access_token", token)
         .maybeSingle();
@@ -140,23 +142,45 @@ function ProspectPage() {
     }, 1500);
   };
 
-  /* ── Submit stub (P3 will add Notion + Slack) ── */
+  /* ── Submit + Notion sync ── */
   const handleSubmit = async () => {
     if (!prospect) return;
     setSubmitting(true);
-    const now = new Date().toISOString();
-    const { error } = await db
-      .from("prospects")
-      .update({ submitted_at: now })
-      .eq("id", prospect.id)
-      .eq("access_token", token);
-    setSubmitting(false);
-    if (error) {
+    try {
+      const now = new Date().toISOString();
+      const { error: updateError } = await db
+        .from("prospects")
+        .update({ submitted_at: now })
+        .eq("id", prospect.id)
+        .eq("access_token", token);
+      if (updateError) throw updateError;
+
+      // Trigger Notion sync (fire-and-forget with graceful failure)
+      const { data, error: fnError } = await supabase.functions.invoke("prospect-submitted", {
+        body: {
+          client_prospect_id: prospect.id,
+          submitted_by: "prospect",
+          submitter_email: prospect.primary_contact_email,
+        },
+      });
+      if (fnError) {
+        console.error("[Prospect] Notion sync failed:", fnError);
+        toast.warning("Submitted — Notion sync queued.");
+      } else {
+        toast.success("Sent to Trivelta team — we'll be in touch soon.");
+      }
+
+      setProspect({
+        ...prospect,
+        submitted_at: now,
+        notion_page_id: (data as { notion_page_id?: string } | null)?.notion_page_id ?? prospect.notion_page_id,
+      });
+    } catch (err) {
+      console.error("[Prospect] Submit failed:", err);
       toast.error("Could not submit. Please try again.");
-      return;
+    } finally {
+      setSubmitting(false);
     }
-    toast.success("Sent to Trivelta team — we'll be in touch soon.");
-    setProspect({ ...prospect, submitted_at: now });
   };
 
   /* ── Error screens ── */
@@ -275,6 +299,21 @@ function ProspectPage() {
           </div>
         </div>
       </div>
+
+      {/* Submission confirmation banner */}
+      {submitted && (
+        <div className="mx-auto max-w-4xl px-6 mb-6">
+          <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+            <div className="flex-1 text-sm">
+              <div className="font-semibold text-foreground">Your information was sent to Trivelta</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                {timeAgo(prospect.submitted_at!)} · You can keep editing — re-submit to push updates.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Accordion sections */}
       <div className="mx-auto max-w-4xl px-6 pb-28">
