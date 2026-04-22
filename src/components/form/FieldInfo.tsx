@@ -157,6 +157,7 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
                             <img
                               src={logo}
                               alt=""
+                              referrerPolicy="origin"
                               className="h-8 w-8 rounded-md bg-white/5 object-contain p-1 shrink-0"
                               onError={(e) => {
                                 const el = e.currentTarget;
