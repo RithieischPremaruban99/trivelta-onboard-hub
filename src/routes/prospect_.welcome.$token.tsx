@@ -26,7 +26,6 @@ function ProspectWelcome() {
   const { token } = useParams({ from: "/prospect_/welcome/$token" });
   const navigate = useNavigate();
   const [contactName, setContactName] = useState<string | null>(null);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
@@ -56,7 +55,7 @@ function ProspectWelcome() {
 
   const handleStart = () => {
     try {
-      if (dontShowAgain) localStorage.setItem(welcomeKey(token), "1");
+      localStorage.setItem(welcomeKey(token), "1");
     } catch {
       /* ignore */
     }
@@ -198,18 +197,6 @@ function ProspectWelcome() {
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </button>
 
-          {/* Don't show again */}
-          <div className="mt-8 flex items-center justify-center">
-            <label className="inline-flex cursor-pointer items-center gap-2 text-[11px] text-muted-foreground/50 transition-colors hover:text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={dontShowAgain}
-                onChange={(e) => setDontShowAgain(e.target.checked)}
-                className="rounded border-border/50 bg-transparent accent-primary"
-              />
-              Don't show this again
-            </label>
-          </div>
         </div>
       </div>
     </div>
