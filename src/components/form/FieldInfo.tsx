@@ -31,11 +31,11 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
             <button
               type="button"
               onClick={() => hasPanel && setPanelOpen(true)}
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-colors ml-1.5 shrink-0"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 border border-primary/25 text-primary hover:bg-primary/20 hover:border-primary/40 hover:scale-110 active:scale-95 transition-all ml-2 shrink-0"
               style={{ cursor: hasPanel ? "pointer" : "help" }}
               aria-label="More info about this field"
             >
-              <Info className="h-3 w-3" />
+              <Info className="h-3 w-3" strokeWidth={2.5} />
             </button>
           </TooltipTrigger>
           <TooltipContent
