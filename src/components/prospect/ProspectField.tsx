@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { ProspectField as ProspectFieldDef } from "@/lib/prospect-fields";
+import { FieldInfo } from "@/components/form/FieldInfo";
 
 interface Props {
   field: ProspectFieldDef;
@@ -13,9 +14,10 @@ const INPUT_BASE =
 
 export function ProspectField({ field, value, onChange, disabled }: Props) {
   const label = (
-    <label className="text-xs font-semibold text-foreground block mb-1.5">
-      {field.label}
+    <label className="flex items-center text-xs font-semibold text-foreground mb-1.5">
+      <span>{field.label}</span>
       {field.required && <span className="text-primary ml-1">*</span>}
+      <FieldInfo fieldKey={field.key} />
     </label>
   );
 

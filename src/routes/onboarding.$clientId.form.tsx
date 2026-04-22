@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldInfo } from "@/components/form/FieldInfo";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -1076,17 +1077,20 @@ function SectionShell({
 function FieldGroup({
   label,
   required,
+  fieldKey,
   children,
 }: {
   label: string;
   required?: boolean;
+  fieldKey?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-foreground/85">
-        {label}
+      <Label className="flex items-center text-foreground/85">
+        <span>{label}</span>
         {required && <span className="text-primary ml-0.5">*</span>}
+        {fieldKey && <FieldInfo fieldKey={fieldKey} />}
       </Label>
       {children}
     </div>
