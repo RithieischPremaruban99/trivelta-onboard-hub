@@ -123,6 +123,8 @@ function AdminPage() {
   const [ams, setAms] = useState<AmLite[]>([]);
   // clientId -> list of AM emails
   const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
+  // prospectId -> list of AM emails
+  const [prospectAms, setProspectAms] = useState<Record<string, string[]>>({});
   const [createProspectOpen, setCreateProspectOpen] = useState(false);
   const [inviteAmOpen, setInviteAmOpen] = useState(false);
   const [showMineOnly, setShowMineOnly] = useState(false);
@@ -164,7 +166,7 @@ function AdminPage() {
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes, prospectsRes] =
+    const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes, prospectsRes, pamRes] =
       await Promise.all([
         supabase
           .from("clients")
@@ -184,6 +186,9 @@ function AdminPage() {
             "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id, converted_to_client_id, converted_at",
           )
           .order("created_at", { ascending: false }),
+        (supabase as unknown as { from: (t: string) => any })
+          .from("prospect_account_managers")
+          .select("prospect_id, am_email"),
       ]);
     setClients((clientsRes.data ?? []) as unknown as ClientRow[]);
     setProspects((prospectsRes.data ?? []) as unknown as ProspectRow[]);
@@ -245,6 +250,12 @@ function AdminPage() {
       if (r.am_email) (camMap[r.client_id] ??= []).push(r.am_email);
     });
     setClientAms(camMap);
+
+    const pamMap: Record<string, string[]> = {};
+    ((pamRes.data ?? []) as Array<{ prospect_id: string; am_email: string | null }>).forEach((r) => {
+      if (r.am_email) (pamMap[r.prospect_id] ??= []).push(r.am_email);
+    });
+    setProspectAms(pamMap);
 
     const counts: Record<string, { total: number; done: number }> = {};
     ((tasksRes.data ?? []) as Array<{ client_id: string; completed: boolean }>).forEach((t) => {
@@ -338,7 +349,12 @@ function AdminPage() {
 
   const filteredProspects =
     showMineOnly || role === "account_manager"
-      ? prospects.filter((p) => p.assigned_account_manager === user?.email)
+      ? prospects.filter((p) => {
+          const emails =
+            prospectAms[p.id] ??
+            (p.assigned_account_manager ? [p.assigned_account_manager] : []);
+          return emails.includes(user?.email ?? "");
+        })
       : prospects;
 
   const handleDelete = async (clientId: string, clientName: string) => {
@@ -697,8 +713,23 @@ function AdminPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-[11px] text-muted-foreground">
-                          {p.assigned_account_manager ?? "—"}
+                        <td className="px-4 py-4">
+                          {(() => {
+                            const emails =
+                              prospectAms[p.id] ??
+                              (p.assigned_account_manager
+                                ? [p.assigned_account_manager]
+                                : []);
+                            const assignedAms: AmLite[] = emails.map(
+                              (email) =>
+                                ams.find((a) => a.email === email) ?? { email, name: null },
+                            );
+                            return assignedAms.length > 0 ? (
+                              <AmAvatars ams={assignedAms} />
+                            ) : (
+                              <span className="text-[11px] text-muted-foreground/50">—</span>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-4">
                           {isConverted ? (
@@ -1949,7 +1980,7 @@ function NewProspectDialog({
   const [companyName, setCompanyName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactName, setContactName] = useState("");
-  const [assignedAM, setAssignedAM] = useState("");
+  const [selectedAMs, setSelectedAMs] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [magicLink, setMagicLink] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -1958,7 +1989,7 @@ function NewProspectDialog({
     setCompanyName("");
     setContactEmail("");
     setContactName("");
-    setAssignedAM("");
+    setSelectedAMs([]);
     setMagicLink(null);
     setCopiedLink(false);
   };
@@ -1972,23 +2003,35 @@ function NewProspectDialog({
     if (!companyName.trim() || !contactEmail.trim() || !currentUser) return;
     setSubmitting(true);
     const token = generateProspectToken();
-    const { error } = await (supabase as unknown as { from: (t: string) => any })
+    const db = supabase as unknown as { from: (t: string) => any };
+    const { data: newProspect, error } = await db
       .from("prospects")
       .insert([
         {
           legal_company_name: companyName.trim(),
           primary_contact_email: contactEmail.trim().toLowerCase(),
           primary_contact_name: contactName.trim() || null,
-          assigned_account_manager: assignedAM.trim() || null,
+          // Keep backward-compat column populated with first AM
+          assigned_account_manager: selectedAMs[0] ?? null,
           access_token: token,
           created_by: currentUser.id,
         },
-      ]);
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
+      ])
+      .select("id")
+      .single();
+    if (error || !newProspect) {
+      setSubmitting(false);
+      toast.error(error?.message ?? "Failed to create prospect");
       return;
     }
+
+    if (selectedAMs.length > 0) {
+      await db
+        .from("prospect_account_managers")
+        .insert(selectedAMs.map((am_email) => ({ prospect_id: newProspect.id, am_email })));
+    }
+
+    setSubmitting(false);
     setMagicLink(buildProspectUrl(token));
     onCreated();
   };
@@ -2084,19 +2127,11 @@ function NewProspectDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Assigned account manager (optional)</Label>
-                <Select value={assignedAM} onValueChange={setAssignedAM}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="— Select account manager —" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ams.map((am) => (
-                      <SelectItem key={am.email} value={am.email}>
-                        {am.name ? `${am.name} (${am.email})` : am.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Assign account managers (optional)</Label>
+                <AmMultiSelect ams={ams} value={selectedAMs} onChange={setSelectedAMs} />
+                <p className="text-[11px] text-muted-foreground">
+                  You can assign multiple AMs. They'll all see this prospect in their dashboard.
+                </p>
               </div>
             </div>
             <DialogFooter className="mt-6">

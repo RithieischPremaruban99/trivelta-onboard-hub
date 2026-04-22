@@ -189,12 +189,23 @@ serve(async (req) => {
 
     const clientId = newClient.id;
 
-    // ── 5. Assign AM to new client (if prospect had one) ──────────────────
-    if (prospect.assigned_account_manager) {
-      await adminClient.from("client_account_managers").insert({
-        client_id: clientId,
-        am_email: prospect.assigned_account_manager,
-      });
+    // ── 5. Transfer all prospect AMs to new client ────────────────────────
+    const { data: prospectAMs } = await adminClient
+      .from("prospect_account_managers")
+      .select("am_email")
+      .eq("prospect_id", prospect_id);
+
+    const amEmails: string[] = (prospectAMs ?? []).map((r: { am_email: string }) => r.am_email);
+
+    // Fall back to old single-column if junction table has no rows yet
+    if (amEmails.length === 0 && prospect.assigned_account_manager) {
+      amEmails.push(prospect.assigned_account_manager);
+    }
+
+    if (amEmails.length > 0) {
+      await adminClient.from("client_account_managers").insert(
+        amEmails.map((am_email) => ({ client_id: clientId, am_email })),
+      );
     }
 
     // ── 6. Create onboarding_form with pre-filled data ────────────────────
