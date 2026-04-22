@@ -295,11 +295,13 @@ function FormScreen() {
         }
         if (!seenWelcome) {
           navigate({ to: "/onboarding/$clientId/welcome", params: { clientId }, replace: true });
+          return; // stay loading — component unmounts on navigation, no form flash
         }
+        // All routing checks passed — user should see the form
+        setLoading(false);
       } catch (err) {
         console.error("[Form] Failed to load form data:", err);
         toast.error("Could not load your form. Please refresh.");
-      } finally {
         setLoading(false);
       }
     })();
