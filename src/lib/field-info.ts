@@ -148,6 +148,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     ],
   },
 
+  // Used by client form (SubCard fieldKey="sms_provider") and prospect form (field.key="infobip")
   sms_provider: {
     tooltip: "The service that sends SMS messages to your players for verification codes, deposit confirmations, and marketing.",
     summary:
@@ -171,15 +172,6 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
       "Infobip is a tier-one global SMS provider with strong delivery rates across Africa, Europe, and LATAM. Cost is roughly $0.01-0.05 per SMS depending on destination country.",
     learnMoreLinks: [
       { label: "Infobip", url: "https://www.infobip.com" },
-    ],
-  },
-
-  seon_fraud: {
-    tooltip: "Fraud detection that scores each user based on email, phone, IP, and device signals.",
-    learnMore:
-      "SEON is a fraud prevention platform purpose-built for high-risk industries including iGaming. It runs silently on sign-up and deposit events, checking signals like whether the email is from a disposable provider, whether the IP geolocation matches the claimed country, whether the device has been linked to fraud before, whether the phone number has been recycled. Each user gets a risk score - high scores can be auto-blocked or routed to manual review. For iGaming this is essential defense against bonus abuse and multi-accounting, which are persistent threats in the industry.",
-    learnMoreLinks: [
-      { label: "SEON platform overview", url: "https://seon.io" },
     ],
   },
 
@@ -209,43 +201,6 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     ],
   },
 
-  plaid_banking: {
-    tooltip: "A platform that securely connects your platform to players' bank accounts for instant verification and deposits.",
-    learnMore:
-      "Plaid is the leading banking data platform in the US and increasingly in Europe - it lets players link their bank accounts securely without sharing raw credentials. For iGaming, Plaid can be used for instant ACH deposits (no waiting for transfers to clear), account ownership verification (confirm the player owns the payment method), and balance checks before allowing deposits. Plaid coverage is strongest in the US, UK, Canada, and parts of Europe - less comprehensive in Africa where direct PSP integrations handle these use cases.",
-    learnMoreLinks: [
-      { label: "Plaid", url: "https://plaid.com" },
-    ],
-  },
-
-  braze_crm: {
-    tooltip: "The tool that sends personalized emails, push notifications, and in-app messages to players.",
-    learnMore:
-      "Braze is an enterprise-grade customer engagement platform - it decides who gets which message, when, and through which channel. Typical iGaming use cases: push notification to players who haven't deposited in 7 days, email high-rollers a VIP bonus, SMS anyone who abandoned a deposit flow, in-app message welcoming back returning players. Smart retention messaging is one of the highest-ROI investments for an operator - Braze lets your marketing team run sophisticated campaigns without engineering support. Trivelta includes Braze integration by default.",
-    learnMoreLinks: [
-      { label: "Braze", url: "https://www.braze.com" },
-    ],
-  },
-
-  sportradar_feed: {
-    tooltip: "The data feed that provides live scores, odds, and statistics for your sports betting product.",
-    learnMore:
-      "If you offer sports betting, you need a live data feed providing current match scores, in-play odds calculations, fixture schedules, and detailed stats (corners, cards, possession). Sportradar is one of the two dominant global sports data providers, covering 600+ sports and all major leagues with sub-second latency. Pricing is based on sports coverage and live match volume - costs scale with your betting product scope. Trivelta integrates Sportradar as a standard feed option. Genius Sports is also available if you have a preference or existing relationship.",
-    learnMoreLinks: [
-      { label: "Sportradar", url: "https://www.sportradar.com" },
-      { label: "Genius Sports", url: "https://geniussports.com" },
-    ],
-  },
-
-  vertex_tax: {
-    tooltip: "Automated tax calculation for player winnings across jurisdictions.",
-    learnMore:
-      "iGaming operators face complex tax obligations - player winnings may be taxable at the point of withdrawal, VAT applies to certain games in EU markets, and cross-border players add further complexity. Vertex automates the tax calculation at the transaction level: when a player withdraws, Vertex determines the correct tax based on player residence, jurisdiction, game type, and amount. This prevents under-withholding (fines from tax authorities) and over-withholding (angry players). Trivelta integrates Vertex for operators handling multiple jurisdictions.",
-    learnMoreLinks: [
-      { label: "Vertex", url: "https://www.vertexinc.com" },
-    ],
-  },
-
   advertising_pixels: {
     tooltip: "Tracking codes from ad platforms (Facebook, Google, TikTok) that measure which ads bring paying players.",
     learnMore:
@@ -257,3 +212,6 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     ],
   },
 };
+
+// Alias: prospect form uses field.key="infobip" — wire to same content as sms_provider
+FIELD_INFO.infobip = FIELD_INFO.sms_provider;
