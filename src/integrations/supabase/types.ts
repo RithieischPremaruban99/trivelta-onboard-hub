@@ -262,6 +262,95 @@ export type Database = {
         }
         Relationships: []
       }
+      prospects: {
+        Row: {
+          access_token: string
+          assigned_account_manager: string | null
+          company_details: Json | null
+          contract_status: string | null
+          converted_at: string | null
+          converted_to_client_id: string | null
+          created_at: string | null
+          created_by: string
+          form_progress: number | null
+          id: string
+          kyc_compliance: Json | null
+          last_accessed_at: string | null
+          legal_company_name: string
+          marketing_stack: Json | null
+          notion_page_id: string | null
+          optional_features: Json | null
+          payment_providers: Json | null
+          primary_contact_email: string
+          primary_contact_name: string | null
+          primary_contact_phone: string | null
+          submitted_at: string | null
+          technical_requirements: Json | null
+          token_expires_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          assigned_account_manager?: string | null
+          company_details?: Json | null
+          contract_status?: string | null
+          converted_at?: string | null
+          converted_to_client_id?: string | null
+          created_at?: string | null
+          created_by: string
+          form_progress?: number | null
+          id?: string
+          kyc_compliance?: Json | null
+          last_accessed_at?: string | null
+          legal_company_name: string
+          marketing_stack?: Json | null
+          notion_page_id?: string | null
+          optional_features?: Json | null
+          payment_providers?: Json | null
+          primary_contact_email: string
+          primary_contact_name?: string | null
+          primary_contact_phone?: string | null
+          submitted_at?: string | null
+          technical_requirements?: Json | null
+          token_expires_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          assigned_account_manager?: string | null
+          company_details?: Json | null
+          contract_status?: string | null
+          converted_at?: string | null
+          converted_to_client_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          form_progress?: number | null
+          id?: string
+          kyc_compliance?: Json | null
+          last_accessed_at?: string | null
+          legal_company_name?: string
+          marketing_stack?: Json | null
+          notion_page_id?: string | null
+          optional_features?: Json | null
+          payment_providers?: Json | null
+          primary_contact_email?: string
+          primary_contact_name?: string | null
+          primary_contact_phone?: string | null
+          submitted_at?: string | null
+          technical_requirements?: Json | null
+          token_expires_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospects_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_assignments: {
         Row: {
           email: string
