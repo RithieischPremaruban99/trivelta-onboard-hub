@@ -7,7 +7,7 @@ import {
   Palette,
   Sparkles,
 } from "lucide-react";
-import { TriveltaIcon } from "@/components/TriveltaIcon";
+import { StageHeader } from "@/components/StageHeader";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { useAuth } from "@/lib/auth-context";
 
@@ -78,10 +78,11 @@ function StudioIntro() {
 
   return (
     <div
-      className={`relative min-h-screen overflow-hidden bg-background transition-opacity duration-300 ${
+      className={`relative min-h-screen bg-background transition-opacity duration-300 ${
         leaving ? "opacity-0" : "opacity-100"
       }`}
     >
+      <StageHeader stage="STUDIO" />
       {/* Background layers */}
       <div
         className="pointer-events-none fixed inset-0"
@@ -108,14 +109,6 @@ function StudioIntro() {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl text-center">
-          {/* Branding stamp */}
-          <div className="mb-10 flex items-center justify-center gap-3 animate-fade-in">
-            <TriveltaIcon className="h-8 w-8" />
-            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/70">
-              Trivelta · Studio
-            </div>
-          </div>
-
           {/* Welcome personalization */}
           {welcomeInfo?.clientName && (
             <div

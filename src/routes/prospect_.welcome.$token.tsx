@@ -8,7 +8,7 @@ import {
   Save,
   Sparkles,
 } from "lucide-react";
-import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { StageHeader } from "@/components/StageHeader";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/prospect_/welcome/$token")({
@@ -85,10 +85,11 @@ function ProspectWelcome() {
 
   return (
     <div
-      className={`relative min-h-screen overflow-hidden bg-background transition-opacity duration-300 ${
+      className={`relative min-h-screen bg-background transition-opacity duration-300 ${
         leaving ? "opacity-0" : "opacity-100"
       }`}
     >
+      <StageHeader stage="PRE-ONBOARDING" />
       {/* Background layers */}
       <div
         className="pointer-events-none fixed inset-0"
@@ -115,11 +116,6 @@ function ProspectWelcome() {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl text-center">
-          {/* Branding stamp */}
-          <div className="mb-10 flex items-center justify-center animate-fade-in">
-            <TriveltaLogo size="sm" product="Pre-Onboarding" />
-          </div>
-
           {/* Hero icon */}
           <div
             className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 animate-fade-in"

@@ -50,7 +50,7 @@ function ProspectPage() {
       const { data, error } = await db
         .from("prospects")
         .select(
-          "id, legal_company_name, primary_contact_name, primary_contact_email, notion_page_id, form_progress, token_expires_at, submitted_at, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
+          "id, legal_company_name, primary_contact_name, primary_contact_email, notion_page_id, form_progress, token_expires_at, submitted_at, update_requested_at, update_request_reason, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
         )
         .eq("access_token", token)
         .maybeSingle();
@@ -73,6 +73,8 @@ function ProspectPage() {
 
       setProspect({
         ...data,
+        update_requested_at: (data.update_requested_at as string | null) ?? null,
+        update_request_reason: (data.update_request_reason as string | null) ?? null,
         company_details: (data.company_details as Record<string, unknown>) ?? {},
         payment_providers: (data.payment_providers as Record<string, unknown>) ?? {},
         kyc_compliance: (data.kyc_compliance as Record<string, unknown>) ?? {},
@@ -131,6 +133,28 @@ function ProspectPage() {
     }, 1500);
   };
 
+  /* ── Request Update ── */
+  const handleRequestUpdate = async (reason: string) => {
+    if (!prospect) return;
+    const now = new Date().toISOString();
+    const { error } = await db
+      .from("prospects")
+      .update({ update_requested_at: now, update_request_reason: reason || null })
+      .eq("id", prospect.id)
+      .eq("access_token", token);
+    if (error) {
+      console.error("[Prospect] Request update failed:", error);
+      toast.error("Could not request update. Please try again.");
+      return;
+    }
+    setProspect({
+      ...prospect,
+      update_requested_at: now,
+      update_request_reason: reason || null,
+    });
+    toast.success("Update requested — your form is now editable.");
+  };
+
   /* ── Submit + Notion sync ── */
   const handleSubmit = async () => {
     if (!prospect) return;
@@ -139,7 +163,7 @@ function ProspectPage() {
       const now = new Date().toISOString();
       const { error: updateError } = await db
         .from("prospects")
-        .update({ submitted_at: now })
+        .update({ submitted_at: now, update_requested_at: null, update_request_reason: null })
         .eq("id", prospect.id)
         .eq("access_token", token);
       if (updateError) throw updateError;
@@ -162,6 +186,8 @@ function ProspectPage() {
       setProspect({
         ...prospect,
         submitted_at: now,
+        update_requested_at: null,
+        update_request_reason: null,
         notion_page_id: (data as { notion_page_id?: string } | null)?.notion_page_id ?? prospect.notion_page_id,
       });
     } catch (err) {
@@ -228,6 +254,7 @@ function ProspectPage() {
       onSectionToggle={(sectionId) => setOpenSection(sectionId)}
       onFieldChange={handleFieldChange}
       onSubmit={handleSubmit}
+      onRequestUpdate={handleRequestUpdate}
     />
   );
 }

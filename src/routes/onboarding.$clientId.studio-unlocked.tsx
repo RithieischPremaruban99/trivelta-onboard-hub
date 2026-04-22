@@ -15,6 +15,7 @@ import {
   Palette,
   Sparkles,
 } from "lucide-react";
+import { StageHeader } from "@/components/StageHeader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/onboarding/$clientId/studio-unlocked")({
@@ -86,7 +87,8 @@ function StudioUnlockedPage() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative">
+      <StageHeader stage="ONBOARDING" />
       {/* Background gradients */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.1),transparent_60%)] pointer-events-none" />
       <div

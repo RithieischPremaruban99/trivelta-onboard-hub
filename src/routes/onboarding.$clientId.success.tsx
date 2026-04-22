@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { StageHeader } from "@/components/StageHeader";
 import { buildClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
 
@@ -93,7 +93,8 @@ function SuccessScreen() {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative min-h-screen bg-background">
+      <StageHeader stage="ONBOARDING" />
       {/* Background layers */}
       <div
         className="pointer-events-none fixed inset-0"
@@ -120,11 +121,6 @@ function SuccessScreen() {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl text-center">
-
-          {/* Branding stamp */}
-          <div className="mb-10 flex items-center justify-center animate-fade-in">
-            <TriveltaLogo size="sm" product="Onboarding Hub" />
-          </div>
 
           {/* Success indicator */}
           <div

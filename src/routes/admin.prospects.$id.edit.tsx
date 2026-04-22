@@ -40,7 +40,7 @@ function AdminProspectEditPage() {
       const { data, error } = await db
         .from("prospects")
         .select(
-          "id, legal_company_name, primary_contact_name, primary_contact_email, notion_page_id, form_progress, token_expires_at, submitted_at, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features, assigned_account_manager",
+          "id, legal_company_name, primary_contact_name, primary_contact_email, notion_page_id, form_progress, token_expires_at, submitted_at, update_requested_at, update_request_reason, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features, assigned_account_manager",
         )
         .eq("id", id)
         .maybeSingle();
@@ -63,6 +63,8 @@ function AdminProspectEditPage() {
 
       setProspect({
         ...data,
+        update_requested_at: (data.update_requested_at as string | null) ?? null,
+        update_request_reason: (data.update_request_reason as string | null) ?? null,
         company_details: (data.company_details as Record<string, unknown>) ?? {},
         payment_providers: (data.payment_providers as Record<string, unknown>) ?? {},
         kyc_compliance: (data.kyc_compliance as Record<string, unknown>) ?? {},

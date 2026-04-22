@@ -111,6 +111,7 @@ interface ProspectRow {
   access_token: string;
   created_at: string;
   submitted_at: string | null;
+  update_requested_at: string | null;
   notion_page_id: string | null;
   converted_to_client_id: string | null;
   converted_at: string | null;
@@ -185,7 +186,7 @@ function AdminPage() {
           (supabase as unknown as { from: (t: string) => any })
             .from("prospects")
             .select(
-              "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id, converted_to_client_id, converted_at",
+              "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, update_requested_at, notion_page_id, converted_to_client_id, converted_at",
             )
             .order("created_at", { ascending: false }),
           (supabase as unknown as { from: (t: string) => any })
@@ -341,6 +342,25 @@ function AdminPage() {
     setProspects((prev) =>
       prev.map((p) => (p.id === prospect.id ? { ...p, contract_status: newStatus } : p)),
     );
+  };
+
+  const handleMarkUpdateHandled = async (prospect: ProspectRow) => {
+    const { error } = await (supabase as unknown as { from: (t: string) => any })
+      .from("prospects")
+      .update({ update_requested_at: null, update_request_reason: null, submitted_at: null })
+      .eq("id", prospect.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setProspects((prev) =>
+      prev.map((p) =>
+        p.id === prospect.id
+          ? { ...p, update_requested_at: null, submitted_at: null }
+          : p,
+      ),
+    );
+    toast.success("Update request handled — form reset for prospect.");
   };
 
   const canDelete = SUPER_ADMIN_EMAILS.includes(user?.email ?? "");
@@ -775,6 +795,11 @@ function AdminPage() {
                                 Submitted
                               </span>
                             )}
+                            {p.update_requested_at && !isConverted && (
+                              <span className="inline-flex w-fit items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-400">
+                                Update Requested
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-muted-foreground">
@@ -823,6 +848,18 @@ function AdminPage() {
                             <span className="text-xs text-muted-foreground/40">—</span>
                           ) : (
                             <div className="row-actions flex items-center gap-0.5">
+                              {/* Mark update handled */}
+                              {p.update_requested_at && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+                                  title="Mark update request as handled (resets form)"
+                                  onClick={() => handleMarkUpdateHandled(p)}
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
                               {/* Edit prospect (admin/AM) */}
                               <Button
                                 size="icon"

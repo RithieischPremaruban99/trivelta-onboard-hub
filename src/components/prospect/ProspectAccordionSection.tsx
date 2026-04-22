@@ -29,6 +29,7 @@ interface Props {
   onChange: (fieldKey: string, value: unknown) => void;
   isOpen: boolean;
   onToggle: () => void;
+  disabled?: boolean;
 }
 
 export function ProspectAccordionSection({
@@ -37,6 +38,7 @@ export function ProspectAccordionSection({
   onChange,
   isOpen,
   onToggle,
+  disabled,
 }: Props) {
   const Icon = ICON_MAP[section.icon] ?? Building2;
 
@@ -97,6 +99,7 @@ export function ProspectAccordionSection({
               field={field}
               value={values[field.key]}
               onChange={(v) => onChange(field.key, v)}
+              disabled={disabled}
             />
           ))}
         </div>

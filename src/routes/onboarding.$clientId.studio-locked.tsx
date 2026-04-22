@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2, Palette, ClipboardList, ArrowRight } from "lucide-react";
+import { StageHeader } from "@/components/StageHeader";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -57,7 +58,9 @@ function StudioLockedPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex flex-col bg-background">
+      <StageHeader stage="STUDIO" />
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="w-full max-w-xl">
 
         {/* Success icon + heading */}
@@ -121,6 +124,7 @@ function StudioLockedPage() {
           </p>
         </div>
 
+      </div>
       </div>
 
       {/* View destination dialog */}
