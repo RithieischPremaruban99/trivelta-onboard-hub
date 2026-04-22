@@ -26,6 +26,7 @@ import { Route as OnboardingClientIdStudioIntroRouteImport } from './routes/onbo
 import { Route as OnboardingClientIdStudioRouteImport } from './routes/onboarding.$clientId.studio'
 import { Route as OnboardingClientIdFormRouteImport } from './routes/onboarding.$clientId.form'
 import { Route as OnboardingClientIdAuthRouteImport } from './routes/onboarding.$clientId.auth'
+import { Route as AdminProspectsIdEditRouteImport } from './routes/admin.prospects.$id.edit'
 
 const MyOnboardingRoute = MyOnboardingRouteImport.update({
   id: '/my-onboarding',
@@ -118,10 +119,15 @@ const OnboardingClientIdAuthRoute = OnboardingClientIdAuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => OnboardingClientIdRoute,
 } as any)
+const AdminProspectsIdEditRoute = AdminProspectsIdEditRouteImport.update({
+  id: '/prospects/$id/edit',
+  path: '/prospects/$id/edit',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
@@ -137,10 +143,11 @@ export interface FileRoutesByFullPath {
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
+  '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
@@ -155,11 +162,12 @@ export interface FileRoutesByTo {
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId': typeof OnboardingClientIdIndexRoute
+  '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
+  '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/'
+    | '/admin/prospects/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId'
+    | '/admin/prospects/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -233,11 +244,12 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/'
+    | '/admin/prospects/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   MyOnboardingRoute: typeof MyOnboardingRoute
@@ -367,8 +379,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingClientIdAuthRouteImport
       parentRoute: typeof OnboardingClientIdRoute
     }
+    '/admin/prospects/$id/edit': {
+      id: '/admin/prospects/$id/edit'
+      path: '/prospects/$id/edit'
+      fullPath: '/admin/prospects/$id/edit'
+      preLoaderRoute: typeof AdminProspectsIdEditRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminProspectsIdEditRoute: typeof AdminProspectsIdEditRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminProspectsIdEditRoute: AdminProspectsIdEditRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface OnboardingClientIdRouteChildren {
   OnboardingClientIdAuthRoute: typeof OnboardingClientIdAuthRoute
@@ -399,7 +428,7 @@ const OnboardingClientIdRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   MyOnboardingRoute: MyOnboardingRoute,

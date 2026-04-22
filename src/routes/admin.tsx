@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,9 @@ import {
   Check,
   Circle,
   UserPlus,
+  Pencil,
+  Link2,
+  ArrowRight,
 } from "lucide-react";
 import {
   Tooltip,
@@ -74,6 +77,7 @@ import { COUNTRIES } from "@/lib/onboarding-schema";
 import { AmAvatars, type AmLite } from "@/components/AmAvatars";
 import { AmMultiSelect } from "@/components/AmMultiSelect";
 import { generateProspectToken, buildProspectUrl } from "@/lib/prospect-tokens";
+import { buildClientInviteEmail } from "@/lib/client-invite-email";
 import { DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin")({
@@ -107,6 +111,8 @@ interface ProspectRow {
   created_at: string;
   submitted_at: string | null;
   notion_page_id: string | null;
+  converted_to_client_id: string | null;
+  converted_at: string | null;
 }
 
 function AdminPage() {
@@ -120,6 +126,14 @@ function AdminPage() {
   const [createProspectOpen, setCreateProspectOpen] = useState(false);
   const [inviteAmOpen, setInviteAmOpen] = useState(false);
   const [showMineOnly, setShowMineOnly] = useState(false);
+  const [convertingProspect, setConvertingProspect] = useState<ProspectRow | null>(null);
+  const [convertResult, setConvertResult] = useState<{
+    clientId: string;
+    inviteLink: string;
+    clientEmail: string;
+    clientName: string;
+  } | null>(null);
+  const navigate = useNavigate();
   const [studioData, setStudioData] = useState<
     Record<
       string,
@@ -167,7 +181,7 @@ function AdminPage() {
         (supabase as unknown as { from: (t: string) => any })
           .from("prospects")
           .select(
-            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id",
+            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id, converted_to_client_id, converted_at",
           )
           .order("created_at", { ascending: false }),
       ]);
@@ -286,6 +300,29 @@ function AdminPage() {
             clientsWithProgress.reduce((sum, c) => sum + c.progress, 0) /
               clientsWithProgress.length,
           ),
+  };
+
+  const handleContractStatusChange = async (prospect: ProspectRow, newStatus: string) => {
+    // Opening the conversion dialog is handled client-side before any DB write
+    if (newStatus === "signed" && !prospect.converted_to_client_id) {
+      // Optimistically update dropdown so it shows "Signed" while dialog is open
+      setProspects((prev) =>
+        prev.map((p) => (p.id === prospect.id ? { ...p, contract_status: newStatus } : p)),
+      );
+      setConvertingProspect({ ...prospect, contract_status: newStatus });
+      return;
+    }
+    const { error } = await (supabase as unknown as { from: (t: string) => any })
+      .from("prospects")
+      .update({ contract_status: newStatus })
+      .eq("id", prospect.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setProspects((prev) =>
+      prev.map((p) => (p.id === prospect.id ? { ...p, contract_status: newStatus } : p)),
+    );
   };
 
   const canDelete = SUPER_ADMIN_EMAILS.includes(user?.email ?? "");
@@ -625,19 +662,21 @@ function AdminPage() {
 
                   {/* Prospect rows */}
                   {filteredProspects.map((p) => {
-                    const prospectUrl = buildProspectUrl(p.access_token);
-                    const contractLabel: Record<string, string> = {
-                      in_discussion: "In discussion",
-                      term_sheet: "Term sheet",
-                      contract_sent: "Contract sent",
-                      under_legal_review: "Legal review",
-                      ready_to_sign: "Ready to sign",
-                      signed: "Signed",
-                    };
+                    const isConverted = !!p.converted_to_client_id;
+                    const prospectUrl = p.access_token ? buildProspectUrl(p.access_token) : null;
+                    const CONTRACT_OPTIONS = [
+                      { value: "in_discussion", label: "In discussion" },
+                      { value: "term_sheet", label: "Term sheet" },
+                      { value: "contract_sent", label: "Contract sent" },
+                      { value: "under_legal_review", label: "Legal review" },
+                      { value: "ready_to_sign", label: "Ready to sign" },
+                      { value: "signed", label: "Signed ✓" },
+                    ];
+                    const displayProgress = isConverted ? 100 : p.form_progress;
                     return (
                       <tr
                         key={p.id}
-                        className="row-premium border-b border-border/40 last:border-b-0 bg-amber-500/[0.02]"
+                        className={`row-premium border-b border-border/40 last:border-b-0 ${isConverted ? "bg-success/[0.02]" : "bg-amber-500/[0.02]"}`}
                       >
                         <td className="px-5 py-4">
                           <div className="font-semibold text-foreground">
@@ -646,32 +685,54 @@ function AdminPage() {
                           <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                             {p.primary_contact_email}
                           </div>
-                          <div className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-400/80">
-                            Prospect
+                          <div className="mt-1 flex items-center gap-1.5">
+                            {isConverted ? (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-success/80">
+                                Converted
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-400/80">
+                                Prospect
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-4 text-[11px] text-muted-foreground">
                           {p.assigned_account_manager ?? "—"}
                         </td>
                         <td className="px-4 py-4">
-                          <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
-                            {contractLabel[p.contract_status] ?? p.contract_status}
-                          </span>
+                          {isConverted ? (
+                            <span className="inline-flex items-center rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success">
+                              Signed
+                            </span>
+                          ) : (
+                            <select
+                              value={p.contract_status}
+                              onChange={(e) => handleContractStatusChange(p, e.target.value)}
+                              className="rounded-md border border-border/60 bg-background/60 px-2 py-1 text-[11px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+                            >
+                              {CONTRACT_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          )}
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex flex-col gap-1.5">
                             <div className="flex items-center gap-2.5">
                               <div className="relative h-1.5 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
                                 <div
-                                  className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-400/60 transition-all duration-500"
-                                  style={{ width: `${p.form_progress}%` }}
+                                  className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${isConverted ? "bg-gradient-to-r from-success to-success/60" : "bg-gradient-to-r from-amber-500 to-amber-400/60"}`}
+                                  style={{ width: `${displayProgress}%` }}
                                 />
                               </div>
                               <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
-                                {p.form_progress}%
+                                {displayProgress}%
                               </span>
                             </div>
-                            {p.submitted_at && (
+                            {p.submitted_at && !isConverted && (
                               <span className="inline-flex w-fit items-center rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-success">
                                 Submitted
                               </span>
@@ -701,45 +762,85 @@ function AdminPage() {
                           )}
                         </td>
                         <td className="px-4 py-4">
-                          <span className="text-xs text-muted-foreground/40">—</span>
+                          {isConverted ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 gap-1 text-[11px] text-success hover:text-success hover:bg-success/10"
+                              onClick={() =>
+                                navigate({
+                                  to: "/onboarding/$clientId/form",
+                                  params: { clientId: p.converted_to_client_id! },
+                                })
+                              }
+                            >
+                              View Client <ArrowRight className="h-3 w-3" />
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/40">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-4">
-                          <div className="row-actions flex items-center gap-0.5">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Copy magic link"
-                              onClick={() => {
-                                navigator.clipboard.writeText(prospectUrl);
-                                toast.success("Magic link copied");
-                              }}
-                            >
-                              <Copy className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Open prospect form"
-                              onClick={() => window.open(prospectUrl, "_blank")}
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </Button>
-                            {canDelete && (
+                          {isConverted ? (
+                            <span className="text-xs text-muted-foreground/40">—</span>
+                          ) : (
+                            <div className="row-actions flex items-center gap-0.5">
+                              {/* Edit prospect (admin/AM) */}
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                title="Delete prospect (permanent)"
+                                className="h-8 w-8"
+                                title="Edit prospect"
                                 onClick={() =>
-                                  handleDeleteProspect(p.id, p.legal_company_name)
+                                  navigate({
+                                    to: "/admin/prospects/$id/edit",
+                                    params: { id: p.id },
+                                  })
                                 }
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Pencil className="h-3.5 w-3.5" />
                               </Button>
-                            )}
-                          </div>
+                              {/* Copy magic link */}
+                              {prospectUrl && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  title="Copy magic link"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(prospectUrl);
+                                    toast.success("Magic link copied");
+                                  }}
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                              {prospectUrl && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  title="Open prospect form"
+                                  onClick={() => window.open(prospectUrl, "_blank")}
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                              {canDelete && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  title="Delete prospect (permanent)"
+                                  onClick={() =>
+                                    handleDeleteProspect(p.id, p.legal_company_name)
+                                  }
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );
@@ -765,6 +866,40 @@ function AdminPage() {
             open={inviteAmOpen}
             onOpenChange={setInviteAmOpen}
             onInvited={refresh}
+          />
+        )}
+
+        {/* Convert Prospect Dialog */}
+        {convertingProspect && (
+          <ConvertProspectDialog
+            prospect={convertingProspect}
+            ams={ams}
+            currentUser={user}
+            onClose={() => {
+              // Revert status if user cancels
+              setProspects((prev) =>
+                prev.map((p) =>
+                  p.id === convertingProspect.id
+                    ? { ...p, contract_status: convertingProspect.contract_status }
+                    : p,
+                ),
+              );
+              setConvertingProspect(null);
+            }}
+            onConverted={(result) => {
+              setConvertingProspect(null);
+              setConvertResult(result);
+              refresh();
+            }}
+          />
+        )}
+
+        {/* Invite Preview Dialog */}
+        {convertResult && (
+          <InvitePreviewDialog
+            result={convertResult}
+            ams={ams}
+            onClose={() => setConvertResult(null)}
           />
         )}
       </div>
@@ -1477,6 +1612,217 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
         </Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+/* ── Convert Prospect Dialog ─────────────────────────────────────────────── */
+
+function ConvertProspectDialog({
+  prospect,
+  ams,
+  currentUser,
+  onClose,
+  onConverted,
+}: {
+  prospect: ProspectRow;
+  ams: AmLite[];
+  currentUser: { id: string; email?: string } | null;
+  onClose: () => void;
+  onConverted: (result: {
+    clientId: string;
+    inviteLink: string;
+    clientEmail: string;
+    clientName: string;
+  }) => void;
+}) {
+  const [converting, setConverting] = useState(false);
+
+  const handleConvert = async () => {
+    setConverting(true);
+    const { data, error } = await supabase.functions.invoke("convert-prospect-to-client", {
+      body: {
+        prospect_id: prospect.id,
+        submitted_by: "admin",
+        submitter_email: currentUser?.email ?? "",
+        app_origin: typeof window !== "undefined" ? window.location.origin : "",
+      },
+    });
+    setConverting(false);
+    if (error || (data as { error?: string } | null)?.error) {
+      toast.error(
+        error?.message ?? (data as { error?: string })?.error ?? "Conversion failed",
+      );
+      return;
+    }
+    const res = data as {
+      client_id: string;
+      invite_link: string;
+      client_email: string;
+      client_name: string;
+    };
+    toast.success(`${prospect.legal_company_name} converted to client`);
+    onConverted({
+      clientId: res.client_id,
+      inviteLink: res.invite_link,
+      clientEmail: res.client_email,
+      clientName: res.client_name,
+    });
+  };
+
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Convert {prospect.legal_company_name} to active client?</DialogTitle>
+          <DialogDescription>
+            This creates a Client record, transfers pre-onboarding data, and generates an invite
+            link.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-2 space-y-4">
+          <div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+              What will happen
+            </div>
+            <ul className="space-y-1.5 text-[13px] text-foreground/80">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+                New Client record created
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+                Pre-onboarding data transferred to onboarding form (pre-filled)
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+                Notion page updated with "Contract Signed" section
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+                Magic link invalidated
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+                Client invite generated (you'll see the link &amp; email preview)
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-300">
+            The prospect record stays visible in your dashboard, marked as "Converted", linked
+            to the new client.
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={onClose} disabled={converting}>
+            Cancel
+          </Button>
+          <Button onClick={handleConvert} disabled={converting} className="btn-premium">
+            {converting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowRight className="h-4 w-4" />
+            )}
+            Convert Now
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Invite Preview Dialog ───────────────────────────────────────────────── */
+
+function InvitePreviewDialog({
+  result,
+  ams,
+  onClose,
+}: {
+  result: { clientId: string; inviteLink: string; clientEmail: string; clientName: string };
+  ams: AmLite[];
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  // Pick first AM from list as fallback
+  const am = ams[0] ?? { name: "Your Account Manager", email: "team@trivelta.com" };
+  const { subject, body } = buildClientInviteEmail({
+    contactName: result.clientName,
+    inviteLink: result.inviteLink,
+    amName: am.name ?? am.email,
+    amEmail: am.email,
+    studioAccessGranted: false,
+  });
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(result.inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-success" /> Client invite ready
+          </DialogTitle>
+          <DialogDescription>
+            Send this link to {result.clientEmail} to start their onboarding.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-3 space-y-4">
+          {/* Invite link */}
+          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+            <Link2 className="h-4 w-4 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground/80">
+              {result.inviteLink}
+            </div>
+            <Button size="sm" variant="outline" className="shrink-0 h-7 text-xs" onClick={copyLink}>
+              {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? "Copied" : "Copy"}
+            </Button>
+          </div>
+
+          {/* Email preview */}
+          <div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+              Email preview
+            </div>
+            <div className="max-h-64 overflow-y-auto rounded-lg border border-border/40 bg-card/30 p-4 text-sm">
+              <div className="mb-2 pb-2 border-b border-border/20 space-y-1">
+                <div className="text-[10px] text-muted-foreground uppercase">To</div>
+                <div className="text-xs font-medium">{result.clientEmail}</div>
+              </div>
+              <div className="mb-3 pb-2 border-b border-border/20 space-y-1">
+                <div className="text-[10px] text-muted-foreground uppercase">Subject</div>
+                <div className="text-xs font-medium">{subject}</div>
+              </div>
+              <pre className="text-[12px] leading-relaxed text-foreground/80 whitespace-pre-wrap font-sans">
+                {body}
+              </pre>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4 sm:justify-between gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const mailSubject = encodeURIComponent(subject);
+              const mailBody = encodeURIComponent(body);
+              window.location.href = `mailto:${result.clientEmail}?subject=${mailSubject}&body=${mailBody}`;
+            }}
+          >
+            <Mail className="h-4 w-4" /> Open in Mail
+          </Button>
+          <Button onClick={onClose}>Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
