@@ -69,15 +69,15 @@ export function ProspectAccordionSection({
         </div>
 
         <div className="flex-1 text-left">
-          <div className="text-xs font-semibold tracking-tight text-foreground">
+          <div className="text-sm font-semibold tracking-tight text-foreground">
             {section.title}
           </div>
-          <div className="mt-0.5 text-[10px] font-medium text-muted-foreground/70">
+          <div className="mt-0.5 text-[11px] font-medium text-muted-foreground">
             {section.subtitle}
           </div>
         </div>
 
-        <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+        <div className="text-[10px] font-bold uppercase tracking-wide text-foreground/60">
           {filledCount}/{section.fields.length}
         </div>
 

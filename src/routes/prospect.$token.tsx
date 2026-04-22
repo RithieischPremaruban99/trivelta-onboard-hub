@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { TriveltaIcon } from "@/components/TriveltaIcon";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
 import {
   PROSPECT_SECTIONS,
@@ -172,7 +172,9 @@ function ProspectPage() {
     return (
       <div className="min-h-screen grid place-items-center px-6">
         <div className="max-w-sm text-center">
-          <TriveltaIcon className="h-10 w-10 mx-auto mb-4 opacity-40" />
+          <div className="flex justify-center mb-6 opacity-50">
+            <TriveltaLogo size="sm" withSubtitle={false} />
+          </div>
           <h1 className="text-xl font-bold tracking-tight mb-2">Link expired</h1>
           <p className="text-sm text-muted-foreground">
             This pre-onboarding link has expired. Please contact your Trivelta Account
@@ -187,7 +189,9 @@ function ProspectPage() {
     return (
       <div className="min-h-screen grid place-items-center px-6">
         <div className="max-w-sm text-center">
-          <TriveltaIcon className="h-10 w-10 mx-auto mb-4 opacity-40" />
+          <div className="flex justify-center mb-6 opacity-50">
+            <TriveltaLogo size="sm" withSubtitle={false} />
+          </div>
           <h1 className="text-xl font-bold tracking-tight mb-2">Link not found</h1>
           <p className="text-sm text-muted-foreground">
             This link is invalid or has already been used. Please contact your Trivelta
@@ -209,23 +213,29 @@ function ProspectPage() {
       <header className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <TriveltaIcon className="h-7 w-7" />
-            <div>
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-                Trivelta · Pre-Onboarding
-              </div>
-              <div className="mt-0.5 text-[10px] text-muted-foreground">
+            <TriveltaLogo size="sm" withSubtitle={false} />
+            <div className="h-4 w-px bg-border/60" />
+            <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.25em] text-primary">
+              Pre-Onboarding
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                 {prospect.legal_company_name}
               </div>
+              {prospect.primary_contact_name && (
+                <div className="mt-0.5 text-[9px] text-muted-foreground/70">
+                  {prospect.primary_contact_name}
+                </div>
+              )}
             </div>
-          </div>
-          <div className="flex items-center gap-3">
             {submitted && (
               <span className="rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-[10px] font-semibold text-success">
                 Submitted
               </span>
             )}
-            <div className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+            <div className="text-xs font-bold tabular-nums text-foreground">
               {progress}%
             </div>
           </div>
@@ -242,7 +252,7 @@ function ProspectPage() {
             ? `Hi ${prospect.primary_contact_name.split(" ")[0]}, let's build your foundation`
             : "Let's build your foundation"}
         </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        <p className="max-w-2xl text-sm leading-relaxed text-foreground/75">
           Share what you know — skip what you don't. Your answers help our team prepare for
           your launch. Everything saves automatically.
         </p>
@@ -292,7 +302,7 @@ function ProspectPage() {
       {/* Fixed bottom bar */}
       <div className="fixed inset-x-0 bottom-0 border-t border-border/40 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-foreground/70">
             {submitted
               ? `Submitted ${timeAgo(prospect.submitted_at!)}`
               : "Submit anytime — you can keep editing after."}

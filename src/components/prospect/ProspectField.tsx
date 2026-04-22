@@ -8,18 +8,18 @@ interface Props {
 }
 
 const INPUT_BASE =
-  "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none transition-colors";
+  "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none transition-colors";
 
 export function ProspectField({ field, value, onChange }: Props) {
   const label = (
-    <label className="text-[11px] font-semibold text-foreground block mb-1.5">
+    <label className="text-xs font-semibold text-foreground block mb-1.5">
       {field.label}
       {field.required && <span className="text-primary ml-1">*</span>}
     </label>
   );
 
   const helper = field.helperText ? (
-    <p className="text-[10px] text-muted-foreground/60 mt-1">{field.helperText}</p>
+    <p className="text-[11px] text-muted-foreground/80 mt-1">{field.helperText}</p>
   ) : null;
 
   /* ── text / email / phone / number ── */
