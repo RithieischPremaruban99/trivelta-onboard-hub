@@ -1,7 +1,7 @@
 /**
  * pdf-builder.tsx - Premium PDF generation using @react-pdf/renderer.
  * Produces a cover page, table of contents, and per-section field tables.
- * Inter font is loaded from /fonts/ (public/fonts/) for crisp, on-brand output.
+ * Inter font loaded from rsms.me CDN (.woff - react-pdf does not support woff2).
  */
 import {
   Document,
@@ -20,10 +20,10 @@ import type { FormShape } from "./onboarding-schema";
 Font.register({
   family: "Inter",
   fonts: [
-    { src: "/fonts/Inter-Regular.woff2", fontWeight: 400 },
-    { src: "/fonts/Inter-Medium.woff2", fontWeight: 500 },
-    { src: "/fonts/Inter-SemiBold.woff2", fontWeight: 600 },
-    { src: "/fonts/Inter-Bold.woff2", fontWeight: 700 },
+    { src: "https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.19", fontWeight: 400 },
+    { src: "https://rsms.me/inter/font-files/Inter-Medium.woff?v=3.19", fontWeight: 500 },
+    { src: "https://rsms.me/inter/font-files/Inter-SemiBold.woff?v=3.19", fontWeight: 600 },
+    { src: "https://rsms.me/inter/font-files/Inter-Bold.woff?v=3.19", fontWeight: 700 },
   ],
 });
 
@@ -34,9 +34,12 @@ Font.registerHyphenationCallback((word) => [word]);
 
 const C = {
   primary: "#6366F1",
+  dark: "#0F172A",
   text: "#1E1E2E",
   muted: "#64748B",
+  subtle: "#94A3B8",
   border: "#E2E8F0",
+  borderLight: "#F1F5F9",
   white: "#FFFFFF",
   accent: "#F8FAFC",
 };
@@ -62,62 +65,78 @@ const s = StyleSheet.create({
   },
   cover: {
     padding: 50,
-    paddingTop: 56,
+    paddingTop: 60,
     flex: 1,
+    flexDirection: "column",
+  },
+  coverHeader: {
+    marginBottom: 0,
   },
   wordmark: {
     fontSize: 26,
     fontWeight: 700,
     color: C.primary,
-    letterSpacing: 3,
+    letterSpacing: 1,
     marginBottom: 6,
   },
   wordmarkLine: {
     width: 40,
     height: 2,
     backgroundColor: C.primary,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   typeLabel: {
     fontSize: 9,
     fontWeight: 600,
     color: C.muted,
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     textTransform: "uppercase",
-    marginBottom: 80,
+  },
+  coverHero: {
+    flex: 1,
+    justifyContent: "center",
   },
   companyName: {
-    fontSize: 30,
+    fontSize: 38,
     fontWeight: 700,
-    color: C.text,
+    color: C.dark,
     lineHeight: 1.1,
     marginBottom: 14,
   },
   submittedText: {
     fontSize: 11,
     color: C.muted,
+    marginBottom: 0,
+  },
+  coverMeta: {
+    fontSize: 10,
+    color: C.subtle,
+    marginTop: 24,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+    borderTopStyle: "solid",
   },
   contactBlock: {
-    marginTop: "auto",
     padding: 20,
     backgroundColor: C.accent,
-    borderRadius: 8,
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: C.primary,
     borderLeftStyle: "solid",
+    marginBottom: 50,
   },
   contactLabel: {
     fontSize: 8,
     fontWeight: 600,
     color: C.muted,
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     textTransform: "uppercase",
     marginBottom: 5,
   },
   contactName: {
     fontSize: 13,
     fontWeight: 600,
-    color: C.text,
+    color: C.dark,
     marginBottom: 2,
   },
   contactEmail: {
@@ -128,38 +147,39 @@ const s = StyleSheet.create({
   // ── Shared content page layout ──
   contentPage: {
     padding: 50,
+    paddingTop: 48,
     paddingBottom: 80,
   },
   pageTitle: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 700,
-    color: C.text,
-    marginBottom: 4,
+    color: C.dark,
+    marginBottom: 8,
   },
   titleUnderline: {
     width: 40,
     height: 2,
     backgroundColor: C.primary,
-    marginBottom: 28,
+    marginBottom: 32,
   },
 
   // ── TOC ──
   tocRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: C.border,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: C.borderLight,
     borderBottomStyle: "solid",
   },
   tocNumBox: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     backgroundColor: C.primary,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: 12,
   },
   tocNumText: {
     fontSize: 9,
@@ -168,50 +188,66 @@ const s = StyleSheet.create({
   },
   tocLabel: {
     flex: 1,
-    fontSize: 11,
-    color: C.text,
+    fontSize: 12,
+    fontWeight: 500,
+    color: C.dark,
   },
   tocPageNum: {
     fontSize: 10,
-    color: C.muted,
+    color: C.subtle,
+    fontWeight: 500,
   },
 
   // ── Section pages ──
+  sectionPage: {
+    padding: 50,
+    paddingTop: 48,
+    paddingBottom: 80,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 8,
+  },
   sectionBadge: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     backgroundColor: C.primary,
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 14,
   },
   sectionBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 700,
     color: C.white,
+  },
+  sectionTitleBlock: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: 700,
-    color: C.text,
-    marginBottom: 5,
+    color: C.dark,
+    lineHeight: 1.2,
   },
   sectionSubtitle: {
     fontSize: 11,
     color: C.muted,
-    marginBottom: 18,
+    marginTop: 2,
   },
   sectionDivider: {
     height: 1,
-    backgroundColor: C.primary,
-    marginBottom: 18,
+    backgroundColor: C.border,
+    marginTop: 20,
+    marginBottom: 20,
   },
   fieldRow: {
     flexDirection: "row",
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: C.border,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: C.borderLight,
     borderBottomStyle: "solid",
   },
   fieldLabel: {
@@ -220,46 +256,58 @@ const s = StyleSheet.create({
     fontWeight: 600,
     color: C.muted,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
-    paddingRight: 8,
+    letterSpacing: 0.3,
+    paddingRight: 12,
   },
   fieldValue: {
     width: "60%",
-    fontSize: 10,
-    color: C.text,
-    lineHeight: 1.4,
+    fontSize: 11,
+    color: C.dark,
+    lineHeight: 1.45,
+    fontWeight: 400,
   },
 
-  // ── Footer (absolute, rendered on every page) ──
+  // ── Footer (absolute, pinned to bottom of every page) ──
   footer: {
     position: "absolute",
-    bottom: 28,
+    bottom: 26,
     left: 50,
     right: 50,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 10,
-    borderTopWidth: 0.5,
+    borderTopWidth: 1,
     borderTopColor: C.border,
     borderTopStyle: "solid",
   },
-  footerText: {
+  footerLeft: {
     fontSize: 8,
-    color: C.muted,
-    letterSpacing: 0.8,
+    color: C.subtle,
+    letterSpacing: 0.5,
+  },
+  footerRight: {
+    fontSize: 8,
+    color: C.subtle,
+    fontWeight: 600,
   },
 });
 
-/* ── Shared components ─────────────────────────────────────────────────────── */
+/* ── Shared footer component ───────────────────────────────────────────────── */
 
-function PageFooter({ pageNum }: { pageNum: number }) {
+function PageFooter() {
   return (
     <View style={s.footer}>
-      <Text style={s.footerText}>TRIVELTA - CONFIDENTIAL CLIENT DOCUMENT</Text>
-      <Text style={s.footerText}>PAGE {pageNum}</Text>
+      <Text style={s.footerLeft}>TRIVELTA - Confidential Client Document</Text>
+      <Text
+        style={s.footerRight}
+        render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+      />
     </View>
   );
 }
+
+/* ── Cover page ────────────────────────────────────────────────────────────── */
 
 function CoverPage({
   type,
@@ -267,12 +315,16 @@ function CoverPage({
   submittedAt,
   contactName,
   contactEmail,
+  sectionCount,
+  fieldCount,
 }: {
   type: "Pre-Onboarding" | "Onboarding";
   companyName: string;
   submittedAt: Date;
   contactName?: string | null;
   contactEmail: string;
+  sectionCount: number;
+  fieldCount: number;
 }) {
   const dateStr = submittedAt.toLocaleDateString("en-US", {
     year: "numeric",
@@ -288,34 +340,40 @@ function CoverPage({
     <Page size="A4" style={s.page}>
       <View style={s.accentBar} />
       <View style={s.cover}>
-        <Text style={s.wordmark}>TRIVELTA</Text>
-        <View style={s.wordmarkLine} />
-        <Text style={s.typeLabel}>{type} - Submission Summary</Text>
+        {/* Header */}
+        <View style={s.coverHeader}>
+          <Text style={s.wordmark}>TRIVELTA</Text>
+          <View style={s.wordmarkLine} />
+          <Text style={s.typeLabel}>{type.toUpperCase()} - SUBMISSION SUMMARY</Text>
+        </View>
 
-        <Text style={s.companyName}>{companyName}</Text>
-        <Text style={s.submittedText}>
-          {`Submitted on ${dateStr} at ${timeStr}`}
-        </Text>
+        {/* Hero - vertically centred in remaining space */}
+        <View style={s.coverHero}>
+          <Text style={s.companyName}>{companyName}</Text>
+          <Text style={s.submittedText}>{`Submitted on ${dateStr} at ${timeStr}`}</Text>
+          <Text style={s.coverMeta}>
+            {`${sectionCount} section${sectionCount !== 1 ? "s" : ""} - ${fieldCount} fields completed`}
+          </Text>
+        </View>
 
+        {/* Contact card */}
         <View style={s.contactBlock}>
           <Text style={s.contactLabel}>Primary Contact</Text>
-          {contactName ? (
-            <Text style={s.contactName}>{contactName}</Text>
-          ) : null}
+          {contactName ? <Text style={s.contactName}>{contactName}</Text> : null}
           <Text style={s.contactEmail}>{contactEmail}</Text>
         </View>
       </View>
-      <PageFooter pageNum={1} />
+      <PageFooter />
     </Page>
   );
 }
 
+/* ── Table of contents page ────────────────────────────────────────────────── */
+
 function TocPage({
   sections,
-  pageNum,
 }: {
   sections: Array<{ num: string; title: string; page: number }>;
-  pageNum: number;
 }) {
   return (
     <Page size="A4" style={s.page}>
@@ -332,35 +390,40 @@ function TocPage({
           </View>
         ))}
       </View>
-      <PageFooter pageNum={pageNum} />
+      <PageFooter />
     </Page>
   );
 }
+
+/* ── Section data page ─────────────────────────────────────────────────────── */
 
 function SectionPage({
   number,
   title,
   subtitle,
   fields,
-  pageNum,
 }: {
   number: string;
   title: string;
   subtitle?: string;
   fields: Array<{ label: string; value: string }>;
-  pageNum: number;
 }) {
   return (
     <Page size="A4" style={s.page}>
-      <View style={s.contentPage}>
-        <View style={s.sectionBadge}>
-          <Text style={s.sectionBadgeText}>{number}</Text>
+      <View style={s.sectionPage}>
+        {/* Badge + title inline */}
+        <View style={s.sectionHeader}>
+          <View style={s.sectionBadge}>
+            <Text style={s.sectionBadgeText}>{number}</Text>
+          </View>
+          <View style={s.sectionTitleBlock}>
+            <Text style={s.sectionTitle}>{title}</Text>
+            {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
+          </View>
         </View>
-        <Text style={s.sectionTitle}>{title}</Text>
-        {subtitle ? (
-          <Text style={s.sectionSubtitle}>{subtitle}</Text>
-        ) : null}
+
         <View style={s.sectionDivider} />
+
         {fields.map((f, idx) => (
           <View key={idx} style={s.fieldRow}>
             <Text style={s.fieldLabel}>{f.label}</Text>
@@ -368,7 +431,7 @@ function SectionPage({
           </View>
         ))}
       </View>
-      <PageFooter pageNum={pageNum} />
+      <PageFooter />
     </Page>
   );
 }
@@ -376,17 +439,22 @@ function SectionPage({
 /* ── Field value formatter ─────────────────────────────────────────────────── */
 
 function fmtValue(value: unknown, fieldType?: string): string {
-  if (value === undefined || value === null) return "";
+  if (value === undefined || value === null || value === "") return "";
   if (typeof value === "string") {
     if (fieldType === "boolean_tri") {
       if (value === "yes") return "Yes";
       if (value === "no") return "No";
-      if (value === "maybe") return "Not sure yet";
+      if (value === "maybe" || value === "not_sure") return "Not sure yet";
     }
     return value.trim();
   }
-  if (Array.isArray(value)) return (value as string[]).join(", ");
+  if (Array.isArray(value)) {
+    const filtered = (value as unknown[]).filter((v) => v !== null && v !== undefined && v !== "");
+    if (filtered.length === 0) return "";
+    return filtered.map((v) => (typeof v === "string" ? v.trim() : String(v))).join(", ");
+  }
   if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "object") return JSON.stringify(value);
   return String(value);
 }
 
@@ -425,6 +493,8 @@ function ProspectDocument({ prospect }: { prospect: ProspectPDFInput }) {
     };
   }).filter((s) => s.fields.length > 0);
 
+  const totalFields = renderableSections.reduce((sum, s) => sum + s.fields.length, 0);
+
   const tocEntries = renderableSections.map((s, i) => ({
     num: s.num,
     title: s.title,
@@ -439,16 +509,17 @@ function ProspectDocument({ prospect }: { prospect: ProspectPDFInput }) {
         submittedAt={new Date(prospect.submitted_at)}
         contactName={prospect.primary_contact_name}
         contactEmail={prospect.primary_contact_email}
+        sectionCount={renderableSections.length}
+        fieldCount={totalFields}
       />
-      <TocPage sections={tocEntries} pageNum={2} />
-      {renderableSections.map((section, i) => (
+      <TocPage sections={tocEntries} />
+      {renderableSections.map((section) => (
         <SectionPage
           key={section.num}
           number={section.num}
           title={section.title}
           subtitle={section.subtitle}
           fields={section.fields}
-          pageNum={3 + i}
         />
       ))}
     </Document>
@@ -664,6 +735,7 @@ function ClientDocument({
   form: FormShape;
 }) {
   const sections = extractClientSections(form).filter((s) => s.fields.length > 0);
+  const totalFields = sections.reduce((sum, s) => sum + s.fields.length, 0);
   const tocEntries = sections.map((s, i) => ({
     num: s.num,
     title: s.title,
@@ -677,16 +749,17 @@ function ClientDocument({
         companyName={client.name}
         submittedAt={new Date(client.submitted_at)}
         contactEmail={client.primary_contact_email}
+        sectionCount={sections.length}
+        fieldCount={totalFields}
       />
-      <TocPage sections={tocEntries} pageNum={2} />
-      {sections.map((section, i) => (
+      <TocPage sections={tocEntries} />
+      {sections.map((section) => (
         <SectionPage
           key={section.num}
           number={section.num}
           title={section.title}
           subtitle={section.subtitle}
           fields={section.fields}
-          pageNum={3 + i}
         />
       ))}
     </Document>
