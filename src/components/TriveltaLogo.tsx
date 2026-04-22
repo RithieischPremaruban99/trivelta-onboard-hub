@@ -52,7 +52,6 @@ export function TriveltaLogo({
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             textShadow: "0 1px 0 rgba(255,255,255,0.05)",
-            filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.35))",
           }}
         >
           {product}

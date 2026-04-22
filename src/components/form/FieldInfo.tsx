@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Info, ExternalLink, Mail } from "lucide-react";
+import { Info, ExternalLink, Mail, CheckCircle2, Lightbulb } from "lucide-react";
 import { FIELD_INFO } from "@/lib/field-info";
 import { getLogoUrl } from "@/lib/logo-url";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
   // Silent no-op when no info registered — safe to add to every field incrementally
   if (!info) return null;
 
+  const hasPanel = !!(info.summary || info.features || info.useCases || info.notes || info.learnMore);
+
   return (
     <>
       <TooltipProvider delayDuration={200}>
@@ -28,9 +30,9 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
           <TooltipTrigger asChild>
             <button
               type="button"
-              onClick={() => info.learnMore && setPanelOpen(true)}
+              onClick={() => hasPanel && setPanelOpen(true)}
               className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-colors ml-1.5 shrink-0"
-              style={{ cursor: info.learnMore ? "pointer" : "help" }}
+              style={{ cursor: hasPanel ? "pointer" : "help" }}
               aria-label="More info about this field"
             >
               <Info className="h-3 w-3" />
@@ -41,14 +43,14 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
             className="max-w-xs text-xs bg-card border border-border text-foreground shadow-xl"
           >
             <p className="leading-relaxed">{info.tooltip}</p>
-            {info.learnMore && (
+            {hasPanel && (
               <p className="mt-1 text-[10px] text-muted-foreground">Click for more details →</p>
             )}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      {info.learnMore && (
+      {hasPanel && (
         <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
           <SheetContent
             side="right"
@@ -65,15 +67,63 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-6 py-5">
-              {/* Description */}
-              <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-line mb-6">
-                {info.learnMore}
-              </p>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {/* Summary */}
+              {(info.summary || info.learnMore) && (
+                <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-line">
+                  {info.summary ?? info.learnMore}
+                </p>
+              )}
 
-              {/* Resources / Providers */}
+              {/* Features */}
+              {info.features && info.features.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-3">
+                    Key Features
+                  </div>
+                  <div className="space-y-2">
+                    {info.features.map((f) => (
+                      <div
+                        key={f.title}
+                        className="rounded-lg border border-border/40 bg-card/30 px-4 py-3"
+                      >
+                        <div className="text-xs font-semibold text-foreground mb-0.5">{f.title}</div>
+                        <div className="text-xs text-foreground/70 leading-relaxed">{f.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Use cases */}
+              {info.useCases && info.useCases.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-3">
+                    Common Uses
+                  </div>
+                  <ul className="space-y-1.5">
+                    {info.useCases.map((uc) => (
+                      <li key={uc} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                        <span className="text-xs text-foreground/80 leading-relaxed">{uc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Notes */}
+              {info.notes && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 flex items-start gap-2.5">
+                  <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs italic text-foreground/75 leading-relaxed">{info.notes}</p>
+                </div>
+              )}
+
+
+              {/* Providers / Resources */}
               {info.learnMoreLinks && info.learnMoreLinks.length > 0 && (
-                <div className="pt-6 border-t border-border/40">
+                <div className="pt-2 border-t border-border/40">
                   <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-4">
                     {info.learnMoreLinks.length > 1 ? "Providers" : "Resource"}
                   </div>
