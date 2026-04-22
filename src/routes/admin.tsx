@@ -161,6 +161,11 @@ function AdminPage() {
   >({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<
+    | { kind: "client"; id: string; name: string }
+    | { kind: "prospect"; id: string; name: string }
+    | null
+  >(null);
 
   useEffect(() => {
     document.title = "Trivelta Suite · Admin";
