@@ -8,7 +8,7 @@ interface Props {
 }
 
 const INPUT_BASE =
-  "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none transition-colors";
+  "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none transition-colors";
 
 export function ProspectField({ field, value, onChange }: Props) {
   const label = (

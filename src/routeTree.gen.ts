@@ -19,6 +19,7 @@ import { Route as ProspectTokenRouteImport } from './routes/prospect.$token'
 import { Route as OnboardingClientIdRouteImport } from './routes/onboarding.$clientId'
 import { Route as OnboardingClientIdIndexRouteImport } from './routes/onboarding.$clientId.index'
 import { Route as ProspectWelcomeTokenRouteImport } from './routes/prospect_.welcome.$token'
+import { Route as OnboardingClientIdWelcomeRouteImport } from './routes/onboarding.$clientId.welcome'
 import { Route as OnboardingClientIdSuccessRouteImport } from './routes/onboarding.$clientId.success'
 import { Route as OnboardingClientIdStudioUnlockedRouteImport } from './routes/onboarding.$clientId.studio-unlocked'
 import { Route as OnboardingClientIdStudioPreviewRouteImport } from './routes/onboarding.$clientId.studio-preview'
@@ -79,6 +80,12 @@ const ProspectWelcomeTokenRoute = ProspectWelcomeTokenRouteImport.update({
   path: '/prospect/welcome/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingClientIdWelcomeRoute =
+  OnboardingClientIdWelcomeRouteImport.update({
+    id: '/welcome',
+    path: '/welcome',
+    getParentRoute: () => OnboardingClientIdRoute,
+  } as any)
 const OnboardingClientIdSuccessRoute =
   OnboardingClientIdSuccessRouteImport.update({
     id: '/success',
@@ -148,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/$clientId/studio-preview': typeof OnboardingClientIdStudioPreviewRoute
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
+  '/onboarding/$clientId/welcome': typeof OnboardingClientIdWelcomeRoute
   '/prospect/welcome/$token': typeof ProspectWelcomeTokenRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
@@ -168,6 +176,7 @@ export interface FileRoutesByTo {
   '/onboarding/$clientId/studio-preview': typeof OnboardingClientIdStudioPreviewRoute
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
+  '/onboarding/$clientId/welcome': typeof OnboardingClientIdWelcomeRoute
   '/prospect/welcome/$token': typeof ProspectWelcomeTokenRoute
   '/onboarding/$clientId': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
@@ -190,6 +199,7 @@ export interface FileRoutesById {
   '/onboarding/$clientId/studio-preview': typeof OnboardingClientIdStudioPreviewRoute
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
+  '/onboarding/$clientId/welcome': typeof OnboardingClientIdWelcomeRoute
   '/prospect_/welcome/$token': typeof ProspectWelcomeTokenRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-preview'
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
+    | '/onboarding/$clientId/welcome'
     | '/prospect/welcome/$token'
     | '/onboarding/$clientId/'
     | '/admin/prospects/$id/edit'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-preview'
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
+    | '/onboarding/$clientId/welcome'
     | '/prospect/welcome/$token'
     | '/onboarding/$clientId'
     | '/admin/prospects/$id/edit'
@@ -254,6 +266,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-preview'
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
+    | '/onboarding/$clientId/welcome'
     | '/prospect_/welcome/$token'
     | '/onboarding/$clientId/'
     | '/admin/prospects/$id/edit'
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProspectWelcomeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding/$clientId/welcome': {
+      id: '/onboarding/$clientId/welcome'
+      path: '/welcome'
+      fullPath: '/onboarding/$clientId/welcome'
+      preLoaderRoute: typeof OnboardingClientIdWelcomeRouteImport
+      parentRoute: typeof OnboardingClientIdRoute
+    }
     '/onboarding/$clientId/success': {
       id: '/onboarding/$clientId/success'
       path: '/success'
@@ -428,6 +448,7 @@ interface OnboardingClientIdRouteChildren {
   OnboardingClientIdStudioPreviewRoute: typeof OnboardingClientIdStudioPreviewRoute
   OnboardingClientIdStudioUnlockedRoute: typeof OnboardingClientIdStudioUnlockedRoute
   OnboardingClientIdSuccessRoute: typeof OnboardingClientIdSuccessRoute
+  OnboardingClientIdWelcomeRoute: typeof OnboardingClientIdWelcomeRoute
   OnboardingClientIdIndexRoute: typeof OnboardingClientIdIndexRoute
 }
 
@@ -440,6 +461,7 @@ const OnboardingClientIdRouteChildren: OnboardingClientIdRouteChildren = {
   OnboardingClientIdStudioPreviewRoute: OnboardingClientIdStudioPreviewRoute,
   OnboardingClientIdStudioUnlockedRoute: OnboardingClientIdStudioUnlockedRoute,
   OnboardingClientIdSuccessRoute: OnboardingClientIdSuccessRoute,
+  OnboardingClientIdWelcomeRoute: OnboardingClientIdWelcomeRoute,
   OnboardingClientIdIndexRoute: OnboardingClientIdIndexRoute,
 }
 

@@ -85,7 +85,7 @@ export function ProspectFormContent({
                 {prospect.legal_company_name}
               </div>
               {prospect.primary_contact_name && (
-                <div className="mt-0.5 text-[9px] text-muted-foreground/70">
+                <div className="mt-0.5 text-[10px] text-muted-foreground/80 font-medium">
                   {prospect.primary_contact_name}
                 </div>
               )}

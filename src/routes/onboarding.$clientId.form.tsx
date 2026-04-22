@@ -233,6 +233,8 @@ function FormScreen() {
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const isRemoteUpdate = useRef(false);
+  const [studioAccess, setStudioAccess] = useState(false);
+  const studioAccessRef = useRef(false);
 
   // Presence
   const [otherUsers, setOtherUsers] = useState<PresenceUser[]>([]);
@@ -258,16 +260,41 @@ function FormScreen() {
     (async () => {
       setLoading(true);
       try {
-        const { data: formData, error } = await supabase
-          .from("onboarding_forms")
-          .select("data, submitted_at")
-          .eq("client_id", clientId)
-          .maybeSingle();
-        if (error) throw error;
-        if (formData?.data) setForm(emptyForm(formData.data as Partial<FormShape>));
-        if (formData?.submitted_at) {
-          setSubmitted(formData.submitted_at);
-          navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+        const [formRes, clientRes] = await Promise.all([
+          supabase
+            .from("onboarding_forms")
+            .select("data, submitted_at")
+            .eq("client_id", clientId)
+            .maybeSingle(),
+          supabase
+            .from("clients")
+            .select("studio_access")
+            .eq("id", clientId)
+            .maybeSingle(),
+        ]);
+        if (formRes.error) throw formRes.error;
+        const hasStudio = clientRes.data?.studio_access ?? false;
+        setStudioAccess(hasStudio);
+        studioAccessRef.current = hasStudio;
+        if (formRes.data?.data) setForm(emptyForm(formRes.data.data as Partial<FormShape>));
+        if (formRes.data?.submitted_at) {
+          setSubmitted(formRes.data.submitted_at);
+          if (hasStudio) {
+            navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
+          } else {
+            navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
+          }
+          return;
+        }
+        // Not submitted — redirect to welcome on first visit
+        let seenWelcome = false;
+        try {
+          seenWelcome = localStorage.getItem(`client-welcome-seen-${clientId}`) === "1";
+        } catch {
+          seenWelcome = true;
+        }
+        if (!seenWelcome) {
+          navigate({ to: "/onboarding/$clientId/welcome", params: { clientId }, replace: true });
         }
       } catch (err) {
         console.error("[Form] Failed to load form data:", err);
@@ -297,7 +324,11 @@ function FormScreen() {
           setForm(emptyForm(remote.data));
           if (remote.submitted_at) {
             setSubmitted(remote.submitted_at);
-            navigate({ to: "/onboarding/$clientId/studio", params: { clientId } });
+            if (studioAccessRef.current) {
+              navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId } });
+            } else {
+              navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+            }
           }
         },
       )
@@ -676,7 +707,7 @@ function FormScreen() {
                         {s.label}
                       </span>
                       {total > 0 && (
-                        <span className="font-mono text-[9px] tabular-nums text-muted-foreground/70">
+                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground/80">
                           {filled}/{total}
                         </span>
                       )}
@@ -734,6 +765,7 @@ function FormScreen() {
                 showErrors={submitAttempted}
                 clientId={clientId}
                 navigate={navigate}
+                studio_access={studioAccess}
               />
             </SectionShell>
             <SectionShell
@@ -1376,6 +1408,7 @@ function SectionMedia({
   showErrors,
   clientId,
   navigate,
+  studio_access,
 }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
@@ -1383,10 +1416,11 @@ function SectionMedia({
   showErrors?: boolean;
   clientId: string;
   navigate: ReturnType<typeof useNavigate>;
+  studio_access?: boolean;
 }) {
   return (
     <div className="space-y-6">
-      {/* Premium Studio teaser — what's coming after submit */}
+      {studio_access && (
       <div className="relative my-2 overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card/60 to-transparent p-7 shadow-premium transition-shadow hover:shadow-premium-hover">
         {/* Gradient orb decoration */}
         <div className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-primary/15 opacity-60 blur-[80px]" />
@@ -1447,11 +1481,12 @@ function SectionMedia({
           </button>
 
           {/* Subtext */}
-          <p className="mt-3 text-[11px] text-muted-foreground/50">
+          <p className="mt-3 text-[11px] text-muted-foreground/70">
             Auto-saves as you work · Return anytime
           </p>
         </div>
       </div>
+      )}
 
       {/* Info banner */}
       <div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
