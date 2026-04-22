@@ -66,7 +66,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const SUPER_ADMIN_EMAILS = ["rithieisch.premaruban@trivelta.com"];
+
 import {
   defaultStudioColors,
   type StudioThemeColors,
@@ -363,7 +363,7 @@ function AdminPage() {
     toast.success("Update request handled — form reset for prospect.");
   };
 
-  const canDelete = SUPER_ADMIN_EMAILS.includes(user?.email ?? "");
+  const canDelete = role === "admin" || role === "account_executive";
 
   // AMs see only their assigned rows (DB RLS already filters the raw queries;
   // this client-side filter powers the "Mine" tab for admin users).
@@ -646,6 +646,7 @@ function AdminPage() {
                             clientId={c.id}
                             clientName={c.name}
                             data={studioData[c.id] ?? null}
+                            canEdit={isAdminRole}
                             onChanged={(locked, lockedAt) =>
                               setStudioData((prev) => ({
                                 ...prev,
@@ -1177,11 +1178,13 @@ function StudioLockCell({
   clientId,
   clientName,
   data,
+  canEdit,
   onChanged,
 }: {
   clientId: string;
   clientName: string;
   data: { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null } | null;
+  canEdit: boolean;
   onChanged: (locked: boolean, lockedAt: string | null) => void;
 }) {
   const [toggling, setToggling] = useState(false);
@@ -1189,6 +1192,24 @@ function StudioLockCell({
 
   if (!data) {
     return <span className="text-xs text-muted-foreground/50">—</span>;
+  }
+
+  if (!canEdit) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-1 text-xs">
+        {data.locked ? (
+          <>
+            <Lock className="h-3.5 w-3.5 text-success" />
+            <span className="font-medium text-success">Locked</span>
+          </>
+        ) : (
+          <>
+            <LockOpen className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <span className="text-muted-foreground/50">Unlocked</span>
+          </>
+        )}
+      </div>
+    );
   }
 
   const doLock = async () => {
