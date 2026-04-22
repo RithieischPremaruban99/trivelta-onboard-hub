@@ -233,33 +233,38 @@ function ProspectPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sticky header */}
+      {/* Sticky header — matches Trivelta Suite pattern */}
       <header className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          {/* Left: Logo + Suite pill + Pre-Onboarding pill */}
           <div className="flex items-center gap-3">
             <TriveltaLogo size="sm" withSubtitle={false} />
             <div className="h-4 w-px bg-border/60" />
             <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.25em] text-primary">
-              Pre-Onboarding
+              SUITE
+            </span>
+            <span className="ml-1 text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/70">
+              PRE-ONBOARDING
             </span>
           </div>
+
+          {/* Right: Client info + progress */}
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                {prospect.legal_company_name}
+              <div className="text-[10px] font-bold uppercase tracking-wide text-foreground">
+                {prospect.legal_company_name || "Untitled Prospect"}
               </div>
-              {prospect.primary_contact_name && (
-                <div className="mt-0.5 text-[9px] text-muted-foreground/70">
-                  {prospect.primary_contact_name}
-                </div>
-              )}
+              <div className="mt-0.5 text-[9px] text-muted-foreground/70">
+                {prospect.primary_contact_name || prospect.primary_contact_email}
+              </div>
             </div>
             {submitted && (
               <span className="rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-[10px] font-semibold text-success">
                 Submitted
               </span>
             )}
-            <div className="text-xs font-bold tabular-nums text-foreground">
+            <div className="h-4 w-px bg-border/60" />
+            <div className="text-sm font-bold tabular-nums text-foreground">
               {progress}%
             </div>
           </div>
@@ -268,9 +273,6 @@ function ProspectPage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-4xl px-6 pb-4 pt-8">
-        <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-          PRE-ONBOARDING · {prospect.legal_company_name.toUpperCase()}
-        </div>
         <h1 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">
           {prospect.primary_contact_name
             ? `Hi ${prospect.primary_contact_name.split(" ")[0]}, let's build your foundation`
