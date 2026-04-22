@@ -448,7 +448,18 @@ function FormScreen() {
       });
     }
 
-    navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+    // Route based on studio access
+    const { data: clientData } = await supabase
+      .from("clients")
+      .select("studio_access")
+      .eq("id", clientId)
+      .single();
+
+    if (clientData?.studio_access) {
+      navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId } });
+    } else {
+      navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
+    }
     setSubmitting(false);
   };
 

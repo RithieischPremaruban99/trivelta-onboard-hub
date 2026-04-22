@@ -1367,7 +1367,7 @@ function StudioTour({
 
 function StudioPage() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/studio" });
-  const { user, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
   const [initialPalette, setInitialPalette] = useState<TCMPalette | undefined>(undefined);
@@ -1453,9 +1453,19 @@ function StudioPage() {
         setInitialLockedAt(data.studio_locked_at ?? null);
       }
 
-      setStudioAccess(clientRes.data?.studio_access ?? false);
+      const hasAccess = clientRes.data?.studio_access ?? false;
+      setStudioAccess(hasAccess);
       if (clientRes.data?.studio_access_locked) {
         setAccessLocked(true);
+      }
+
+      // Non-admins without studio access are redirected with a toast
+      if (!hasAccess && role !== "admin") {
+        toast.error(
+          "Studio access has not been granted yet. Please contact your Account Manager.",
+        );
+        navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
+        return;
       }
 
       setReady(true);
@@ -1466,61 +1476,6 @@ function StudioPage() {
     return (
       <div className="min-h-screen grid place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Studio access not yet granted by AE
-  if (!studioAccess) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
-        <div className="mx-auto max-w-[460px]">
-          <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full bg-primary/10 ring-2 ring-primary/20">
-            <Palette className="h-10 w-10 text-primary/60" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Studio Access Coming Soon
-          </h1>
-          <p className="mx-auto mt-4 max-w-[380px] text-[15px] leading-relaxed text-muted-foreground">
-            Your Trivelta team is preparing your Studio workspace. You'll receive an update from
-            your Account Manager once it's ready.
-          </p>
-
-          {welcomeInfo?.amName && (
-            <div className="mt-8 rounded-xl border border-border bg-card p-5 text-left">
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                Your Account Manager
-              </div>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-semibold text-sm text-primary ring-1 ring-primary/30">
-                  {welcomeInfo.amName
-                    .split(" ")
-                    .map((w) => w[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase()}
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">{welcomeInfo.amName}</div>
-                  {welcomeInfo.amEmail && (
-                    <div className="text-[13px] text-muted-foreground">
-                      {welcomeInfo.amEmail.split(",")[0].trim()}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {welcomeInfo.amEmail && (
-                <a
-                  href={`mailto:${welcomeInfo.amEmail.split(",")[0].trim()}`}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background/60 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                >
-                  <Mail className="h-4 w-4" />
-                  Contact your AM
-                </a>
-              )}
-            </div>
-          )}
-        </div>
       </div>
     );
   }
