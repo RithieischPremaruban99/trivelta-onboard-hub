@@ -6,10 +6,10 @@
  * 3. Returns { logos: [{url, seed, prompt}], extractedBrandName, generationTime }
  *
  * Request body:
- *   userRequest: string          — raw user message, e.g. "create a logo for connor bet"
- *   primaryColor?: string        — rgba string from current palette
- *   secondaryColor?: string      — rgba string from current palette
- *   fallbackBrandName?: string   — used only if extraction fails
+ *   userRequest: string          - raw user message, e.g. "create a logo for connor bet"
+ *   primaryColor?: string        - rgba string from current palette
+ *   secondaryColor?: string      - rgba string from current palette
+ *   fallbackBrandName?: string   - used only if extraction fails
  */
 
 const IDEOGRAM_API = "https://api.ideogram.ai/v1/ideogram-v3/generate";
@@ -53,15 +53,15 @@ interface IdeogramResponse {
 
 const STYLE_VARIANTS = [
   {
-    suffix: "Iconic symbol combined with wordmark, horizontal layout — icon on left, brand name on right. Bold, energetic.",
+    suffix: "Iconic symbol combined with wordmark, horizontal layout - icon on left, brand name on right. Bold, energetic.",
     aspectRatio: "1x1",
   },
   {
-    suffix: "Bold wordmark only — stylized custom typography, tight letter spacing, no icon. Clean and modern.",
+    suffix: "Bold wordmark only - stylized custom typography, tight letter spacing, no icon. Clean and modern.",
     aspectRatio: "16x9",
   },
   {
-    suffix: "Abstract geometric mark — standalone minimal symbol, no text, strong silhouette, premium feel.",
+    suffix: "Abstract geometric mark - standalone minimal symbol, no text, strong silhouette, premium feel.",
     aspectRatio: "1x1",
   },
 ] as const;
@@ -87,7 +87,7 @@ async function extractBrandIntent(
   anthropicKey: string,
 ): Promise<BrandExtraction> {
   const system = `Extract the brand name and design direction from a logo creation request.
-Respond with valid JSON only — no markdown, no extra text.
+Respond with valid JSON only - no markdown, no extra text.
 Format: {"brandName": string, "designNotes": string, "mood": string}
 
 Rules:
@@ -113,7 +113,7 @@ Rules:
     });
 
     if (!resp.ok) {
-      console.warn(`[generate-logo] Anthropic extraction failed (${resp.status}) — using fallback`);
+      console.warn(`[generate-logo] Anthropic extraction failed (${resp.status}) - using fallback`);
       return { brandName: fallbackBrandName, designNotes: "iGaming sportsbook", mood: "bold, dynamic" };
     }
 
@@ -130,7 +130,7 @@ Rules:
     console.log(`[generate-logo] Extracted: brandName="${parsed.brandName}", mood="${parsed.mood}"`);
     return parsed;
   } catch (e) {
-    console.warn("[generate-logo] Brand extraction error — using fallback:", e);
+    console.warn("[generate-logo] Brand extraction error - using fallback:", e);
     return { brandName: fallbackBrandName, designNotes: "iGaming sportsbook", mood: "bold, dynamic" };
   }
 }
@@ -268,7 +268,7 @@ Deno.serve(async (req: Request) => {
 
   console.log(`[generate-logo] Launching 3 parallel Ideogram calls for "${extraction.brandName}"`);
 
-  // Step 2: 3 parallel Ideogram calls — each with a distinct style directive
+  // Step 2: 3 parallel Ideogram calls - each with a distinct style directive
   const results = await Promise.all(
     STYLE_VARIANTS.map(({ suffix, aspectRatio }) =>
       callIdeogram(
@@ -288,7 +288,7 @@ Deno.serve(async (req: Request) => {
 
   if (logos.length === 0) {
     return new Response(
-      JSON.stringify({ error: "All Ideogram calls failed — try again" }),
+      JSON.stringify({ error: "All Ideogram calls failed - try again" }),
       { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   }

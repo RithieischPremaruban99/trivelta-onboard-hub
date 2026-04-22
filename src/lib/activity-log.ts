@@ -12,7 +12,7 @@ export async function logActivity(params: {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      console.warn("[ActivityLog] No user session — skipping:", params.action);
+      console.warn("[ActivityLog] No user session - skipping:", params.action);
       return;
     }
 
@@ -34,7 +34,7 @@ export async function logActivity(params: {
 
     if (error) {
       console.error("[ActivityLog] Insert failed:", error, { params });
-      // Don't throw — logging should never break the parent flow
+      // Don't throw - logging should never break the parent flow
     }
   } catch (err) {
     console.error("[ActivityLog] Exception:", err, { params });

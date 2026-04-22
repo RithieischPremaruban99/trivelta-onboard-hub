@@ -115,19 +115,19 @@ function buildNotes(p: Payload): string {
   const analytics =
     (["meta", "ga", "gtm", "snapchat", "reddit"] as const)
       .filter((k) => f[`analytics_${k}` as keyof FormData])
-      .join(", ") || "—";
+      .join(", ") || "-";
 
   const lines = [
     "TEAM CONTACTS",
     `Sportsbook : ${f.contact_sportsbook?.name}  |  ${f.contact_sportsbook?.email}  |  ${f.contact_sportsbook?.phone}`,
     `Operational: ${f.contact_operational?.name}  |  ${f.contact_operational?.email}  |  ${f.contact_operational?.phone}`,
     `Compliance : ${f.contact_compliance?.name}  |  ${f.contact_compliance?.email}  |  ${f.contact_compliance?.phone}`,
-    `Slack invites: ${f.slack_team_emails || "—"}`,
+    `Slack invites: ${f.slack_team_emails || "-"}`,
     "",
     "PLATFORM SETUP",
     `URL: ${f.platform_url}  |  Country: ${f.country}`,
     `DNS provider: ${f.dns_provider}  |  DNS access granted: ${f.dns_access}`,
-    `Colours — BG: ${f.color_background}  Primary: ${f.color_primary}`,
+    `Colours - BG: ${f.color_background}  Primary: ${f.color_primary}`,
     "",
     "LEGAL & POLICIES",
     `Footer: ${f.footer_required}  |  Landing page: ${f.landing_page}${f.landing_page_url ? `  (${f.landing_page_url})` : ""}`,
@@ -136,10 +136,10 @@ function buildNotes(p: Payload): string {
     `Responsible Gaming: ${f.rg_url}`,
     "",
     "3RD PARTY",
-    `PSPs: ${p.psps.join(", ") || "—"}  |  Priority: ${f.psp_priority || "—"}`,
+    `PSPs: ${p.psps.join(", ") || "-"}  |  Priority: ${f.psp_priority || "-"}`,
     `KYC SURT: ${f.kyc_surt}${f.kyc_notes ? `  (${f.kyc_notes})` : ""}`,
-    `SMS: ${f.sms_provider}${f.sms_provider_other ? ` — ${f.sms_provider_other}` : ""}`,
-    `DUNS: ${f.duns_status}${f.duns_number ? ` — ${f.duns_number}` : ""}`,
+    `SMS: ${f.sms_provider}${f.sms_provider_other ? ` - ${f.sms_provider_other}` : ""}`,
+    `DUNS: ${f.duns_status}${f.duns_number ? ` - ${f.duns_number}` : ""}`,
     `Zendesk: ${f.zendesk}`,
     `Analytics: ${analytics}`,
   ];
@@ -154,7 +154,7 @@ function buildSopBlocks(clientName: string): object[] {
 
   return [
     // ── Phase 1 ──────────────────────────────────────────────────────────────
-    heading2("Phase 1 – Kickoff & AM Setup"),
+    heading2("Phase 1 - Kickoff & AM Setup"),
     todo("Review submitted onboarding form in full"),
     todo("Schedule kickoff call with client (within 24 h)"),
     todo("Create client project folder in Google Drive"),
@@ -163,7 +163,7 @@ function buildSopBlocks(clientName: string): object[] {
     divider(),
 
     // ── Phase 2 ──────────────────────────────────────────────────────────────
-    heading2("Phase 2 – Client Comms & Access"),
+    heading2("Phase 2 - Client Comms & Access"),
     todo(`[CLIENT] Complete and submit Onboarding Form`, true), // pre-checked ✓
     todo(`Create Slack channel ${channel} and invite client team`),
     todo("Share Google Drive folder link with client"),
@@ -172,7 +172,7 @@ function buildSopBlocks(clientName: string): object[] {
     divider(),
 
     // ── Phase 3 ──────────────────────────────────────────────────────────────
-    heading2("Phase 3 – Platform Configuration"),
+    heading2("Phase 3 - Platform Configuration"),
     todo("Configure domain and DNS records"),
     todo("Upload and apply logo, icon and animation assets"),
     todo("Implement brand colour system across all components"),
@@ -184,7 +184,7 @@ function buildSopBlocks(clientName: string): object[] {
     divider(),
 
     // ── Phase 4 ──────────────────────────────────────────────────────────────
-    heading2("Phase 4 – Content & Legal"),
+    heading2("Phase 4 - Content & Legal"),
     todo("Build landing page (if required)"),
     todo("Configure footer with required legal links"),
     todo("Verify Terms & Conditions URL is live and correct"),
@@ -194,7 +194,7 @@ function buildSopBlocks(clientName: string): object[] {
     divider(),
 
     // ── Phase 5 ──────────────────────────────────────────────────────────────
-    heading2("Phase 5 – QA & Testing"),
+    heading2("Phase 5 - QA & Testing"),
     todo("Complete internal QA pass (desktop + mobile)"),
     todo("Test full payment deposit / withdrawal flow"),
     todo("Test KYC registration and verification flow"),
@@ -205,7 +205,7 @@ function buildSopBlocks(clientName: string): object[] {
     divider(),
 
     // ── Phase 6 ──────────────────────────────────────────────────────────────
-    heading2("Phase 6 – Launch"),
+    heading2("Phase 6 - Launch"),
     todo("Final pre-launch checklist sign-off"),
     todo("Perform DNS cutover to production"),
     todo("Deploy to production environment"),

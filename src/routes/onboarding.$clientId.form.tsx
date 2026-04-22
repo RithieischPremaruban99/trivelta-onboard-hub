@@ -292,7 +292,7 @@ function FormScreen() {
           }
           return;
         }
-        // Not submitted — redirect to welcome on first visit
+        // Not submitted - redirect to welcome on first visit
         let seenWelcome = false;
         try {
           seenWelcome = localStorage.getItem(`client-welcome-seen-${clientId}`) === "1";
@@ -301,9 +301,9 @@ function FormScreen() {
         }
         if (!seenWelcome) {
           navigate({ to: "/onboarding/$clientId/welcome", params: { clientId }, replace: true });
-          return; // stay loading — component unmounts on navigation, no form flash
+          return; // stay loading - component unmounts on navigation, no form flash
         }
-        // All routing checks passed — user should see the form
+        // All routing checks passed - user should see the form
         setLoading(false);
       } catch (err) {
         console.error("[Form] Failed to load form data:", err);
@@ -518,7 +518,7 @@ function FormScreen() {
       return;
     }
 
-    // Mark as attempted — triggers red borders + error messages in all sections
+    // Mark as attempted - triggers red borders + error messages in all sections
     setSubmitAttempted(true);
     setShakeErrors(true);
     setTimeout(() => setShakeErrors(false), 500);

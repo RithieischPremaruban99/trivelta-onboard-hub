@@ -30,7 +30,7 @@ function AuthScreen() {
   useEffect(() => {
     if (authLoading || loadingAuth) return;
     if (user && clientRole) {
-      // Check submission status + studio access — route conditionally
+      // Check submission status + studio access - route conditionally
       (async () => {
         const [formRes, clientRes] = await Promise.all([
           supabase

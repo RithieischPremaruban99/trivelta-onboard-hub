@@ -21,7 +21,7 @@
 --
 -- FIX
 -- ---
--- 1. Create is_am_for_client() SECURITY DEFINER — queries CAM bypassing RLS.
+-- 1. Create is_am_for_client() SECURITY DEFINER - queries CAM bypassing RLS.
 -- 2. Replace the recursive CAM policy with one that uses this helper.
 -- 3. Replace the four indirect-recursion policies with is_assigned_am()
 --    (already SECURITY DEFINER from migration 20260419000003).
@@ -56,7 +56,7 @@ $$;
 DROP POLICY IF EXISTS "AMs read assignments of their clients"
   ON public.client_account_managers;
 
--- Replaced with a SECURITY DEFINER call — no self-referential subquery.
+-- Replaced with a SECURITY DEFINER call - no self-referential subquery.
 CREATE POLICY "AMs read assignments of their clients"
   ON public.client_account_managers
   FOR SELECT TO authenticated

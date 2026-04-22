@@ -18,7 +18,7 @@ export function FieldInfo({ fieldKey }: { fieldKey: string }) {
   const info = FIELD_INFO[fieldKey];
   const [panelOpen, setPanelOpen] = useState(false);
 
-  // Silent no-op when no info registered — safe to add to every field incrementally
+  // Silent no-op when no info registered - safe to add to every field incrementally
   if (!info) return null;
 
   const hasPanel = !!(info.summary || info.features || info.useCases || info.notes || info.learnMore);

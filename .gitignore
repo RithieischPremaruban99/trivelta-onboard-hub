@@ -1,5 +1,5 @@
-# Environment variables — never commit real secrets
-.env
+# Environment variables
+!.env
 .env.local
 .env.*.local
 

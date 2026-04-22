@@ -158,7 +158,7 @@ function SuccessScreen() {
             out within one business day to walk through next steps.
           </p>
 
-          {/* What happens next — 3 cards */}
+          {/* What happens next - 3 cards */}
           <div className="mb-10 grid grid-cols-1 md:grid-cols-3 gap-3">
             {cards.map(({ icon: Icon, label, desc }, i) => (
               <div

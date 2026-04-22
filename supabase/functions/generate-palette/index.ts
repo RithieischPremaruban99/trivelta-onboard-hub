@@ -26,7 +26,7 @@ const CORS_HEADERS = {
 };
 
 // ---------------------------------------------------------------------------
-// Fixed fields — AI must not change these
+// Fixed fields - AI must not change these
 // ---------------------------------------------------------------------------
 
 const PAM_FIXED_FIELDS: (keyof TCMPalette)[] = [
@@ -63,7 +63,7 @@ const GAMEPASS_GOLD_FIXED_FIELDS: (keyof TCMPalette)[] = [
 
 const SYSTEM_PROMPT = `You are the Trivelta Assistant, a senior iGaming brand designer with 10 years of experience across African, European, LATAM, and MENA markets. Your specialty: translating brand descriptions into complete color palettes for sports betting and casino platforms.
 
-═══ OUTPUT FORMAT — STRICT ═══
+═══ OUTPUT FORMAT - STRICT ═══
 
 STREAMING FORMAT: Write 1-2 sentences of brand reasoning as plain text on the FIRST line. Then on a new line, output ONLY the raw JSON object starting with {. No markdown fences. No other prose.
 
@@ -95,7 +95,7 @@ All other fields: include only if you have a specific brand-driven reason to cha
 
 Every rgba() string: valid format, alpha between 0 and 1.
 
-═══ BRAND FACTS — VERIFIED, NEVER INVENT ═══
+═══ BRAND FACTS - VERIFIED, NEVER INVENT ═══
 
 If user mentions any of these operators, use these EXACT primary colors:
 
@@ -104,7 +104,7 @@ If user mentions any of these operators, use these EXACT primary colors:
 - FanDuel: primary #1493FF (Dodger blue), accent #0F8000 (green), #0A0A0A
 - Betway: primary #000000 (black), green #00A826 sparingly
 - Bet9ja: primary #009A3E (green), #FFFFFF, yellow accent
-- SportyBet: primary #E30613 (red — NOT GREEN, common AI mistake), #FFFFFF, silver
+- SportyBet: primary #E30613 (red - NOT GREEN, common AI mistake), #FFFFFF, silver
 - 1xBet: primary #1A6DC2 (blue), accent #0E8A3C (green), #FFFFFF
 - Betano: primary #FF6A00 (orange), #000000, #FFFFFF
 - BetKing: primary #E30613 (red), #000000, gold accents
@@ -124,13 +124,13 @@ LOGO HANDLING
 
 Your capability: you generate color palettes. A separate specialised system handles logo generation.
 
-If the user's request is PURELY about creating a logo (e.g. "create a logo", "generate a logo for X"), the request will be routed to the logo system BEFORE reaching you — so you won't normally see pure logo requests.
+If the user's request is PURELY about creating a logo (e.g. "create a logo", "generate a logo for X"), the request will be routed to the logo system BEFORE reaching you - so you won't normally see pure logo requests.
 
-If the user's request is MIXED (e.g. "create a logo AND colors for BetNova"), respond normally with a palette — the logo system handles the logo in parallel. In your reasoning, mention that you've applied the palette and that logo generation is being handled separately.
+If the user's request is MIXED (e.g. "create a logo AND colors for BetNova"), respond normally with a palette - the logo system handles the logo in parallel. In your reasoning, mention that you've applied the palette and that logo generation is being handled separately.
 
 If the user asks to MODIFY an existing logo (e.g. "make my logo more red"), respond in reasoning that logo modifications happen via: (a) regenerating the palette to shift surrounding colors to match the logo, or (b) asking for a new logo generation or uploading a different logo in Brand Assets.
 
-═══ SEMANTIC COLOR GRAMMAR — SACRED, NEVER VIOLATE ═══
+═══ SEMANTIC COLOR GRAMMAR - SACRED, NEVER VIOLATE ═══
 
 These UI semantics are non-negotiable even if user requests otherwise. If user says "make wonColor red", push back in reasoning but STILL keep semantic correct:
 
@@ -175,7 +175,7 @@ LOSS FAMILY (must be red, hue 340°-20°):
 | Ivory Coast | rgba(8,10,14,1) | rgba(0,166,81,1) | Francophone Green |
 | Brazil | rgba(10,20,10,1) | rgba(255,127,0,1) | Warm orange |
 | Mexico | rgba(10,15,20,1) | rgba(0,134,195,1) | Blue/red |
-| MENA/Arabic | rgba(15,20,30,1) | rgba(191,160,70,1) | Gold — AVOID green for gambling (religious sensitivity) |
+| MENA/Arabic | rgba(15,20,30,1) | rgba(191,160,70,1) | Gold - AVOID green for gambling (religious sensitivity) |
 | Europe | rgba(8,8,15,1) | rgba(192,192,192,1) | Silver Premium |
 | VIP/Luxury | rgba(8,8,15,1) | rgba(212,175,55,1) | Gold |
 | Aggressive | rgba(10,5,5,1) | rgba(220,38,38,1) | Red Energy |
@@ -219,9 +219,9 @@ When generating 344 fields from a brand description, apply these heuristics to m
 
 5. FEATURE-SPECIFIC DERIVATIONS:
    - Poker Fold buttons: red family derived from lostColor
-   - Poker Check/Call/Raise: green/yellow/gold (use defaults — these are conventions)
-   - Gamepass Gold gradients: FIXED, brand-independent — always rgba(179,123,47,1) → rgba(249,210,103,1)
-   - PAM Admin Panel: FIXED, brand-independent — NEVER change these from defaults. They are admin panel utility colors used internally.
+   - Poker Check/Call/Raise: green/yellow/gold (use defaults - these are conventions)
+   - Gamepass Gold gradients: FIXED, brand-independent - always rgba(179,123,47,1) → rgba(249,210,103,1)
+   - PAM Admin Panel: FIXED, brand-independent - NEVER change these from defaults. They are admin panel utility colors used internally.
    - Casino Card Layers: primaryBackgroundColor with decreasing alpha
    - Pikkem colors: semantic (won=green, lost=red), bg is gold-ish default
 
@@ -229,10 +229,10 @@ When generating 344 fields from a brand description, apply these heuristics to m
 
 - Ensure WCAG AA contrast (4.5:1) between lightTextColor and primaryBackgroundColor. If user request would violate, adjust lightTextColor and note in reasoning.
 - Do NOT generate palettes where wonColor and primary are indistinguishable (both green-ish).
-- Do NOT make primaryBackgroundColor red — red is reserved for loss/error states.
+- Do NOT make primaryBackgroundColor red - red is reserved for loss/error states.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CONTRAST GRAMMAR — NEVER VIOLATE
+CONTRAST GRAMMAR - NEVER VIOLATE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Text must always be readable against its background. For every foreground/background pair below, apply the contrast rule:
@@ -255,7 +255,7 @@ Apply this to these pairs:
 
 Common violation to avoid: Generating gold/yellow primaryButton WITH gold primaryTextColor. This is unreadable. Use dark text on light buttons, always.
 
-If user explicitly requests a monochrome look (e.g. 'all gold' or 'pure dark'), still apply contrast to text — the rule is absolute for readability.
+If user explicitly requests a monochrome look (e.g. 'all gold' or 'pure dark'), still apply contrast to text - the rule is absolute for readability.
 
 ═══ CONSTRAINT PRESERVATION ═══
 
@@ -281,11 +281,11 @@ If regenerationFeedback is provided:
 Your reasoning text (the pre-JSON line) must meet these standards:
 
 For FRESH generation (no existing palette): 5-8 sentences covering:
-1. ANALYSIS — What the brand name/description signals (market, emotion, energy)
-2. DECISION — The primary color choice and why (not just "I chose X" — explain why X fits this brand)
-3. TRADE-OFFS — What alternatives you considered and rejected
-4. GROUNDING — Any real-world operator reference applied and how it influenced choices
-5. NEXT STEPS — Suggest what to try next or how to refine further
+1. ANALYSIS - What the brand name/description signals (market, emotion, energy)
+2. DECISION - The primary color choice and why (not just "I chose X" - explain why X fits this brand)
+3. TRADE-OFFS - What alternatives you considered and rejected
+4. GROUNDING - Any real-world operator reference applied and how it influenced choices
+5. NEXT STEPS - Suggest what to try next or how to refine further
 
 For REFINEMENT (adjusting an existing palette): 3-5 sentences covering:
 1. What you changed and why it satisfies the request
@@ -378,7 +378,7 @@ function buildUserMessage(req: GeneratePaletteRequest): string {
 }
 
 // ---------------------------------------------------------------------------
-// Parse AI response — with one retry on JSON parse failure
+// Parse AI response - with one retry on JSON parse failure
 // ---------------------------------------------------------------------------
 
 async function streamAnthropic(
@@ -434,7 +434,7 @@ async function callAnthropicWithRetry(
 
   const first = await streamAnthropic(client, messages, model, 0.7);
 
-  // Try parse — if fails, retry once with corrective instruction
+  // Try parse - if fails, retry once with corrective instruction
   try {
     JSON.parse(first.text);
     return first;
@@ -580,7 +580,7 @@ function validateAndEnforce(
   for (const key of allKeys) {
     const aiValue = raw[key];
     if (aiValue === undefined || aiValue === null) {
-      // Missing — silently fill from default (expected normal path)
+      // Missing - silently fill from default (expected normal path)
       continue;
     }
     if (!isValidRgba(aiValue)) {
@@ -598,7 +598,7 @@ function validateAndEnforce(
   for (const key of MIN_REQUIRED_FIELDS) {
     const v = raw[key];
     if (v === undefined || v === null || !isValidRgba(v)) {
-      warnings.push(`Required field "${key}" missing or invalid — using default`);
+      warnings.push(`Required field "${key}" missing or invalid - using default`);
     }
   }
 
@@ -632,7 +632,7 @@ function validateAndEnforce(
     console.log(`[generate-palette] Enforced ${gpResets} Gamepass Gold fields to defaults`);
   }
 
-  // Auto-contrast safety net — runs before manual override restoration so user overrides win
+  // Auto-contrast safety net - runs before manual override restoration so user overrides win
   const contrastPalette = enforceContrast(palette);
   (Object.keys(contrastPalette) as (keyof TCMPalette)[]).forEach((k) => {
     (palette as Record<string, string>)[k] = (contrastPalette as Record<string, string>)[k];
@@ -662,7 +662,7 @@ function validateAndEnforce(
 }
 
 // ---------------------------------------------------------------------------
-// Haiku routing — detect simple refinements
+// Haiku routing - detect simple refinements
 // ---------------------------------------------------------------------------
 
 function isSimpleRefinement(userPrompt: string, hasExistingPalette: boolean): boolean {
@@ -680,7 +680,7 @@ function isSimpleRefinement(userPrompt: string, hasExistingPalette: boolean): bo
 }
 
 const REFINEMENT_PREFIX =
-  "REFINEMENT MODE: User is making a small adjustment to an existing palette. Return ONLY the fields that need to change — not a full palette. Keep reasoning to 1-2 sentences. Preserve unrelated colors.\n\n";
+  "REFINEMENT MODE: User is making a small adjustment to an existing palette. Return ONLY the fields that need to change - not a full palette. Keep reasoning to 1-2 sentences. Preserve unrelated colors.\n\n";
 
 // ---------------------------------------------------------------------------
 // Main handler
@@ -776,7 +776,7 @@ Deno.serve(async (req: Request) => {
   // ── SSE streaming response ─────────────────────────────────────────────────
   const encoder = new TextEncoder();
 
-  // Build messages array — prepend conversation history (last ≤10 turns) then current message
+  // Build messages array - prepend conversation history (last ≤10 turns) then current message
   const historyMessages: Anthropic.MessageParam[] = (body.conversationHistory ?? [])
     .slice(-10)
     .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
@@ -818,7 +818,7 @@ Deno.serve(async (req: Request) => {
             if (!reasoningDone) {
               const boundary = accumulated.indexOf("\n{");
               if (boundary !== -1) {
-                // Found JSON boundary — stream anything unsent before it
+                // Found JSON boundary - stream anything unsent before it
                 const unsent = accumulated.slice(reasoningSentUpTo, boundary);
                 if (unsent.trim()) send({ type: "reasoning_chunk", text: unsent });
                 reasoningDone = true;
@@ -897,12 +897,12 @@ Deno.serve(async (req: Request) => {
         const finalReasoning =
           preJsonReasoning ||
           (typeof parsed.reasoning === "string" ? parsed.reasoning : "") ||
-          "Palette applied — check the preview on the right.";
+          "Palette applied - check the preview on the right.";
 
         const keyColorsSummary =
           typeof parsed.keyColorsSummary === "string" && parsed.keyColorsSummary.trim()
             ? parsed.keyColorsSummary
-            : "Palette applied — check the preview on the right.";
+            : "Palette applied - check the preview on the right.";
 
         console.log(
           `[generate-palette] Complete: model=${model}, isRefine=${isRefine}, duration=${Date.now() - startMs}ms, warnings=${warnings.length}`

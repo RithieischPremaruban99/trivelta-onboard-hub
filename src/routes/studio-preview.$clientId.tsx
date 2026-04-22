@@ -1,5 +1,5 @@
 /**
- * Studio Preview Route — /studio-preview/:clientId
+ * Studio Preview Route - /studio-preview/:clientId
  *
  * Admin-only route that opens Studio directly for any client, bypassing all
  * normal access gates (studio_access_locked, onboarding submission check,
@@ -244,7 +244,7 @@ function StudioPreviewPage() {
     );
   }
 
-  /* Not admin — should have been redirected above, but guard here too */
+  /* Not admin - should have been redirected above, but guard here too */
   if (!isAdmin) {
     navigate({ to: "/admin", replace: true });
     return null;
@@ -256,7 +256,7 @@ function StudioPreviewPage() {
   const nextClient = hasNext ? allClients[currentIndex + 1] : null;
   const counter = allClients.length > 0 ? `${currentIndex + 1} / ${allClients.length}` : null;
 
-  /* Provide OnboardingCtx directly — no visitor registration, no side effects */
+  /* Provide OnboardingCtx directly - no visitor registration, no side effects */
   const ctxValue: OnboardingCtxValue = {
     clientId,
     welcomeInfo: {
@@ -329,7 +329,7 @@ function StudioPreviewPage() {
         </div>
       )}
 
-      {/* Studio — full height, no banner offset */}
+      {/* Studio - full height, no banner offset */}
       <div className="h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
           <StudioProvider
@@ -403,7 +403,7 @@ function AdminPreviewPill({
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-1.5 rounded-full bg-amber-400 text-amber-950 shadow-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:bg-amber-300 active:scale-95"
-          title="Admin Preview — click for controls"
+          title="Admin Preview - click for controls"
         >
           <ShieldCheck className="h-3 w-3 shrink-0" />
           <span>{displayName}</span>

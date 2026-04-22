@@ -18,9 +18,9 @@ export type { Language, TCMStrings };
 export { LANGUAGE_NAMES };
 
 // ---------------------------------------------------------------------------
-// Legacy types — kept for backward compatibility with admin.tsx, dashboard.tsx,
+// Legacy types - kept for backward compatibility with admin.tsx, dashboard.tsx,
 // and studio-preview.$clientId.tsx which read old studio_config shapes.
-// Do NOT use these in new Studio UI code — use TCMPalette instead.
+// Do NOT use these in new Studio UI code - use TCMPalette instead.
 // ---------------------------------------------------------------------------
 
 /** @deprecated Use TCMPalette from @/lib/tcm-palette instead */
@@ -67,7 +67,7 @@ export interface StudioThemeColors {
   activeSecondaryGradient: string;
 }
 
-/** @deprecated Legacy defaults — use DEFAULT_TCM_PALETTE from @/lib/tcm-palette instead */
+/** @deprecated Legacy defaults - use DEFAULT_TCM_PALETTE from @/lib/tcm-palette instead */
 export const defaultStudioColors: StudioThemeColors = {
   primaryBg: "rgba(8, 8, 11, 1)",
   primary: "rgba(253, 111, 39, 1)",
@@ -112,7 +112,7 @@ export const defaultStudioColors: StudioThemeColors = {
 };
 
 // ---------------------------------------------------------------------------
-// Legacy field mapping — old ThemeColors key → new TCMPalette key
+// Legacy field mapping - old ThemeColors key → new TCMPalette key
 // Exported for use in studio.tsx hydration (Phase 5).
 // ---------------------------------------------------------------------------
 
@@ -215,7 +215,7 @@ export const defaultStudioAppIcons: StudioAppIcons = {
 };
 
 // ---------------------------------------------------------------------------
-// Saved config shape — expanded to hold both new and legacy formats
+// Saved config shape - expanded to hold both new and legacy formats
 // ---------------------------------------------------------------------------
 
 export interface StudioSavedConfig {
@@ -223,7 +223,7 @@ export interface StudioSavedConfig {
   palette?: Partial<TCMPalette>;
   manualOverrides?: (keyof TCMPalette)[];
   brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string; logoVariants?: LogoVariant[] }>;
-  // Legacy format (pre-Phase 3) — kept for backward compat reads
+  // Legacy format (pre-Phase 3) - kept for backward compat reads
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
   language?: Language;
@@ -293,7 +293,7 @@ export interface StudioState {
   locked: boolean;
   canLock: boolean;
 
-  // Heading font — always "Sora"
+  // Heading font - always "Sora"
   headingFont: string;
 }
 
@@ -373,7 +373,7 @@ export const StudioProvider: React.FC<{
 
   const appName = appLabels.appName;
 
-  // Lock state — provided by studio.tsx via initialLocked prop (Phase 5 wires this fully)
+  // Lock state - provided by studio.tsx via initialLocked prop (Phase 5 wires this fully)
   const locked = initialLocked ?? false;
   const canLock = !!appIcons.appNameLogo;
 
@@ -393,7 +393,7 @@ export const StudioProvider: React.FC<{
   const setPalette = useCallback((newPalette: TCMPalette) => {
     setPaletteState(newPalette);
     lastAIPaletteRef.current = newPalette;
-    // manualOverrides intentionally NOT cleared — overrides persist across AI generations
+    // manualOverrides intentionally NOT cleared - overrides persist across AI generations
   }, []);
 
   /** Manually edit a single field (Quick Edit / Advanced Mode). */

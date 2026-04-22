@@ -93,7 +93,7 @@ function ProspectPage() {
           navigate({ to: "/prospect/welcome/$token", params: { token }, replace: true });
         }
       } catch {
-        /* localStorage unavailable — show form directly */
+        /* localStorage unavailable - show form directly */
       }
     })();
   }, [token]);

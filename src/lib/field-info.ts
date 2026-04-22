@@ -24,7 +24,7 @@ export interface FieldInfo {
 }
 
 // Keys match ProspectField.key values and FieldGroup / SubCard fieldKey props.
-// Add an entry here to activate the (i) icon on any field — it silently no-ops
+// Add an entry here to activate the (i) icon on any field - it silently no-ops
 // when the key is absent, so it is safe to wire every field incrementally.
 
 const PSP_LINKS = [
@@ -73,7 +73,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     features: [
       {
         title: "Local payment methods",
-        description: "M-Pesa, USSD, mobile money, and local card schemes — each PSP has different geographic coverage.",
+        description: "M-Pesa, USSD, mobile money, and local card schemes - each PSP has different geographic coverage.",
       },
       {
         title: "Transaction fees",
@@ -97,7 +97,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     features: [
       {
         title: "Local payment methods",
-        description: "M-Pesa, USSD, mobile money, and local card schemes — each PSP has different geographic coverage.",
+        description: "M-Pesa, USSD, mobile money, and local card schemes - each PSP has different geographic coverage.",
       },
       {
         title: "Transaction fees",
@@ -116,11 +116,11 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
   duns_number: {
     tooltip: "A unique 9-digit business ID issued by Dun and Bradstreet, used to verify your company with payment providers.",
     summary:
-      "DUNS (Data Universal Numbering System) is a globally recognized business identifier — essentially a business version of a national ID number. Payment providers, banks, and regulators use it to confirm your company exists and link financial records.",
+      "DUNS (Data Universal Numbering System) is a globally recognized business identifier - essentially a business version of a national ID number. Payment providers, banks, and regulators use it to confirm your company exists and link financial records.",
     useCases: [
       "Required by major PSPs to approve merchant accounts",
       "Banks and regulators use it to verify your business identity",
-      "Free to obtain at dnb.com — typically issued within 30 days",
+      "Free to obtain at dnb.com - typically issued within 30 days",
     ],
     notes:
       "If you don't have a DUNS yet, some payment integrations can proceed in parallel while your application is in progress. Trivelta will flag this during setup.",
@@ -132,7 +132,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
   zendesk_account: {
     tooltip: "Your customer support helpdesk software where player tickets are managed.",
     summary:
-      "Zendesk is an industry-standard customer service platform that centralizes player support — tickets, live chat, knowledge base, and escalation workflows.",
+      "Zendesk is an industry-standard customer service platform that centralizes player support - tickets, live chat, knowledge base, and escalation workflows.",
     features: [
       {
         title: "Automatic player context",
@@ -160,7 +160,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
       },
       {
         title: "Bulk campaigns",
-        description: "Promotional messages, re-engagement campaigns, and deposit confirmations — all routed through your SMS provider.",
+        description: "Promotional messages, re-engagement campaigns, and deposit confirmations - all routed through your SMS provider.",
       },
     ],
     useCases: [
@@ -178,7 +178,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
   kyc_surt_integration: {
     tooltip: "A premium identity verification platform specializing in fast, high-accuracy KYC for regulated industries.",
     summary:
-      "Surt is a modern KYC provider built for regulated financial services and iGaming. It handles document verification, biometric face-matching, liveness detection, and continuous monitoring — all through a single API.",
+      "Surt is a modern KYC provider built for regulated financial services and iGaming. It handles document verification, biometric face-matching, liveness detection, and continuous monitoring - all through a single API.",
     features: [
       {
         title: "Emerging market accuracy",
@@ -186,7 +186,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
       },
       {
         title: "Mobile-first flow",
-        description: "A player can complete full KYC in under 90 seconds on a smartphone — optimized to minimize drop-off.",
+        description: "A player can complete full KYC in under 90 seconds on a smartphone - optimized to minimize drop-off.",
       },
       {
         title: "Continuous monitoring",
@@ -213,5 +213,5 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
   },
 };
 
-// Alias: prospect form uses field.key="infobip" — wire to same content as sms_provider
+// Alias: prospect form uses field.key="infobip" - wire to same content as sms_provider
 FIELD_INFO.infobip = FIELD_INFO.sms_provider;

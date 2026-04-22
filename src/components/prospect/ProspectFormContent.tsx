@@ -162,7 +162,7 @@ function ProspectSuccessState({
             next steps and schedule your onboarding call.
           </p>
 
-          {/* What happens next — 3 cards */}
+          {/* What happens next - 3 cards */}
           <div className="mb-10 grid grid-cols-1 gap-3 md:grid-cols-3">
             {cards.map(({ icon: Icon, label, desc }, i) => (
               <div
@@ -193,7 +193,7 @@ function ProspectSuccessState({
             </p>
           </div>
 
-          {/* Primary CTA — Download PDF */}
+          {/* Primary CTA - Download PDF */}
           <div
             className="mb-4 flex flex-col items-center animate-fade-in-up"
             style={{ animationDelay: "580ms" }}
@@ -207,7 +207,7 @@ function ProspectSuccessState({
             </button>
           </div>
 
-          {/* Secondary action — Request Update */}
+          {/* Secondary action - Request Update */}
           <div
             className="flex flex-col items-center animate-fade-in-up"
             style={{ animationDelay: "640ms" }}
@@ -299,7 +299,7 @@ export function ProspectFormContent({
           onDownloadPDF={handleDownloadPDF}
         />
 
-        {/* Request Update Dialog — rendered via portal, works regardless of parent */}
+        {/* Request Update Dialog - rendered via portal, works regardless of parent */}
         <Dialog open={reqDialogOpen} onOpenChange={(v) => { if (!v) setReqDialogOpen(false); }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -404,7 +404,7 @@ export function ProspectFormContent({
 
       {/* ── Banners (non-locked states only) ── */}
 
-      {/* Update pending — editing unlocked (prospect view) */}
+      {/* Update pending - editing unlocked (prospect view) */}
       {updatePending && mode === "token" && (
         <div className="mx-auto max-w-4xl px-6 mb-6">
           <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
@@ -419,7 +419,7 @@ export function ProspectFormContent({
         </div>
       )}
 
-      {/* Update pending — info banner (admin view) */}
+      {/* Update pending - info banner (admin view) */}
       {updatePending && mode === "authenticated" && (
         <div className="mx-auto max-w-4xl px-6 mb-6">
           <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">

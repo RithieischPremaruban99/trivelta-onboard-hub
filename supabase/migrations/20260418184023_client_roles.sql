@@ -175,7 +175,7 @@ CREATE POLICY "client members update form" ON public.onboarding_forms
     )
   );
 -- The WITH CHECK above is belt-and-suspenders; true enforcement is in submit_onboarding_form().
--- Replace the complex subquery with a simpler unconditional member check — submission
+-- Replace the complex subquery with a simpler unconditional member check - submission
 -- is enforced via the RPC which uses SECURITY DEFINER.
 DROP POLICY IF EXISTS "client members update form" ON public.onboarding_forms;
 

@@ -1,5 +1,5 @@
 /**
- * pdf-builder.tsx — Premium PDF generation using @react-pdf/renderer.
+ * pdf-builder.tsx - Premium PDF generation using @react-pdf/renderer.
  * Produces a cover page, table of contents, and per-section field tables.
  * Inter font is loaded from /fonts/ (public/fonts/) for crisp, on-brand output.
  */

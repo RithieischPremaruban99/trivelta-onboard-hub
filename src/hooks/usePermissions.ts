@@ -2,7 +2,7 @@ import { useAuth } from "@/lib/auth-context";
 
 /**
  * Derives fine-grained permission flags from the current user's role.
- * No extra DB queries — role is already loaded by useAuth().
+ * No extra DB queries - role is already loaded by useAuth().
  *
  * Pass optional context (clientAms, assignedProspectAM) to check
  * assignment-scoped permissions.

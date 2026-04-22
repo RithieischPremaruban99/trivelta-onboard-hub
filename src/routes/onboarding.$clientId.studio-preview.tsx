@@ -51,7 +51,7 @@ type ViewMode = "split" | "mobile" | "web";
 /* ── Helpers ────────────────────────────────────────────────────────────── */
 
 function formatLockedDate(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   try {
     return new Date(iso).toLocaleDateString(undefined, {
       day: "numeric",
@@ -59,7 +59,7 @@ function formatLockedDate(iso: string | null): string {
       year: "numeric",
     });
   } catch {
-    return "—";
+    return "-";
   }
 }
 

@@ -8,14 +8,14 @@ export function buildClientInviteEmail(params: {
   const firstName = params.contactName.split(" ")[0];
 
   const studioSection = params.studioAccessGranted
-    ? "Once submitted, you'll unlock Trivelta Studio — our AI-powered platform design tool where you'll pick your colors, logo, and brand identity."
+    ? "Once submitted, you'll unlock Trivelta Studio - our AI-powered platform design tool where you'll pick your colors, logo, and brand identity."
     : "Once submitted, your Account Manager will take over and guide you through the platform configuration.";
 
-  const subject = "Welcome to Trivelta — Your platform setup starts now";
+  const subject = "Welcome to Trivelta - Your platform setup starts now";
 
   const body = `Hi ${firstName},
 
-Great news — your contract with Trivelta is signed. Welcome aboard.
+Great news - your contract with Trivelta is signed. Welcome aboard.
 
 Your next step: complete your platform onboarding.
 
@@ -26,7 +26,7 @@ Click below to pick up where we left off:
 ${params.inviteLink}
 
 What you'll do next:
-1. Review the pre-filled onboarding form (5–10 minutes)
+1. Review the pre-filled onboarding form (5-10 minutes)
 2. Fill in the remaining sections (team contacts, legal, branding)
 3. ${studioSection}
 

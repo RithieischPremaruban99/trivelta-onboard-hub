@@ -33,7 +33,7 @@ function buildWelcomeMessage(hasLogo: boolean): string {
   if (hasLogo) {
     return "Hi! I'm your Trivelta Assistant. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it. Want me to generate alternative logos too? Just ask.";
   }
-  return "Hi! I'm your Trivelta Assistant — your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos — just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
+  return "Hi! I'm your Trivelta Assistant - your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos - just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
 }
 
 /* ── Component ────────────────────────────────────────────────────────────── */
@@ -152,7 +152,7 @@ export function AIChatPanel() {
           ...prev,
           {
             role: "assistant",
-            content: `Here are 3 logo variants — ${data.extractedBrandName || appName || "your brand"}. Click one to use it.`,
+            content: `Here are 3 logo variants - ${data.extractedBrandName || appName || "your brand"}. Click one to use it.`,
             logoVariants: logos,
           },
         ]);
@@ -279,7 +279,7 @@ export function AIChatPanel() {
                 typeof evt.keyColorsSummary === "string" ? evt.keyColorsSummary : undefined;
               addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
               const displayText =
-                reasoning || keyColorsSummary || "Palette applied — check the preview on the right.";
+                reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
 
               setMessages((prev) => {
                 const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
@@ -371,7 +371,7 @@ export function AIChatPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages — fills available space */}
+      {/* Messages - fills available space */}
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {messages.map((msg, i) => (
           <div
@@ -452,7 +452,7 @@ export function AIChatPanel() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input — sticky at bottom */}
+      {/* Input - sticky at bottom */}
       <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">
         <input
           ref={inputRef}

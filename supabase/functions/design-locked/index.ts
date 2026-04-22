@@ -152,7 +152,7 @@ function buildSection1(
   }) + " UTC";
 
   const submitterLine = submittedBy === "admin"
-    ? `Admin override — submitted by ${submitterEmail ?? "Trivelta admin"}`
+    ? `Admin override - submitted by ${submitterEmail ?? "Trivelta admin"}`
     : `Client (${submitterEmail ?? "primary contact"})`;
 
   return [
@@ -207,7 +207,7 @@ function buildSection3(config: StudioConfig): object[] {
       blocks.push(bulletedListItem(rt(`${key} → ${value}`)));
     }
   } else {
-    blocks.push(paragraph(rt(`No label overrides — TCM defaults apply for language ${config.language ?? "en"}.`, { italic: true })));
+    blocks.push(paragraph(rt(`No label overrides - TCM defaults apply for language ${config.language ?? "en"}.`, { italic: true })));
   }
 
   return blocks;
@@ -266,7 +266,7 @@ function buildSection4(language: string): object[] {
   // Emit one heading + table per chunk.
   chunks.forEach((chunk, idx) => {
     const partLabel = chunks.length > 1 ? ` (Part ${idx + 1} of ${chunks.length})` : "";
-    blocks.push(heading3(`Strings${partLabel} — ${chunk.length} entries`));
+    blocks.push(heading3(`Strings${partLabel} - ${chunk.length} entries`));
 
     const tableRows: object[] = [
       {
@@ -301,7 +301,7 @@ function buildSection4(language: string): object[] {
   return blocks;
 }
 
-/** SECTION 5: TCM Color Configuration — Human Readable */
+/** SECTION 5: TCM Color Configuration - Human Readable */
 function buildSection5(palette: Record<string, string>): object[] {
   const blocks: object[] = [
     heading2("5. TCM Color Configuration (Human Readable)"),
@@ -327,7 +327,7 @@ function buildSection5(palette: Record<string, string>): object[] {
   return blocks;
 }
 
-/** SECTION 6: TCM Color Configuration — JSON */
+/** SECTION 6: TCM Color Configuration - JSON */
 function buildSection6(palette: Record<string, string>): object[] {
   // Build the full 344-field palette (merge with defaults for any missing fields)
   const fullPalette: Record<string, string> = {
@@ -381,7 +381,7 @@ function buildAllBlocks(
     year: "numeric",
   });
 
-  // Resolve palette — handle new format, legacy, or empty
+  // Resolve palette - handle new format, legacy, or empty
   let palette: Record<string, string> = {};
   if (config.palette && Object.keys(config.palette).length > 0) {
     palette = config.palette as Record<string, string>;
@@ -393,7 +393,7 @@ function buildAllBlocks(
 
   const blocks: object[] = [
     divider(),
-    heading1("🎨 Studio Config — Design Locked"),
+    heading1("🎨 Studio Config - Design Locked"),
     paragraph(rt(`Locked on ${date} via Trivelta Studio`, { italic: true })),
     callout(
       "Client has locked their platform design. Colors, strings, and brand assets are finalised below.",
@@ -431,13 +431,13 @@ async function isNotionPageAccessible(pageId: string, token: string): Promise<bo
   });
 
   if (!res.ok) {
-    console.log(`[design-locked] Cached page ${pageId} returned ${res.status} — treating as stale`);
+    console.log(`[design-locked] Cached page ${pageId} returned ${res.status} - treating as stale`);
     return false;
   }
 
   const data = await res.json();
   if (data.archived === true || data.in_trash === true) {
-    console.log(`[design-locked] Cached page ${pageId} is archived/in_trash — treating as stale`);
+    console.log(`[design-locked] Cached page ${pageId} is archived/in_trash - treating as stale`);
     return false;
   }
 
@@ -488,7 +488,7 @@ async function appendBlocksToPage(
       const body = await resp.text();
       throw new Error(`Notion append blocks failed (${resp.status}): ${body}`);
     }
-    console.log(`[design-locked] Appended blocks ${i + 1}–${Math.min(i + BLOCK_CHUNK, blocks.length)} of ${blocks.length}`);
+    console.log(`[design-locked] Appended blocks ${i + 1}-${Math.min(i + BLOCK_CHUNK, blocks.length)} of ${blocks.length}`);
   }
 }
 
@@ -536,7 +536,7 @@ async function appendToNotesProperty(
 /**
  * Create a minimal Notion page for a client who locked their design before
  * submitting the onboarding form. A proper SOP page will be created by
- * handle-submission when the form is submitted — this page exists solely so
+ * handle-submission when the form is submitted - this page exists solely so
  * the design config can be appended now.
  */
 async function createNotionPage(
@@ -562,7 +562,7 @@ async function createNotionPage(
     {
       type: "callout",
       callout: {
-        rich_text: [{ text: { content: `⚠️ Studio design locked on ${date} — onboarding form not yet submitted. This page was auto-created by design-locked. Full SOP checklist will be added when the client submits their onboarding form.` } }],
+        rich_text: [{ text: { content: `⚠️ Studio design locked on ${date} - onboarding form not yet submitted. This page was auto-created by design-locked. Full SOP checklist will be added when the client submits their onboarding form.` } }],
         icon: { emoji: "⚠️" },
         color: "yellow_background",
       },
@@ -668,7 +668,7 @@ Deno.serve(async (req) => {
     if (notionPageId) {
       const accessible = await isNotionPageAccessible(notionPageId, NOTION_TOKEN);
       if (!accessible) {
-        console.log(`[design-locked] Cached page stale — clearing and creating fresh`);
+        console.log(`[design-locked] Cached page stale - clearing and creating fresh`);
         notionPageId = null;
         await supabase.from("clients").update({ notion_page_id: null }).eq("id", client_id);
       }
@@ -685,7 +685,7 @@ Deno.serve(async (req) => {
     }
 
     if (!notionPageId) {
-      console.log(`[design-locked] No Notion page for "${client.name}" — creating one on-the-fly (form not yet submitted)`);
+      console.log(`[design-locked] No Notion page for "${client.name}" - creating one on-the-fly (form not yet submitted)`);
       notionPageId = await createNotionPage(client.name, client.country ?? null, client.drive_link ?? null, NOTION_TOKEN);
       if (notionPageId) {
         await supabase.from("clients").update({ notion_page_id: notionPageId }).eq("id", client_id);

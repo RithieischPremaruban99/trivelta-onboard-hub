@@ -247,12 +247,12 @@ async function isNotionPageAccessible(pageId: string, token: string): Promise<bo
     headers: { Authorization: `Bearer ${token}`, "Notion-Version": NOTION_VER },
   });
   if (!res.ok) {
-    console.log(`[prospect-submitted] Cached page ${pageId} returned ${res.status} — treating as stale`);
+    console.log(`[prospect-submitted] Cached page ${pageId} returned ${res.status} - treating as stale`);
     return false;
   }
   const data = await res.json();
   if (data.archived === true || data.in_trash === true) {
-    console.log(`[prospect-submitted] Cached page ${pageId} is archived — treating as stale`);
+    console.log(`[prospect-submitted] Cached page ${pageId} is archived - treating as stale`);
     return false;
   }
   return true;
@@ -298,7 +298,7 @@ async function createNotionPage(prospect: ProspectRecord, token: string): Promis
     {
       type: "callout",
       callout: {
-        rich_text: [{ text: { content: `⚠️ Pre-Onboarding Phase — ${prospect.legal_company_name} is a prospect (not yet under contract). Form submitted ${date}. Managed by Trivelta pre-onboarding system.` } }],
+        rich_text: [{ text: { content: `⚠️ Pre-Onboarding Phase - ${prospect.legal_company_name} is a prospect (not yet under contract). Form submitted ${date}. Managed by Trivelta pre-onboarding system.` } }],
         icon: { emoji: "⚠️" },
         color: "yellow_background",
       },
@@ -344,7 +344,7 @@ async function appendBlocksToPage(pageId: string, blocks: object[], token: strin
       const body = await resp.text();
       throw new Error(`Notion append blocks failed (${resp.status}): ${body}`);
     }
-    console.log(`[prospect-submitted] Appended blocks ${i + 1}–${Math.min(i + BLOCK_CHUNK, blocks.length)} of ${blocks.length}`);
+    console.log(`[prospect-submitted] Appended blocks ${i + 1}-${Math.min(i + BLOCK_CHUNK, blocks.length)} of ${blocks.length}`);
   }
 }
 
@@ -429,7 +429,7 @@ Deno.serve(async (req) => {
       console.log("[prospect-submitted] Notion sync complete for", (prospect as ProspectRecord).legal_company_name);
     } catch (notionErr) {
       console.error("[prospect-submitted] Notion sync failed (non-fatal):", String(notionErr));
-      // Non-fatal — the submitted_at is already written by the frontend
+      // Non-fatal - the submitted_at is already written by the frontend
     }
 
     // 4. Update notion_page_id in prospects table (idempotent)

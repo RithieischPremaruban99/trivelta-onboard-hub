@@ -101,7 +101,7 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
     );
   }
 
-  /* ── multi_select — checkbox pills ── */
+  /* ── multi_select - checkbox pills ── */
   if (field.type === "multi_select") {
     const selected: string[] = Array.isArray(value) ? (value as string[]) : [];
     const knownOptions = field.options ?? [];
@@ -171,7 +171,7 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
     );
   }
 
-  /* ── boolean_tri — Yes / No / Not sure yet ── */
+  /* ── boolean_tri - Yes / No / Not sure yet ── */
   if (field.type === "boolean_tri") {
     const OPTIONS: Array<{ label: string; val: string }> = [
       { label: "Yes", val: "yes" },

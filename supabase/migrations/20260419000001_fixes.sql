@@ -1,4 +1,4 @@
--- ─── Fix 1: submit_onboarding_form — remove client_role type dependency ────────
+-- ─── Fix 1: submit_onboarding_form - remove client_role type dependency ────────
 -- The old version declared `_role client_role` and called get_client_role()
 -- which checks the legacy client_memberships table.  Replace with
 -- is_client_owner() which checks the canonical team_members table.
@@ -41,7 +41,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.submit_onboarding_form(UUID, JSONB) TO authenticated;
 
 
--- ─── Fix 2: get_client_welcome_info — use junction table instead of assigned_am_id ─
+-- ─── Fix 2: get_client_welcome_info - use junction table instead of assigned_am_id ─
 -- The old version joined profiles ON p.user_id = c.assigned_am_id.
 -- AMs haven't signed in yet so profiles is empty → am_name/am_email always NULL.
 -- New version joins client_account_managers → role_assignments (email-based, no

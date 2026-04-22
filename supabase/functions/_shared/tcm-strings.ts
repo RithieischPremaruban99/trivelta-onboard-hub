@@ -1,5 +1,5 @@
 /**
- * TCM Strings — Trivelta Copy Model (SHARED MODULE — Deno/Edge Function copy)
+ * TCM Strings - Trivelta Copy Model (SHARED MODULE - Deno/Edge Function copy)
  *
  * ⚠️  SYNC WARNING: This file is a verbatim copy of src/lib/tcm-strings.ts
  * for use inside Supabase Edge Functions (Deno runtime).

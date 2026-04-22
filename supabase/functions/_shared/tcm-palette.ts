@@ -1,5 +1,5 @@
 /**
- * TCM Palette — Trivelta Color Model (SHARED MODULE — Deno/Edge Function copy)
+ * TCM Palette - Trivelta Color Model (SHARED MODULE - Deno/Edge Function copy)
  *
  * ⚠️  SYNC WARNING: This file is a verbatim copy of src/lib/tcm-palette.ts
  * for use inside Supabase Edge Functions (Deno runtime), which cannot import
@@ -7,7 +7,7 @@
  * MUST update this file to match. Keep both files identical except this header.
  *
  * Single source of truth for all configurable color fields in the platform.
- * Generated from the TCM color spec. Do NOT edit defaults manually — update
+ * Generated from the TCM color spec. Do NOT edit defaults manually - update
  * the spec and regenerate.
  *
  * Naming convention: spec "Primary Background Color" → primaryBackgroundColor
@@ -84,7 +84,7 @@ export interface TCMPalette {
   marketDataBg1: string;
   marketDataBg2: string;
 
-  // ── Status — Win ──────────────────────────────────────────────────────────
+  // ── Status - Win ──────────────────────────────────────────────────────────
   wonColor: string;
   wonGradient1: string;
   wonGradient2: string;
@@ -136,7 +136,7 @@ export interface TCMPalette {
   wonBorderGradColors1: string;
   wonBorderGradColors2: string;
 
-  // ── Status — Loss ─────────────────────────────────────────────────────────
+  // ── Status - Loss ─────────────────────────────────────────────────────────
   lostColor: string;
   lostStatusColor: string;
   lossAmountText: string;
@@ -478,7 +478,7 @@ export const DEFAULT_TCM_PALETTE: TCMPalette = {
   marketDataBg1: "rgba(48, 48, 66, 0.48)",
   marketDataBg2: "rgba(221, 141, 101, 0.08)",
 
-  // ── Status — Win ──────────────────────────────────────────────────────────
+  // ── Status - Win ──────────────────────────────────────────────────────────
   wonColor: "rgba(73, 218, 108, 1)",
   wonGradient1: "rgba(62, 192, 130, 1)",
   wonGradient2: "rgba(7,158,9,0.41642594537815125)",
@@ -529,7 +529,7 @@ export const DEFAULT_TCM_PALETTE: TCMPalette = {
   wonBorderGradColors1: "rgba(22, 94, 48, 0.2)",
   wonBorderGradColors2: "rgba(73, 216, 107, 1)",
 
-  // ── Status — Loss ─────────────────────────────────────────────────────────
+  // ── Status - Loss ─────────────────────────────────────────────────────────
   lostColor: "rgba(216, 73, 107, 1)",
   lostStatusColor: "rgba(218, 73, 108, 1)",
   lossAmountText: "rgba(239, 68, 68, 1)",
@@ -797,7 +797,7 @@ export const DEFAULT_TCM_PALETTE: TCMPalette = {
 };
 
 // ---------------------------------------------------------------------------
-// Quick-edit fields (25) — shown in the collapsed panel picker
+// Quick-edit fields (25) - shown in the collapsed panel picker
 // ---------------------------------------------------------------------------
 
 export const QUICK_EDIT_FIELDS: (keyof TCMPalette)[] = [
@@ -829,7 +829,7 @@ export const QUICK_EDIT_FIELDS: (keyof TCMPalette)[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Advanced field groups — shown in expanded accordion panels
+// Advanced field groups - shown in expanded accordion panels
 // ---------------------------------------------------------------------------
 
 export const ADVANCED_FIELD_GROUPS: Record<string, (keyof TCMPalette)[]> = {
@@ -894,7 +894,7 @@ export const ADVANCED_FIELD_GROUPS: Record<string, (keyof TCMPalette)[]> = {
     "marketDataBg1",
     "marketDataBg2",
   ],
-  "Status — Win": [
+  "Status - Win": [
     "wonColor",
     "wonGradient1",
     "wonGradient2",
@@ -945,7 +945,7 @@ export const ADVANCED_FIELD_GROUPS: Record<string, (keyof TCMPalette)[]> = {
     "wonBorderGradColors1",
     "wonBorderGradColors2",
   ],
-  "Status — Loss": [
+  "Status - Loss": [
     "lostColor",
     "lostStatusColor",
     "lossAmountText",
@@ -1214,7 +1214,7 @@ export const ADVANCED_FIELD_GROUPS: Record<string, (keyof TCMPalette)[]> = {
 };
 
 // ---------------------------------------------------------------------------
-// Field labels — camelCase key → human-readable display name
+// Field labels - camelCase key → human-readable display name
 // ---------------------------------------------------------------------------
 
 export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
@@ -1511,21 +1511,21 @@ export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
   supportPopupGradientColor2: "Support Popup Gradient 2",
   roulettWheelShadow1: "Roulette Wheel Shadow 1",
   roulettWheelShadow2: "Roulette Wheel Shadow 2",
-  pamChartCanceledBg: "PAM Chart — Canceled",
-  pamChartExpiredBg: "PAM Chart — Expired",
-  pamChartPendingReviewBg: "PAM Chart — Pending Review",
-  pamChartVerifiedBg: "PAM Chart — Verified",
-  pamChartActiveBg: "PAM Chart — Active",
-  pamChartFailedBg: "PAM Chart — Failed",
-  pamChartNotVerifiedBg: "PAM Chart — Not Verified",
-  pamChartPurchaseBg: "PAM Chart — Purchase",
-  pamChartWithdrawalsBg: "PAM Chart — Withdrawals",
-  pamChartRevenueBg: "PAM Chart — Revenue",
-  pamChartSportsradarBg: "PAM Chart — SportsRadar",
-  pamChartDstBg: "PAM Chart — DST",
-  pamChartAcceptedBg: "PAM Chart — Accepted",
-  pamChartRejectedBg: "PAM Chart — Rejected",
-  pamChartPrizeRedemptionsBg: "PAM Chart — Prize Redemptions",
+  pamChartCanceledBg: "PAM Chart - Canceled",
+  pamChartExpiredBg: "PAM Chart - Expired",
+  pamChartPendingReviewBg: "PAM Chart - Pending Review",
+  pamChartVerifiedBg: "PAM Chart - Verified",
+  pamChartActiveBg: "PAM Chart - Active",
+  pamChartFailedBg: "PAM Chart - Failed",
+  pamChartNotVerifiedBg: "PAM Chart - Not Verified",
+  pamChartPurchaseBg: "PAM Chart - Purchase",
+  pamChartWithdrawalsBg: "PAM Chart - Withdrawals",
+  pamChartRevenueBg: "PAM Chart - Revenue",
+  pamChartSportsradarBg: "PAM Chart - SportsRadar",
+  pamChartDstBg: "PAM Chart - DST",
+  pamChartAcceptedBg: "PAM Chart - Accepted",
+  pamChartRejectedBg: "PAM Chart - Rejected",
+  pamChartPrizeRedemptionsBg: "PAM Chart - Prize Redemptions",
   pushBackgroundColor: "Push Background",
   pushBorderGradSecondaryColor: "Push Border Secondary",
   pushBetcardGradColors1: "Push Bet Card Gradient 1",
@@ -1565,7 +1565,7 @@ export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Unresolved fields — in task spec but absent from TCM color spec
+// Unresolved fields - in task spec but absent from TCM color spec
 // No default values available from the spec for these fields.
 // ---------------------------------------------------------------------------
 

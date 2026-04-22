@@ -1,5 +1,5 @@
 /**
- * BettingAppPreview — renders Sportsbook UI surfaces only.
+ * BettingAppPreview - renders Sportsbook UI surfaces only.
  *
  * Consumes TCMPalette via deterministic CSS variables injected on the root element.
  * Every palette field maps to: fieldNameToCssVar(fieldName) → --p-{kebab-case}
@@ -12,7 +12,7 @@
  * - Pikkem (~16 fields)
  * - Gamepass (~54 fields)
  * - Casino (~9 fields)
- * - PAM Admin Panel (~15 fields — admin-only, not visible to end users)
+ * - PAM Admin Panel (~15 fields - admin-only, not visible to end users)
  *
  * Client can still edit these fields in Advanced Mode; they will be stored in
  * studio_config.palette and applied when the TCM runtime renders those features.
@@ -67,7 +67,7 @@ function getSportsSidebar(strings: TCMStrings) {
   ];
 }
 
-// These are computed inside components using strings — kept as icon-only config here
+// These are computed inside components using strings - kept as icon-only config here
 const QUICK_TILE_ICONS = [
   { icon: Radio, strKey: "TILE_LIVE_SPORTS" as const, nav: 1 },
   { icon: Code2, strKey: "TILE_LOAD_CODE" as const, nav: 2 },
@@ -303,7 +303,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
     { icon: Swords, label: strings.PEER_TO_PEER_NAV },
   ];
 
-  /* Right panel — always visible */
+  /* Right panel - always visible */
   const renderRightPanel = () => (
     <aside
       className="w-[200px] border-l flex flex-col flex-shrink-0"
@@ -366,7 +366,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               if (webMyBetsFilter === 0) return true;
               if (webMyBetsFilter === 1) return b.status === "PENDING";
               if (webMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
-              return false; // P2P — no P2P bets in sample
+              return false; // P2P - no P2P bets in sample
             }).map((b, i) => {
               const isWon = b.status === "WON";
               return (
@@ -591,7 +591,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
     </div>
   );
 
-  /* Sports view (nav index 1) — 3-column layout */
+  /* Sports view (nav index 1) - 3-column layout */
   const renderSportsView = () => (
     <div className="flex-1 min-h-0 flex">
       {/* Left sidebar */}
@@ -778,7 +778,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             ))}
           </div>
 
-          {/* Soccer tabs — now stateful */}
+          {/* Soccer tabs - now stateful */}
           <div
             className="flex items-center justify-between border-b mb-2"
             style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
@@ -1721,7 +1721,7 @@ function MobilePreview({
                 </span>
               </div>
               {/* Legs */}
-              {["Man Utd — Win", "Over 2.5 Goals", "Both Teams Score"].map((leg, i) => (
+              {["Man Utd - Win", "Over 2.5 Goals", "Both Teams Score"].map((leg, i) => (
                 <div key={i} style={{
                   background: `linear-gradient(90deg, var(--p-win-status-gradient-1), var(--p-win-status-gradient-2))`,
                   padding: "6px 12px",

@@ -178,7 +178,7 @@ function AdminProspectEditPage() {
       );
       if (fnError) {
         console.error("[ProspectEdit] Notion sync failed:", fnError);
-        toast.warning("Submitted — Notion sync queued.");
+        toast.warning("Submitted - Notion sync queued.");
       } else {
         toast.success("Prospect data sent to Trivelta team.");
       }

@@ -27,7 +27,7 @@ async function appendContractSigned(
       type: "heading_1",
       heading_1: {
         rich_text: [
-          { type: "text", text: { content: "🎯 Contract Signed — Client Active" } },
+          { type: "text", text: { content: "🎯 Contract Signed - Client Active" } },
         ],
       },
     },

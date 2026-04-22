@@ -360,7 +360,7 @@ function AdminPage() {
           : p,
       ),
     );
-    toast.success("Update request handled — form reset for prospect.");
+    toast.success("Update request handled - form reset for prospect.");
   };
 
   const canDelete = role === "admin" || role === "account_executive";
@@ -426,7 +426,7 @@ function AdminPage() {
               Admin overview
             </h1>
             <p className="mt-1 max-w-xl text-sm leading-snug text-muted-foreground">
-              Every client, account manager and onboarding signal — in one premium control surface.
+              Every client, account manager and onboarding signal - in one premium control surface.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -755,7 +755,7 @@ function AdminPage() {
                             return assignedAms.length > 0 ? (
                               <AmAvatars ams={assignedAms} />
                             ) : (
-                              <span className="text-[11px] text-muted-foreground/50">—</span>
+                              <span className="text-[11px] text-muted-foreground/50">-</span>
                             );
                           })()}
                         </td>
@@ -822,7 +822,7 @@ function AdminPage() {
                               Notion
                             </a>
                           ) : (
-                            <span className="text-xs text-muted-foreground/40">—</span>
+                            <span className="text-xs text-muted-foreground/40">-</span>
                           )}
                         </td>
                         <td className="px-4 py-4">
@@ -841,12 +841,12 @@ function AdminPage() {
                               View Client <ArrowRight className="h-3 w-3" />
                             </Button>
                           ) : (
-                            <span className="text-xs text-muted-foreground/40">—</span>
+                            <span className="text-xs text-muted-foreground/40">-</span>
                           )}
                         </td>
                         <td className="px-4 py-4">
                           {isConverted ? (
-                            <span className="text-xs text-muted-foreground/40">—</span>
+                            <span className="text-xs text-muted-foreground/40">-</span>
                           ) : (
                             <div className="row-actions flex items-center gap-0.5">
                               {/* Mark update handled */}
@@ -1191,7 +1191,7 @@ function StudioLockCell({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (!data) {
-    return <span className="text-xs text-muted-foreground/50">—</span>;
+    return <span className="text-xs text-muted-foreground/50">-</span>;
   }
 
   if (!canEdit) {
@@ -1292,7 +1292,7 @@ function StudioLockCell({
             <AlertDialogTitle>Unlock design for {clientName}?</AlertDialogTitle>
             <AlertDialogDescription>
               The client will be able to edit their design again. This action does NOT remove the
-              existing Notion page — your tech team will see both the old locked design and any new
+              existing Notion page - your tech team will see both the old locked design and any new
               changes after re-lock.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -2157,7 +2157,7 @@ function NewProspectDialog({
                   </Button>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">
-                  Expires in 30 days. The prospect doesn't need to create an account — this link is
+                  Expires in 30 days. The prospect doesn't need to create an account - this link is
                   their access.
                 </p>
               </div>

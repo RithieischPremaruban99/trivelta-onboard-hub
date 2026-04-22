@@ -517,7 +517,7 @@ function ClientDetail({
           </div>
         </div>
 
-        {/* State 1 — no access granted yet */}
+        {/* State 1 - no access granted yet */}
         {!client.studio_access && (
           <div className="rounded-lg border border-border bg-secondary/30 p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -541,7 +541,7 @@ function ClientDetail({
               {!isAdminOrAE && (
                 <button
                   onClick={() => {
-                    const subject = encodeURIComponent(`Studio Access Request — ${client.name}`);
+                    const subject = encodeURIComponent(`Studio Access Request - ${client.name}`);
                     const body = encodeURIComponent(
                       `Hi,\n\nPlease grant Trivelta Studio access for ${client.name} (ID: ${client.id}).\n\nRequested by: ${user?.email ?? "AM"}\n\nThank you.`,
                     );
@@ -558,14 +558,14 @@ function ClientDetail({
           </div>
         )}
 
-        {/* State 2 — access granted, not locked */}
+        {/* State 2 - access granted, not locked */}
         {client.studio_access && !studioAccessLocked && (
           <div className="rounded-lg border border-success/30 bg-success/5 p-4">
             <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-success" />
                 <span className="text-sm font-medium text-success">
-                  Studio Active — client can design
+                  Studio Active - client can design
                 </span>
               </div>
             </div>
@@ -597,14 +597,14 @@ function ClientDetail({
           </div>
         )}
 
-        {/* State 3 — access granted, locked by AM */}
+        {/* State 3 - access granted, locked by AM */}
         {client.studio_access && studioAccessLocked && (
           <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-4">
             <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  Studio Locked — TCM implementation in progress
+                  Studio Locked - TCM implementation in progress
                 </span>
               </div>
             </div>
@@ -632,7 +632,7 @@ function ClientDetail({
               ) : (
                 <button
                   onClick={() => {
-                    const subject = encodeURIComponent(`Studio Unlock Request — ${client.name}`);
+                    const subject = encodeURIComponent(`Studio Unlock Request - ${client.name}`);
                     const body = encodeURIComponent(
                       `Hi,\n\nPlease unlock Trivelta Studio for ${client.name} (ID: ${client.id}). TCM implementation appears to be complete.\n\nRequested by: ${user?.email ?? "AM"}\n\nThank you.`,
                     );

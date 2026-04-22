@@ -8,7 +8,7 @@ CREATE POLICY "Studio assets publicly readable"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'studio-assets');
 
--- Service role uploads (edge function uses service role key, bypasses RLS — but add for completeness)
+-- Service role uploads (edge function uses service role key, bypasses RLS - but add for completeness)
 CREATE POLICY "Authenticated users can upload studio assets"
 ON storage.objects FOR INSERT
 TO authenticated

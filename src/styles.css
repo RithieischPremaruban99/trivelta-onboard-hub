@@ -142,7 +142,7 @@
     transition: background-color 100ms ease;
   }
 
-  /* Focus states — replace default blue outline */
+  /* Focus states - replace default blue outline */
   *:focus {
     outline: none;
   }
@@ -223,7 +223,7 @@
     box-shadow: 0 14px 36px -8px color-mix(in oklab, var(--color-primary) 60%, transparent);
   }
 
-  /* Premium shadow tokens — used across onboarding → studio transition */
+  /* Premium shadow tokens - used across onboarding → studio transition */
   .shadow-premium {
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.04) inset,
@@ -478,7 +478,7 @@
 }
 
 /* ============================================================
-   Premium polish — chat, modal, toast, skeleton, card hover
+   Premium polish - chat, modal, toast, skeleton, card hover
    ============================================================ */
 
 @keyframes chat-bubble-in {
@@ -550,7 +550,7 @@
   .color-swatch:hover { transform: scale(1.1); }
 
   /* ============================================================
-     Premium tokens — Revolut-inspired, Trivelta blue
+     Premium tokens - Revolut-inspired, Trivelta blue
      ============================================================ */
 
   /* Premium card: gradient hairline border, soft inner glow, lift on hover */
@@ -597,7 +597,7 @@
   }
   .card-premium:hover::before { opacity: 1; }
 
-  /* Hero stat number — celebratory, tabular */
+  /* Hero stat number - celebratory, tabular */
   .stat-hero {
     font-family: var(--font-sans);
     font-weight: 700;
@@ -615,7 +615,7 @@
     color: transparent;
   }
 
-  /* Micro label — Revolut-style uppercase metadata */
+  /* Micro label - Revolut-style uppercase metadata */
   .micro-label {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -711,7 +711,7 @@
 }
 
 /* ============================================================
-   Premium polish — final pass
+   Premium polish - final pass
    ============================================================ */
 
 @layer base {
@@ -725,7 +725,7 @@
   }
   input::placeholder, textarea::placeholder { opacity: 0.45; }
 
-  /* Disabled buttons — no transform on hover */
+  /* Disabled buttons - no transform on hover */
   button:disabled, button[disabled], button[aria-disabled="true"] {
     cursor: not-allowed;
     opacity: 0.5;

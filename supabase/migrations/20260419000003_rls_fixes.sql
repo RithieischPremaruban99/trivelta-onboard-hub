@@ -2,7 +2,7 @@
 -- RLS / helper function fixes
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- ─── Fix 1: is_assigned_am() — check by email, not just am_user_id ───────────
+-- ─── Fix 1: is_assigned_am() - check by email, not just am_user_id ───────────
 -- All AM assignments are stored as am_email (AMs haven't signed in yet so
 -- am_user_id is NULL).  The old version only checked am_user_id = auth.uid()
 -- which always returned false → AMs could see zero clients.

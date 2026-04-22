@@ -41,7 +41,7 @@ function StudioLockedPage() {
         .maybeSingle();
 
       if (!data?.studio_locked) {
-        // Design isn't actually locked — redirect back to Studio
+        // Design isn't actually locked - redirect back to Studio
         navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
         return;
       }
@@ -134,7 +134,7 @@ function StudioLockedPage() {
             <DialogTitle className="text-xl font-bold">Where would you like to go?</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground mt-2">
               Your locked design lives in the Studio. The Onboarding Form collects your platform's
-              setup information — both are part of your account.
+              setup information - both are part of your account.
             </DialogDescription>
           </DialogHeader>
 
@@ -156,7 +156,7 @@ function StudioLockedPage() {
                   View Locked Design
                 </div>
                 <div className="text-[11px] text-muted-foreground leading-relaxed">
-                  See the final palette, logos, and platform preview — mobile and web. Read-only.
+                  See the final palette, logos, and platform preview - mobile and web. Read-only.
                 </div>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:text-primary group-hover:translate-x-0.5 flex-shrink-0 mt-2" />

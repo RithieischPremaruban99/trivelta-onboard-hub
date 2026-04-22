@@ -56,7 +56,7 @@ CREATE POLICY "Client members can read own submission"
   TO authenticated
   USING (is_client_member(client_id));
 
--- No direct inserts from clients — done via submit_onboarding_form RPC only
+-- No direct inserts from clients - done via submit_onboarding_form RPC only
 CREATE POLICY "No direct client inserts"
   ON public.onboarding_submissions FOR INSERT
   TO authenticated

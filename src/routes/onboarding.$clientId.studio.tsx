@@ -82,7 +82,7 @@ const safeLocalStorage = {
     try {
       localStorage.setItem(key, value);
     } catch {
-      // Silent fail — private browsing, quota exceeded, etc.
+      // Silent fail - private browsing, quota exceeded, etc.
     }
   },
   removeItem: (key: string): void => {
@@ -179,7 +179,7 @@ function walkLottieColors(
     const obj = node as Record<string, unknown>;
     for (const [k, v] of Object.entries(obj)) {
       if (k === "c" && v !== null && typeof v === "object" && !Array.isArray(v)) {
-        // Color property — descend directly into its `k` value
+        // Color property - descend directly into its `k` value
         const cp = v as Record<string, unknown>;
         if (cp.k !== undefined) walkLottieColors(cp.k, true, palette);
       } else {
@@ -366,7 +366,7 @@ function LockConfirmModal({
           <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-primary" />
             <span className="text-[12px] font-semibold text-primary">Submitting as Admin</span>
-            <span className="text-[11px] text-muted-foreground">— overriding primary contact requirement</span>
+            <span className="text-[11px] text-muted-foreground">- overriding primary contact requirement</span>
           </div>
         )}
 
@@ -382,7 +382,7 @@ function LockConfirmModal({
             specifications.
           </p>
           <p className="text-[12px]">
-            If you need changes after locking, contact your Account Manager directly — changes may
+            If you need changes after locking, contact your Account Manager directly - changes may
             cause deployment delays.
           </p>
         </div>
@@ -506,7 +506,7 @@ export function StudioInner({
         .then((r) => r.json())
         .then((data) => setLottieData((prev) => ({ ...prev, [key]: data })))
         .catch(() => {
-          /* silently ignore — placeholder just won't render */
+          /* silently ignore - placeholder just won't render */
         });
     });
   }, []);
@@ -550,7 +550,7 @@ export function StudioInner({
         }));
         toast.success("Animation recolored with your brand colors");
       } catch (e) {
-        toast.error("Failed to process animation — check the file is a valid Lottie JSON");
+        toast.error("Failed to process animation - check the file is a valid Lottie JSON");
         console.error(e);
         setUploadedAnimations((prev) => ({ ...prev, [slotKey]: null }));
       }
@@ -561,7 +561,7 @@ export function StudioInner({
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the preview container div for instant CSS var updates before React re-render
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  // Tour refs — each points to a spotlighted area
+  // Tour refs - each points to a spotlighted area
   const tourChatRef = useRef<HTMLDivElement>(null);
   const tourFineTuneRef = useRef<HTMLDivElement>(null);
   const tourPreviewRef = useRef<HTMLDivElement>(null);
@@ -573,7 +573,7 @@ export function StudioInner({
     lock: tourLockRef,
   } as Record<string, React.RefObject<HTMLDivElement>>;
 
-  // Tour state — show automatically on first visit, show help button after
+  // Tour state - show automatically on first visit, show help button after
   const [tourActive, setTourActive] = useState(
     () => !safeLocalStorage.getItem(`trivelta_studio_tour_${clientId}`),
   );
@@ -742,9 +742,9 @@ export function StudioInner({
       if (error) throw error;
       setLocked(false);
       setLockedAt(null);
-      toast.success("Design unlocked — client can now make changes.");
+      toast.success("Design unlocked - client can now make changes.");
     } catch {
-      toast.error("Failed to unlock design — please try again.");
+      toast.error("Failed to unlock design - please try again.");
     } finally {
       setUnlocking(false);
     }
@@ -779,7 +779,7 @@ export function StudioInner({
           </span>
         </div>
         <div className="flex w-[35%] shrink-0 items-center justify-end gap-3">
-          {/* Save indicator — only when not locked */}
+          {/* Save indicator - only when not locked */}
           {!locked && (
             <div className="flex items-center gap-1.5 text-[11px]">
               {saveStatus === "saving" && (
@@ -945,7 +945,7 @@ export function StudioInner({
           {/* ── Exclusive accordion (fills remaining height) ─────────── */}
           <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
 
-            {/* Panel 1 — AI Palette Generator */}
+            {/* Panel 1 - AI Palette Generator */}
             <AccordionSection
               sectionRef={tourChatRef}
               title="AI Palette Generator"
@@ -963,7 +963,7 @@ export function StudioInner({
               <AIChatPanel />
             </AccordionSection>
 
-            {/* Panel 2 — Quick Edit */}
+            {/* Panel 2 - Quick Edit */}
             <AccordionSection
               sectionRef={tourFineTuneRef}
               title="Quick Edit"
@@ -976,7 +976,7 @@ export function StudioInner({
               <QuickEditPanel />
             </AccordionSection>
 
-            {/* Panel 3 — Advanced Mode */}
+            {/* Panel 3 - Advanced Mode */}
             <AccordionSection
               title="Advanced Mode"
               icon={<Settings2 className="h-3.5 w-3.5" />}
@@ -987,7 +987,7 @@ export function StudioInner({
               <AdvancedModePanel />
             </AccordionSection>
 
-            {/* Panel 4 — Animations */}
+            {/* Panel 4 - Animations */}
             <AccordionSection
               title="Animations"
               icon={<Clapperboard className="h-3.5 w-3.5" />}
@@ -1181,7 +1181,7 @@ export function StudioInner({
             <AlertDialogTitle>Unlock design for this client?</AlertDialogTitle>
             <AlertDialogDescription>
               The client will be able to edit their design again. The existing Notion page will be
-              preserved — your tech team will see both the old locked design and any new changes
+              preserved - your tech team will see both the old locked design and any new changes
               after re-lock.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1562,7 +1562,7 @@ function StudioPage() {
     );
   }
 
-  // AM has locked Studio access — show block page instead of Studio
+  // AM has locked Studio access - show block page instead of Studio
   if (accessLocked) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">

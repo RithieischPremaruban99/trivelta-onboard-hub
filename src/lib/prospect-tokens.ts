@@ -1,5 +1,5 @@
 /**
- * Prospect token helpers — no external dependencies.
+ * Prospect token helpers - no external dependencies.
  * Uses Web Crypto API (available in all modern browsers and Deno).
  */
 

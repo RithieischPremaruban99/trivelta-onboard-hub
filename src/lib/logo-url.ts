@@ -1,6 +1,6 @@
 /**
  * Returns a logo URL for a given provider URL.
- * - Custom overrides (CUSTOM_LOGOS) take precedence — used for providers
+ * - Custom overrides (CUSTOM_LOGOS) take precedence - used for providers
  *   not indexed by Logo.dev (e.g. Surt).
  * - Falls back to Logo.dev with a public client-safe token.
  * - fallback=monogram renders a clean initial letter if the logo isn't indexed.
