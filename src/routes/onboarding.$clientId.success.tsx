@@ -1,8 +1,17 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  Mail,
+  Rocket,
+  Settings2,
+  UserCircle,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
   component: SuccessScreen,
@@ -42,63 +51,141 @@ function SuccessScreen() {
     );
   }
 
+  const cards = [
+    {
+      icon: UserCircle,
+      label: "Account review",
+      desc: "Your AM checks everything you've submitted",
+    },
+    {
+      icon: Settings2,
+      label: "Platform setup",
+      desc: "Technical team prepares your configuration",
+    },
+    {
+      icon: Rocket,
+      label: "Go live",
+      desc: "Launch coordination with your team",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-xl text-center">
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Background layers */}
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 120%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 60%)",
+        }}
+      />
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 55%)",
+        }}
+      />
 
-        <div className="flex justify-center mb-6">
-          <div className="h-16 w-16 rounded-full bg-success/10 grid place-items-center">
-            <CheckCircle2 className="h-8 w-8 text-success" strokeWidth={1.5} />
+      {/* Animated orbs */}
+      <div className="pointer-events-none fixed left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[100px] animate-pulse-slow" />
+      <div
+        className="pointer-events-none fixed bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-primary/5 blur-[80px] animate-pulse-slow"
+        style={{ animationDelay: "2s" }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
+        <div className="w-full max-w-3xl text-center">
+
+          {/* Branding stamp */}
+          <div className="mb-10 flex items-center justify-center animate-fade-in">
+            <TriveltaLogo size="sm" product="Onboarding Hub" />
           </div>
-        </div>
 
-        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mb-3">
-          ONBOARDING SUBMITTED
-        </div>
-
-        <h1 className="text-3xl font-bold mb-3">Thank you</h1>
-
-        <p className="text-sm text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
-          Your onboarding information has been sent to the Trivelta team. Your Account Manager
-          will reach out within 1 business day to discuss next steps.
-        </p>
-
-        <div className="rounded-xl border border-border/40 bg-card/30 p-6 mb-6 text-left">
-          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">
-            WHAT HAPPENS NEXT
+          {/* Success indicator */}
+          <div
+            className="mx-auto mb-8 grid h-20 w-20 place-items-center rounded-2xl bg-success/10 animate-fade-in"
+            style={{ animationDelay: "80ms" }}
+          >
+            <CheckCircle2 className="h-10 w-10 text-success" strokeWidth={1.5} />
           </div>
-          <ul className="space-y-2 text-sm">
-            <li className="flex gap-3">
-              <div className="h-5 w-5 rounded-full bg-primary/10 text-primary grid place-items-center flex-shrink-0 text-[10px] font-bold">
-                1
-              </div>
-              <span className="text-muted-foreground">Account Manager reviews your information</span>
-            </li>
-            <li className="flex gap-3">
-              <div className="h-5 w-5 rounded-full bg-primary/10 text-primary grid place-items-center flex-shrink-0 text-[10px] font-bold">
-                2
-              </div>
-              <span className="text-muted-foreground">
-                Technical team prepares your platform configuration
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <div className="h-5 w-5 rounded-full bg-primary/10 text-primary grid place-items-center flex-shrink-0 text-[10px] font-bold">
-                3
-              </div>
-              <span className="text-muted-foreground">
-                You'll receive design access once setup is confirmed
-              </span>
-            </li>
-          </ul>
-        </div>
 
-        <button
-          onClick={() => navigate({ to: "/dashboard" })}
-          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Return to dashboard
-        </button>
+          {/* Micro-label */}
+          <div
+            className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-success animate-fade-in"
+            style={{ animationDelay: "120ms" }}
+          >
+            ONBOARDING · SUBMITTED
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="mb-5 text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight text-foreground animate-fade-in-up"
+            style={{ animationDelay: "180ms" }}
+          >
+            Thank you.
+            <br />
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
+              You're all set.
+            </span>
+          </h1>
+
+          <p
+            className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-muted-foreground animate-fade-in-up"
+            style={{ animationDelay: "260ms" }}
+          >
+            Your onboarding information is with the Trivelta team. Your Account Manager will reach
+            out within one business day to walk through next steps.
+          </p>
+
+          {/* What happens next — 3 cards */}
+          <div className="mb-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {cards.map(({ icon: Icon, label, desc }, i) => (
+              <div
+                key={label}
+                className="group rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-md transition-all hover:-translate-y-1 hover:border-primary/30 hover:bg-card/50 animate-fade-in-up"
+                style={{ animationDelay: `${i * 100 + 320}ms` }}
+              >
+                <div className="mb-3 grid h-9 w-9 place-items-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <Icon className="h-4 w-4 text-primary" />
+                </div>
+                <div className="mb-1 text-sm font-semibold text-foreground">{label}</div>
+                <div className="text-xs leading-relaxed text-muted-foreground/80">{desc}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Reassurance callout */}
+          <div
+            className="mx-auto mb-10 flex max-w-xl items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-5 py-4 text-left animate-fade-in-up"
+            style={{ animationDelay: "640ms" }}
+          >
+            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-[13px] leading-relaxed text-foreground/90">
+              <span className="font-semibold">Watch your inbox.</span>{" "}
+              <span className="text-muted-foreground/90">
+                We'll be in touch within 24 hours. If anything urgent comes up, reach your Account
+                Manager directly.
+              </span>
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div
+            className="flex flex-col items-center animate-fade-in-up"
+            style={{ animationDelay: "720ms" }}
+          >
+            <button
+              onClick={() => navigate({ to: "/dashboard" })}
+              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
+            >
+              Return to Dashboard
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
+
+        </div>
       </div>
     </div>
   );
