@@ -11,7 +11,7 @@ import {
 import { calculateProspectProgress, PROSPECT_SECTIONS } from "@/lib/prospect-fields";
 import { logActivity } from "@/lib/activity-log";
 
-export const Route = createFileRoute("/admin/prospects/$id/edit")({
+export const Route = createFileRoute("/admin_/prospects/$id/edit")({
   component: AdminProspectEditPage,
 });
 
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/admin/prospects/$id/edit")({
 const db = supabase as unknown as { from: (t: string) => any };
 
 function AdminProspectEditPage() {
-  const { id } = useParams({ from: "/admin/prospects/$id/edit" });
+  const { id } = useParams({ from: "/admin_/prospects/$id/edit" });
   const { user, role, loading: authLoading } = useAuth();
 
   const [prospect, setProspect] = useState<ProspectData | null>(null);
