@@ -7,6 +7,19 @@ export interface FieldInfo {
 // Keys match ProspectField.key values and FieldGroup / SubCard fieldKey props.
 // Add an entry here to activate the (i) icon on any field — it silently no-ops
 // when the key is absent, so it is safe to wire every field incrementally.
+
+const PSP_LINKS = [
+  { label: "Paystack", url: "https://paystack.com" },
+  { label: "Opay", url: "https://opayweb.com" },
+  { label: "PalmPay", url: "https://www.palmpay.com" },
+  { label: "Aeropay", url: "https://aeropay.com" },
+  { label: "Finix", url: "https://finix.com" },
+  { label: "NMI", url: "https://www.nmi.com" },
+  { label: "Worldpay", url: "https://www.worldpay.com" },
+  { label: "Bitolo", url: "https://bitolo.com" },
+  { label: "Evervault", url: "https://evervault.com" },
+];
+
 export const FIELD_INFO: Record<string, FieldInfo> = {
   target_markets: {
     tooltip: "The countries where you plan to offer your platform to players.",
@@ -38,9 +51,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     tooltip: "The payment companies who will handle deposits and withdrawals from your players.",
     learnMore:
       "A PSP (Payment Service Provider) is the bridge between your platform and your players' banks or mobile money accounts. The PSP determines what currencies you accept, withdrawal speeds, transaction fees, and which local payment methods (M-Pesa, cards, USSD) are available. Trivelta has direct integrations with leading African PSPs including Paystack, Opay, PalmPay, and Aeropay, plus global providers like Worldpay and NMI. Your selected PSPs will be prioritized during platform setup.",
-    learnMoreLinks: [
-      { label: "Paystack documentation", url: "https://paystack.com" },
-    ],
+    learnMoreLinks: PSP_LINKS,
   },
 
   // Alias for prospect form (field.key = "psps_needed")
@@ -48,9 +59,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     tooltip: "The payment companies who will handle deposits and withdrawals from your players.",
     learnMore:
       "A PSP (Payment Service Provider) is the bridge between your platform and your players' banks or mobile money accounts. The PSP determines what currencies you accept, withdrawal speeds, transaction fees, and which local payment methods (M-Pesa, cards, USSD) are available. Trivelta has direct integrations with leading African PSPs including Paystack, Opay, PalmPay, and Aeropay, plus global providers like Worldpay and NMI. Your selected PSPs will be prioritized during platform setup.",
-    learnMoreLinks: [
-      { label: "Paystack documentation", url: "https://paystack.com" },
-    ],
+    learnMoreLinks: PSP_LINKS,
   },
 
   duns_number: {
@@ -87,6 +96,9 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     tooltip: "A premium identity verification platform specializing in fast, high-accuracy KYC for regulated industries.",
     learnMore:
       "Surt is a modern KYC provider built for regulated financial services and iGaming. It handles document verification, biometric face-matching, liveness detection, and continuous monitoring - all accessible through a single API. Surt performs especially well with documents from emerging markets (African IDs, LATAM nacional IDs, Asian passports) where legacy providers sometimes struggle with accuracy. The verification flow is optimized for mobile-first users - a player can complete full KYC in under 90 seconds on a smartphone. Trivelta works directly with Surt and can configure their platform specifically for your target markets and risk tolerance.",
+    learnMoreLinks: [
+      { label: "Contact Surt directly", url: "mailto:contact@surt.com" },
+    ],
   },
 
   plaid_banking: {
@@ -105,6 +117,10 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     tooltip: "The data feed that provides live scores, odds, and statistics for your sports betting product.",
     learnMore:
       "If you offer sports betting, you need a live data feed providing current match scores, in-play odds calculations, fixture schedules, and detailed stats (corners, cards, possession). Sportradar is one of the two dominant global sports data providers, covering 600+ sports and all major leagues with sub-second latency. Pricing is based on sports coverage and live match volume - costs scale with your betting product scope. Trivelta integrates Sportradar as a standard feed option. Genius Sports is also available if you have a preference or existing relationship.",
+    learnMoreLinks: [
+      { label: "Sportradar", url: "https://www.sportradar.com" },
+      { label: "Genius Sports", url: "https://geniussports.com" },
+    ],
   },
 
   vertex_tax: {
