@@ -46,6 +46,42 @@ export type Database = {
           },
         ]
       }
+      client_activity_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_role: string | null
+          actor_user_id: string | null
+          client_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          prospect_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_role?: string | null
+          actor_user_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          prospect_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_role?: string | null
+          actor_user_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          prospect_id?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           assigned_am_id: string | null
