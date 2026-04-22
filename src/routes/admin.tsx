@@ -384,13 +384,21 @@ function AdminPage() {
         })
       : prospects;
 
+  const [confirmDelete, setConfirmDelete] = useState<
+    | { kind: "client"; id: string; name: string }
+    | { kind: "prospect"; id: string; name: string }
+    | null
+  >(null);
+
+  const requestDeleteClient = (clientId: string, clientName: string) => {
+    setConfirmDelete({ kind: "client", id: clientId, name: clientName });
+  };
+
+  const requestDeleteProspect = (prospectId: string, companyName: string) => {
+    setConfirmDelete({ kind: "prospect", id: prospectId, name: companyName });
+  };
+
   const handleDelete = async (clientId: string, clientName: string) => {
-    if (
-      !window.confirm(
-        `Permanently delete "${clientName}"?\n\nThis removes the client and ALL related onboarding data, tasks, submissions, AM assignments and team members. This cannot be undone.`,
-      )
-    )
-      return;
     const { error } = await supabase.from("clients").delete().eq("id", clientId);
     if (error) {
       toast.error(error.message);
@@ -401,8 +409,6 @@ function AdminPage() {
   };
 
   const handleDeleteProspect = async (prospectId: string, companyName: string) => {
-    if (!window.confirm(`Permanently delete prospect "${companyName}"? This cannot be undone.`))
-      return;
     const { error } = await (supabase as unknown as { from: (t: string) => any })
       .from("prospects")
       .delete()
