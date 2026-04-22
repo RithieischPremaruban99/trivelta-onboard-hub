@@ -166,105 +166,111 @@ function AdminPage() {
 
   const refresh = async () => {
     setLoading(true);
-    const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes, prospectsRes, pamRes] =
-      await Promise.all([
-        supabase
-          .from("clients")
-          .select(
-            "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
-          )
-          .order("created_at", { ascending: false }),
-        supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
-        supabase.from("onboarding_tasks").select("client_id, completed"),
-        supabase.from("client_account_managers").select("client_id, am_email"),
-        supabase
-          .from("onboarding_forms")
-          .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
-        (supabase as unknown as { from: (t: string) => any })
-          .from("prospects")
-          .select(
-            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id, converted_to_client_id, converted_at",
-          )
-          .order("created_at", { ascending: false }),
-        (supabase as unknown as { from: (t: string) => any })
-          .from("prospect_account_managers")
-          .select("prospect_id, am_email"),
-      ]);
-    setClients((clientsRes.data ?? []) as unknown as ClientRow[]);
-    setProspects((prospectsRes.data ?? []) as unknown as ProspectRow[]);
+    try {
+      const [clientsRes, amAssignmentsRes, tasksRes, camRes, studioRes, prospectsRes, pamRes] =
+        await Promise.all([
+          supabase
+            .from("clients")
+            .select(
+              "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
+            )
+            .order("created_at", { ascending: false }),
+          supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
+          supabase.from("onboarding_tasks").select("client_id, completed"),
+          supabase.from("client_account_managers").select("client_id, am_email"),
+          supabase
+            .from("onboarding_forms")
+            .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
+          (supabase as unknown as { from: (t: string) => any })
+            .from("prospects")
+            .select(
+              "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at, notion_page_id, converted_to_client_id, converted_at",
+            )
+            .order("created_at", { ascending: false }),
+          (supabase as unknown as { from: (t: string) => any })
+            .from("prospect_account_managers")
+            .select("prospect_id, am_email"),
+        ]);
+      setClients((clientsRes.data ?? []) as unknown as ClientRow[]);
+      setProspects((prospectsRes.data ?? []) as unknown as ProspectRow[]);
 
-    const sdMap: Record<
-      string,
-      { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null }
-    > = {};
-    (
-      (studioRes.data ?? []) as Array<{
-        client_id: string;
-        studio_config: unknown;
-        studio_locked: boolean | null;
-        studio_locked_at: string | null;
-      }>
-    ).forEach((r) => {
-      sdMap[r.client_id] = {
-        config: (r.studio_config as StudioSavedConfig | null) ?? null,
-        locked: r.studio_locked ?? false,
-        lockedAt: r.studio_locked_at ?? null,
-      };
-    });
-    setStudioData(sdMap);
+      const sdMap: Record<
+        string,
+        { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null }
+      > = {};
+      (
+        (studioRes.data ?? []) as Array<{
+          client_id: string;
+          studio_config: unknown;
+          studio_locked: boolean | null;
+          studio_locked_at: string | null;
+        }>
+      ).forEach((r) => {
+        sdMap[r.client_id] = {
+          config: (r.studio_config as StudioSavedConfig | null) ?? null,
+          locked: r.studio_locked ?? false,
+          lockedAt: r.studio_locked_at ?? null,
+        };
+      });
+      setStudioData(sdMap);
 
-    const pdMap: Record<
-      string,
-      { formExists: boolean; formHasData: boolean; formSubmitted: boolean; studioStarted: boolean }
-    > = {};
-    (
-      (studioRes.data ?? []) as Array<{
-        client_id: string;
-        studio_config: unknown;
-        studio_locked: boolean | null;
-        submitted_at: string | null;
-        data: Record<string, unknown> | null;
-      }>
-    ).forEach((r) => {
-      const formData = r.data ?? {};
-      const formHasData = Object.keys(formData).length > 0;
-      const studioConfig = r.studio_config as StudioSavedConfig | null;
-      pdMap[r.client_id] = {
-        formExists: true,
-        formHasData,
-        formSubmitted: !!r.submitted_at,
-        studioStarted: !!(studioConfig?.palette || studioConfig?.colors),
-      };
-    });
-    setProgressData(pdMap);
+      const pdMap: Record<
+        string,
+        { formExists: boolean; formHasData: boolean; formSubmitted: boolean; studioStarted: boolean }
+      > = {};
+      (
+        (studioRes.data ?? []) as Array<{
+          client_id: string;
+          studio_config: unknown;
+          studio_locked: boolean | null;
+          submitted_at: string | null;
+          data: Record<string, unknown> | null;
+        }>
+      ).forEach((r) => {
+        const formData = r.data ?? {};
+        const formHasData = Object.keys(formData).length > 0;
+        const studioConfig = r.studio_config as StudioSavedConfig | null;
+        pdMap[r.client_id] = {
+          formExists: true,
+          formHasData,
+          formSubmitted: !!r.submitted_at,
+          studioStarted: !!(studioConfig?.palette || studioConfig?.colors),
+        };
+      });
+      setProgressData(pdMap);
 
-    const amList: AmLite[] = (
-      (amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>
-    )
-      .map((r) => ({ email: r.email, name: r.name }))
-      .sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email));
-    setAms(amList);
+      const amList: AmLite[] = (
+        (amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>
+      )
+        .map((r) => ({ email: r.email, name: r.name }))
+        .sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email));
+      setAms(amList);
 
-    const camMap: Record<string, string[]> = {};
-    ((camRes.data ?? []) as Array<{ client_id: string; am_email: string | null }>).forEach((r) => {
-      if (r.am_email) (camMap[r.client_id] ??= []).push(r.am_email);
-    });
-    setClientAms(camMap);
+      const camMap: Record<string, string[]> = {};
+      ((camRes.data ?? []) as Array<{ client_id: string; am_email: string | null }>).forEach((r) => {
+        if (r.am_email) (camMap[r.client_id] ??= []).push(r.am_email);
+      });
+      setClientAms(camMap);
 
-    const pamMap: Record<string, string[]> = {};
-    ((pamRes.data ?? []) as Array<{ prospect_id: string; am_email: string | null }>).forEach((r) => {
-      if (r.am_email) (pamMap[r.prospect_id] ??= []).push(r.am_email);
-    });
-    setProspectAms(pamMap);
+      const pamMap: Record<string, string[]> = {};
+      ((pamRes.data ?? []) as Array<{ prospect_id: string; am_email: string | null }>).forEach((r) => {
+        if (r.am_email) (pamMap[r.prospect_id] ??= []).push(r.am_email);
+      });
+      setProspectAms(pamMap);
 
-    const counts: Record<string, { total: number; done: number }> = {};
-    ((tasksRes.data ?? []) as Array<{ client_id: string; completed: boolean }>).forEach((t) => {
-      counts[t.client_id] ??= { total: 0, done: 0 };
-      counts[t.client_id].total++;
-      if (t.completed) counts[t.client_id].done++;
-    });
-    setTaskCounts(counts);
-    setLoading(false);
+      const counts: Record<string, { total: number; done: number }> = {};
+      ((tasksRes.data ?? []) as Array<{ client_id: string; completed: boolean }>).forEach((t) => {
+        counts[t.client_id] ??= { total: 0, done: 0 };
+        counts[t.client_id].total++;
+        if (t.completed) counts[t.client_id].done++;
+      });
+      setTaskCounts(counts);
+    } catch (err) {
+      console.error("[Admin] refresh failed:", err);
+      toast.error("Could not load dashboard. Please refresh the page.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -993,36 +999,33 @@ function ClientAmCell({
 
   const save = async () => {
     setSaving(true);
-    const current = assignedAms.map((a) => a.email);
-    const toAdd = selected.filter((e) => !current.includes(e));
-    const toRemove = current.filter((e) => !selected.includes(e));
+    try {
+      const current = assignedAms.map((a) => a.email);
+      const toAdd = selected.filter((e) => !current.includes(e));
+      const toRemove = current.filter((e) => !selected.includes(e));
 
-    if (toRemove.length > 0) {
-      const { error } = await supabase
-        .from("client_account_managers")
-        .delete()
-        .eq("client_id", clientId)
-        .in("am_email", toRemove);
-      if (error) {
-        setSaving(false);
-        toast.error(error.message);
-        return;
+      if (toRemove.length > 0) {
+        const { error } = await supabase
+          .from("client_account_managers")
+          .delete()
+          .eq("client_id", clientId)
+          .in("am_email", toRemove);
+        if (error) throw error;
       }
-    }
-    if (toAdd.length > 0) {
-      const { error } = await supabase
-        .from("client_account_managers")
-        .insert(toAdd.map((am_email) => ({ client_id: clientId, am_email })));
-      if (error) {
-        setSaving(false);
-        toast.error(error.message);
-        return;
+      if (toAdd.length > 0) {
+        const { error } = await supabase
+          .from("client_account_managers")
+          .insert(toAdd.map((am_email) => ({ client_id: clientId, am_email })));
+        if (error) throw error;
       }
+      setOpen(false);
+      toast.success("AMs updated");
+      onChanged();
+    } catch (err: unknown) {
+      toast.error((err as { message?: string })?.message ?? "Failed to update AMs");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setOpen(false);
-    toast.success("AMs updated");
-    onChanged();
   };
 
   return (
@@ -1670,34 +1673,40 @@ function ConvertProspectDialog({
 
   const handleConvert = async () => {
     setConverting(true);
-    const { data, error } = await supabase.functions.invoke("convert-prospect-to-client", {
-      body: {
-        prospect_id: prospect.id,
-        submitted_by: "admin",
-        submitter_email: currentUser?.email ?? "",
-        app_origin: typeof window !== "undefined" ? window.location.origin : "",
-      },
-    });
-    setConverting(false);
-    if (error || (data as { error?: string } | null)?.error) {
-      toast.error(
-        error?.message ?? (data as { error?: string })?.error ?? "Conversion failed",
-      );
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke("convert-prospect-to-client", {
+        body: {
+          prospect_id: prospect.id,
+          submitted_by: "admin",
+          submitter_email: currentUser?.email ?? "",
+          app_origin: typeof window !== "undefined" ? window.location.origin : "",
+        },
+      });
+      if (error || (data as { error?: string } | null)?.error) {
+        toast.error(
+          error?.message ?? (data as { error?: string })?.error ?? "Conversion failed",
+        );
+        return;
+      }
+      const res = data as {
+        client_id: string;
+        invite_link: string;
+        client_email: string;
+        client_name: string;
+      };
+      toast.success(`${prospect.legal_company_name} converted to client`);
+      onConverted({
+        clientId: res.client_id,
+        inviteLink: res.invite_link,
+        clientEmail: res.client_email,
+        clientName: res.client_name,
+      });
+    } catch (err) {
+      console.error("[Convert] exception:", err);
+      toast.error("Conversion failed. Please try again.");
+    } finally {
+      setConverting(false);
     }
-    const res = data as {
-      client_id: string;
-      invite_link: string;
-      client_email: string;
-      client_name: string;
-    };
-    toast.success(`${prospect.legal_company_name} converted to client`);
-    onConverted({
-      clientId: res.client_id,
-      inviteLink: res.invite_link,
-      clientEmail: res.client_email,
-      clientName: res.client_name,
-    });
   };
 
   return (
@@ -2026,9 +2035,13 @@ function NewProspectDialog({
     }
 
     if (selectedAMs.length > 0) {
-      await db
+      const { error: amError } = await db
         .from("prospect_account_managers")
         .insert(selectedAMs.map((am_email) => ({ prospect_id: newProspect.id, am_email })));
+      if (amError) {
+        console.error("[Prospect] AM assignment failed:", amError);
+        toast.warning("Prospect created, but AM assignment failed. You can assign AMs later.");
+      }
     }
 
     setSubmitting(false);

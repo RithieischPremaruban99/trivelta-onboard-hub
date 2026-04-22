@@ -129,23 +129,28 @@ function AdminProspectEditPage() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       setSaving(true);
-      const { error } = await db
-        .from("prospects")
-        .update({
-          [storageKey]: updated[storageKey as keyof ProspectData],
-          form_progress: updated.form_progress,
-        })
-        .eq("id", prospect.id);
-      setSaving(false);
-      if (!error) {
-        setSavedAt(new Date());
-        logActivity({
-          actorEmail: user?.email ?? "",
-          actorRole: role ?? "account_manager",
-          prospectId: prospect.id,
-          action: "prospect_form_edited",
-          details: { section_edited: storageKey, actor_type: "admin_or_am" },
-        });
+      try {
+        const { error } = await db
+          .from("prospects")
+          .update({
+            [storageKey]: updated[storageKey as keyof ProspectData],
+            form_progress: updated.form_progress,
+          })
+          .eq("id", prospect.id);
+        if (!error) {
+          setSavedAt(new Date());
+          logActivity({
+            actorEmail: user?.email ?? "",
+            actorRole: role ?? "account_manager",
+            prospectId: prospect.id,
+            action: "prospect_form_edited",
+            details: { section_edited: storageKey, actor_type: "admin_or_am" },
+          });
+        }
+      } catch (err) {
+        console.error("[ProspectEdit] autosave failed:", err);
+      } finally {
+        setSaving(false);
       }
     }, 1500);
   };

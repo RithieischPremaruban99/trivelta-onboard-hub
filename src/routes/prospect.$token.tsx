@@ -113,16 +113,21 @@ function ProspectPage() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       setSaving(true);
-      const { error } = await db
-        .from("prospects")
-        .update({
-          [storageKey]: updated[storageKey as keyof ProspectData],
-          form_progress: updated.form_progress,
-        })
-        .eq("id", prospect.id)
-        .eq("access_token", token);
-      setSaving(false);
-      if (!error) setSavedAt(new Date());
+      try {
+        const { error } = await db
+          .from("prospects")
+          .update({
+            [storageKey]: updated[storageKey as keyof ProspectData],
+            form_progress: updated.form_progress,
+          })
+          .eq("id", prospect.id)
+          .eq("access_token", token);
+        if (!error) setSavedAt(new Date());
+      } catch (err) {
+        console.error("[Prospect] autosave failed:", err);
+      } finally {
+        setSaving(false);
+      }
     }, 1500);
   };
 
