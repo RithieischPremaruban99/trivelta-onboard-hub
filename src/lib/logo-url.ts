@@ -1,17 +1,26 @@
 /**
- * Returns a Logo.dev URL for a given provider URL.
- * Requires VITE_LOGO_DEV_TOKEN to be set — returns null (monogram fallback) if missing.
- * fallback=monogram renders a clean initial letter if the logo isn't indexed.
+ * Returns a logo URL for a given provider URL.
+ * - Custom overrides (CUSTOM_LOGOS) take precedence — used for providers
+ *   not indexed by Logo.dev (e.g. Surt).
+ * - Falls back to Logo.dev with a public client-safe token.
+ * - fallback=monogram renders a clean initial letter if the logo isn't indexed.
  */
+
+const LOGO_DEV_TOKEN = "pk_Z8EtuP3gQRqYlGYnfgPTZg";
+
+const CUSTOM_LOGOS: Record<string, string> = {
+  "surt.com": "/logos/surt.png",
+};
+
 export function getLogoUrl(url: string): string | null {
   try {
-    const token = import.meta.env.VITE_LOGO_DEV_TOKEN;
-    if (!token) {
-      console.warn("[logo-url] VITE_LOGO_DEV_TOKEN not set — logos will not load");
-      return null;
-    }
     const hostname = new URL(url).hostname.replace(/^www\./, "");
-    return `https://img.logo.dev/${hostname}?token=${token}&size=64&format=png&fallback=monogram`;
+
+    if (CUSTOM_LOGOS[hostname]) {
+      return CUSTOM_LOGOS[hostname];
+    }
+
+    return `https://img.logo.dev/${hostname}?token=${LOGO_DEV_TOKEN}&size=64&format=png&fallback=monogram`;
   } catch {
     return null;
   }
