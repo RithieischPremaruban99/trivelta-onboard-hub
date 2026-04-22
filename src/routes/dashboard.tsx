@@ -246,7 +246,7 @@ function DashboardPage() {
   }
 
   return (
-    <AppShell badge="Account Manager">
+    <AppShell stage="ADMIN">
       <div className="mx-auto w-full max-w-[1400px] px-6 py-6">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           {/* Sidebar: client list */}

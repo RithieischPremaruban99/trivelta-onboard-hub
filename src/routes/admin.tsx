@@ -416,7 +416,7 @@ function AdminPage() {
   };
 
   return (
-    <AppShell badge="Admin">
+    <AppShell stage="ADMIN">
       <div className="mx-auto w-full max-w-[1400px] px-6 pb-10 pt-6">
         {/* Page header */}
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">

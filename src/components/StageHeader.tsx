@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 
-export type Stage = "PRE-ONBOARDING" | "ONBOARDING" | "STUDIO";
+export type Stage = "PRE-ONBOARDING" | "ONBOARDING" | "STUDIO" | "ADMIN";
 
 export function StageHeader({
   stage,
