@@ -104,6 +104,7 @@ interface ProspectRow {
   form_progress: number;
   access_token: string;
   created_at: string;
+  submitted_at: string | null;
 }
 
 function AdminPage() {
@@ -162,7 +163,7 @@ function AdminPage() {
         (supabase as unknown as { from: (t: string) => any })
           .from("prospects")
           .select(
-            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at",
+            "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, contract_status, form_progress, access_token, created_at, submitted_at",
           )
           .order("created_at", { ascending: false }),
       ]);
@@ -610,16 +611,23 @@ function AdminPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-center gap-2.5">
-                            <div className="relative h-1.5 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-                              <div
-                                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-400/60 transition-all duration-500"
-                                style={{ width: `${p.form_progress}%` }}
-                              />
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="relative h-1.5 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-400/60 transition-all duration-500"
+                                  style={{ width: `${p.form_progress}%` }}
+                                />
+                              </div>
+                              <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
+                                {p.form_progress}%
+                              </span>
                             </div>
-                            <span className="font-mono text-[11px] font-semibold tabular-nums text-foreground/80">
-                              {p.form_progress}%
-                            </span>
+                            {p.submitted_at && (
+                              <span className="inline-flex w-fit items-center rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-success">
+                                Submitted
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap font-mono text-[11px] text-muted-foreground">

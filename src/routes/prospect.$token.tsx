@@ -1,31 +1,70 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, SendHorizonal } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TriveltaIcon } from "@/components/TriveltaIcon";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (t: string) => any };
+import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
+import {
+  PROSPECT_SECTIONS,
+  calculateProspectProgress,
+} from "@/lib/prospect-fields";
 
 export const Route = createFileRoute("/prospect/$token")({
   component: ProspectPage,
 });
 
-interface ProspectRow {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as unknown as { from: (t: string) => any };
+
+/* ── Types ─────────────────────────────────────────────────────────────────── */
+
+interface ProspectData {
   id: string;
   legal_company_name: string;
   primary_contact_name: string | null;
   form_progress: number;
   token_expires_at: string;
+  submitted_at: string | null;
+  company_details: Record<string, unknown>;
+  payment_providers: Record<string, unknown>;
+  kyc_compliance: Record<string, unknown>;
+  marketing_stack: Record<string, unknown>;
+  technical_requirements: Record<string, unknown>;
+  optional_features: Record<string, unknown>;
 }
 
 type PageState = "loading" | "valid" | "expired" | "invalid";
 
+/* ── Time-ago helper ────────────────────────────────────────────────────────── */
+
+function timeAgo(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (seconds < 10) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────────── */
+
 function ProspectPage() {
   const { token } = useParams({ from: "/prospect/$token" });
   const [state, setState] = useState<PageState>("loading");
-  const [prospect, setProspect] = useState<ProspectRow | null>(null);
+  const [prospect, setProspect] = useState<ProspectData | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(
+    PROSPECT_SECTIONS[0].id,
+  );
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /* ── Load ── */
   useEffect(() => {
     if (!token) {
       setState("invalid");
@@ -35,7 +74,9 @@ function ProspectPage() {
     (async () => {
       const { data, error } = await db
         .from("prospects")
-        .select("id, legal_company_name, primary_contact_name, form_progress, token_expires_at")
+        .select(
+          "id, legal_company_name, primary_contact_name, form_progress, token_expires_at, submitted_at, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
+        )
         .eq("access_token", token)
         .maybeSingle();
 
@@ -44,7 +85,7 @@ function ProspectPage() {
         return;
       }
 
-      if (new Date((data as ProspectRow & { token_expires_at: string }).token_expires_at) < new Date()) {
+      if (new Date(data.token_expires_at as string) < new Date()) {
         setState("expired");
         return;
       }
@@ -52,14 +93,73 @@ function ProspectPage() {
       // Record access time (fire-and-forget)
       db.from("prospects")
         .update({ last_accessed_at: new Date().toISOString() })
-        .eq("id", (data as ProspectRow).id)
+        .eq("id", data.id)
         .then(() => {});
 
-      setProspect(data as ProspectRow);
+      setProspect({
+        ...data,
+        company_details: (data.company_details as Record<string, unknown>) ?? {},
+        payment_providers: (data.payment_providers as Record<string, unknown>) ?? {},
+        kyc_compliance: (data.kyc_compliance as Record<string, unknown>) ?? {},
+        marketing_stack: (data.marketing_stack as Record<string, unknown>) ?? {},
+        technical_requirements:
+          (data.technical_requirements as Record<string, unknown>) ?? {},
+        optional_features: (data.optional_features as Record<string, unknown>) ?? {},
+      } as ProspectData);
       setState("valid");
     })();
   }, [token]);
 
+  /* ── Field change + debounced save ── */
+  const handleFieldChange = (storageKey: string, fieldKey: string, value: unknown) => {
+    if (!prospect) return;
+
+    const updated: ProspectData = {
+      ...prospect,
+      [storageKey]: {
+        ...(prospect[storageKey as keyof ProspectData] as Record<string, unknown>),
+        [fieldKey]: value,
+      },
+    };
+    updated.form_progress = calculateProspectProgress(updated);
+    setProspect(updated);
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      setSaving(true);
+      const { error } = await db
+        .from("prospects")
+        .update({
+          [storageKey]: updated[storageKey as keyof ProspectData],
+          form_progress: updated.form_progress,
+        })
+        .eq("id", prospect.id)
+        .eq("access_token", token);
+      setSaving(false);
+      if (!error) setSavedAt(new Date());
+    }, 1500);
+  };
+
+  /* ── Submit stub (P3 will add Notion + Slack) ── */
+  const handleSubmit = async () => {
+    if (!prospect) return;
+    setSubmitting(true);
+    const now = new Date().toISOString();
+    const { error } = await db
+      .from("prospects")
+      .update({ submitted_at: now })
+      .eq("id", prospect.id)
+      .eq("access_token", token);
+    setSubmitting(false);
+    if (error) {
+      toast.error("Could not submit. Please try again.");
+      return;
+    }
+    toast.success("Sent to Trivelta team — we'll be in touch soon.");
+    setProspect({ ...prospect, submitted_at: now });
+  };
+
+  /* ── Error screens ── */
   if (state === "loading") {
     return (
       <div className="min-h-screen grid place-items-center">
@@ -75,8 +175,8 @@ function ProspectPage() {
           <TriveltaIcon className="h-10 w-10 mx-auto mb-4 opacity-40" />
           <h1 className="text-xl font-bold tracking-tight mb-2">Link expired</h1>
           <p className="text-sm text-muted-foreground">
-            This pre-onboarding link has expired. Please contact your Trivelta Account Manager to
-            receive a new link.
+            This pre-onboarding link has expired. Please contact your Trivelta Account
+            Manager to receive a new link.
           </p>
         </div>
       </div>
@@ -90,8 +190,8 @@ function ProspectPage() {
           <TriveltaIcon className="h-10 w-10 mx-auto mb-4 opacity-40" />
           <h1 className="text-xl font-bold tracking-tight mb-2">Link not found</h1>
           <p className="text-sm text-muted-foreground">
-            This link is invalid or has already been used. Please contact your Trivelta Account
-            Manager.
+            This link is invalid or has already been used. Please contact your Trivelta
+            Account Manager.
           </p>
         </div>
       </div>
@@ -100,56 +200,117 @@ function ProspectPage() {
 
   if (!prospect) return null;
 
+  const progress = prospect.form_progress;
+  const submitted = !!prospect.submitted_at;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Sticky header */}
-      <header className="border-b border-border/40 backdrop-blur-md sticky top-0 z-10 bg-background/80">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <TriveltaIcon className="h-7 w-7" />
             <div>
               <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
                 Trivelta · Pre-Onboarding
               </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">
+              <div className="mt-0.5 text-[10px] text-muted-foreground">
                 {prospect.legal_company_name}
               </div>
             </div>
           </div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
-            Progress: {prospect.form_progress}%
+          <div className="flex items-center gap-3">
+            {submitted && (
+              <span className="rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-[10px] font-semibold text-success">
+                Submitted
+              </span>
+            )}
+            <div className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+              {progress}%
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-3">
-            WELCOME TO TRIVELTA
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-3">
-            {prospect.primary_contact_name
-              ? `Hi ${prospect.primary_contact_name.split(" ")[0]}, let's get you set up`
-              : "Let's get you set up"}
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-xl">
-            Share what you know about your platform needs. You don't have to fill everything —
-            answer what's clear now, skip what isn't. Your Account Manager will walk through the
-            rest during onboarding.
-          </p>
+      {/* Hero */}
+      <section className="mx-auto max-w-4xl px-6 pb-4 pt-8">
+        <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+          PRE-ONBOARDING · {prospect.legal_company_name.toUpperCase()}
         </div>
+        <h1 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">
+          {prospect.primary_contact_name
+            ? `Hi ${prospect.primary_contact_name.split(" ")[0]}, let's build your foundation`
+            : "Let's build your foundation"}
+        </h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Share what you know — skip what you don't. Your answers help our team prepare for
+          your launch. Everything saves automatically.
+        </p>
+      </section>
 
-        {/* Phase P2 placeholder */}
-        <div className="rounded-xl border border-border/40 bg-card/30 p-8 text-center">
-          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50 mb-2">
-            Coming in Phase P2
+      {/* Progress + save indicator */}
+      <div className="mx-auto max-w-4xl px-6 pb-5">
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-3">
+            <div className="h-1.5 w-40 overflow-hidden rounded-full bg-muted/30">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="font-semibold tabular-nums">{progress}% complete</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Pre-onboarding form sections will appear here.
-          </p>
+          <div className="text-muted-foreground">
+            {saving ? "Saving…" : savedAt ? `Saved ${timeAgo(savedAt)}` : ""}
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Accordion sections */}
+      <div className="mx-auto max-w-4xl px-6 pb-28">
+        {PROSPECT_SECTIONS.map((section) => (
+          <ProspectAccordionSection
+            key={section.id}
+            section={section}
+            values={
+              (prospect[section.storageKey as keyof ProspectData] as Record<
+                string,
+                unknown
+              >) ?? {}
+            }
+            onChange={(fieldKey, value) =>
+              handleFieldChange(section.storageKey, fieldKey, value)
+            }
+            isOpen={openSection === section.id}
+            onToggle={() =>
+              setOpenSection(openSection === section.id ? null : section.id)
+            }
+          />
+        ))}
+      </div>
+
+      {/* Fixed bottom bar */}
+      <div className="fixed inset-x-0 bottom-0 border-t border-border/40 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          <div className="text-xs text-muted-foreground">
+            {submitted
+              ? `Submitted ${timeAgo(prospect.submitted_at!)}`
+              : "Submit anytime — you can keep editing after."}
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-50"
+          >
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <SendHorizonal className="h-4 w-4" />
+            )}
+            {submitted ? "Resubmit to Team" : "Send to Trivelta Team"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
