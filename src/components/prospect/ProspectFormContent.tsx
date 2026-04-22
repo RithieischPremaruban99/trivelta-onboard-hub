@@ -1,7 +1,8 @@
-import { CheckCircle2, Loader2, SendHorizonal } from "lucide-react";
+import { CheckCircle2, Download, Loader2, SendHorizonal } from "lucide-react";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
 import { PROSPECT_SECTIONS } from "@/lib/prospect-fields";
+import { buildProspectPDF } from "@/lib/pdf-builder";
 
 /* ── Shared Types ──────────────────────────────────────────────────────────── */
 
@@ -153,6 +154,27 @@ export function ProspectFormContent({
                 updates.
               </div>
             </div>
+            {mode === "token" && (
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    const doc = buildProspectPDF({
+                      ...prospect,
+                      submitted_at: prospect.submitted_at!,
+                    });
+                    const safeName = prospect.legal_company_name.replace(/\s+/g, "-").toLowerCase();
+                    doc.save(`${safeName}-pre-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
+                  } catch (err) {
+                    console.error("[PDF] prospect generation failed:", err);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-background/60 px-3 py-1.5 text-[11px] font-medium text-foreground/70 hover:bg-card hover:border-primary/30 hover:text-foreground transition-all whitespace-nowrap"
+              >
+                <Download className="h-3 w-3" />
+                Download PDF
+              </button>
+            )}
           </div>
         </div>
       )}

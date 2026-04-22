@@ -2,16 +2,20 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { buildClientPDF } from "@/lib/pdf-builder";
+import type { FormShape } from "@/lib/onboarding-schema";
 import {
+  ArrowRight,
   CheckCircle2,
-  Sparkles,
+  Download,
+  Eye,
+  Image,
+  Loader2,
   MessageSquare,
   Palette,
-  Image,
-  Eye,
-  ArrowRight,
-  Loader2,
+  Sparkles,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/onboarding/$clientId/studio-unlocked")({
   component: StudioUnlockedPage,
@@ -22,6 +26,12 @@ function StudioUnlockedPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
+  const [pdfData, setPdfData] = useState<{
+    clientName: string;
+    contactEmail: string;
+    submittedAt: string;
+    form: FormShape;
+  } | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -33,12 +43,12 @@ function StudioUnlockedPage() {
       const [formRes, clientRes] = await Promise.all([
         supabase
           .from("onboarding_forms")
-          .select("submitted_at")
+          .select("data, submitted_at")
           .eq("client_id", clientId)
           .maybeSingle(),
         supabase
           .from("clients")
-          .select("studio_access")
+          .select("studio_access, name, primary_contact_email")
           .eq("id", clientId)
           .maybeSingle(),
       ]);
@@ -50,6 +60,12 @@ function StudioUnlockedPage() {
         navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
         return;
       }
+      setPdfData({
+        clientName: clientRes.data.name ?? "Client",
+        contactEmail: clientRes.data.primary_contact_email ?? "",
+        submittedAt: formRes.data.submitted_at,
+        form: formRes.data.data as FormShape,
+      });
       setVerified(true);
     })();
   }, [user, authLoading, clientId]);
@@ -150,6 +166,32 @@ function StudioUnlockedPage() {
             >
               I'll do this later
             </button>
+
+            {pdfData && (
+              <button
+                onClick={() => {
+                  try {
+                    const doc = buildClientPDF(
+                      {
+                        name: pdfData.clientName,
+                        primary_contact_email: pdfData.contactEmail,
+                        submitted_at: pdfData.submittedAt,
+                      },
+                      pdfData.form,
+                    );
+                    const safeName = pdfData.clientName.replace(/\s+/g, "-").toLowerCase();
+                    doc.save(`${safeName}-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
+                  } catch (err) {
+                    console.error("[PDF] client generation failed:", err);
+                    toast.error("Could not generate PDF. Please try again.");
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-card/30 backdrop-blur-md px-4 py-2 text-xs font-medium text-foreground/80 hover:bg-card/50 hover:border-primary/30 transition-all"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download Submission Summary (PDF)
+              </button>
+            )}
           </div>
 
           {/* Footer hint */}

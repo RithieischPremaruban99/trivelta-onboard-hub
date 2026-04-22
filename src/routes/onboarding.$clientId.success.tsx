@@ -3,15 +3,19 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
+  Download,
   Loader2,
   Mail,
   Rocket,
   Settings2,
   UserCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { buildClientPDF } from "@/lib/pdf-builder";
+import type { FormShape } from "@/lib/onboarding-schema";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
   component: SuccessScreen,
@@ -22,6 +26,12 @@ function SuccessScreen() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
+  const [pdfData, setPdfData] = useState<{
+    clientName: string;
+    contactEmail: string;
+    submittedAt: string;
+    form: FormShape;
+  } | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -30,15 +40,28 @@ function SuccessScreen() {
       return;
     }
     (async () => {
-      const { data: formData } = await supabase
-        .from("onboarding_forms")
-        .select("submitted_at")
-        .eq("client_id", clientId)
-        .maybeSingle();
-      if (!formData?.submitted_at) {
+      const [formRes, clientRes] = await Promise.all([
+        supabase
+          .from("onboarding_forms")
+          .select("data, submitted_at")
+          .eq("client_id", clientId)
+          .maybeSingle(),
+        supabase
+          .from("clients")
+          .select("name, primary_contact_email")
+          .eq("id", clientId)
+          .maybeSingle(),
+      ]);
+      if (!formRes.data?.submitted_at) {
         navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
         return;
       }
+      setPdfData({
+        clientName: clientRes.data?.name ?? "Client",
+        contactEmail: clientRes.data?.primary_contact_email ?? "",
+        submittedAt: formRes.data.submitted_at,
+        form: formRes.data.data as FormShape,
+      });
       setVerified(true);
     })();
   }, [user, authLoading, clientId]);
@@ -173,7 +196,7 @@ function SuccessScreen() {
 
           {/* CTA */}
           <div
-            className="flex flex-col items-center animate-fade-in-up"
+            className="flex flex-col items-center gap-3 animate-fade-in-up"
             style={{ animationDelay: "720ms" }}
           >
             <button
@@ -183,6 +206,31 @@ function SuccessScreen() {
               Return to Dashboard
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </button>
+            {pdfData && (
+              <button
+                onClick={() => {
+                  try {
+                    const doc = buildClientPDF(
+                      {
+                        name: pdfData.clientName,
+                        primary_contact_email: pdfData.contactEmail,
+                        submitted_at: pdfData.submittedAt,
+                      },
+                      pdfData.form,
+                    );
+                    const safeName = pdfData.clientName.replace(/\s+/g, "-").toLowerCase();
+                    doc.save(`${safeName}-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
+                  } catch (err) {
+                    console.error("[PDF] client generation failed:", err);
+                    toast.error("Could not generate PDF. Please try again.");
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-card/30 backdrop-blur-md px-4 py-2 text-xs font-medium text-foreground/80 hover:bg-card/50 hover:border-primary/30 transition-all"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download Submission Summary (PDF)
+              </button>
+            )}
           </div>
 
         </div>
