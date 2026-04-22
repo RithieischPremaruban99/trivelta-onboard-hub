@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { buildClientPDF } from "@/lib/pdf-builder";
+import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
 import {
   ArrowRight,
@@ -171,9 +171,9 @@ function StudioUnlockedPage() {
 
             {pdfData && (
               <button
-                onClick={() => {
+                onClick={async () => {
                   try {
-                    const doc = buildClientPDF(
+                    await downloadClientPDF(
                       {
                         name: pdfData.clientName,
                         primary_contact_email: pdfData.contactEmail,
@@ -181,8 +181,6 @@ function StudioUnlockedPage() {
                       },
                       pdfData.form,
                     );
-                    const safeName = pdfData.clientName.replace(/\s+/g, "-").toLowerCase();
-                    doc.save(`${safeName}-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
                   } catch (err) {
                     console.error("[PDF] client generation failed:", err);
                     toast.error("Could not generate PDF. Please try again.");

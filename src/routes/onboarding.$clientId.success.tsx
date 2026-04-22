@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { StageHeader } from "@/components/StageHeader";
-import { buildClientPDF } from "@/lib/pdf-builder";
+import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
@@ -204,9 +204,9 @@ function SuccessScreen() {
             </button>
             {pdfData && (
               <button
-                onClick={() => {
+                onClick={async () => {
                   try {
-                    const doc = buildClientPDF(
+                    await downloadClientPDF(
                       {
                         name: pdfData.clientName,
                         primary_contact_email: pdfData.contactEmail,
@@ -214,8 +214,6 @@ function SuccessScreen() {
                       },
                       pdfData.form,
                     );
-                    const safeName = pdfData.clientName.replace(/\s+/g, "-").toLowerCase();
-                    doc.save(`${safeName}-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
                   } catch (err) {
                     console.error("[PDF] client generation failed:", err);
                     toast.error("Could not generate PDF. Please try again.");

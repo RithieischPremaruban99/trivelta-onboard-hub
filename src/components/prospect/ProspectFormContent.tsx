@@ -14,7 +14,7 @@ import {
 import { StageHeader } from "@/components/StageHeader";
 import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
 import { PROSPECT_SECTIONS } from "@/lib/prospect-fields";
-import { buildProspectPDF } from "@/lib/pdf-builder";
+import { downloadProspectPDF } from "@/lib/pdf-builder";
 import {
   Dialog,
   DialogContent,
@@ -278,14 +278,12 @@ export function ProspectFormContent({
     }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
-      const doc = buildProspectPDF({
+      await downloadProspectPDF({
         ...prospect,
         submitted_at: prospect.submitted_at!,
       });
-      const safeName = prospect.legal_company_name.replace(/\s+/g, "-").toLowerCase();
-      doc.save(`${safeName}-pre-onboarding-${new Date().toISOString().split("T")[0]}.pdf`);
     } catch (err) {
       console.error("[PDF] prospect generation failed:", err);
     }
