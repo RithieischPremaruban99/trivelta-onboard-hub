@@ -698,7 +698,7 @@ function AdminPage() {
                                 variant="ghost"
                                 className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                 title="Delete client (permanent)"
-                                onClick={() => handleDelete(c.id, c.name)}
+                                onClick={() => requestDeleteClient(c.id, c.name)}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -914,7 +914,7 @@ function AdminPage() {
                                   className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                   title="Delete prospect (permanent)"
                                   onClick={() =>
-                                    handleDeleteProspect(p.id, p.legal_company_name)
+                                    requestDeleteProspect(p.id, p.legal_company_name)
                                   }
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
