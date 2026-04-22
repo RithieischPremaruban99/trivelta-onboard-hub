@@ -19,11 +19,10 @@ export function StageHeader({
         className,
       )}
     >
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-        {/* Logo lockup - matches login-page treatment exactly:
-            h-7 logo PNG + metallic-gradient stage label via border-left separator */}
+      <div className="flex h-[60px] w-full items-center px-5 sm:px-8">
+        {/* Logo lockup left-aligned to viewport edge — matches TriveltaNav (Suite) */}
         <TriveltaLogo size="md" withSubtitle product={stage} />
-        {rightContent && <div className="flex items-center gap-4">{rightContent}</div>}
+        {rightContent && <div className="ml-auto flex items-center gap-4">{rightContent}</div>}
       </div>
     </header>
   );
