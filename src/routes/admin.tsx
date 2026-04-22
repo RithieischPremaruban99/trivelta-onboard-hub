@@ -38,6 +38,7 @@ import {
   Trash2,
   Check,
   Circle,
+  UserPlus,
 } from "lucide-react";
 import {
   Tooltip,
@@ -117,6 +118,8 @@ function AdminPage() {
   // clientId -> list of AM emails
   const [clientAms, setClientAms] = useState<Record<string, string[]>>({});
   const [createProspectOpen, setCreateProspectOpen] = useState(false);
+  const [inviteAmOpen, setInviteAmOpen] = useState(false);
+  const [showMineOnly, setShowMineOnly] = useState(false);
   const [studioData, setStudioData] = useState<
     Record<
       string,
@@ -252,10 +255,10 @@ function AdminPage() {
     );
   }
   if (!user) return <Navigate to="/login" />;
-  if (role === "account_manager") return <Navigate to="/dashboard" />;
-  if (role !== "admin" && role !== "account_executive") {
+  if (role !== "admin" && role !== "account_executive" && role !== "account_manager") {
     return <Navigate to="/" />;
   }
+  const isAdminRole = role === "admin" || role === "account_executive";
 
   const clientsWithProgress = clients.map((c) => {
     const pd = progressData[c.id];
@@ -286,6 +289,20 @@ function AdminPage() {
   };
 
   const canDelete = SUPER_ADMIN_EMAILS.includes(user?.email ?? "");
+
+  // AMs see only their assigned rows (DB RLS already filters the raw queries;
+  // this client-side filter powers the "Mine" tab for admin users).
+  const filteredClients =
+    showMineOnly || role === "account_manager"
+      ? clientsWithProgress.filter((c) =>
+          (clientAms[c.id] ?? []).includes(user?.email ?? ""),
+        )
+      : clientsWithProgress;
+
+  const filteredProspects =
+    showMineOnly || role === "account_manager"
+      ? prospects.filter((p) => p.assigned_account_manager === user?.email)
+      : prospects;
 
   const handleDelete = async (clientId: string, clientName: string) => {
     if (
@@ -333,6 +350,15 @@ function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {isAdminRole && (
+              <Button
+                variant="outline"
+                className="h-11 px-5 text-[13px]"
+                onClick={() => setInviteAmOpen(true)}
+              >
+                <UserPlus className="h-4 w-4" /> Invite AM
+              </Button>
+            )}
             <Button
               variant="outline"
               className="h-11 px-5 text-[13px] border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
@@ -340,6 +366,7 @@ function AdminPage() {
             >
               <Plus className="h-4 w-4" /> New prospect
             </Button>
+            {isAdminRole && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button className="btn-premium h-11 px-6 text-[14px]">
@@ -354,6 +381,7 @@ function AdminPage() {
                 }}
               />
             </Dialog>
+            )}
           </div>
         </div>
 
@@ -369,12 +397,30 @@ function AdminPage() {
         {/* Section heading */}
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <div className="micro-label">All clients &amp; prospects</div>
+            <div className="micro-label">
+              {isAdminRole ? "All clients & prospects" : "Your assigned clients & prospects"}
+            </div>
             <h2 className="mt-1 text-xl font-semibold text-foreground">
-              {clients.length + prospects.length}{" "}
+              {filteredClients.length + filteredProspects.length}{" "}
               <span className="font-normal text-muted-foreground">in the pipeline</span>
             </h2>
           </div>
+          {isAdminRole && (
+            <div className="flex overflow-hidden rounded-lg border border-border text-xs">
+              <button
+                className={`px-3 py-1.5 transition-colors ${!showMineOnly ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"}`}
+                onClick={() => setShowMineOnly(false)}
+              >
+                All
+              </button>
+              <button
+                className={`px-3 py-1.5 transition-colors ${showMineOnly ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"}`}
+                onClick={() => setShowMineOnly(true)}
+              >
+                Mine
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Table */}
@@ -415,7 +461,7 @@ function AdminPage() {
                 </thead>
                 <tbody>
                   {/* Client rows */}
-                  {clientsWithProgress.map((c) => {
+                  {filteredClients.map((c) => {
                     const pct = c.progress;
                     const assignedEmails = clientAms[c.id] ?? [];
                     const assignedAms: AmLite[] = assignedEmails.map(
@@ -507,6 +553,7 @@ function AdminPage() {
                           <StudioAccessCell
                             clientId={c.id}
                             hasAccess={c.studio_access}
+                            canEdit={isAdminRole}
                             onChanged={(val) =>
                               setClients((prev) =>
                                 prev.map((r) => (r.id === c.id ? { ...r, studio_access: val } : r)),
@@ -577,7 +624,7 @@ function AdminPage() {
                   })}
 
                   {/* Prospect rows */}
-                  {prospects.map((p) => {
+                  {filteredProspects.map((p) => {
                     const prospectUrl = buildProspectUrl(p.access_token);
                     const contractLabel: Record<string, string> = {
                       in_discussion: "In discussion",
@@ -711,6 +758,15 @@ function AdminPage() {
           ams={ams}
           onCreated={() => refresh()}
         />
+
+        {/* Invite AM Dialog */}
+        {isAdminRole && (
+          <InviteAmDialog
+            open={inviteAmOpen}
+            onOpenChange={setInviteAmOpen}
+            onInvited={refresh}
+          />
+        )}
       </div>
     </AppShell>
   );
@@ -834,15 +890,18 @@ function ClientAmCell({
 function StudioAccessCell({
   clientId,
   hasAccess,
+  canEdit,
   onChanged,
 }: {
   clientId: string;
   hasAccess: boolean;
+  canEdit: boolean;
   onChanged: (val: boolean) => void;
 }) {
   const [toggling, setToggling] = useState(false);
 
   const toggle = async () => {
+    if (!canEdit) return;
     setToggling(true);
     const next = !hasAccess;
     const { error } = await supabase
@@ -861,6 +920,25 @@ function StudioAccessCell({
     onChanged(next);
     toast.success(next ? "Studio access granted" : "Studio access revoked");
   };
+
+  // Read-only display for non-admins
+  if (!canEdit) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-1 text-xs">
+        {hasAccess ? (
+          <>
+            <ShieldCheck className="h-3.5 w-3.5 text-success" />
+            <span className="font-medium text-success">Granted</span>
+          </>
+        ) : (
+          <>
+            <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <span className="text-muted-foreground/50">No access</span>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <button
@@ -1399,6 +1477,111 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
         </Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+/* ── Invite AM Dialog ────────────────────────────────────────────────────── */
+
+function InviteAmDialog({
+  open,
+  onOpenChange,
+  onInvited,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onInvited: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const reset = () => {
+    setEmail("");
+    setName("");
+    setDone(false);
+  };
+
+  const handleInvite = async () => {
+    if (!email.trim()) return;
+    setSubmitting(true);
+    const { data, error } = await supabase.functions.invoke("invite-am", {
+      body: { email: email.trim().toLowerCase(), name: name.trim() || null },
+    });
+    setSubmitting(false);
+    if (error || (data as { error?: string } | null)?.error) {
+      toast.error(error?.message ?? (data as { error?: string })?.error ?? "Failed to invite");
+      return;
+    }
+    setDone(true);
+    onInvited();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
+      <DialogContent className="sm:max-w-md">
+        {done ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-success" /> Invite sent
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground mt-2">
+              <span className="font-semibold text-foreground">{email}</span> will receive an email
+              to set up their account. They'll appear in the AM list once they accept.
+            </p>
+            <DialogFooter className="mt-4 gap-2 sm:justify-between">
+              <Button variant="outline" onClick={reset}>
+                Invite another
+              </Button>
+              <Button onClick={() => { reset(); onOpenChange(false); }}>Done</Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Invite Account Manager</DialogTitle>
+              <DialogDescription>
+                Send an invite email. They'll be added to the AM list once they accept.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-1.5">
+                <Label>Email address *</Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="am@trivelta.com"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Full name (optional)</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Alex Johnson"
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleInvite} disabled={submitting || !email.trim()}>
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4" />
+                )}
+                Send invite
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

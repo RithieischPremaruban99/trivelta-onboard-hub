@@ -26,6 +26,16 @@ import { AdvancedModePanel } from "@/components/studio/AdvancedModePanel";
 import { AccordionSection } from "@/components/studio/AccordionSection";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -36,6 +46,7 @@ import {
   Upload,
   ArrowRight,
   Lock,
+  LockOpen,
   Palette,
   ChevronDown,
   ChevronUp,
@@ -436,16 +447,18 @@ export function StudioInner({
   clientId,
   initialLocked,
   initialLockedAt,
+  isAssignedAM = false,
 }: {
   clientId: string;
   initialLocked: boolean;
   initialLockedAt: string | null;
+  isAssignedAM?: boolean;
 }) {
   const { welcomeInfo, clientRole, ownerEmail } = useOnboardingCtx();
   const { user, role } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = role === "admin";
-  const canSubmit = clientRole === "client_owner" || isAdmin;
+  const isAdmin = role === "admin" || role === "account_executive";
+  const canSubmit = clientRole === "client_owner" || isAdmin || isAssignedAM;
   const {
     palette,
     manualOverrides,
@@ -471,6 +484,8 @@ export function StudioInner({
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const savedFadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [locking, setLocking] = useState(false);
+  const [unlockConfirmOpen, setUnlockConfirmOpen] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   type ActivePanel = "chat" | "quickEdit" | "advanced" | "animations" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>("chat");
   const [controlsOpen, setControlsOpen] = useState(false);
@@ -715,6 +730,26 @@ export function StudioInner({
     }
   };
 
+  /* ── Unlock design (admin / assigned AM only) ── */
+  const handleUnlock = async () => {
+    setUnlockConfirmOpen(false);
+    setUnlocking(true);
+    try {
+      const { error } = await supabase
+        .from("onboarding_forms")
+        .update({ studio_locked: false, studio_locked_at: null })
+        .eq("client_id", clientId);
+      if (error) throw error;
+      setLocked(false);
+      setLockedAt(null);
+      toast.success("Design unlocked — client can now make changes.");
+    } catch {
+      toast.error("Failed to unlock design — please try again.");
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   const lockedDate = lockedAt
     ? new Date(lockedAt).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -794,7 +829,17 @@ export function StudioInner({
       {locked && (
         <div className="shrink-0 flex items-center justify-center gap-2 border-b border-success/20 bg-success/8 px-5 py-2 text-[12px] font-semibold text-success">
           <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-          Design locked on {lockedDate} - Your Account Manager will be in touch
+          Design locked on {lockedDate} · Your Account Manager will be in touch
+          {(isAdmin || isAssignedAM) && (
+            <button
+              onClick={() => setUnlockConfirmOpen(true)}
+              disabled={unlocking}
+              className="ml-3 flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success transition-colors hover:bg-success/20 disabled:opacity-50"
+            >
+              {unlocking ? <Loader2 className="h-3 w-3 animate-spin" /> : <LockOpen className="h-3 w-3" />}
+              Unlock
+            </button>
+          )}
         </div>
       )}
 
@@ -1129,6 +1174,29 @@ export function StudioInner({
         </button>
       )}
 
+      {/* ── Unlock confirmation dialog ───────────────────────────────────── */}
+      <AlertDialog open={unlockConfirmOpen} onOpenChange={setUnlockConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlock design for this client?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The client will be able to edit their design again. The existing Notion page will be
+              preserved — your tech team will see both the old locked design and any new changes
+              after re-lock.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnlock}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Unlock Design
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* ── Unified lock confirmation modal ─────────────────────────────── */}
       {lockModalOpen && (
         <LockConfirmModal
@@ -1385,6 +1453,7 @@ function StudioPage() {
   const [initialLockedAt, setInitialLockedAt] = useState<string | null>(null);
   const [accessLocked, setAccessLocked] = useState(false);
   const [studioAccess, setStudioAccess] = useState(false);
+  const [isAssignedAM, setIsAssignedAM] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -1398,7 +1467,7 @@ function StudioPage() {
       return;
     }
     (async () => {
-      const [formRes, clientRes] = await Promise.all([
+      const [formRes, clientRes, camRes] = await Promise.all([
         supabase
           .from("onboarding_forms")
           .select("submitted_at, studio_config, studio_locked, studio_locked_at")
@@ -1408,6 +1477,12 @@ function StudioPage() {
           .from("clients")
           .select("studio_access, studio_access_locked")
           .eq("id", clientId)
+          .maybeSingle(),
+        supabase
+          .from("client_account_managers")
+          .select("am_email")
+          .eq("client_id", clientId)
+          .eq("am_email", user.email ?? "")
           .maybeSingle(),
       ]);
 
@@ -1459,8 +1534,15 @@ function StudioPage() {
         setAccessLocked(true);
       }
 
-      // Non-admins without studio access are redirected with a toast
-      if (!hasAccess && role !== "admin") {
+      // Check if current user is the assigned AM for this client
+      if (role === "account_manager" && camRes.data) {
+        setIsAssignedAM(true);
+      }
+
+      // Non-admins/non-AMs without studio access are redirected with a toast
+      const isAdminOrAM =
+        role === "admin" || role === "account_executive" || role === "account_manager";
+      if (!hasAccess && !isAdminOrAM) {
         toast.error(
           "Studio access has not been granted yet. Please contact your Account Manager.",
         );
@@ -1550,6 +1632,7 @@ function StudioPage() {
           clientId={clientId}
           initialLocked={initialLocked}
           initialLockedAt={initialLockedAt}
+          isAssignedAM={isAssignedAM}
         />
       </StudioProvider>
     </StudioFadeWrapper>
