@@ -1,0 +1,1 @@
+ALTER TABLE public.prospects ALTER COLUMN access_token DROP NOT NULL;
