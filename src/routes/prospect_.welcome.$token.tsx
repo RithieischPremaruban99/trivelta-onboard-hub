@@ -11,7 +11,7 @@ import {
 import { TriveltaIcon } from "@/components/TriveltaIcon";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/prospect/$token/welcome")({
+export const Route = createFileRoute("/prospect_/welcome/$token")({
   component: ProspectWelcome,
 });
 
@@ -23,7 +23,7 @@ function welcomeKey(token: string) {
 }
 
 function ProspectWelcome() {
-  const { token } = useParams({ from: "/prospect/$token/welcome" });
+  const { token } = useParams({ from: "/prospect_/welcome/$token" });
   const navigate = useNavigate();
   const [contactName, setContactName] = useState<string | null>(null);
   const [dontShowAgain, setDontShowAgain] = useState(false);

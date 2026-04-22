@@ -82,18 +82,17 @@ function ProspectPage() {
         optional_features: (data.optional_features as Record<string, unknown>) ?? {},
       } as ProspectData);
 
+      setState("valid");
+
       // Redirect to welcome screen on first visit
       try {
         const seen = localStorage.getItem(`prospect-welcome-seen-${token}`);
         if (!seen) {
-          navigate({ to: "/prospect/$token/welcome", params: { token }, replace: true });
-          return;
+          navigate({ to: "/prospect/welcome/$token", params: { token }, replace: true });
         }
       } catch {
         /* localStorage unavailable — show form directly */
       }
-
-      setState("valid");
     })();
   }, [token]);
 
