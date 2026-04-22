@@ -161,6 +161,11 @@ function AdminPage() {
   >({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<
+    | { kind: "client"; id: string; name: string }
+    | { kind: "prospect"; id: string; name: string }
+    | null
+  >(null);
 
   useEffect(() => {
     document.title = "Trivelta Suite · Admin";
@@ -384,13 +389,15 @@ function AdminPage() {
         })
       : prospects;
 
+  const requestDeleteClient = (clientId: string, clientName: string) => {
+    setConfirmDelete({ kind: "client", id: clientId, name: clientName });
+  };
+
+  const requestDeleteProspect = (prospectId: string, companyName: string) => {
+    setConfirmDelete({ kind: "prospect", id: prospectId, name: companyName });
+  };
+
   const handleDelete = async (clientId: string, clientName: string) => {
-    if (
-      !window.confirm(
-        `Permanently delete "${clientName}"?\n\nThis removes the client and ALL related onboarding data, tasks, submissions, AM assignments and team members. This cannot be undone.`,
-      )
-    )
-      return;
     const { error } = await supabase.from("clients").delete().eq("id", clientId);
     if (error) {
       toast.error(error.message);
@@ -401,8 +408,6 @@ function AdminPage() {
   };
 
   const handleDeleteProspect = async (prospectId: string, companyName: string) => {
-    if (!window.confirm(`Permanently delete prospect "${companyName}"? This cannot be undone.`))
-      return;
     const { error } = await (supabase as unknown as { from: (t: string) => any })
       .from("prospects")
       .delete()
@@ -693,7 +698,7 @@ function AdminPage() {
                                 variant="ghost"
                                 className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                 title="Delete client (permanent)"
-                                onClick={() => handleDelete(c.id, c.name)}
+                                onClick={() => requestDeleteClient(c.id, c.name)}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -909,7 +914,7 @@ function AdminPage() {
                                   className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                   title="Delete prospect (permanent)"
                                   onClick={() =>
-                                    handleDeleteProspect(p.id, p.legal_company_name)
+                                    requestDeleteProspect(p.id, p.legal_company_name)
                                   }
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
@@ -979,6 +984,51 @@ function AdminPage() {
           />
         )}
       </div>
+      <AlertDialog
+        open={confirmDelete !== null}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDelete?.kind === "client" ? "Kunde löschen?" : "Prospect löschen?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDelete?.kind === "client" ? (
+                <>
+                  Möchtest du <strong>{confirmDelete?.name}</strong> wirklich permanent löschen?
+                  Dies entfernt den Kunden und ALLE zugehörigen Onboarding-Daten, Tasks,
+                  Submissions, AM-Zuweisungen und Team-Mitglieder. Diese Aktion kann nicht
+                  rückgängig gemacht werden.
+                </>
+              ) : (
+                <>
+                  Möchtest du den Prospect <strong>{confirmDelete?.name}</strong> wirklich
+                  permanent löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!confirmDelete) return;
+                const target = confirmDelete;
+                setConfirmDelete(null);
+                if (target.kind === "client") {
+                  await handleDelete(target.id, target.name);
+                } else {
+                  await handleDeleteProspect(target.id, target.name);
+                }
+              }}
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
