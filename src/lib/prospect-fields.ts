@@ -15,7 +15,9 @@ export interface ProspectField {
   placeholder?: string;
   helperText?: string;
   options?: string[];
-  required?: boolean; // display hint only — all fields are truly optional
+  required?: boolean; // display hint only - all fields are truly optional
+  /** When set, an amber disclaimer is shown if the user selects "Other" */
+  otherDisclaimer?: "integration_launch_impact";
 }
 
 export interface ProspectSection {
@@ -75,7 +77,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         label: "Current Platform (if any)",
         type: "select",
         options: [
-          "New build — no existing platform",
+          "New build - no existing platform",
           "Aardvark",
           "Advag",
           "SBTech",
@@ -98,10 +100,10 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         type: "select",
         options: [
           "Under 10k",
-          "10k–50k",
-          "50k–200k",
-          "200k–500k",
-          "500k–1M",
+          "10k-50k",
+          "50k-200k",
+          "200k-500k",
+          "500k-1M",
           "1M+",
         ],
       },
@@ -118,17 +120,17 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "psps_needed",
         label: "Payment Providers Needed",
         type: "multi_select",
+        otherDisclaimer: "integration_launch_impact",
         options: [
+          "Paystack",
           "Opay",
           "PalmPay",
-          "Paystack",
-          "Flutterwave",
-          "M-Pesa",
-          "Airtel Money",
-          "MTN MoMo",
-          "Orange Money",
-          "Stripe",
-          "PayPal",
+          "Aeropay",
+          "Finix",
+          "NMI",
+          "Worldpay",
+          "Bitolo",
+          "Evervault",
           "Other",
         ],
       },
@@ -145,9 +147,9 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         type: "select",
         options: [
           "Under $100k",
-          "$100k–$500k",
-          "$500k–$2M",
-          "$2M–$10M",
+          "$100k-$500k",
+          "$500k-$2M",
+          "$2M-$10M",
           "$10M+",
         ],
       },
@@ -165,17 +167,18 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         label: "KYC Tier Needed",
         type: "select",
         options: [
-          "Basic (Tier 1) — minimal verification",
-          "Full (Tier 2) — standard KYC with document upload",
-          "Enhanced (Tier 3) — biometric + enhanced due diligence",
+          "Basic (Tier 1) - minimal verification",
+          "Full (Tier 2) - standard KYC with document upload",
+          "Enhanced (Tier 3) - biometric + enhanced due diligence",
           "Use Trivelta default",
         ],
       },
       {
         key: "kyc_provider",
         label: "Preferred KYC Provider",
-        type: "text",
-        placeholder: "e.g. Onfido, Jumio, or 'use Trivelta default'",
+        type: "select",
+        otherDisclaimer: "integration_launch_impact",
+        options: ["Surt", "Plaid", "Other"],
       },
       {
         key: "license_status",
@@ -210,8 +213,8 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         label: "Braze Account",
         type: "select",
         options: [
-          "New — need Trivelta to set up",
-          "Existing — will share credentials",
+          "New - need Trivelta to set up",
+          "Existing - will share credentials",
           "Not using Braze",
         ],
       },
@@ -243,7 +246,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "geolocation_needed",
         label: "Geolocation / IP Check Needed?",
         type: "boolean_tri",
-        helperText: "For regulatory compliance — restrict access by location",
+        helperText: "For regulatory compliance - restrict access by location",
       },
       {
         key: "geolocation_justification",

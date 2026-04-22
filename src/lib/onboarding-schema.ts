@@ -65,6 +65,13 @@ export type FormShape = {
   psp_opay: boolean;
   psp_palmpay: boolean;
   psp_paystack: boolean;
+  psp_aeropay: boolean;
+  psp_finix: boolean;
+  psp_nmi: boolean;
+  psp_worldpay: boolean;
+  psp_bitolo: boolean;
+  psp_evervault: boolean;
+  psp_other: boolean;
   psp_priority: string;
   kyc_surt: "yes" | "no" | "";
   kyc_notes: string;
@@ -79,6 +86,7 @@ export type FormShape = {
   analytics_gtm: boolean;
   analytics_snapchat: boolean;
   analytics_reddit: boolean;
+  analytics_onefeed: boolean;
 };
 
 export const emptyContact = (): ContactBlock => ({ name: "", email: "", phone: "" });
@@ -124,6 +132,13 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   psp_opay: false,
   psp_palmpay: false,
   psp_paystack: false,
+  psp_aeropay: false,
+  psp_finix: false,
+  psp_nmi: false,
+  psp_worldpay: false,
+  psp_bitolo: false,
+  psp_evervault: false,
+  psp_other: false,
   psp_priority: "",
   kyc_surt: "",
   kyc_notes: "",
@@ -138,6 +153,7 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   analytics_gtm: false,
   analytics_snapchat: false,
   analytics_reddit: false,
+  analytics_onefeed: false,
   ...defaults,
 });
 
@@ -161,7 +177,10 @@ export const validators: Record<number, (f: FormShape) => boolean> = {
       (f.landing_page === "no" || f.landing_page_url)
     ),
   5: (f) => {
-    const pspOk = f.psp_opay || f.psp_palmpay || f.psp_paystack;
+    const pspOk =
+      f.psp_opay || f.psp_palmpay || f.psp_paystack ||
+      f.psp_aeropay || f.psp_finix || f.psp_nmi ||
+      f.psp_worldpay || f.psp_bitolo || f.psp_evervault || f.psp_other;
     const smsOk =
       f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
     return !!(pspOk && f.kyc_surt && smsOk && f.duns_status && f.zendesk);
@@ -191,7 +210,9 @@ export function countRequiredFields(f: FormShape): { filled: number; total: numb
     !!f.privacy_url,
     !!f.rg_url,
     // 5 third party
-    !!(f.psp_opay || f.psp_palmpay || f.psp_paystack),
+    !!(f.psp_opay || f.psp_palmpay || f.psp_paystack ||
+       f.psp_aeropay || f.psp_finix || f.psp_nmi ||
+       f.psp_worldpay || f.psp_bitolo || f.psp_evervault || f.psp_other),
     !!f.kyc_surt,
     !!f.sms_provider,
     !!f.duns_status,

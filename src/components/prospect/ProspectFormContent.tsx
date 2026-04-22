@@ -381,7 +381,7 @@ export function ProspectFormContent({
             : "Let's build your foundation"}
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-foreground/75">
-          Share what you know — skip what you don't. Your answers help our team prepare for your
+          Share what you know - skip what you don't. Your answers help our team prepare for your
           launch. Everything saves automatically.
         </p>
       </section>
@@ -446,7 +446,7 @@ export function ProspectFormContent({
             <div className="flex-1 text-sm">
               <div className="font-semibold text-foreground">Information was sent to Trivelta</div>
               <div className="mt-0.5 text-xs text-muted-foreground">
-                {timeAgo(prospect.submitted_at!)} · Editing as admin — re-submit to push updates.
+                {timeAgo(prospect.submitted_at!)} · Editing as admin - re-submit to push updates.
               </div>
             </div>
           </div>
@@ -478,7 +478,7 @@ export function ProspectFormContent({
           <div className="text-xs text-foreground/70">
             {submitted
               ? `Submitted ${timeAgo(prospect.submitted_at!)}`
-              : "Submit anytime — you can keep editing after."}
+              : "Submit anytime - you can keep editing after."}
           </div>
           <button
             onClick={onSubmit}

@@ -152,7 +152,7 @@ function ProspectPage() {
       update_requested_at: now,
       update_request_reason: reason || null,
     });
-    toast.success("Update requested — your form is now editable.");
+    toast.success("Update requested - your form is now editable.");
   };
 
   /* ── Submit + Notion sync ── */
@@ -178,9 +178,9 @@ function ProspectPage() {
       });
       if (fnError) {
         console.error("[Prospect] Notion sync failed:", fnError);
-        toast.warning("Submitted — Notion sync queued.");
+        toast.warning("Submitted - Notion sync queued.");
       } else {
-        toast.success("Sent to Trivelta team — we'll be in touch soon.");
+        toast.success("Sent to Trivelta team - we'll be in touch soon.");
       }
 
       setProspect({

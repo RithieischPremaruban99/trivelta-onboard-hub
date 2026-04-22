@@ -73,13 +73,13 @@ function ProspectWelcome() {
     },
     {
       icon: Clock,
-      label: "5–10 Minutes",
-      desc: "Answer at your own pace — no pressure",
+      label: "5-10 Minutes",
+      desc: "Answer at your own pace - no pressure",
     },
     {
       icon: Save,
       label: "Auto-Saves",
-      desc: "Every change is saved instantly — pick up anytime",
+      desc: "Every change is saved instantly - pick up anytime",
     },
   ];
 
@@ -151,7 +151,7 @@ function ProspectWelcome() {
             style={{ animationDelay: "260ms" }}
           >
             Complete this short form so our team can tailor your onboarding experience.
-            Your answers shape everything — from integrations to compliance setup.
+            Your answers shape everything - from integrations to compliance setup.
           </p>
 
           {/* Info cards */}

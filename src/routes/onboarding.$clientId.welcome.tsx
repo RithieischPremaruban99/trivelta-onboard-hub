@@ -95,7 +95,7 @@ function ClientWelcomePage() {
       label: "Pre-filled form",
       desc: "Your pre-onboarding answers are already there",
     },
-    { icon: Save, label: "Auto-saves", desc: "Keep working — nothing gets lost" },
+    { icon: Save, label: "Auto-saves", desc: "Keep working - nothing gets lost" },
     studioCard,
   ];
 

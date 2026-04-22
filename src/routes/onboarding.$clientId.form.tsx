@@ -95,7 +95,10 @@ function sectionFieldStats(id: string, f: FormShape): { filled: number; total: n
       return { filled: checks.filter(Boolean).length, total: checks.length };
     }
     case "5": {
-      const pspOk = f.psp_opay || f.psp_palmpay || f.psp_paystack;
+      const pspOk =
+        f.psp_opay || f.psp_palmpay || f.psp_paystack ||
+        f.psp_aeropay || f.psp_finix || f.psp_nmi ||
+        f.psp_worldpay || f.psp_bitolo || f.psp_evervault || f.psp_other;
       const smsOk =
         f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
       const checks = [pspOk, !!f.kyc_surt, smsOk, !!f.duns_status, !!f.zendesk];
@@ -184,7 +187,7 @@ function PresenceAvatars({ users }: { users: PresenceUser[] }) {
             <div
               key={u.user_email}
               className="relative group"
-              title={`${u.name} — Section ${SECTION_LABELS[u.current_section] ?? u.current_section}`}
+              title={`${u.name} - Section ${SECTION_LABELS[u.current_section] ?? u.current_section}`}
             >
               <div
                 className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-background ring-1 ring-black/10"
@@ -463,8 +466,15 @@ function FormScreen() {
     if (welcomeInfo) {
       const psps: string[] = [
         ...(form.psp_opay ? ["Opay"] : []),
-        ...(form.psp_palmpay ? ["Palmpay"] : []),
+        ...(form.psp_palmpay ? ["PalmPay"] : []),
         ...(form.psp_paystack ? ["Paystack"] : []),
+        ...(form.psp_aeropay ? ["Aeropay"] : []),
+        ...(form.psp_finix ? ["Finix"] : []),
+        ...(form.psp_nmi ? ["NMI"] : []),
+        ...(form.psp_worldpay ? ["Worldpay"] : []),
+        ...(form.psp_bitolo ? ["Bitolo"] : []),
+        ...(form.psp_evervault ? ["Evervault"] : []),
+        ...(form.psp_other ? ["Other"] : []),
       ];
       supabase.functions.invoke("handle-submission", {
         body: {
@@ -537,7 +547,7 @@ function FormScreen() {
     // Build summary of missing fields per section
     const missingParts = incomplete.map((id) => {
       const { filled, total } = sectionFieldStats(id, form);
-      return `Section ${id.padStart(2, "0")} — ${SECTION_NAMES[id]}: ${total - filled} field${total - filled !== 1 ? "s" : ""} missing`;
+      return `Section ${id.padStart(2, "0")} - ${SECTION_NAMES[id]}: ${total - filled} field${total - filled !== 1 ? "s" : ""} missing`;
     });
 
     toast.error(
@@ -596,7 +606,7 @@ function FormScreen() {
             <div className="mb-6 flex items-start gap-3 rounded-xl border border-border bg-card/60 px-4 py-3">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div className="text-[13px] leading-relaxed text-muted-foreground">
-                You can fill in any field — only{" "}
+                You can fill in any field - only{" "}
                 <span className="font-medium text-foreground">
                   {ownerEmail ?? "the account owner"}
                 </span>{" "}
@@ -612,7 +622,7 @@ function FormScreen() {
               Build your platform
             </h1>
             <p className="mt-1.5 text-[14px] text-muted-foreground">
-              Five sections, all auto-saved. Jump in and out — your team can collaborate live.
+              Five sections, all auto-saved. Jump in and out - your team can collaborate live.
             </p>
           </div>
 
@@ -837,7 +847,7 @@ function FormScreen() {
                 </span>
               )}
               {isFormComplete(form) && (
-                <span className="text-[12px] text-success">— ready to submit</span>
+                <span className="text-[12px] text-success">- ready to submit</span>
               )}
             </div>
             <div className="mt-2 h-[3px] w-full max-w-[280px] overflow-hidden rounded-full bg-foreground/[0.06]">
@@ -1453,7 +1463,7 @@ function SectionMedia({
 
           <p className="mb-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
             Our AI generates your complete color system, creates custom logos, and tunes every
-            visual detail of your sportsbook — all from a single brand description.
+            visual detail of your sportsbook - all from a single brand description.
           </p>
 
           {/* Feature pills */}
@@ -1680,7 +1690,7 @@ function SectionPlatform({
         <p className="text-[13px] leading-relaxed text-muted-foreground">
           Your platform colors will be configured in{" "}
           <span className="font-medium text-foreground">Trivelta Studio</span> after submitting this
-          form — where you can preview your app live as you choose colors and generate brand assets.
+          form - where you can preview your app live as you choose colors and generate brand assets.
         </p>
       </div>
     </div>
@@ -1796,7 +1806,10 @@ function SectionThirdParty({
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   showErrors?: boolean;
 }) {
-  const pspOk = form.psp_opay || form.psp_palmpay || form.psp_paystack;
+  const pspOk =
+    form.psp_opay || form.psp_palmpay || form.psp_paystack ||
+    form.psp_aeropay || form.psp_finix || form.psp_nmi ||
+    form.psp_worldpay || form.psp_bitolo || form.psp_evervault || form.psp_other;
   const smsOk =
     form.sms_provider === "infobip" || (form.sms_provider === "other" && !!form.sms_provider_other);
   return (
@@ -1812,6 +1825,13 @@ function SectionThirdParty({
             { k: "psp_opay", label: "Opay" },
             { k: "psp_palmpay", label: "PalmPay" },
             { k: "psp_paystack", label: "Paystack" },
+            { k: "psp_aeropay", label: "Aeropay" },
+            { k: "psp_finix", label: "Finix" },
+            { k: "psp_nmi", label: "NMI" },
+            { k: "psp_worldpay", label: "Worldpay" },
+            { k: "psp_bitolo", label: "Bitolo" },
+            { k: "psp_evervault", label: "Evervault" },
+            { k: "psp_other", label: "Other" },
           ].map((p) => (
             <label
               key={p.k}
@@ -1827,6 +1847,15 @@ function SectionThirdParty({
         </div>
         {showErrors && !pspOk && (
           <p className="mt-2 text-[11px] text-destructive">Select at least one payment provider</p>
+        )}
+        {form.psp_other && (
+          <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+            <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
+              Using an unlisted provider may delay your integration launch. Please discuss
+              with your Account Manager before proceeding.
+            </p>
+          </div>
         )}
         <div className="mt-4 space-y-1.5">
           <Label className="text-xs text-muted-foreground">Routing priority</Label>
@@ -1947,6 +1976,7 @@ function SectionThirdParty({
             { k: "analytics_gtm", label: "GTM" },
             { k: "analytics_snapchat", label: "Snapchat Pixel" },
             { k: "analytics_reddit", label: "Reddit Pixel" },
+            { k: "analytics_onefeed", label: "OneFeed" },
           ].map((p) => (
             <label
               key={p.k}

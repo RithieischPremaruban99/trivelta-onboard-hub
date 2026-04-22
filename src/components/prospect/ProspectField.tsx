@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProspectField as ProspectFieldDef } from "@/lib/prospect-fields";
 import { FieldInfo } from "@/components/form/FieldInfo";
@@ -67,16 +68,19 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
 
   /* ── select ── */
   if (field.type === "select") {
+    const selectVal = typeof value === "string" ? value : "";
+    const showOtherDisclaimer =
+      field.otherDisclaimer === "integration_launch_impact" && selectVal === "Other";
     return (
       <div>
         {label}
         <select
           className={cn(INPUT_BASE, "cursor-pointer")}
-          value={typeof value === "string" ? value : ""}
+          value={selectVal}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         >
-          <option value="">— Select —</option>
+          <option value="">- Select -</option>
           {(field.options ?? []).map((opt) => (
             <option key={opt} value={opt}>
               {opt}
@@ -84,6 +88,15 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
           ))}
         </select>
         {helper}
+        {showOtherDisclaimer && (
+          <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+            <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
+              Using an unlisted provider may delay your integration launch. Please discuss
+              with your Account Manager before proceeding.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -91,11 +104,15 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
   /* ── multi_select — checkbox pills ── */
   if (field.type === "multi_select") {
     const selected: string[] = Array.isArray(value) ? (value as string[]) : [];
+    const knownOptions = field.options ?? [];
+    const staleValues = selected.filter((v) => !knownOptions.includes(v));
+    const showOtherDisclaimer =
+      field.otherDisclaimer === "integration_launch_impact" && selected.includes("Other");
     return (
       <div>
         {label}
         <div className="flex flex-wrap gap-2">
-          {(field.options ?? []).map((opt) => {
+          {knownOptions.map((opt) => {
             const isSelected = selected.includes(opt);
             return (
               <button
@@ -120,8 +137,36 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
               </button>
             );
           })}
+          {staleValues.map((stale) => (
+            <button
+              key={stale}
+              type="button"
+              onClick={() => {
+                if (disabled) return;
+                onChange(selected.filter((v) => v !== stale));
+              }}
+              disabled={disabled}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all",
+                "border-border/20 bg-muted/20 text-muted-foreground/40 line-through",
+                disabled && "cursor-not-allowed",
+              )}
+              title="Previously selected - no longer available"
+            >
+              {stale}
+            </button>
+          ))}
         </div>
         {helper}
+        {showOtherDisclaimer && (
+          <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+            <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
+              Using an unlisted provider may delay your integration launch. Please discuss
+              with your Account Manager before proceeding.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
