@@ -125,7 +125,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     notes:
       "If you don't have a DUNS yet, some payment integrations can proceed in parallel while your application is in progress. Trivelta will flag this during setup.",
     learnMoreLinks: [
-      { label: "Request a free DUNS number", url: "https://www.dnb.com/duns/get-a-duns.html" },
+      { label: "Dun & Bradstreet", url: "https://www.dnb.com/duns/get-a-duns.html" },
     ],
   },
 
@@ -142,6 +142,9 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
         title: "Regulatory requirement",
         description: "Regulators audit response times during license renewals. An operational support channel before launch is non-negotiable.",
       },
+    ],
+    learnMoreLinks: [
+      { label: "Zendesk", url: "https://www.zendesk.com" },
     ],
   },
 
@@ -166,6 +169,9 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     ],
     notes:
       "Infobip is a tier-one global SMS provider with strong delivery rates across Africa, Europe, and LATAM. Cost is roughly $0.01-0.05 per SMS depending on destination country.",
+    learnMoreLinks: [
+      { label: "Infobip", url: "https://www.infobip.com" },
+    ],
   },
 
   seon_fraud: {
@@ -198,6 +204,7 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     notes:
       "Trivelta works directly with Surt and can configure their platform specifically for your target markets and risk tolerance.",
     learnMoreLinks: [
+      { label: "Surt website", url: "https://surt.com" },
       { label: "Contact Surt directly", url: "mailto:contact@surt.com" },
     ],
   },
@@ -206,12 +213,18 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     tooltip: "A platform that securely connects your platform to players' bank accounts for instant verification and deposits.",
     learnMore:
       "Plaid is the leading banking data platform in the US and increasingly in Europe - it lets players link their bank accounts securely without sharing raw credentials. For iGaming, Plaid can be used for instant ACH deposits (no waiting for transfers to clear), account ownership verification (confirm the player owns the payment method), and balance checks before allowing deposits. Plaid coverage is strongest in the US, UK, Canada, and parts of Europe - less comprehensive in Africa where direct PSP integrations handle these use cases.",
+    learnMoreLinks: [
+      { label: "Plaid", url: "https://plaid.com" },
+    ],
   },
 
   braze_crm: {
     tooltip: "The tool that sends personalized emails, push notifications, and in-app messages to players.",
     learnMore:
       "Braze is an enterprise-grade customer engagement platform - it decides who gets which message, when, and through which channel. Typical iGaming use cases: push notification to players who haven't deposited in 7 days, email high-rollers a VIP bonus, SMS anyone who abandoned a deposit flow, in-app message welcoming back returning players. Smart retention messaging is one of the highest-ROI investments for an operator - Braze lets your marketing team run sophisticated campaigns without engineering support. Trivelta includes Braze integration by default.",
+    learnMoreLinks: [
+      { label: "Braze", url: "https://www.braze.com" },
+    ],
   },
 
   sportradar_feed: {
@@ -228,11 +241,19 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     tooltip: "Automated tax calculation for player winnings across jurisdictions.",
     learnMore:
       "iGaming operators face complex tax obligations - player winnings may be taxable at the point of withdrawal, VAT applies to certain games in EU markets, and cross-border players add further complexity. Vertex automates the tax calculation at the transaction level: when a player withdraws, Vertex determines the correct tax based on player residence, jurisdiction, game type, and amount. This prevents under-withholding (fines from tax authorities) and over-withholding (angry players). Trivelta integrates Vertex for operators handling multiple jurisdictions.",
+    learnMoreLinks: [
+      { label: "Vertex", url: "https://www.vertexinc.com" },
+    ],
   },
 
   advertising_pixels: {
     tooltip: "Tracking codes from ad platforms (Facebook, Google, TikTok) that measure which ads bring paying players.",
     learnMore:
       "When you run paid acquisition campaigns, you need to know which ads actually convert into depositing players. Advertising pixels (also known as tracking codes) are JavaScript snippets from ad platforms that fire when a user signs up, makes a first deposit, or hits any conversion event. Without pixels you can't optimize ad spend - you're guessing. Trivelta installs pixels for Facebook, Google, TikTok, Twitter, and affiliate networks during setup. You provide the pixel IDs (found in your respective ad account dashboards) and your campaigns start attributing conversions immediately.",
+    learnMoreLinks: [
+      { label: "Meta / Facebook Pixel", url: "https://www.facebook.com/business/tools/meta-pixel" },
+      { label: "Google Ads", url: "https://ads.google.com" },
+      { label: "TikTok for Business", url: "https://ads.tiktok.com" },
+    ],
   },
 };
