@@ -18,6 +18,7 @@ import { Route as StudioPreviewClientIdRouteImport } from './routes/studio-previ
 import { Route as ProspectTokenRouteImport } from './routes/prospect.$token'
 import { Route as OnboardingClientIdRouteImport } from './routes/onboarding.$clientId'
 import { Route as OnboardingClientIdIndexRouteImport } from './routes/onboarding.$clientId.index'
+import { Route as ProspectTokenWelcomeRouteImport } from './routes/prospect.$token.welcome'
 import { Route as OnboardingClientIdSuccessRouteImport } from './routes/onboarding.$clientId.success'
 import { Route as OnboardingClientIdStudioUnlockedRouteImport } from './routes/onboarding.$clientId.studio-unlocked'
 import { Route as OnboardingClientIdStudioPreviewRouteImport } from './routes/onboarding.$clientId.studio-preview'
@@ -72,6 +73,11 @@ const OnboardingClientIdIndexRoute = OnboardingClientIdIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => OnboardingClientIdRoute,
+} as any)
+const ProspectTokenWelcomeRoute = ProspectTokenWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => ProspectTokenRoute,
 } as any)
 const OnboardingClientIdSuccessRoute =
   OnboardingClientIdSuccessRouteImport.update({
@@ -132,7 +138,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
   '/onboarding/$clientId': typeof OnboardingClientIdRouteWithChildren
-  '/prospect/$token': typeof ProspectTokenRoute
+  '/prospect/$token': typeof ProspectTokenRouteWithChildren
   '/studio-preview/$clientId': typeof StudioPreviewClientIdRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/$clientId/studio-preview': typeof OnboardingClientIdStudioPreviewRoute
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
+  '/prospect/$token/welcome': typeof ProspectTokenWelcomeRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
 }
@@ -151,7 +158,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
-  '/prospect/$token': typeof ProspectTokenRoute
+  '/prospect/$token': typeof ProspectTokenRouteWithChildren
   '/studio-preview/$clientId': typeof StudioPreviewClientIdRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/onboarding/$clientId/studio-preview': typeof OnboardingClientIdStudioPreviewRoute
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
+  '/prospect/$token/welcome': typeof ProspectTokenWelcomeRoute
   '/onboarding/$clientId': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
 }
@@ -172,7 +180,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/my-onboarding': typeof MyOnboardingRoute
   '/onboarding/$clientId': typeof OnboardingClientIdRouteWithChildren
-  '/prospect/$token': typeof ProspectTokenRoute
+  '/prospect/$token': typeof ProspectTokenRouteWithChildren
   '/studio-preview/$clientId': typeof StudioPreviewClientIdRoute
   '/onboarding/$clientId/auth': typeof OnboardingClientIdAuthRoute
   '/onboarding/$clientId/form': typeof OnboardingClientIdFormRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/onboarding/$clientId/studio-preview': typeof OnboardingClientIdStudioPreviewRoute
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
+  '/prospect/$token/welcome': typeof ProspectTokenWelcomeRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
 }
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-preview'
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
+    | '/prospect/$token/welcome'
     | '/onboarding/$clientId/'
     | '/admin/prospects/$id/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-preview'
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
+    | '/prospect/$token/welcome'
     | '/onboarding/$clientId'
     | '/admin/prospects/$id/edit'
   id:
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-preview'
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
+    | '/prospect/$token/welcome'
     | '/onboarding/$clientId/'
     | '/admin/prospects/$id/edit'
   fileRoutesById: FileRoutesById
@@ -254,7 +266,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MyOnboardingRoute: typeof MyOnboardingRoute
   OnboardingClientIdRoute: typeof OnboardingClientIdRouteWithChildren
-  ProspectTokenRoute: typeof ProspectTokenRoute
+  ProspectTokenRoute: typeof ProspectTokenRouteWithChildren
   StudioPreviewClientIdRoute: typeof StudioPreviewClientIdRoute
 }
 
@@ -322,6 +334,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/onboarding/$clientId/'
       preLoaderRoute: typeof OnboardingClientIdIndexRouteImport
       parentRoute: typeof OnboardingClientIdRoute
+    }
+    '/prospect/$token/welcome': {
+      id: '/prospect/$token/welcome'
+      path: '/welcome'
+      fullPath: '/prospect/$token/welcome'
+      preLoaderRoute: typeof ProspectTokenWelcomeRouteImport
+      parentRoute: typeof ProspectTokenRoute
     }
     '/onboarding/$clientId/success': {
       id: '/onboarding/$clientId/success'
@@ -426,6 +445,18 @@ const OnboardingClientIdRouteChildren: OnboardingClientIdRouteChildren = {
 const OnboardingClientIdRouteWithChildren =
   OnboardingClientIdRoute._addFileChildren(OnboardingClientIdRouteChildren)
 
+interface ProspectTokenRouteChildren {
+  ProspectTokenWelcomeRoute: typeof ProspectTokenWelcomeRoute
+}
+
+const ProspectTokenRouteChildren: ProspectTokenRouteChildren = {
+  ProspectTokenWelcomeRoute: ProspectTokenWelcomeRoute,
+}
+
+const ProspectTokenRouteWithChildren = ProspectTokenRoute._addFileChildren(
+  ProspectTokenRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -433,7 +464,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MyOnboardingRoute: MyOnboardingRoute,
   OnboardingClientIdRoute: OnboardingClientIdRouteWithChildren,
-  ProspectTokenRoute: ProspectTokenRoute,
+  ProspectTokenRoute: ProspectTokenRouteWithChildren,
   StudioPreviewClientIdRoute: StudioPreviewClientIdRoute,
 }
 export const routeTree = rootRouteImport

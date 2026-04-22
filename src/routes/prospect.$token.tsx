@@ -1,4 +1,4 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ type PageState = "loading" | "valid" | "expired" | "invalid";
 
 function ProspectPage() {
   const { token } = useParams({ from: "/prospect/$token" });
+  const navigate = useNavigate();
   const [state, setState] = useState<PageState>("loading");
   const [prospect, setProspect] = useState<ProspectData | null>(null);
   const [openSection, setOpenSection] = useState<string | null>(
@@ -80,6 +81,18 @@ function ProspectPage() {
           (data.technical_requirements as Record<string, unknown>) ?? {},
         optional_features: (data.optional_features as Record<string, unknown>) ?? {},
       } as ProspectData);
+
+      // Redirect to welcome screen on first visit
+      try {
+        const seen = localStorage.getItem(`prospect-welcome-seen-${token}`);
+        if (!seen) {
+          navigate({ to: "/prospect/$token/welcome", params: { token }, replace: true });
+          return;
+        }
+      } catch {
+        /* localStorage unavailable — show form directly */
+      }
+
       setState("valid");
     })();
   }, [token]);
