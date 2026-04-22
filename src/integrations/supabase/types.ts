@@ -329,7 +329,7 @@ export type Database = {
       }
       prospects: {
         Row: {
-          access_token: string
+          access_token: string | null
           assigned_account_manager: string | null
           company_details: Json | null
           contract_status: string | null
@@ -355,7 +355,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          access_token: string
+          access_token?: string | null
           assigned_account_manager?: string | null
           company_details?: Json | null
           contract_status?: string | null
@@ -381,7 +381,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          access_token?: string
+          access_token?: string | null
           assigned_account_manager?: string | null
           company_details?: Json | null
           contract_status?: string | null
