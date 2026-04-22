@@ -257,17 +257,24 @@ function FormScreen() {
     if (authLoading || !user) return;
     (async () => {
       setLoading(true);
-      const { data: formData } = await supabase
-        .from("onboarding_forms")
-        .select("data, submitted_at")
-        .eq("client_id", clientId)
-        .maybeSingle();
-      if (formData?.data) setForm(emptyForm(formData.data as Partial<FormShape>));
-      if (formData?.submitted_at) {
-        setSubmitted(formData.submitted_at);
-        navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+      try {
+        const { data: formData, error } = await supabase
+          .from("onboarding_forms")
+          .select("data, submitted_at")
+          .eq("client_id", clientId)
+          .maybeSingle();
+        if (error) throw error;
+        if (formData?.data) setForm(emptyForm(formData.data as Partial<FormShape>));
+        if (formData?.submitted_at) {
+          setSubmitted(formData.submitted_at);
+          navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+        }
+      } catch (err) {
+        console.error("[Form] Failed to load form data:", err);
+        toast.error("Could not load your form. Please refresh.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, [clientId, user, authLoading]);
 

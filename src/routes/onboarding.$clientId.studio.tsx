@@ -57,6 +57,32 @@ import { cn } from "@/lib/utils";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
+/* ── Safe localStorage wrapper (handles private browsing / quota errors) ── */
+
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // Silent fail — private browsing, quota exceeded, etc.
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Silent fail
+    }
+  },
+};
+
 export const Route = createFileRoute("/onboarding/$clientId/studio")({
   component: StudioPage,
 });
@@ -534,10 +560,10 @@ export function StudioInner({
 
   // Tour state — show automatically on first visit, show help button after
   const [tourActive, setTourActive] = useState(
-    () => !localStorage.getItem(`trivelta_studio_tour_${clientId}`),
+    () => !safeLocalStorage.getItem(`trivelta_studio_tour_${clientId}`),
   );
   const [showHelp, setShowHelp] = useState(
-    () => !!localStorage.getItem(`trivelta_studio_tour_${clientId}`),
+    () => !!safeLocalStorage.getItem(`trivelta_studio_tour_${clientId}`),
   );
 
   // Keep chat open while tour is running so step 2 spotlight has content to highlight
@@ -614,12 +640,10 @@ export function StudioInner({
 
   /* ── Call design-locked edge function; returns true on success ── */
   const callDesignLocked = useCallback(async (): Promise<boolean> => {
-    console.log("[Studio] Triggering design-locked function for client", clientId);
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.log("[Studio] Auth session present:", !!session?.access_token);
       const res = await fetch(`${SUPABASE_URL}/functions/v1/design-locked`, {
         method: "POST",
         headers: {
@@ -634,7 +658,6 @@ export function StudioInner({
         }),
       });
       const responseText = await res.text();
-      console.log("[Studio] design-locked response:", res.status, responseText);
       if (!res.ok) {
         console.error("[Studio] design-locked HTTP error", res.status, responseText);
         return false;
@@ -652,7 +675,6 @@ export function StudioInner({
     setLocking(true);
     try {
       const now = new Date().toISOString();
-      console.log("[Studio] Writing studio_locked=true to DB for client", clientId);
       await supabase.from("onboarding_forms").upsert(
         {
           client_id: clientId,
@@ -671,7 +693,6 @@ export function StudioInner({
         },
         { onConflict: "client_id" },
       );
-      console.log("[Studio] DB upsert complete. Calling design-locked edge function…");
       setLocked(true);
       setLockedAt(now);
       setLockModalOpen(false);
@@ -1097,7 +1118,7 @@ export function StudioInner({
       {showHelp && !tourActive && (
         <button
           onClick={() => {
-            localStorage.removeItem(`trivelta_studio_tour_${clientId}`);
+            safeLocalStorage.removeItem(`trivelta_studio_tour_${clientId}`);
             setShowHelp(false);
             setTourActive(true);
           }}
@@ -1185,7 +1206,7 @@ function StudioTour({
   const done = useCallback(() => {
     setFading(true);
     setTimeout(() => {
-      localStorage.setItem(`trivelta_studio_tour_${clientId}`, "1");
+      safeLocalStorage.setItem(`trivelta_studio_tour_${clientId}`, "1");
       onDone();
     }, 250);
   }, [clientId, onDone]);

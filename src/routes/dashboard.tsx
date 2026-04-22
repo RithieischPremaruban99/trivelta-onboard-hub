@@ -173,15 +173,22 @@ function DashboardPage() {
     if (authLoading || !user) return;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("clients")
-        .select(
-          "id, name, status, country, platform_url, drive_link, studio_access, studio_access_locked",
-        )
-        .order("created_at", { ascending: false });
-      setClients((data ?? []) as ClientLite[]);
-      if (data?.length) setSelectedId((data[0] as ClientLite).id);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from("clients")
+          .select(
+            "id, name, status, country, platform_url, drive_link, studio_access, studio_access_locked",
+          )
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        setClients((data ?? []) as ClientLite[]);
+        if (data?.length) setSelectedId((data[0] as ClientLite).id);
+      } catch (err) {
+        console.error("[Dashboard] Failed to load clients:", err);
+        toast.error("Could not load clients. Please refresh.");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [user, authLoading]);
 
@@ -341,27 +348,35 @@ function ClientDetail({
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [tasksRes, formRes] = await Promise.all([
-        supabase
-          .from("onboarding_tasks")
-          .select("id, phase, task, owner, completed, sort_order")
-          .eq("client_id", client.id)
-          .order("phase", { ascending: true })
-          .order("sort_order", { ascending: true }),
-        supabase
-          .from("onboarding_forms")
-          .select("data, submitted_at, studio_config, studio_locked, studio_locked_at")
-          .eq("client_id", client.id)
-          .maybeSingle(),
-      ]);
-      setTasks((tasksRes.data ?? []) as TaskRow[]);
-      setFormData((formRes.data?.data as FormShape | null) ?? null);
-      setSubmittedAt(formRes.data?.submitted_at ?? null);
-      const sc = formRes.data?.studio_config;
-      setStudioConfig(sc && typeof sc === "object" ? (sc as StudioSavedConfig) : null);
-      setStudioLocked(formRes.data?.studio_locked ?? false);
-      setStudioLockedAt(formRes.data?.studio_locked_at ?? null);
-      setLoading(false);
+      try {
+        const [tasksRes, formRes] = await Promise.all([
+          supabase
+            .from("onboarding_tasks")
+            .select("id, phase, task, owner, completed, sort_order")
+            .eq("client_id", client.id)
+            .order("phase", { ascending: true })
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("onboarding_forms")
+            .select("data, submitted_at, studio_config, studio_locked, studio_locked_at")
+            .eq("client_id", client.id)
+            .maybeSingle(),
+        ]);
+        if (tasksRes.error) throw tasksRes.error;
+        if (formRes.error) throw formRes.error;
+        setTasks((tasksRes.data ?? []) as TaskRow[]);
+        setFormData((formRes.data?.data as FormShape | null) ?? null);
+        setSubmittedAt(formRes.data?.submitted_at ?? null);
+        const sc = formRes.data?.studio_config;
+        setStudioConfig(sc && typeof sc === "object" ? (sc as StudioSavedConfig) : null);
+        setStudioLocked(formRes.data?.studio_locked ?? false);
+        setStudioLockedAt(formRes.data?.studio_locked_at ?? null);
+      } catch (err) {
+        console.error("[Dashboard] Failed to load client detail:", err);
+        toast.error("Could not load client data. Please refresh.");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [client.id]);
 
