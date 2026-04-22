@@ -140,8 +140,6 @@ function AdminProspectEditPage() {
         if (!error) {
           setSavedAt(new Date());
           logActivity({
-            actorEmail: user?.email ?? "",
-            actorRole: role ?? "account_manager",
             prospectId: prospect.id,
             action: "prospect_form_edited",
             details: { section_edited: storageKey, actor_type: "admin_or_am" },

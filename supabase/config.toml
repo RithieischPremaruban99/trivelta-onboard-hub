@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.convert-prospect-to-client]
 verify_jwt = true
+
+[functions.invite-am]
+verify_jwt = true

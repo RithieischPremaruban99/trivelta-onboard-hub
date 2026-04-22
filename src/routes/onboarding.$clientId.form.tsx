@@ -53,6 +53,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TriveltaNav } from "@/components/TriveltaNav";
+import { logActivity } from "@/lib/activity-log";
 
 /* ─── Per-section field progress ─────────────────────────────── */
 
@@ -480,6 +481,8 @@ function FormScreen() {
         },
       });
     }
+
+    void logActivity({ clientId, action: "form_submitted" });
 
     // Route based on studio access
     const { data: clientData } = await supabase

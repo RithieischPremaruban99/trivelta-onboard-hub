@@ -30,19 +30,30 @@ function AuthScreen() {
   useEffect(() => {
     if (authLoading || loadingAuth) return;
     if (user && clientRole) {
-      // Check submission status — skip form, go straight to studio if already submitted
-      supabase
-        .from("onboarding_forms")
-        .select("submitted_at")
-        .eq("client_id", clientId)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (data?.submitted_at) {
-            navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+      // Check submission status + studio access — route conditionally
+      (async () => {
+        const [formRes, clientRes] = await Promise.all([
+          supabase
+            .from("onboarding_forms")
+            .select("submitted_at")
+            .eq("client_id", clientId)
+            .maybeSingle(),
+          supabase
+            .from("clients")
+            .select("studio_access")
+            .eq("id", clientId)
+            .maybeSingle(),
+        ]);
+        if (formRes.data?.submitted_at) {
+          if (clientRes.data?.studio_access) {
+            navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
           } else {
-            navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
+            navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
           }
-        });
+        } else {
+          navigate({ to: "/onboarding/$clientId/form", params: { clientId }, replace: true });
+        }
+      })();
     }
   }, [user, clientRole, authLoading, loadingAuth]);
 

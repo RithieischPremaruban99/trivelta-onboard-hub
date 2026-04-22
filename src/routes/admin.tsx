@@ -77,6 +77,7 @@ import { COUNTRIES } from "@/lib/onboarding-schema";
 import { AmAvatars, type AmLite } from "@/components/AmAvatars";
 import { AmMultiSelect } from "@/components/AmMultiSelect";
 import { generateProspectToken, buildProspectUrl } from "@/lib/prospect-tokens";
+import { logActivity } from "@/lib/activity-log";
 import { buildClientInviteEmail } from "@/lib/client-invite-email";
 import { DialogDescription } from "@/components/ui/dialog";
 
@@ -1088,6 +1089,7 @@ function StudioAccessCell({
     }
     onChanged(next);
     toast.success(next ? "Studio access granted" : "Studio access revoked");
+    void logActivity({ clientId, action: "studio_access_toggled", details: { to: next } });
   };
 
   // Read-only display for non-admins
@@ -1168,6 +1170,7 @@ function StudioLockCell({
       return;
     }
     toast.success(`Design locked for ${clientName}`);
+    void logActivity({ clientId, action: "studio_locked" });
   };
 
   const doUnlock = async () => {
@@ -1186,6 +1189,7 @@ function StudioLockCell({
       return;
     }
     toast.success(`Design unlocked for ${clientName}`);
+    void logActivity({ clientId, action: "studio_unlocked" });
   };
 
   return (
@@ -1496,6 +1500,7 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
 
     setSubmitting(false);
     toast.success(`Client "${data.name}" created`);
+    void logActivity({ clientId: data.id, action: "client_created", details: { company_name: data.name } });
     setCreatedClient({ id: data.id, name: data.name, email: contactEmail.trim().toLowerCase() });
     onCreated();
   };
@@ -1900,6 +1905,7 @@ function InviteAmDialog({
       return;
     }
     setDone(true);
+    void logActivity({ action: "am_invited", details: { invited_email: email, invited_role: "account_manager" } });
     onInvited();
   };
 
@@ -2044,6 +2050,7 @@ function NewProspectDialog({
       }
     }
 
+    void logActivity({ prospectId: newProspect.id, action: "prospect_created", details: { company_name: companyName.trim(), am_count: selectedAMs.length } });
     setSubmitting(false);
     setMagicLink(buildProspectUrl(token));
     onCreated();
