@@ -298,6 +298,35 @@ export type Database = {
         }
         Relationships: []
       }
+      prospect_account_managers: {
+        Row: {
+          am_email: string
+          assigned_at: string | null
+          id: string
+          prospect_id: string
+        }
+        Insert: {
+          am_email: string
+          assigned_at?: string | null
+          id?: string
+          prospect_id: string
+        }
+        Update: {
+          am_email?: string
+          assigned_at?: string | null
+          id?: string
+          prospect_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_account_managers_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prospects: {
         Row: {
           access_token: string
