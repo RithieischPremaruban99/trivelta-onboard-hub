@@ -389,12 +389,6 @@ function AdminPage() {
         })
       : prospects;
 
-  const [confirmDelete, setConfirmDelete] = useState<
-    | { kind: "client"; id: string; name: string }
-    | { kind: "prospect"; id: string; name: string }
-    | null
-  >(null);
-
   const requestDeleteClient = (clientId: string, clientName: string) => {
     setConfirmDelete({ kind: "client", id: clientId, name: clientName });
   };
