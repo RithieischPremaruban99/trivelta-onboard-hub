@@ -984,6 +984,51 @@ function AdminPage() {
           />
         )}
       </div>
+      <AlertDialog
+        open={confirmDelete !== null}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDelete?.kind === "client" ? "Kunde löschen?" : "Prospect löschen?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDelete?.kind === "client" ? (
+                <>
+                  Möchtest du <strong>{confirmDelete?.name}</strong> wirklich permanent löschen?
+                  Dies entfernt den Kunden und ALLE zugehörigen Onboarding-Daten, Tasks,
+                  Submissions, AM-Zuweisungen und Team-Mitglieder. Diese Aktion kann nicht
+                  rückgängig gemacht werden.
+                </>
+              ) : (
+                <>
+                  Möchtest du den Prospect <strong>{confirmDelete?.name}</strong> wirklich
+                  permanent löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!confirmDelete) return;
+                const target = confirmDelete;
+                setConfirmDelete(null);
+                if (target.kind === "client") {
+                  await handleDelete(target.id, target.name);
+                } else {
+                  await handleDeleteProspect(target.id, target.name);
+                }
+              }}
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
