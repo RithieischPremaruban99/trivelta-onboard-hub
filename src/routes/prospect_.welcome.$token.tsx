@@ -8,7 +8,7 @@ import {
   Save,
   Sparkles,
 } from "lucide-react";
-import { TriveltaIcon } from "@/components/TriveltaIcon";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/prospect_/welcome/$token")({
@@ -117,11 +117,8 @@ function ProspectWelcome() {
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl text-center">
           {/* Branding stamp */}
-          <div className="mb-10 flex items-center justify-center gap-3 animate-fade-in">
-            <TriveltaIcon className="h-8 w-8" />
-            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/70">
-              Trivelta · Pre-Onboarding
-            </div>
+          <div className="mb-10 flex items-center justify-center animate-fade-in">
+            <TriveltaLogo size="sm" product="Pre-Onboarding" />
           </div>
 
           {/* Hero icon */}

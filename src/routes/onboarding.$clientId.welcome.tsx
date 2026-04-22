@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { ArrowRight, ClipboardList, Save, Sparkles, Users } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { TriveltaIcon } from "@/components/TriveltaIcon";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
@@ -132,11 +132,8 @@ function ClientWelcomePage() {
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl text-center">
           {/* Branding stamp */}
-          <div className="mb-10 flex items-center justify-center gap-3 animate-fade-in">
-            <TriveltaIcon className="h-8 w-8" />
-            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/70">
-              Trivelta · Onboarding
-            </div>
+          <div className="mb-10 flex items-center justify-center animate-fade-in">
+            <TriveltaLogo size="sm" product="Onboarding Hub" />
           </div>
 
           {/* Hero icon */}
