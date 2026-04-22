@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.design-locked]
 verify_jwt = false
+
+[functions.prospect-submitted]
+verify_jwt = false
