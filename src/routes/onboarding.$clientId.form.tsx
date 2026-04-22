@@ -1141,10 +1141,23 @@ function YesNo({
   );
 }
 
-function SubCard({ title, children }: { title?: string; children: React.ReactNode }) {
+function SubCard({
+  title,
+  fieldKey,
+  children,
+}: {
+  title?: string;
+  fieldKey?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-lg border border-border bg-background/50 p-4">
-      {title && <div className="mb-3 text-sm font-medium text-foreground">{title}</div>}
+      {title && (
+        <div className="mb-3 flex items-center text-sm font-medium text-foreground">
+          <span>{title}</span>
+          {fieldKey && <FieldInfo fieldKey={fieldKey} />}
+        </div>
+      )}
       {children}
     </div>
   );
@@ -1814,7 +1827,7 @@ function SectionThirdParty({
     form.sms_provider === "infobip" || (form.sms_provider === "other" && !!form.sms_provider_other);
   return (
     <div className="space-y-4">
-      <SubCard title="Payment service providers *">
+      <SubCard title="Payment service providers *" fieldKey="payment_service_providers">
         <div
           className={cn(
             "flex flex-wrap gap-5 rounded-lg p-2 -m-2",
@@ -1867,7 +1880,7 @@ function SectionThirdParty({
           />
         </div>
       </SubCard>
-      <SubCard title="KYC SURT integration *">
+      <SubCard title="KYC SURT integration *" fieldKey="kyc_surt_integration">
         <YesNo value={form.kyc_surt} onChange={(v) => update("kyc_surt", v)} idPrefix="kyc" />
         {showErrors && !form.kyc_surt && (
           <p className="mt-2 text-[11px] text-destructive">This field is required</p>
@@ -1881,7 +1894,7 @@ function SectionThirdParty({
           />
         </div>
       </SubCard>
-      <SubCard title="SMS provider *">
+      <SubCard title="SMS provider *" fieldKey="sms_provider">
         <RadioGroup
           value={form.sms_provider}
           onValueChange={(v) => update("sms_provider", v as FormShape["sms_provider"])}
@@ -1914,7 +1927,7 @@ function SectionThirdParty({
           </div>
         )}
       </SubCard>
-      <SubCard title="DUNS number *">
+      <SubCard title="DUNS number *" fieldKey="duns_number">
         <RadioGroup
           value={form.duns_status}
           onValueChange={(v) => update("duns_status", v as FormShape["duns_status"])}
@@ -1950,7 +1963,7 @@ function SectionThirdParty({
           </div>
         )}
       </SubCard>
-      <SubCard title="Zendesk widget *">
+      <SubCard title="Zendesk widget *" fieldKey="zendesk_account">
         <YesNo value={form.zendesk} onChange={(v) => update("zendesk", v)} idPrefix="zendesk" />
         {showErrors && !form.zendesk && (
           <p className="mt-2 text-[11px] text-destructive">This field is required</p>
@@ -1968,7 +1981,7 @@ function SectionThirdParty({
           </div>
         )}
       </SubCard>
-      <SubCard title="Analytics tags">
+      <SubCard title="Analytics tags" fieldKey="advertising_pixels">
         <div className="flex flex-wrap gap-5">
           {[
             { k: "analytics_meta", label: "Meta Pixel" },
