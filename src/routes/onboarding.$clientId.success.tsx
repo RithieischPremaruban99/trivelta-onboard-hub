@@ -224,6 +224,35 @@ function SuccessScreen() {
               </div>
             </div>
 
+            {/* Step indicator */}
+            <div
+              className="flex items-center gap-4 animate-fade-in"
+              style={{ animationDelay: "60ms" }}
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-success" strokeWidth={2} />
+                <span className="text-xs font-semibold text-success">Step 1 complete</span>
+              </div>
+              <div className="h-px w-8 bg-border" />
+              <div className="flex items-center gap-2">
+                <Circle className="h-5 w-5 text-primary animate-pulse fill-primary/20" strokeWidth={2} />
+                <span className="text-xs font-semibold text-primary">Step 2</span>
+              </div>
+            </div>
+
+            {/* Narrative headline */}
+            <div
+              className="space-y-2 animate-fade-in-up"
+              style={{ animationDelay: "120ms" }}
+            >
+              <h1 className="text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight">
+                Onboarding received.
+              </h1>
+              <h2 className="text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
+                Now for something special.
+              </h2>
+            </div>
+
             {/* Premium AI Studio card */}
             <div
               className="w-full rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 relative overflow-hidden text-left animate-fade-in-up"
