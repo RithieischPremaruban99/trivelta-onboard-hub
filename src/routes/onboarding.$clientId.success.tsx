@@ -116,14 +116,36 @@ function SuccessScreen() {
         <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
           <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto w-full">
 
-            {/* Strategic partnership lockup */}
-            <img
-              src={partnershipLogo}
-              alt="Claude × Trivelta — Strategic Partnership"
-              className="h-16 md:h-20 w-auto select-none animate-fade-in"
+            {/* Strategic partnership lockup — large, melted into background */}
+            <div
+              className="relative animate-fade-in"
               style={{ animationDelay: "20ms" }}
-              draggable={false}
-            />
+            >
+              {/* Soft radial glow behind logo to blend with bg */}
+              <div
+                className="pointer-events-none absolute inset-0 -z-10 blur-3xl opacity-60"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, color-mix(in oklab, var(--color-primary) 25%, transparent) 0%, transparent 65%)",
+                }}
+              />
+              <img
+                src={partnershipLogo}
+                alt="Claude × Trivelta — Strategic Partnership"
+                className="h-32 md:h-44 lg:h-52 w-auto select-none"
+                draggable={false}
+                style={{
+                  // Erase the white/checker background so only the marks remain
+                  mixBlendMode: "screen",
+                  filter:
+                    "brightness(1.15) contrast(1.05) drop-shadow(0 0 24px color-mix(in oklab, var(--color-primary) 35%, transparent))",
+                  WebkitMaskImage:
+                    "radial-gradient(ellipse at center, #000 70%, transparent 100%)",
+                  maskImage:
+                    "radial-gradient(ellipse at center, #000 70%, transparent 100%)",
+                }}
+              />
+            </div>
 
             {/* Step indicator */}
             <div
