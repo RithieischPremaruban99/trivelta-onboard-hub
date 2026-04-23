@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, FileX, Loader2, Send, Sparkles } from "lucide-react";
+import { LogoUploadField } from "@/components/studio/LogoUploadField";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -200,6 +201,7 @@ export function LandingPageGenerator({
   const { welcomeInfo } = useOnboardingCtx();
 
   const [form, setForm] = useState<LandingPageFormState>(DEFAULT_FORM);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [pages, setPages] = useState<GeneratedPages | null>(null);
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
@@ -250,7 +252,7 @@ export function LandingPageGenerator({
   }, [form.licenseJurisdiction]);
 
   /* ── Derived ── */
-  const isValid = REQUIRED_FIELDS.every((f) => form[f].trim() !== "");
+  const isValid = REQUIRED_FIELDS.every((f) => form[f].trim() !== "") && logoUrl !== null;
   const isInvalid = (f: keyof LandingPageFormState) =>
     attempted && REQUIRED_FIELDS.includes(f) && form[f].trim() === "";
 
@@ -282,6 +284,7 @@ export function LandingPageGenerator({
           rgHelplines: form.rgHelplines || undefined,
           brandPrimaryColor: form.brandPrimaryColor,
           brandAccentColor: form.brandAccentColor || undefined,
+          brandLogoUrl: logoUrl!,
         },
       });
 
@@ -415,6 +418,27 @@ export function LandingPageGenerator({
               placeholder="#8b5cf6" className={cn("flex-1 font-mono", inputCls)} maxLength={7} disabled={generating} />
           </div>
         </div>
+      </div>
+
+      {/* Brand Logo */}
+      <SectionHeading compact={compact}>Brand Logo</SectionHeading>
+      <div className="flex flex-col gap-1.5">
+        <FieldLabel htmlFor="lpg-logo" required compact={compact}>Logo file</FieldLabel>
+        <LogoUploadField
+          clientId={clientId}
+          currentLogoUrl={logoUrl}
+          onUploadComplete={(url) => setLogoUrl(url)}
+          onRemove={() => setLogoUrl(null)}
+          disabled={generating}
+        />
+        {attempted && logoUrl === null && (
+          <p className={cn(compact ? "text-[10px]" : "text-xs", "text-destructive mt-0.5")}>
+            A logo is required
+          </p>
+        )}
+        <p className={cn("text-muted-foreground/70", compact ? "text-[10px]" : "text-xs")}>
+          Appears in the header of all 4 generated pages.
+        </p>
       </div>
     </>
   );

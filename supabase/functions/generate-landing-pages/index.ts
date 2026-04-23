@@ -24,6 +24,7 @@ interface GenerationRequest {
   rgHelplines?: string;
   brandPrimaryColor: string;
   brandAccentColor?: string;
+  brandLogoUrl: string;
 }
 
 function buildSystemPrompt(input: GenerationRequest): string {
@@ -56,6 +57,11 @@ Jurisdiction content requirements:
 - Curaçao: Reference CGCB, 18+
 - Malta: Reference MGA, 18+, EU GDPR compliance
 - Other: generic international iGaming language, 18+
+
+Logo requirements:
+- Every page MUST include the brand logo in the header/navbar using this exact img tag (do not alter the src):
+  <img src="${input.brandLogoUrl}" alt="${input.brandName} logo" style="height:40px;width:auto;display:block" />
+- Place it consistently in the top-left of the navbar across all 4 pages.
 
 Design requirements for the landing page (index.html):
 - Hero section with brand name wordmark + tagline
@@ -93,6 +99,7 @@ License number: ${input.licenseNumber ?? "(not yet assigned)"}
 Responsible gambling helplines: ${input.rgHelplines ?? "(use jurisdiction defaults)"}
 Primary brand color: ${input.brandPrimaryColor}
 Accent color: ${input.brandAccentColor ?? "(derive lighter shade from primary)"}
+Brand logo URL: ${input.brandLogoUrl}
 
 Generate all 4 pages now.`;
 }
