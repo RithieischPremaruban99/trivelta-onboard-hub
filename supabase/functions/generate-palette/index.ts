@@ -8,7 +8,7 @@
  * Body: { brandPrompt, language?, logoUrl?, currentPalette?, manualOverrides?, regenerationFeedback? }
  */
 
-import Anthropic from "npm:@anthropic-ai/sdk@^0.32.0";
+import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.32.1?target=deno";
 import {
   DEFAULT_TCM_PALETTE,
   type TCMPalette,
