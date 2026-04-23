@@ -380,7 +380,7 @@ function AdminPage() {
     toast.success("Update request handled - form reset for prospect.");
   };
 
-  const canDelete = role === "admin" || role === "account_executive";
+  const canDelete = role === "admin";
 
   // AMs see only their assigned rows (DB RLS already filters the raw queries;
   // this client-side filter powers the "Mine" tab for admin users).

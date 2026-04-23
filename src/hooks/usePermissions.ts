@@ -34,8 +34,10 @@ export function usePermissions(ctx?: {
     isAM,
     isClient,
 
-    /** Can create / delete clients */
+    /** Can create clients (admin + AE) */
     canCreateClient: isAdminRole,
+    /** Can delete clients & prospects (admin only) */
+    canDeleteClient: role === "admin",
     /** Can create prospects */
     canCreateProspect: isAdminRole || isAM,
     /** Can invite or remove Account Managers */
