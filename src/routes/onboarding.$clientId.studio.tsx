@@ -1471,9 +1471,10 @@ function StudioTour({
 
 function StudioPage() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/studio" });
-  const { user, role, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading, signOut } = useAuth();
   const { welcomeInfo } = useOnboardingCtx();
   const navigate = useNavigate();
+  const [isLandingPageOnlyMode, setIsLandingPageOnlyMode] = useState(false);
   const [initialPalette, setInitialPalette] = useState<TCMPalette | undefined>(undefined);
   const [initialManualOverrides, setInitialManualOverrides] = useState<
     (keyof TCMPalette)[] | undefined
@@ -1587,20 +1588,27 @@ function StudioPage() {
         return;
       }
 
-      // Edge case: if every studio feature is disabled, redirect client (staff bypass)
+      // Compute studio feature flags for mode detection + edge case guard
+      const studioFeatures: StudioFeatures = {
+        ...DEFAULT_STUDIO_FEATURES,
+        ...((clientRes.data as { studio_features?: Partial<StudioFeatures> })
+          ?.studio_features ?? {}),
+      };
+      const enabledFeatureCount = Object.values(studioFeatures).filter(Boolean).length;
+
       if (!isAdminOrAM) {
-        const studioFeatures: StudioFeatures = {
-          ...DEFAULT_STUDIO_FEATURES,
-          ...((clientRes.data as { studio_features?: Partial<StudioFeatures> })
-            ?.studio_features ?? {}),
-        };
-        const hasAnyFeature = Object.values(studioFeatures).some(Boolean);
-        if (!hasAnyFeature) {
+        // Edge case: all features disabled → redirect
+        if (enabledFeatureCount === 0) {
           toast.error(
             "No Studio features are enabled for your account. Contact your Account Manager.",
           );
           navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
           return;
+        }
+
+        // Landing-page-only mode: client has exactly one feature enabled (landing_page_generator)
+        if (studioFeatures.landing_page_generator && enabledFeatureCount === 1) {
+          setIsLandingPageOnlyMode(true);
         }
       }
 
@@ -1682,14 +1690,71 @@ function StudioPage() {
         initialAppName={initialAppName}
         initialAppLabels={initialAppLabels}
       >
-        <StudioInner
-          clientId={clientId}
-          initialLocked={initialLocked}
-          initialLockedAt={initialLockedAt}
-          isAssignedAM={isAssignedAM}
-        />
+        {isLandingPageOnlyMode ? (
+          <LandingPageFullPageShell
+            clientId={clientId}
+            userEmail={user?.email ?? ""}
+            onSignOut={signOut}
+          />
+        ) : (
+          <StudioInner
+            clientId={clientId}
+            initialLocked={initialLocked}
+            initialLockedAt={initialLockedAt}
+            isAssignedAM={isAssignedAM}
+          />
+        )}
       </StudioProvider>
     </StudioFadeWrapper>
+  );
+}
+
+/* ── Landing-page-only full-page shell ──────────────────────────────────── */
+/**
+ * Shown to clients whose only enabled feature is landing_page_generator.
+ * Strips out all Studio chrome (accordion panels, mobile preview, save state)
+ * and renders a focused full-width page builder instead.
+ *
+ * Header decision: uses a minimal custom nav bar rather than the Studio header
+ * (save state + lock controls are irrelevant here) or StageHeader (which
+ * carries "ONBOARDING" branding that doesn't fit a standalone page builder).
+ */
+function LandingPageFullPageShell({
+  clientId,
+  userEmail,
+  onSignOut,
+}: {
+  clientId: string;
+  userEmail: string;
+  onSignOut: () => void;
+}) {
+  useEffect(() => {
+    document.title = "Your Landing Pages · Trivelta";
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Minimal nav bar */}
+      <header className="sticky top-0 z-30 h-[52px] shrink-0 flex items-center border-b border-border/50 bg-background/90 backdrop-blur-xl px-6">
+        <TriveltaLogo size="sm" />
+        <div className="ml-auto flex items-center gap-3">
+          {userEmail && (
+            <span className="hidden sm:block text-xs text-muted-foreground">{userEmail}</span>
+          )}
+          <button
+            onClick={onSignOut}
+            className="rounded-lg border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+          >
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        <LandingPageGenerator clientId={clientId} layout="fullpage" />
+      </div>
+    </div>
   );
 }
 
