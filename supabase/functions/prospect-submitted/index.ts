@@ -13,15 +13,13 @@ const NOTION_VER = "2022-06-28";
 const BLOCK_CHUNK = 90;
 const RT_CHUNK = 1990;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { makeCorsHeaders } from "../_shared/cors.ts";
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
 
 interface RequestBody {
   client_prospect_id: string;
+  prospect_token: string;
   submitted_by?: string;
   submitter_email?: string | null;
 }
@@ -351,11 +349,13 @@ async function appendBlocksToPage(pageId: string, blocks: object[], token: strin
 /* ── Main handler ────────────────────────────────────────────────────────── */
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const cors = makeCorsHeaders(req);
+
+  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
@@ -369,26 +369,42 @@ Deno.serve(async (req) => {
     );
 
     const body: RequestBody = await req.json();
-    const { client_prospect_id, submitted_by = "prospect", submitter_email = null } = body;
+    const { client_prospect_id, prospect_token, submitted_by = "prospect", submitter_email = null } = body;
     if (!client_prospect_id) throw new Error("client_prospect_id is required");
+    if (!prospect_token)      throw new Error("prospect_token is required");
 
     const fnStart = Date.now();
     console.log(`[prospect-submitted] Triggered for prospect_id: ${client_prospect_id} at ${new Date().toISOString()}`);
     console.log(`[prospect-submitted] Submitted by: ${submitted_by} (${submitter_email ?? "unknown"})`);
 
-    // 1. Load prospect
+    // 1. Load prospect - verify token matches and is not expired
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabaseAny = supabase as unknown as { from: (t: string) => any };
+    const supabaseAny = supabase as unknown as { from: (t: string) => any; rpc: (fn: string, args: any) => any };
     const { data: prospect, error: prospectErr } = await supabaseAny
       .from("prospects")
       .select(
-        "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, notion_page_id, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
+        "id, legal_company_name, primary_contact_email, primary_contact_name, assigned_account_manager, notion_page_id, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features, access_token, token_expires_at",
       )
       .eq("id", client_prospect_id)
       .single();
 
     if (prospectErr || !prospect) {
       throw new Error(`Prospect not found: ${prospectErr?.message}`);
+    }
+
+    // Validate token matches and has not expired
+    if (prospect.access_token !== prospect_token) {
+      console.warn(`[prospect-submitted] Token mismatch for prospect ${client_prospect_id}`);
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+    if (new Date(prospect.token_expires_at) < new Date()) {
+      return new Response(JSON.stringify({ error: "Token expired" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
 
     // 2. Resolve Notion page ID
@@ -442,14 +458,14 @@ Deno.serve(async (req) => {
     console.log(`[prospect-submitted] Complete. Duration: ${elapsedMs}ms`);
 
     return new Response(JSON.stringify({ notion_page_id: notionPageId, status: "ok" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[prospect-submitted] Fatal error:", message);
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

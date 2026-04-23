@@ -17,6 +17,7 @@ import {
   DEFAULT_STRINGS,
   type Language,
 } from "../_shared/tcm-strings.ts";
+import { makeCorsHeaders } from "../_shared/cors.ts";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
 const NOTION_API = "https://api.notion.com/v1";
@@ -24,11 +25,6 @@ const NOTION_VER = "2022-06-28";
 // Notion limits: 100 blocks per append request, 2000 chars per rich_text entry
 const BLOCK_CHUNK = 90;
 const RT_CHUNK = 1990;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
 
@@ -602,11 +598,28 @@ async function createNotionPage(
 /* ── Main handler ────────────────────────────────────────────────────────── */
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const cors = makeCorsHeaders(req);
+
+  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
   try {
     const NOTION_TOKEN = Deno.env.get("NOTION_TOKEN");
     if (!NOTION_TOKEN) throw new Error("NOTION_TOKEN not configured");
+
+    // Verify JWT and extract caller identity (verify_jwt = true in config.toml)
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const callerClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user }, error: authError } = await callerClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -616,6 +629,20 @@ Deno.serve(async (req) => {
     const body: RequestBody = await req.json();
     const { client_id, submitted_by = "client_owner", submitter_email = null } = body;
     if (!client_id) throw new Error("client_id is required");
+
+    // Authorization: verify caller has permission to lock this client's design
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: canLock, error: authzErr } = await (supabase as any).rpc("can_lock_design", {
+      p_user_id: user.id,
+      p_client_id: client_id,
+    });
+    if (authzErr || !canLock) {
+      console.warn(`[design-locked] Unauthorized lock attempt by ${user.id} for client ${client_id}`);
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
 
     const fnStart = Date.now();
     console.log(`[design-locked] Triggered for client_id: ${client_id} at ${new Date().toISOString()}`);
@@ -724,13 +751,13 @@ Deno.serve(async (req) => {
     console.log(`[design-locked] Complete for client ${client.name}. Duration: ${elapsedMs}ms`);
 
     return new Response(JSON.stringify({ success: true, notion_page_id: notionPageId }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("[design-locked] Error:", err);
     return new Response(JSON.stringify({ success: false, error: (err as Error).message }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

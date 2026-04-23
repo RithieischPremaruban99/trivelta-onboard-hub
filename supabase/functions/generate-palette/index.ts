@@ -13,17 +13,7 @@ import {
   DEFAULT_TCM_PALETTE,
   type TCMPalette,
 } from "../_shared/tcm-palette.ts";
-
-// ---------------------------------------------------------------------------
-// CORS
-// ---------------------------------------------------------------------------
-
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { makeCorsHeaders } from "../_shared/cors.ts";
 
 // ---------------------------------------------------------------------------
 // Fixed fields - AI must not change these
@@ -687,6 +677,7 @@ const REFINEMENT_PREFIX =
 // ---------------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = { ...makeCorsHeaders(req), "Access-Control-Allow-Methods": "POST, OPTIONS" };
   // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });

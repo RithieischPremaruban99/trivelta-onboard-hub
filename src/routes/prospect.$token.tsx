@@ -17,9 +17,6 @@ export const Route = createFileRoute("/prospect/$token")({
   component: ProspectPage,
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (t: string) => any };
-
 /* ── Types ─────────────────────────────────────────────────────────────────── */
 
 type PageState = "loading" | "valid" | "expired" | "invalid";
@@ -47,41 +44,42 @@ function ProspectPage() {
     }
 
     (async () => {
-      const { data, error } = await db
-        .from("prospects")
-        .select(
-          "id, legal_company_name, primary_contact_name, primary_contact_email, notion_page_id, form_progress, token_expires_at, submitted_at, update_requested_at, update_request_reason, company_details, payment_providers, kyc_compliance, marketing_stack, technical_requirements, optional_features",
-        )
-        .eq("access_token", token)
-        .maybeSingle();
+      // Use SECURITY DEFINER RPC - enforces token validity server-side
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc("get_prospect_by_token", {
+        p_token: token,
+      });
 
-      if (error || !data) {
+      const row = Array.isArray(data) ? data[0] : data;
+
+      if (error || !row) {
         setState("invalid");
         return;
       }
 
-      if (new Date(data.token_expires_at as string) < new Date()) {
+      if (new Date(row.token_expires_at as string) < new Date()) {
         setState("expired");
         return;
       }
 
-      // Record access time (fire-and-forget)
-      db.from("prospects")
-        .update({ last_accessed_at: new Date().toISOString() })
-        .eq("id", data.id)
-        .then(() => {});
+      // Record access time (fire-and-forget, no token needed - RPC handles auth)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).rpc("update_prospect_by_token", {
+        p_token: token,
+        p_fields: { last_accessed_at: new Date().toISOString() },
+      }).then(() => {});
 
       setProspect({
-        ...data,
-        update_requested_at: (data.update_requested_at as string | null) ?? null,
-        update_request_reason: (data.update_request_reason as string | null) ?? null,
-        company_details: (data.company_details as Record<string, unknown>) ?? {},
-        payment_providers: (data.payment_providers as Record<string, unknown>) ?? {},
-        kyc_compliance: (data.kyc_compliance as Record<string, unknown>) ?? {},
-        marketing_stack: (data.marketing_stack as Record<string, unknown>) ?? {},
+        ...row,
+        update_requested_at: (row.update_requested_at as string | null) ?? null,
+        update_request_reason: (row.update_request_reason as string | null) ?? null,
+        company_details: (row.company_details as Record<string, unknown>) ?? {},
+        payment_providers: (row.payment_providers as Record<string, unknown>) ?? {},
+        kyc_compliance: (row.kyc_compliance as Record<string, unknown>) ?? {},
+        marketing_stack: (row.marketing_stack as Record<string, unknown>) ?? {},
         technical_requirements:
-          (data.technical_requirements as Record<string, unknown>) ?? {},
-        optional_features: (data.optional_features as Record<string, unknown>) ?? {},
+          (row.technical_requirements as Record<string, unknown>) ?? {},
+        optional_features: (row.optional_features as Record<string, unknown>) ?? {},
       } as ProspectData);
 
       setState("valid");
@@ -116,14 +114,14 @@ function ProspectPage() {
     saveTimerRef.current = setTimeout(async () => {
       setSaving(true);
       try {
-        const { error } = await db
-          .from("prospects")
-          .update({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase as any).rpc("update_prospect_by_token", {
+          p_token: token,
+          p_fields: {
             [storageKey]: updated[storageKey as keyof ProspectData],
             form_progress: updated.form_progress,
-          })
-          .eq("id", prospect.id)
-          .eq("access_token", token);
+          },
+        });
         if (!error) setSavedAt(new Date());
       } catch (err) {
         console.error("[Prospect] autosave failed:", err);
@@ -137,11 +135,14 @@ function ProspectPage() {
   const handleRequestUpdate = async (reason: string) => {
     if (!prospect) return;
     const now = new Date().toISOString();
-    const { error } = await db
-      .from("prospects")
-      .update({ update_requested_at: now, update_request_reason: reason || null })
-      .eq("id", prospect.id)
-      .eq("access_token", token);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc("update_prospect_by_token", {
+      p_token: token,
+      p_fields: {
+        update_requested_at: now,
+        update_request_reason: reason || null,
+      },
+    });
     if (error) {
       console.error("[Prospect] Request update failed:", error);
       toast.error("Could not request update. Please try again.");
@@ -161,17 +162,23 @@ function ProspectPage() {
     setSubmitting(true);
     try {
       const now = new Date().toISOString();
-      const { error: updateError } = await db
-        .from("prospects")
-        .update({ submitted_at: now, update_requested_at: null, update_request_reason: null })
-        .eq("id", prospect.id)
-        .eq("access_token", token);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase as any).rpc("update_prospect_by_token", {
+        p_token: token,
+        p_fields: {
+          submitted_at: now,
+          update_requested_at: null,
+          update_request_reason: null,
+        },
+      });
       if (updateError) throw updateError;
 
-      // Trigger Notion sync (fire-and-forget with graceful failure)
+      // Trigger Notion sync - include prospect_token so the edge function
+      // can verify the request originated from a valid token holder
       const { data, error: fnError } = await supabase.functions.invoke("prospect-submitted", {
         body: {
           client_prospect_id: prospect.id,
+          prospect_token: token,
           submitted_by: "prospect",
           submitter_email: prospect.primary_contact_email,
         },

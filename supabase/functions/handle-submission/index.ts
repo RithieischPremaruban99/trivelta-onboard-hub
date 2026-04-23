@@ -3,15 +3,11 @@
 // Creates a Notion page in the client tracker database with full SOP checklist.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { makeCorsHeaders } from "../_shared/cors.ts";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
 const NOTION_API = "https://api.notion.com/v1/pages";
 const NOTION_VER = "2022-06-28";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 // ─── Payload shape ────────────────────────────────────────────────────────────
 
@@ -219,6 +215,7 @@ function buildSopBlocks(clientName: string): object[] {
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
+  const corsHeaders = makeCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

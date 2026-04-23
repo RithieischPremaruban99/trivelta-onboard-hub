@@ -4,13 +4,13 @@ project_id = "mityzsdqonwfhlahvkiw"
 verify_jwt = true
 
 [functions.generate-palette]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-logo]
-verify_jwt = false
+verify_jwt = true
 
 [functions.design-locked]
-verify_jwt = false
+verify_jwt = true
 
 [functions.prospect-submitted]
 verify_jwt = false

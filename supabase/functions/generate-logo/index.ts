@@ -16,10 +16,7 @@ const IDEOGRAM_API = "https://api.ideogram.ai/v1/ideogram-v3/generate";
 const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { makeCorsHeaders } from "../_shared/cors.ts";
 
 /* ── Types ─────────────────────────────────────────────────────────────────── */
 
@@ -211,6 +208,7 @@ async function callIdeogram(
 /* ── Main handler ───────────────────────────────────────────────────────────── */
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = makeCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });
   }

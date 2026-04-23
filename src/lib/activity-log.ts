@@ -1,8 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (t: string) => any };
-
 export async function logActivity(params: {
   clientId?: string;
   prospectId?: string;
@@ -16,24 +13,18 @@ export async function logActivity(params: {
       return;
     }
 
-    const { data: roleData } = await db
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const { error } = await db.from("client_activity_log").insert({
-      client_id: params.clientId ?? null,
-      prospect_id: params.prospectId ?? null,
-      actor_user_id: user.id,
-      actor_email: user.email ?? "unknown",
-      actor_role: roleData?.role ?? "unknown",
-      action: params.action,
-      details: params.details ?? {},
+    // Use SECURITY DEFINER RPC - actor identity (user_id, email, role) is
+    // resolved server-side from auth.uid(), preventing forgery by the caller.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc("log_client_activity", {
+      p_client_id:   params.clientId   ?? null,
+      p_action:      params.action,
+      p_details:     params.details    ?? {},
+      p_prospect_id: params.prospectId ?? null,
     });
 
     if (error) {
-      console.error("[ActivityLog] Insert failed:", error, { params });
+      console.error("[ActivityLog] RPC failed:", error, { params });
       // Don't throw - logging should never break the parent flow
     }
   } catch (err) {
