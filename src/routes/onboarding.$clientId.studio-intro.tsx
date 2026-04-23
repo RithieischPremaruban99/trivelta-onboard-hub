@@ -7,7 +7,7 @@ import {
   Palette,
   Sparkles,
 } from "lucide-react";
-import { StageHeader } from "@/components/StageHeader";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { useAuth } from "@/lib/auth-context";
 
@@ -78,97 +78,151 @@ function StudioIntro() {
 
   return (
     <div
-      className={`relative min-h-screen bg-background transition-opacity duration-300 ${
+      className={`relative min-h-screen overflow-hidden bg-background transition-opacity duration-300 ${
         leaving ? "opacity-0" : "opacity-100"
       }`}
     >
-      <StageHeader stage="STUDIO" />
-      {/* Background layers */}
+      {/* ── Premium ambient background ─────────────────────────────────── */}
+      {/* Deep base gradient */}
       <div
         className="pointer-events-none fixed inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 120%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 60%)",
+            "radial-gradient(ellipse 90% 60% at 50% 0%, color-mix(in oklab, var(--color-primary) 14%, transparent), transparent 70%), radial-gradient(ellipse 80% 50% at 50% 100%, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 65%)",
         }}
       />
+      {/* Silver vignette wash */}
       <div
-        className="pointer-events-none fixed inset-0"
+        className="pointer-events-none fixed inset-0 opacity-[0.04]"
         style={{
           background:
-            "radial-gradient(ellipse at top, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 55%)",
+            "linear-gradient(135deg, #f4f6fa 0%, transparent 25%, transparent 75%, #d3d8e0 100%)",
         }}
       />
-
-      {/* Subtle animated orbs */}
-      <div className="pointer-events-none fixed left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[100px] animate-pulse-slow" />
+      {/* Fine grain texture */}
       <div
-        className="pointer-events-none fixed bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-primary/5 blur-[80px] animate-pulse-slow"
-        style={{ animationDelay: "2s" }}
+        className="pointer-events-none fixed inset-0 opacity-[0.025] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+        }}
+      />
+      {/* Slow orbs */}
+      <div className="pointer-events-none fixed left-[15%] top-[20%] h-[420px] w-[420px] rounded-full bg-primary/[0.08] blur-[120px] animate-pulse-slow" />
+      <div
+        className="pointer-events-none fixed bottom-[15%] right-[15%] h-[360px] w-[360px] rounded-full bg-primary/[0.05] blur-[100px] animate-pulse-slow"
+        style={{ animationDelay: "2.5s" }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
-        <div className="w-full max-w-2xl text-center">
-          {/* Welcome personalization */}
+      {/* ── Brand corner (mirrors Suite landing) ───────────────────────── */}
+      <div className="fixed left-5 top-4 z-50 sm:left-8">
+        <TriveltaLogo size="xl" withSubtitle product="Studio" brandSuffix="AI" poweredBy />
+      </div>
+
+      {/* ── Content ────────────────────────────────────────────────────── */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-24">
+        <div className="w-full max-w-3xl text-center">
+          {/* Eyebrow / personalization */}
           {welcomeInfo?.clientName && (
             <div
-              className="mb-4 text-xs font-semibold uppercase tracking-widest text-primary/80 animate-fade-in"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/40 px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80 backdrop-blur-md animate-fade-in"
               style={{ animationDelay: "120ms" }}
             >
+              <span className="h-1 w-1 rounded-full bg-primary" />
               Welcome, {welcomeInfo.clientName}
             </div>
           )}
 
-          {/* Headline */}
+          {/* Headline — premium silver gradient on accent line */}
           <h1
-            className="mb-5 text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight text-foreground animate-fade-in-up"
+            className="mb-6 text-[44px] md:text-[64px] font-semibold leading-[1.02] tracking-[-0.02em] text-foreground animate-fade-in-up"
             style={{ animationDelay: "180ms" }}
           >
             Build your brand,
             <br />
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
-              powered by AI
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, #f4f6fa 0%, #d3d8e0 25%, #aab1bd 50%, #e8ecf2 75%, #b8bfca 100%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+              }}
+            >
+              powered by AI.
             </span>
           </h1>
 
           <p
-            className="mx-auto mb-12 max-w-lg text-base leading-relaxed text-muted-foreground animate-fade-in-up"
+            className="mx-auto mb-14 max-w-xl text-[15px] md:text-base leading-relaxed text-muted-foreground/80 animate-fade-in-up"
             style={{ animationDelay: "260ms" }}
           >
-            The complete design system for your iGaming platform - generated by AI, refined by
-            you, delivered production-ready.
+            The complete design system for your iGaming platform — generated by AI,
+            refined by you, delivered production-ready.
           </p>
 
-          {/* Feature grid */}
-          <div className="mb-12 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Feature grid — premium glass cards */}
+          <div className="mb-14 grid grid-cols-2 md:grid-cols-4 gap-3">
             {features.map(({ icon: Icon, label, desc }, i) => (
               <div
                 key={label}
-                className="group rounded-xl border border-border/40 bg-card/30 p-4 backdrop-blur-md transition-all hover:-translate-y-1 hover:border-primary/30 hover:bg-card/50 animate-fade-in-up"
-                style={{ animationDelay: `${i * 100 + 320}ms` }}
+                className="group relative overflow-hidden rounded-2xl border border-border/30 bg-card/20 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-border/60 hover:bg-card/40 animate-fade-in-up"
+                style={{
+                  animationDelay: `${i * 100 + 320}ms`,
+                  boxShadow:
+                    "inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 2px 0 rgba(0,0,0,0.2)",
+                }}
               >
-                <div className="mx-auto mb-3 grid h-9 w-9 place-items-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
-                  <Icon className="h-4 w-4 text-primary" />
+                {/* Subtle top sheen */}
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
+                  }}
+                />
+                <div
+                  className="mx-auto mb-3.5 grid h-10 w-10 place-items-center rounded-xl border border-border/40 bg-gradient-to-br from-primary/15 to-primary/5 transition-all group-hover:scale-105 group-hover:border-primary/40"
+                  style={{
+                    boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <Icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
                 </div>
-                <div className="mb-1 text-xs font-semibold text-foreground">{label}</div>
-                <div className="text-[10px] leading-relaxed text-muted-foreground/70">{desc}</div>
+                <div className="mb-1 text-[12px] font-semibold tracking-tight text-foreground">
+                  {label}
+                </div>
+                <div className="text-[10.5px] leading-relaxed text-muted-foreground/65">
+                  {desc}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* CTA */}
+          {/* CTA — premium dark pill with silver inner edge */}
           <button
             onClick={handleEnterStudio}
-            className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0 animate-fade-in-up"
-            style={{ animationDelay: "780ms" }}
+            className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-primary px-8 py-4 text-[15px] font-semibold text-primary-foreground transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 animate-fade-in-up"
+            style={{
+              animationDelay: "780ms",
+              boxShadow:
+                "0 1px 0 0 rgba(255,255,255,0.12) inset, 0 0 0 1px color-mix(in oklab, var(--color-primary) 60%, transparent), 0 10px 30px -8px color-mix(in oklab, var(--color-primary) 50%, transparent), 0 20px 60px -20px color-mix(in oklab, var(--color-primary) 40%, transparent)",
+            }}
           >
-            Enter Studio
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            {/* Sheen sweep on hover */}
+            <span
+              className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+            />
+            <span className="relative">Enter Studio</span>
+            <ArrowRight
+              className="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1"
+              strokeWidth={2.25}
+            />
           </button>
 
           {/* Skip checkbox */}
-          <div className="mt-8 flex items-center justify-center">
-            <label className="inline-flex cursor-pointer items-center gap-2 text-[11px] text-muted-foreground/50 transition-colors hover:text-muted-foreground">
+          <div className="mt-10 flex items-center justify-center">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-[11px] tracking-wide text-muted-foreground/40 transition-colors hover:text-muted-foreground/80">
               <input
                 type="checkbox"
                 checked={skipNextTime}
@@ -180,6 +234,15 @@ function StudioIntro() {
           </div>
         </div>
       </div>
+
+      {/* ── Bottom hairline — Rolls-Royce brand bar ───────────────────── */}
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, rgba(220,224,232,0.25) 20%, rgba(220,224,232,0.5) 50%, rgba(220,224,232,0.25) 80%, transparent 100%)",
+        }}
+      />
     </div>
   );
 }
