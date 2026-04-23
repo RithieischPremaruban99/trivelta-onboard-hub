@@ -24,6 +24,7 @@ function AuthScreen() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState<"onboarding" | "studio">("onboarding");
 
   useEffect(() => {
     document.title = "Trivelta Hub · Welcome";
@@ -50,6 +51,7 @@ function AuthScreen() {
         if (formRes.data?.submitted_at) {
           const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
           if (sf?.landing_page_generator) {
+            setRedirectTarget("studio");
             navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
           } else if (clientRes.data?.studio_access) {
             navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
@@ -65,7 +67,7 @@ function AuthScreen() {
 
   // Block rendering while auth loads or we're about to redirect an already-authed user
   if (authLoading || loadingAuth || redirecting) {
-    return <OnboardingLoadingScreen />;
+    return <OnboardingLoadingScreen variant={redirectTarget} />;
   }
 
   const handleSend = async (e: React.FormEvent) => {

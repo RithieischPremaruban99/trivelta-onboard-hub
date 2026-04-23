@@ -29,6 +29,7 @@ function WelcomeGate() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [redirecting, setRedirecting] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState<"onboarding" | "studio">("onboarding");
 
   useEffect(() => {
     document.title = "Trivelta Hub · Welcome";
@@ -54,6 +55,7 @@ function WelcomeGate() {
       if (formRes.data?.submitted_at) {
         const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
         if (sf?.landing_page_generator) {
+          setRedirectTarget("studio");
           navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
         } else if (clientRes.data?.studio_access) {
           navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
@@ -78,7 +80,7 @@ function WelcomeGate() {
 
   // Block while auth or public data is loading, or while an authed redirect is in flight
   if (authLoading || loadingPublic || redirecting) {
-    return <OnboardingLoadingScreen />;
+    return <OnboardingLoadingScreen variant={redirectTarget} />;
   }
 
   if (!welcomeInfo) {
