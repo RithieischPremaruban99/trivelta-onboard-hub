@@ -769,9 +769,9 @@ export function StudioInner({
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
+      <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
         <div className="flex w-[35%] shrink-0 items-center">
-          <TriveltaLogo size="sm" withSubtitle product="AI · Studio" poweredBy />
+          <TriveltaLogo size="xl" withSubtitle product="AI · Studio" poweredBy />
         </div>
         <div className="flex flex-1 items-center justify-center gap-2">
           {welcomeInfo && (
@@ -1749,8 +1749,8 @@ function LandingPageFullPageShell({
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Minimal nav bar */}
-      <header className="sticky top-0 z-30 h-[52px] shrink-0 flex items-center border-b border-border/50 bg-background/90 backdrop-blur-xl px-6">
-        <TriveltaLogo size="sm" withSubtitle product="AI · Studio" poweredBy />
+      <header className="sticky top-0 z-30 h-[60px] shrink-0 flex items-center border-b border-border/50 bg-background/90 backdrop-blur-xl px-6">
+        <TriveltaLogo size="xl" withSubtitle product="AI · Studio" poweredBy />
         <div className="ml-auto flex items-center gap-3">
           {userEmail && (
             <span className="hidden sm:block text-xs text-muted-foreground">{userEmail}</span>
@@ -1763,6 +1763,17 @@ function LandingPageFullPageShell({
           </button>
         </div>
       </header>
+
+      {/* Premium brand banner */}
+      <div className="border-b border-primary/10 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 shrink-0">
+        <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-center gap-2 text-[11px]">
+          <Sparkles className="h-3 w-3 text-primary shrink-0" />
+          <span className="text-muted-foreground">
+            Welcome to <span className="text-foreground font-semibold">Trivelta AI Studio</span> —
+            exclusive access, powered by Anthropic's Claude
+          </span>
+        </div>
+      </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">

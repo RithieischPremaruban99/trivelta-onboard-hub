@@ -4,14 +4,19 @@ import {
   ArrowRight,
   CheckCircle2,
   Circle,
+  Clock,
   Download,
+  Eye,
   FileText,
   Loader2,
   Mail,
+  Palette,
   Rocket,
   Settings2,
+  Shield,
   Sparkles,
   UserCircle,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -107,87 +112,132 @@ function SuccessScreen() {
           style={{ animationDelay: "2s" }}
         />
 
-        <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
-          <div className="w-full max-w-2xl text-center">
+        <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
+          <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto w-full">
 
             {/* Step indicator */}
             <div
-              className="mx-auto mb-10 flex items-center justify-center gap-3 animate-fade-in"
+              className="flex items-center gap-4 animate-fade-in"
               style={{ animationDelay: "60ms" }}
             >
-              {/* Step 1 — complete */}
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-success" strokeWidth={2} />
-                <span className="text-xs font-semibold text-success">Step 1: Onboarding</span>
+                <span className="text-xs font-semibold text-success">Step 1 complete</span>
               </div>
-              {/* Connector */}
-              <div className="h-px w-10 bg-border" />
-              {/* Step 2 — current */}
+              <div className="h-px w-8 bg-border" />
               <div className="flex items-center gap-2">
-                <Circle className="h-5 w-5 text-primary animate-pulse" strokeWidth={2} />
-                <span className="text-xs font-semibold text-primary">Step 2: Landing Pages</span>
+                <Circle className="h-5 w-5 text-primary animate-pulse fill-primary/20" strokeWidth={2} />
+                <span className="text-xs font-semibold text-primary">Step 2</span>
               </div>
             </div>
 
-            {/* Micro-label */}
+            {/* Narrative headline */}
             <div
-              className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-success animate-fade-in"
-              style={{ animationDelay: "100ms" }}
+              className="space-y-2 animate-fade-in-up"
+              style={{ animationDelay: "120ms" }}
             >
-              STEP 1 COMPLETE
+              <h1 className="text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight">
+                Onboarding received.
+              </h1>
+              <h2 className="text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
+                Now for something special.
+              </h2>
             </div>
 
-            {/* Headline */}
-            <h1
-              className="mb-5 text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight text-foreground animate-fade-in-up"
-              style={{ animationDelay: "160ms" }}
-            >
-              Onboarding received.
-              <br />
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
-                Now let's create your pages.
-              </span>
-            </h1>
-
-            <p
-              className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-muted-foreground animate-fade-in-up"
-              style={{ animationDelay: "240ms" }}
-            >
-              Before your Account Manager can proceed, we need your branded landing, terms, privacy,
-              and responsible gambling pages. This takes about five minutes.
-            </p>
-
-            {/* Required callout */}
+            {/* Premium AI Studio card */}
             <div
-              className="mx-auto mb-10 flex max-w-xl items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 px-5 py-4 text-left animate-fade-in-up"
-              style={{ animationDelay: "320ms" }}
+              className="w-full rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 relative overflow-hidden text-left animate-fade-in-up"
+              style={{ animationDelay: "220ms" }}
             >
-              <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <p className="text-[13px] leading-relaxed text-foreground/90">
-                <span className="font-semibold">Required before go-live.</span>{" "}
-                <span className="text-muted-foreground/90">
-                  Your Account Manager is waiting on these pages before they can begin your platform
-                  setup. Completing Step 2 now keeps your launch on schedule.
-                </span>
-              </p>
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 h-40 w-40 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl -translate-y-20 translate-x-20 pointer-events-none" />
+
+              <div className="relative space-y-6">
+
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    Exclusive Access · Trivelta AI Studio
+                  </span>
+                </div>
+
+                {/* Body */}
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold">
+                    You're about to enter Trivelta AI Studio.
+                  </h3>
+
+                  <p className="text-muted-foreground leading-relaxed">
+                    Most operators spend weeks and thousands of dollars building their compliant landing pages,
+                    terms of service, privacy policy, and responsible gambling resources. You're about to do it
+                    in under 5 minutes.
+                  </p>
+
+                  <p className="text-muted-foreground leading-relaxed">
+                    Our AI Studio is powered by{" "}
+                    <span className="text-foreground font-medium">Anthropic's Claude</span> —
+                    the same AI used by Fortune 500 companies for legal and compliance work. Every page is generated
+                    specifically for your brand, your jurisdiction, and your market.
+                  </p>
+
+                  {/* What happens inside */}
+                  <div className="rounded-xl bg-background/40 border border-border/40 p-4 space-y-2.5 mt-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                      What happens inside
+                    </div>
+                    {[
+                      { icon: Palette, text: "Upload your logo and pick your brand color" },
+                      { icon: Sparkles, text: "AI generates your 4 pages with jurisdiction-specific legal copy" },
+                      { icon: Eye, text: "Preview on desktop + mobile, regenerate until perfect" },
+                      { icon: Download, text: "Download and hand off to your Trivelta team for deployment" },
+                    ].map(({ icon: Icon, text }) => (
+                      <div key={text} className="flex items-center gap-3 text-sm">
+                        <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                          <Icon className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <span>{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <button
+                  onClick={() =>
+                    navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
+                  }
+                  className="group w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0"
+                >
+                  <Sparkles className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                  Enter Trivelta AI Studio
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </button>
+
+                {/* Meta */}
+                <div className="flex items-center justify-center gap-6 text-[11px] text-muted-foreground pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" />
+                    <span>~5 minutes</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="h-3 w-3" />
+                    <span>Compliance-ready</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="h-3 w-3" />
+                    <span>Powered by Anthropic</span>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
-            {/* CTAs */}
+            {/* Secondary actions */}
             <div
-              className="flex flex-col items-center gap-3 animate-fade-in-up"
-              style={{ animationDelay: "400ms" }}
+              className="flex flex-col items-center gap-2 opacity-70 animate-fade-in-up"
+              style={{ animationDelay: "380ms" }}
             >
-              <button
-                onClick={() =>
-                  navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
-                }
-                className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
-              >
-                <Sparkles className="h-5 w-5" />
-                Continue to Step 2: Landing Pages
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </button>
-
               {pdfData && (
                 <button
                   onClick={async () => {
@@ -205,12 +255,15 @@ function SuccessScreen() {
                       toast.error("Could not generate PDF. Please try again.");
                     }
                   }}
-                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-muted-foreground/60 hover:text-foreground/70 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-muted-foreground/70 hover:text-foreground/70 transition-colors"
                 >
                   <Download className="h-3.5 w-3.5" />
                   Download Submission Summary (PDF)
                 </button>
               )}
+              <p className="text-xs text-muted-foreground">
+                You can return to Trivelta AI Studio anytime from your dashboard.
+              </p>
             </div>
 
           </div>
