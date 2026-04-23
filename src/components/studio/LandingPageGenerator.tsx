@@ -46,7 +46,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import { AccordionSection } from "@/components/studio/AccordionSection";
+import { FormField } from "@/components/studio/FormField";
 import { LogoUploadField } from "@/components/studio/LogoUploadField";
+import { PremiumColorPicker } from "@/components/studio/PremiumColorPicker";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -263,7 +265,7 @@ function SectionHeading({ children, compact }: { children: React.ReactNode; comp
 /* ── Sidebar field styles ─────────────────────────────────────────────────── */
 
 const SI_LABEL = "block text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5";
-const SI_INPUT = "bg-background/50 border-border/60 hover:border-primary/30 focus-visible:border-primary/50 transition-all text-sm";
+const SI_INPUT = "bg-background/40 border-border/40 hover:border-border/60 focus-visible:border-primary/60 focus-visible:ring-4 focus-visible:ring-primary/10 transition-all duration-200 text-sm placeholder:text-muted-foreground/40";
 const SI_HELPER = "text-[11px] text-muted-foreground mt-1.5";
 
 /* ── Main component ───────────────────────────────────────────────────────── */
@@ -300,6 +302,7 @@ export function LandingPageGenerator({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState<string>("company");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+  const [genStage, setGenStage] = useState<string>("");
 
   const toggleSection = (key: string) =>
     setActiveSection((s) => (s === key ? "" : key));
@@ -356,6 +359,26 @@ export function LandingPageGenerator({
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.licenseJurisdiction]);
+
+  /* ── Generation stage text ── */
+  useEffect(() => {
+    if (!generating) {
+      setGenStage("");
+      return;
+    }
+    const stages = [
+      { delay: 0, text: "Preparing your brand…" },
+      { delay: 3000, text: "Analyzing jurisdiction…" },
+      { delay: 7000, text: "Generating landing page…" },
+      { delay: 12000, text: "Drafting legal content…" },
+      { delay: 18000, text: "Polishing your pages…" },
+      { delay: 25000, text: "Almost there…" },
+    ];
+    const timeouts = stages.map(({ delay, text }) =>
+      setTimeout(() => setGenStage(text), delay),
+    );
+    return () => timeouts.forEach(clearTimeout);
+  }, [generating]);
 
   /* ── Derived ── */
   const missingFields = useMemo(() => {
@@ -803,47 +826,42 @@ export function LandingPageGenerator({
               onClick={() => toggleSection("company")}
             >
               <div className="px-5 py-4 space-y-4">
-                <div>
-                  <label htmlFor="si-legal" className={SI_LABEL}>
-                    Legal company name <span className="text-destructive">*</span>
-                  </label>
+                <FormField
+                  label="Legal company name"
+                  required
+                  error={isInvalid("legalCompanyName") ? "Required" : undefined}
+                >
                   <Input id="si-legal" value={form.legalCompanyName}
                     onChange={onChange("legalCompanyName")} placeholder="Scorama Limited"
                     className={SI_INPUT} disabled={generating} />
-                  {isInvalid("legalCompanyName") && (
-                    <p className={SI_HELPER + " text-destructive"}>Required</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="si-brand" className={SI_LABEL}>
-                    Public brand name <span className="text-destructive">*</span>
-                  </label>
+                </FormField>
+                <FormField
+                  label="Public brand name"
+                  required
+                  error={isInvalid("brandName") ? "Required" : undefined}
+                >
                   <Input id="si-brand" value={form.brandName}
                     onChange={onChange("brandName")} placeholder="Scorama"
                     className={SI_INPUT} disabled={generating} />
-                  {isInvalid("brandName") && (
-                    <p className={SI_HELPER + " text-destructive"}>Required</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="si-domain" className={SI_LABEL}>
-                    Primary domain <span className="text-destructive">*</span>
-                  </label>
+                </FormField>
+                <FormField
+                  label="Primary domain"
+                  required
+                  error={isInvalid("primaryDomain") ? "Required" : undefined}
+                  helperText={!isInvalid("primaryDomain") ? "Where your landing page is hosted" : undefined}
+                >
                   <Input id="si-domain" value={form.primaryDomain}
                     onChange={onChange("primaryDomain")} placeholder="scorama.com"
                     className={SI_INPUT} disabled={generating} />
-                  {isInvalid("primaryDomain")
-                    ? <p className={SI_HELPER + " text-destructive"}>Required</p>
-                    : <p className={SI_HELPER}>Where your landing page is hosted</p>
-                  }
-                </div>
-                <div>
-                  <label htmlFor="si-sub" className={SI_LABEL}>Platform subdomain</label>
+                </FormField>
+                <FormField
+                  label="Platform subdomain"
+                  helperText="The betting app URL. CTA buttons will link here."
+                >
                   <Input id="si-sub" value={form.platformSubdomain}
                     onChange={onChange("platformSubdomain")} placeholder="play.scorama.com"
                     className={SI_INPUT} disabled={generating} />
-                  <p className={SI_HELPER}>The betting app URL. CTA buttons will link here.</p>
-                </div>
+                </FormField>
               </div>
             </AccordionSection>
 
@@ -856,23 +874,20 @@ export function LandingPageGenerator({
               onClick={() => toggleSection("support")}
             >
               <div className="px-5 py-4 space-y-4">
-                <div>
-                  <label htmlFor="si-email" className={SI_LABEL}>
-                    Support email <span className="text-destructive">*</span>
-                  </label>
+                <FormField
+                  label="Support email"
+                  required
+                  error={isInvalid("supportEmail") ? "Required" : undefined}
+                >
                   <Input id="si-email" type="email" value={form.supportEmail}
                     onChange={onChange("supportEmail")} placeholder="support@scorama.com"
                     className={SI_INPUT} disabled={generating} />
-                  {isInvalid("supportEmail") && (
-                    <p className={SI_HELPER + " text-destructive"}>Required</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="si-phone" className={SI_LABEL}>Support helpline</label>
+                </FormField>
+                <FormField label="Support helpline">
                   <Input id="si-phone" value={form.supportHelpline}
                     onChange={onChange("supportHelpline")} placeholder="+234 800 123 4567"
                     className={SI_INPUT} disabled={generating} />
-                </div>
+                </FormField>
               </div>
             </AccordionSection>
 
@@ -885,10 +900,11 @@ export function LandingPageGenerator({
               onClick={() => toggleSection("legal")}
             >
               <div className="px-5 py-4 space-y-4">
-                <div>
-                  <label htmlFor="si-jur" className={SI_LABEL}>
-                    License jurisdiction <span className="text-destructive">*</span>
-                  </label>
+                <FormField
+                  label="License jurisdiction"
+                  required
+                  error={isInvalid("licenseJurisdiction") ? "Required" : undefined}
+                >
                   <Select value={form.licenseJurisdiction} onValueChange={set("licenseJurisdiction")} disabled={generating}>
                     <SelectTrigger id="si-jur" className={cn(SI_INPUT, "text-sm")}>
                       <SelectValue placeholder="Select jurisdiction…" />
@@ -899,26 +915,25 @@ export function LandingPageGenerator({
                       ))}
                     </SelectContent>
                   </Select>
-                  {isInvalid("licenseJurisdiction") && (
-                    <p className={SI_HELPER + " text-destructive"}>Required</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="si-lic" className={SI_LABEL}>License number</label>
+                </FormField>
+                <FormField
+                  label="License number"
+                  helperText="Your operating license number, if assigned"
+                >
                   <Input id="si-lic" value={form.licenseNumber}
                     onChange={onChange("licenseNumber")} placeholder="00123456"
                     className={SI_INPUT} disabled={generating} />
-                  <p className={SI_HELPER}>Your operating license number, if assigned</p>
-                </div>
-                <div>
-                  <label htmlFor="si-rg" className={SI_LABEL}>RG helplines</label>
+                </FormField>
+                <FormField
+                  label="RG helplines"
+                  helperText="Auto-filled from jurisdiction. Override if needed."
+                >
                   <Textarea id="si-rg" value={form.rgHelplines}
                     onChange={onChange("rgHelplines")}
                     placeholder="Auto-populated when jurisdiction is selected"
                     className={cn(SI_INPUT, "resize-none min-h-[88px] text-sm")}
                     disabled={generating} />
-                  <p className={SI_HELPER}>Auto-filled from jurisdiction. Override if needed.</p>
-                </div>
+                </FormField>
               </div>
             </AccordionSection>
 
@@ -930,66 +945,20 @@ export function LandingPageGenerator({
               active={activeSection === "visuals"}
               onClick={() => toggleSection("visuals")}
             >
-              <div className="px-5 py-4 space-y-3">
-                {/* Primary color card */}
-                <div>
-                  <label className={SI_LABEL}>
-                    Primary color <span className="text-destructive">*</span>
-                  </label>
-                  <div
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-all cursor-pointer"
-                    onClick={() => document.getElementById("si-pc-input")?.click()}
-                  >
-                    <div
-                      className="h-10 w-10 rounded-lg shadow-sm shrink-0"
-                      style={{ background: form.brandPrimaryColor }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium">Primary color</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
-                        {form.brandPrimaryColor}
-                      </div>
-                    </div>
-                    <input
-                      type="color"
-                      id="si-pc-input"
-                      value={form.brandPrimaryColor}
-                      onChange={onChange("brandPrimaryColor")}
-                      disabled={generating}
-                      className="sr-only"
-                    />
-                  </div>
-                  {isInvalid("brandPrimaryColor") && (
-                    <p className={SI_HELPER + " text-destructive"}>Required</p>
-                  )}
-                </div>
-                {/* Accent color card */}
-                <div>
-                  <label className={SI_LABEL}>Accent color</label>
-                  <div
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-all cursor-pointer"
-                    onClick={() => document.getElementById("si-ac-input")?.click()}
-                  >
-                    <div
-                      className="h-10 w-10 rounded-lg shadow-sm shrink-0"
-                      style={{ background: form.brandAccentColor }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium">Accent color</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
-                        {form.brandAccentColor}
-                      </div>
-                    </div>
-                    <input
-                      type="color"
-                      id="si-ac-input"
-                      value={form.brandAccentColor}
-                      onChange={onChange("brandAccentColor")}
-                      disabled={generating}
-                      className="sr-only"
-                    />
-                  </div>
-                </div>
+              <div className="px-5 py-4 space-y-4">
+                <PremiumColorPicker
+                  label="Primary color"
+                  value={form.brandPrimaryColor}
+                  onChange={(color) => set("brandPrimaryColor")(color)}
+                  required
+                  disabled={generating}
+                />
+                <PremiumColorPicker
+                  label="Accent color"
+                  value={form.brandAccentColor || form.brandPrimaryColor}
+                  onChange={(color) => set("brandAccentColor")(color)}
+                  disabled={generating}
+                />
               </div>
             </AccordionSection>
 
@@ -1030,20 +999,36 @@ export function LandingPageGenerator({
             {/* Step 1 — Generate (shown until pages are ready) */}
             {!pages && (
               <Button
-                className="w-full gap-1.5"
+                size="lg"
                 disabled={generating}
                 onClick={handleGenerate}
+                className={cn(
+                  "w-full relative overflow-hidden transition-all duration-500 group",
+                  generating && "cursor-wait",
+                  !canGenerate && !generating && "opacity-70",
+                )}
               >
                 {generating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating…
-                  </>
+                  <div className="flex items-center justify-center gap-3 w-full">
+                    <div className="relative h-4 w-4 shrink-0">
+                      <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
+                    </div>
+                    <span
+                      key={genStage}
+                      className="animate-in fade-in slide-in-from-bottom-1 duration-300"
+                    >
+                      {genStage || "Starting…"}
+                    </span>
+                  </div>
                 ) : (
                   <>
-                    <Send className="h-4 w-4" />
+                    <Sparkles className="mr-2 h-4 w-4" />
                     Generate Pages
                   </>
+                )}
+                {canGenerate && !generating && (
+                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
                 )}
               </Button>
             )}
