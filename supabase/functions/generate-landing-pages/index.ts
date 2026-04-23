@@ -146,9 +146,9 @@ Deno.serve(async (req) => {
       const message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 8000,
+          max_tokens: 16000,
           system:
-            "You generate brand-specific content for iGaming operator websites. Output valid JSON only. No markdown fences. No commentary.",
+            "You MUST return ONLY valid JSON. No markdown fences. No preamble. No explanations. Start your response with { and end with }.",
           messages: [{ role: "user", content: buildUserPrompt(input) }],
         },
         { signal: controller.signal },
@@ -171,8 +171,15 @@ Deno.serve(async (req) => {
     // ── Parse JSON ─────────────────────────────────────────────────────────
     let aiJson: AiJson;
     try {
-      // Strip accidental markdown fences if Claude adds them despite instructions
-      const cleaned = rawText.replace(/^```json\s*/i, "").replace(/\s*```$/, "").trim();
+      // Strip markdown fences and extract JSON boundaries robustly
+      let cleaned = rawText.trim();
+      if (cleaned.startsWith("```json")) cleaned = cleaned.substring(7);
+      if (cleaned.startsWith("```")) cleaned = cleaned.substring(3);
+      if (cleaned.endsWith("```")) cleaned = cleaned.substring(0, cleaned.length - 3);
+      cleaned = cleaned.trim();
+      const startIdx = cleaned.indexOf("{");
+      const endIdx = cleaned.lastIndexOf("}");
+      if (startIdx !== -1 && endIdx !== -1) cleaned = cleaned.substring(startIdx, endIdx + 1);
       aiJson = JSON.parse(cleaned);
     } catch {
       console.error("[generate-landing-pages] JSON parse failed. Raw:", rawText.substring(0, 500));
