@@ -525,6 +525,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_lock_design: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: boolean
+      }
       client_has_studio_feature: {
         Args: { p_client_id: string; p_feature: string }
         Returns: boolean
@@ -539,6 +543,43 @@ export type Database = {
           client_name: string
           progress_pct: number
         }[]
+      }
+      get_prospect_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          access_token: string | null
+          assigned_account_manager: string | null
+          company_details: Json | null
+          contract_status: string | null
+          converted_at: string | null
+          converted_to_client_id: string | null
+          created_at: string | null
+          created_by: string
+          form_progress: number | null
+          id: string
+          kyc_compliance: Json | null
+          last_accessed_at: string | null
+          legal_company_name: string
+          marketing_stack: Json | null
+          notion_page_id: string | null
+          optional_features: Json | null
+          payment_providers: Json | null
+          primary_contact_email: string
+          primary_contact_name: string | null
+          primary_contact_phone: string | null
+          submitted_at: string | null
+          technical_requirements: Json | null
+          token_expires_at: string
+          update_request_reason: string | null
+          update_requested_at: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "prospects"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       has_role: {
         Args: {
@@ -556,8 +597,21 @@ export type Database = {
       }
       is_client_team_member: { Args: { _client_id: string }; Returns: boolean }
       is_legacy_assigned_am: { Args: { _client_id: string }; Returns: boolean }
+      log_client_activity: {
+        Args: {
+          p_action: string
+          p_client_id: string
+          p_details?: Json
+          p_prospect_id?: string
+        }
+        Returns: undefined
+      }
       register_onboarding_visitor: {
         Args: { _client_id: string }
+        Returns: undefined
+      }
+      update_prospect_by_token: {
+        Args: { p_fields: Json; p_token: string }
         Returns: undefined
       }
     }
