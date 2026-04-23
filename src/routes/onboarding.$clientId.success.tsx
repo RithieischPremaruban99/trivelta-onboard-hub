@@ -432,14 +432,28 @@ function SuccessScreen() {
 
 
 
-          {/* Strategic partnership lockup */}
-          <img
-            src={partnershipLogo}
-            alt="Claude × Trivelta — Strategic Partnership"
-            className="mx-auto mb-8 h-16 md:h-20 w-auto select-none animate-fade-in"
+          {/* Compact partnership badge */}
+          <div
+            className="mx-auto mb-8 inline-flex items-center gap-3 rounded-full border border-border/40 bg-card/30 backdrop-blur-md px-4 py-2 animate-fade-in"
             style={{ animationDelay: "80ms" }}
-            draggable={false}
-          />
+          >
+            <div
+              className="h-6 w-6 rounded-md flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #D97757, #C56B4A)" }}
+            >
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white" fill="currentColor">
+                <path d="M12 2L13.09 8.26L22 9L13.09 10.74L12 22L10.91 10.74L2 9L10.91 8.26L12 2Z" />
+              </svg>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80">
+              Claude × Trivelta
+            </span>
+            <div
+              className="h-6 w-6 rounded-md flex items-center justify-center p-1 bg-primary"
+            >
+              <img src="/favicon.png" alt="Trivelta" className="h-full w-full object-contain" />
+            </div>
+          </div>
 
           {/* Micro-label */}
           <div
