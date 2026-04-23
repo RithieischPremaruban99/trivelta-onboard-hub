@@ -17,14 +17,24 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   AlertCircle,
   Building,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
   Download,
+  ExternalLink,
   FileCheck,
   FileX,
+  FolderOpen,
   Loader2,
   Mail,
   Monitor,
@@ -260,6 +270,8 @@ export function LandingPageGenerator({
   const [pages, setPages] = useState<GeneratedPages | null>(null);
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadedAt, setDownloadedAt] = useState<Date | null>(null);
+  const [driveLink, setDriveLink] = useState<string | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [attempted, setAttempted] = useState(false);
@@ -293,6 +305,16 @@ export function LandingPageGenerator({
       setInitializing(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId]);
+
+  /* ── Fetch client's Drive folder link ── */
+  useEffect(() => {
+    supabase
+      .from("clients")
+      .select("drive_link")
+      .eq("id", clientId)
+      .single()
+      .then(({ data }) => setDriveLink(data?.drive_link ?? null));
   }, [clientId]);
 
   /* ── Sync clientName once welcomeInfo arrives (may lag behind mount) ── */
@@ -378,35 +400,13 @@ export function LandingPageGenerator({
     }
   };
 
-  /* ── Download ZIP + background Drive upload ── */
+  /* ── Download ZIP ── */
 
   const handleDownload = async () => {
     if (!pages) return;
     setDownloading(true);
 
     try {
-      // Fire Drive upload in background — never blocks the local download
-      supabase.functions
-        .invoke("upload-landing-pages-to-drive", {
-          body: { clientId, pages, brandName: form.brandName, logoUrl },
-        })
-        .then(({ data, error }) => {
-          if (error || !data?.success) {
-            console.error("[landing-gen] Drive upload failed:", error ?? data);
-            toast.warning(
-              "ZIP downloaded. Drive sync failed — your AM will upload manually.",
-            );
-          } else {
-            toast.success("Files saved to your Trivelta Drive folder.", {
-              action: {
-                label: "Open folder",
-                onClick: () => window.open(data.folderUrl, "_blank"),
-              },
-            });
-          }
-        });
-
-      // Build ZIP
       const zip = new JSZip();
       zip.file("index.html", pages.index);
       zip.file("terms.html", pages.terms);
@@ -438,6 +438,7 @@ export function LandingPageGenerator({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      setDownloadedAt(new Date());
       toast.success("Download started");
     } finally {
       setDownloading(false);
@@ -1048,6 +1049,70 @@ export function LandingPageGenerator({
             <p className="text-xs text-muted-foreground/60 text-center">
               ZIP includes 4 HTML files + deployment README.
             </p>
+
+            {/* Post-download instructions card */}
+            {downloadedAt && (
+              <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-green-500/0">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">Download complete</CardTitle>
+                      <CardDescription className="text-xs">
+                        Your ZIP has been saved to your Downloads folder.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-lg bg-background/50 border border-border/40 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Next step: Upload to Trivelta
+                    </div>
+                    <ol className="space-y-2 text-sm">
+                      <li className="flex items-start gap-2">
+                        <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] flex items-center justify-center font-medium shrink-0 mt-0.5">
+                          1
+                        </span>
+                        <span>Click the button below to open your Trivelta Drive folder</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] flex items-center justify-center font-medium shrink-0 mt-0.5">
+                          2
+                        </span>
+                        <span>Drag the ZIP from your Downloads into that folder</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] flex items-center justify-center font-medium shrink-0 mt-0.5">
+                          3
+                        </span>
+                        <span>Your Trivelta team will see it and deploy your pages</span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  {driveLink ? (
+                    <Button asChild size="lg" className="w-full">
+                      <a href={driveLink} target="_blank" rel="noopener noreferrer">
+                        <FolderOpen className="mr-2 h-4 w-4" />
+                        Open Trivelta Drive Folder
+                        <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <Alert className="border-amber-500/30 bg-amber-500/5">
+                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                      <AlertTitle>Drive folder not configured</AlertTitle>
+                      <AlertDescription className="text-xs">
+                        Please email your ZIP file to your Trivelta Account Manager.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </aside>

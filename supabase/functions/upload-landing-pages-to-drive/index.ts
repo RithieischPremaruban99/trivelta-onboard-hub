@@ -1,4 +1,10 @@
 /**
+ * UNUSED AS OF 2026-04-23
+ * Replaced by manual drag-drop flow (client opens drive_link, drops ZIP themselves).
+ * Keep for future Workload Identity Federation approach if re-enabled.
+ */
+
+/**
  * Edge Function: upload-landing-pages-to-drive
  *
  * Uploads 4 generated HTML files to the client's Google Drive folder.
