@@ -429,6 +429,16 @@ export function LandingPageGenerator({
   const [genError, setGenError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [attempted, setAttempted] = useState(false);
+  const [confirmedUpload, setConfirmedUpload] = useState(false);
+
+  const { features: studioFeatures } = useStudioFeatures(clientId);
+  const otherFeaturesEnabled = useMemo(
+    () =>
+      Object.entries(studioFeatures).some(
+        ([key, value]) => key !== "landing_page_generator" && value === true,
+      ),
+    [studioFeatures],
+  );
 
   // Fullpage-only UI state
   const [sidebarOpen, setSidebarOpen] = useState(true);
