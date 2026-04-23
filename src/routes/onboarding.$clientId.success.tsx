@@ -339,6 +339,15 @@ function SuccessScreen() {
             <CheckCircle2 className="h-10 w-10 text-success" strokeWidth={1.5} />
           </div>
 
+          {/* Strategic partnership lockup */}
+          <img
+            src={partnershipLogo}
+            alt="Claude × Trivelta — Strategic Partnership"
+            className="mx-auto mb-8 h-16 md:h-20 w-auto select-none animate-fade-in"
+            style={{ animationDelay: "80ms" }}
+            draggable={false}
+          />
+
           {/* Micro-label */}
           <div
             className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-success animate-fade-in"
