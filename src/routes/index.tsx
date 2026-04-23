@@ -15,7 +15,7 @@ function BrandCorner() {
       className="fixed left-5 top-4 z-50 flex items-center sm:left-8"
       aria-label="Trivelta Suite"
     >
-      <TriveltaLogo size="md" withSubtitle product="Suite" />
+      <TriveltaLogo size="xl" withSubtitle product="Suite" />
     </Link>
   );
 }
