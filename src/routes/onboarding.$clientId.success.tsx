@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StageHeader } from "@/components/StageHeader";
 import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
+import partnershipLogo from "@/assets/claude-trivelta-partnership.png";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
   component: SuccessScreen,
