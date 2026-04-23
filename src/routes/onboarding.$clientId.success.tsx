@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StageHeader } from "@/components/StageHeader";
 import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
+import partnershipLogo from "@/assets/claude-trivelta-partnership.png";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
   component: SuccessScreen,
@@ -114,6 +115,15 @@ function SuccessScreen() {
 
         <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
           <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto w-full">
+
+            {/* Strategic partnership lockup */}
+            <img
+              src={partnershipLogo}
+              alt="Claude × Trivelta — Strategic Partnership"
+              className="h-16 md:h-20 w-auto select-none animate-fade-in"
+              style={{ animationDelay: "20ms" }}
+              draggable={false}
+            />
 
             {/* Step indicator */}
             <div
@@ -321,13 +331,16 @@ function SuccessScreen() {
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl text-center">
 
-          {/* Success indicator */}
-          <div
-            className="mx-auto mb-8 grid h-20 w-20 place-items-center rounded-2xl bg-success/10 animate-fade-in"
+
+
+          {/* Strategic partnership lockup */}
+          <img
+            src={partnershipLogo}
+            alt="Claude × Trivelta — Strategic Partnership"
+            className="mx-auto mb-8 h-16 md:h-20 w-auto select-none animate-fade-in"
             style={{ animationDelay: "80ms" }}
-          >
-            <CheckCircle2 className="h-10 w-10 text-success" strokeWidth={1.5} />
-          </div>
+            draggable={false}
+          />
 
           {/* Micro-label */}
           <div
