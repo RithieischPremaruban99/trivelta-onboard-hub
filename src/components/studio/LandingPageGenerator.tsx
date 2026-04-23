@@ -1298,6 +1298,37 @@ export function LandingPageGenerator({
                       </AlertDescription>
                     </Alert>
                   )}
+
+                  {/* Step 4: Confirm upload */}
+                  <div className="mt-2 pt-4 border-t border-border/40">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Step 4: Confirm upload
+                    </div>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full border-primary/30 hover:bg-primary/5 hover:border-primary/50"
+                      onClick={async () => {
+                        setConfirmedUpload(true);
+                        try {
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          await (supabase as any).rpc("log_client_activity", {
+                            p_action: "landing_pages_uploaded_confirmed",
+                            p_client_id: clientId,
+                            p_details: {},
+                          });
+                        } catch (err) {
+                          console.warn("[LandingPageGenerator] activity log failed", err);
+                        }
+                      }}
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      I've uploaded the ZIP to Trivelta Drive
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground text-center mt-2">
+                      Confirm once you've dragged the file into the folder
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
