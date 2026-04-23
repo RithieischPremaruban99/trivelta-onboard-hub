@@ -42,6 +42,8 @@ export function usePermissions(ctx?: {
     canManageAMs: isAdminRole,
     /** Can toggle client's studio_access flag */
     canToggleStudioAccess: isAdminRole,
+    /** Can manage per-feature Studio feature flags (admin and account_executive only) */
+    canManageStudioFeatures: role === "admin" || role === "account_executive",
 
     /** Can submit / lock the Studio (client owner, assigned AM, or admin) */
     canSubmitStudio: isAssignedToClient || isClient,

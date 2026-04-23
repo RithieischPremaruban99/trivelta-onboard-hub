@@ -42,6 +42,7 @@ import {
   Pencil,
   Link2,
   ArrowRight,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Tooltip,
@@ -80,6 +81,11 @@ import { generateProspectToken, buildProspectUrl } from "@/lib/prospect-tokens";
 import { logActivity } from "@/lib/activity-log";
 import { buildClientInviteEmail } from "@/lib/client-invite-email";
 import { DialogDescription } from "@/components/ui/dialog";
+import { StudioFeatureAccessDialog } from "@/components/admin/StudioFeatureAccessDialog";
+import {
+  DEFAULT_STUDIO_FEATURES,
+  type StudioFeatures,
+} from "@/lib/studio-features";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -98,6 +104,7 @@ interface ClientRow {
   created_at: string;
   studio_access: boolean;
   platform_live?: boolean;
+  studio_features: StudioFeatures | null;
 }
 
 interface ProspectRow {
@@ -166,6 +173,11 @@ function AdminPage() {
     | { kind: "prospect"; id: string; name: string }
     | null
   >(null);
+  const [studioFeaturesDialog, setStudioFeaturesDialog] = useState<{
+    clientId: string;
+    clientName: string;
+    currentFeatures: StudioFeatures | null;
+  } | null>(null);
 
   useEffect(() => {
     document.title = "Trivelta Suite · Admin";
@@ -179,7 +191,7 @@ function AdminPage() {
           supabase
             .from("clients")
             .select(
-              "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live",
+              "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live, studio_features",
             )
             .order("created_at", { ascending: false }),
           supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
@@ -692,6 +704,23 @@ function AdminPage() {
                             >
                               <Palette className="h-3.5 w-3.5" />
                             </Button>
+                            {isAdminRole && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                title="Configure Studio feature access"
+                                onClick={() =>
+                                  setStudioFeaturesDialog({
+                                    clientId: c.id,
+                                    clientName: c.name,
+                                    currentFeatures: c.studio_features ?? DEFAULT_STUDIO_FEATURES,
+                                  })
+                                }
+                              >
+                                <LayoutGrid className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                             {canDelete && (
                               <Button
                                 size="icon"
@@ -1029,6 +1058,25 @@ function AdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {studioFeaturesDialog && (
+        <StudioFeatureAccessDialog
+          open={studioFeaturesDialog !== null}
+          onOpenChange={(o) => { if (!o) setStudioFeaturesDialog(null); }}
+          clientId={studioFeaturesDialog.clientId}
+          clientName={studioFeaturesDialog.clientName}
+          currentFeatures={studioFeaturesDialog.currentFeatures}
+          onSaved={(features) => {
+            setClients((prev) =>
+              prev.map((c) =>
+                c.id === studioFeaturesDialog.clientId
+                  ? { ...c, studio_features: features }
+                  : c,
+              ),
+            );
+          }}
+        />
+      )}
     </AppShell>
   );
 }
