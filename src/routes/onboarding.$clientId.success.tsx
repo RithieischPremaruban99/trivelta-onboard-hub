@@ -24,7 +24,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { StageHeader } from "@/components/StageHeader";
 import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
-import partnershipLogo from "@/assets/claude-trivelta-partnership.png";
 import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
@@ -113,35 +112,116 @@ function SuccessScreen() {
         <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
           <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto w-full">
 
-            {/* Strategic partnership lockup — large, melted into background */}
+            {/* Strategic Partnership Hero — Claude × Trivelta */}
             <div
-              className="relative animate-fade-in"
+              className="relative flex flex-col items-center gap-8 animate-fade-in"
               style={{ animationDelay: "20ms" }}
             >
-              {/* Soft radial glow behind logo to blend with bg */}
+              {/* Soft glow backdrop */}
               <div
-                className="pointer-events-none absolute inset-0 -z-10 blur-3xl opacity-60"
+                className="pointer-events-none absolute inset-0 -z-10 blur-3xl scale-150"
                 style={{
                   background:
-                    "radial-gradient(ellipse at center, color-mix(in oklab, var(--color-primary) 25%, transparent) 0%, transparent 65%)",
+                    "radial-gradient(ellipse at center, color-mix(in oklab, var(--color-primary) 22%, transparent) 0%, color-mix(in oklab, #D97757 12%, transparent) 40%, transparent 70%)",
                 }}
               />
-              <img
-                src={partnershipLogo}
-                alt="Claude × Trivelta — Strategic Partnership"
-                className="h-32 md:h-44 lg:h-52 w-auto select-none"
-                draggable={false}
-                style={{
-                  // Erase the white/checker background so only the marks remain
-                  mixBlendMode: "screen",
-                  filter:
-                    "brightness(1.15) contrast(1.05) drop-shadow(0 0 24px color-mix(in oklab, var(--color-primary) 35%, transparent))",
-                  WebkitMaskImage:
-                    "radial-gradient(ellipse at center, #000 70%, transparent 100%)",
-                  maskImage:
-                    "radial-gradient(ellipse at center, #000 70%, transparent 100%)",
-                }}
-              />
+
+              {/* Lockup */}
+              <div className="relative flex items-center gap-6 md:gap-10">
+                {/* Claude side */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div
+                      className="h-20 w-20 md:h-24 md:w-24 rounded-2xl flex items-center justify-center ring-1 ring-white/10"
+                      style={{
+                        background: "linear-gradient(135deg, #D97757 0%, #C56B4A 100%)",
+                        boxShadow: "0 20px 50px -10px rgba(217,119,87,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" className="h-10 w-10 md:h-12 md:w-12 text-white" fill="currentColor">
+                        <path d="M12 2L13.09 8.26L22 9L13.09 10.74L12 22L10.91 10.74L2 9L10.91 8.26L12 2Z" />
+                      </svg>
+                    </div>
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-[#D97757]/40 animate-pulse" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-semibold tracking-tight">Claude</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-[0.18em] mt-0.5">
+                      by Anthropic
+                    </div>
+                  </div>
+                </div>
+
+                {/* Connection */}
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-px w-16 md:w-28 bg-gradient-to-r from-[#D97757]/60 via-foreground/30 to-primary/60" />
+                  <div className="relative">
+                    <div className="h-9 w-9 rounded-full border border-white/10 backdrop-blur-sm flex items-center justify-center"
+                      style={{
+                        background: "linear-gradient(135deg, color-mix(in oklab, #D97757 20%, transparent), color-mix(in oklab, var(--color-primary) 20%, transparent))",
+                      }}
+                    >
+                      <div
+                        className="h-2 w-2 rounded-full animate-pulse"
+                        style={{ background: "linear-gradient(90deg, #D97757, var(--color-primary))" }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-[9px] text-muted-foreground uppercase tracking-[0.18em]">
+                    Partnership
+                  </div>
+                </div>
+
+                {/* Trivelta side */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div
+                      className="h-20 w-20 md:h-24 md:w-24 rounded-2xl flex items-center justify-center ring-1 ring-white/10 p-3.5"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, color-mix(in oklab, var(--color-primary) 100%, transparent) 0%, color-mix(in oklab, var(--color-primary) 70%, transparent) 100%)",
+                        boxShadow:
+                          "0 20px 50px -10px color-mix(in oklab, var(--color-primary) 45%, transparent), inset 0 1px 0 rgba(255,255,255,0.15)",
+                      }}
+                    >
+                      <img
+                        src="/favicon.png"
+                        alt="Trivelta"
+                        className="h-full w-full object-contain"
+                        draggable={false}
+                      />
+                    </div>
+                    <div
+                      className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-primary/40 animate-pulse"
+                      style={{ animationDelay: "0.5s" }}
+                    />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-semibold tracking-tight">Trivelta</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-[0.18em] mt-0.5">
+                      iGaming Platform
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Announcement */}
+              <div className="text-center space-y-3 max-w-xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                    Strategic Partnership
+                  </span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold tracking-tight">
+                  World-class AI meets world-class iGaming.
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Trivelta has partnered with Anthropic — makers of Claude, the most trusted AI for
+                  regulated industries — to bring you an exclusive AI Studio experience reserved for
+                  Trivelta clients only.
+                </p>
+              </div>
             </div>
 
             {/* Step indicator */}
@@ -352,14 +432,28 @@ function SuccessScreen() {
 
 
 
-          {/* Strategic partnership lockup */}
-          <img
-            src={partnershipLogo}
-            alt="Claude × Trivelta — Strategic Partnership"
-            className="mx-auto mb-8 h-16 md:h-20 w-auto select-none animate-fade-in"
+          {/* Compact partnership badge */}
+          <div
+            className="mx-auto mb-8 inline-flex items-center gap-3 rounded-full border border-border/40 bg-card/30 backdrop-blur-md px-4 py-2 animate-fade-in"
             style={{ animationDelay: "80ms" }}
-            draggable={false}
-          />
+          >
+            <div
+              className="h-6 w-6 rounded-md flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #D97757, #C56B4A)" }}
+            >
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white" fill="currentColor">
+                <path d="M12 2L13.09 8.26L22 9L13.09 10.74L12 22L10.91 10.74L2 9L10.91 8.26L12 2Z" />
+              </svg>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80">
+              Claude × Trivelta
+            </span>
+            <div
+              className="h-6 w-6 rounded-md flex items-center justify-center p-1 bg-primary"
+            >
+              <img src="/favicon.png" alt="Trivelta" className="h-full w-full object-contain" />
+            </div>
+          </div>
 
           {/* Micro-label */}
           <div
