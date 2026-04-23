@@ -36,7 +36,7 @@ export function TriveltaNav({
       <div className="relative flex h-[60px] w-full items-center px-5 sm:px-8">
         <div className="flex items-center gap-2.5">
           <Link to={homeHref} className="flex items-center">
-            <TriveltaLogo size="md" withSubtitle product={product} />
+            <TriveltaLogo size="xl" withSubtitle product={product} />
           </Link>
           {badge && (
             <span className="rounded-md border border-border bg-card/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">

@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudio } from "@/contexts/StudioContext";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
@@ -129,6 +129,26 @@ const DEFAULT_FORM: LandingPageFormState = {
   rgHelplines: "",
   brandPrimaryColor: "#6366f1",
   brandAccentColor: "#8b5cf6",
+};
+
+const FIELD_LABELS: Record<string, string> = {
+  legalCompanyName: "Legal company name",
+  brandName: "Brand name",
+  primaryDomain: "Primary domain",
+  supportEmail: "Support email",
+  licenseJurisdiction: "License jurisdiction",
+  brandPrimaryColor: "Primary color",
+  logo: "Brand logo",
+};
+
+const FIELD_SECTION: Record<string, { section: string; id: string }> = {
+  legalCompanyName: { section: "company", id: "si-legal" },
+  brandName: { section: "company", id: "si-brand" },
+  primaryDomain: { section: "company", id: "si-domain" },
+  supportEmail: { section: "support", id: "si-email" },
+  licenseJurisdiction: { section: "legal", id: "si-jur" },
+  brandPrimaryColor: { section: "visuals", id: "" },
+  logo: { section: "assets", id: "" },
 };
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
@@ -338,7 +358,17 @@ export function LandingPageGenerator({
   }, [form.licenseJurisdiction]);
 
   /* ── Derived ── */
-  const isValid = REQUIRED_FIELDS.every((f) => form[f].trim() !== "") && logoUrl !== null;
+  const missingFields = useMemo(() => {
+    const missing: string[] = [];
+    for (const f of REQUIRED_FIELDS) {
+      if (!form[f].trim()) missing.push(f);
+    }
+    if (!logoUrl) missing.push("logo");
+    return missing;
+  }, [form, logoUrl]);
+
+  const canGenerate = missingFields.length === 0;
+
   const isInvalid = (f: keyof LandingPageFormState) =>
     attempted && REQUIRED_FIELDS.includes(f) && form[f].trim() === "";
 
@@ -349,9 +379,28 @@ export function LandingPageGenerator({
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       set(f)(e.target.value);
 
+  const scrollToFirstMissing = () => {
+    if (missingFields.length === 0) return;
+    const first = missingFields[0];
+    const meta = FIELD_SECTION[first];
+    if (!meta) return;
+    if (!sidebarOpen) setSidebarOpen(true);
+    setActiveSection(meta.section);
+    if (meta.id) {
+      setTimeout(() => {
+        const el = document.getElementById(meta.id);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus();
+      }, 300);
+    }
+  };
+
   const handleGenerate = async () => {
     setAttempted(true);
-    if (!isValid) return;
+    if (!canGenerate) {
+      scrollToFirstMissing();
+      return;
+    }
 
     setGenerating(true);
     setGenError(null);
@@ -601,7 +650,7 @@ export function LandingPageGenerator({
           <Button
             size={compact ? "sm" : "default"}
             className="flex-1 gap-1.5"
-            disabled={generating || (attempted && !isValid)}
+            disabled={generating}
             onClick={handleGenerate}
           >
             {generating ? (
@@ -625,7 +674,7 @@ export function LandingPageGenerator({
             Save Draft
           </Button>
         </div>
-        {attempted && !isValid && !generating && (
+        {attempted && !canGenerate && !generating && (
           <p className={cn("text-destructive", compact ? "text-[10px]" : "text-xs")}>
             Please fill in all required fields before generating.
           </p>
@@ -982,7 +1031,7 @@ export function LandingPageGenerator({
             {!pages && (
               <Button
                 className="w-full gap-1.5"
-                disabled={generating || (attempted && !isValid)}
+                disabled={generating}
                 onClick={handleGenerate}
               >
                 {generating ? (
@@ -1041,11 +1090,23 @@ export function LandingPageGenerator({
               </>
             )}
 
-            {attempted && !isValid && !generating && (
-              <p className="text-xs text-destructive">
-                Please fill in all required fields before generating.
-              </p>
+            {/* Missing fields helper card */}
+            {attempted && !canGenerate && !generating && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600/80">
+                  Required before generating
+                </p>
+                <ul className="space-y-1">
+                  {missingFields.map((f) => (
+                    <li key={f} className="flex items-center gap-1.5 text-xs text-amber-700/80">
+                      <span className="h-1 w-1 rounded-full bg-amber-500/70 shrink-0" />
+                      {FIELD_LABELS[f] ?? f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
+
             <p className="text-xs text-muted-foreground/60 text-center">
               ZIP includes 4 HTML files + deployment README.
             </p>
