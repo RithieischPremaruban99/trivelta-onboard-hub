@@ -6,10 +6,12 @@
  *
  * POST /functions/v1/generate-landing-pages
  * Body: GenerationRequest (see interface below)
- * Auth: JWT required
+ * Auth: verify_jwt=false — internal JWT check via callerClient.auth.getUser()
+ *       (same pattern as design-locked; more robust than gateway-level verify)
  */
 
 import Anthropic from "npm:@anthropic-ai/sdk@^0.32.0";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { makeCorsHeaders } from "../_shared/cors.ts";
 
 interface GenerationRequest {
@@ -127,6 +129,24 @@ Deno.serve(async (req) => {
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // ── Internal auth check (verify_jwt=false + manual verification) ──────────
+  // This is more robust than gateway-level verify_jwt=true, which can fail
+  // when the Supabase project JWT secret isn't propagated correctly.
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const callerClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } },
+  );
+  const { data: { user }, error: authError } = await callerClient.auth.getUser();
+  if (authError || !user) {
+    console.warn("[generate-landing-pages] Auth failed:", authError?.message ?? "no user");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {

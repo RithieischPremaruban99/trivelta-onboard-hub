@@ -271,6 +271,13 @@ export function LandingPageGenerator({
     setGenError(null);
 
     try {
+      // Verify session exists before invoking — supabase.functions.invoke needs
+      // an active JWT to send the Authorization header.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Your session has expired. Please refresh the page and try again.");
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-landing-pages", {
         body: {
           legalCompanyName: form.legalCompanyName,
