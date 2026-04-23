@@ -271,9 +271,16 @@ export function LandingPageGenerator({
     setGenError(null);
 
     try {
-      // Verify session exists before invoking — supabase.functions.invoke needs
-      // an active JWT to send the Authorization header.
+      // ── Session diagnostic ─────────────────────────────────────────────
       const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      console.log("[landing-gen] Session present:", !!session);
+      console.log("[landing-gen] User ID:", authUser?.id);
+      console.log("[landing-gen] User email:", authUser?.email);
+      console.log("[landing-gen] Token length:", session?.access_token?.length ?? 0);
+      console.log("[landing-gen] Token first 50:", session?.access_token?.substring(0, 50));
+      // ───────────────────────────────────────────────────────────────────
+
       if (!session) {
         throw new Error("Your session has expired. Please refresh the page and try again.");
       }
