@@ -21,7 +21,12 @@ export function StageHeader({
     >
       <div className="flex h-[60px] w-full items-center px-5 sm:px-8">
         {/* Logo lockup left-aligned to viewport edge — matches TriveltaNav (Suite) */}
-        <TriveltaLogo size="xl" withSubtitle product={stage} />
+        <TriveltaLogo
+          size="xl"
+          withSubtitle
+          product={stage === "STUDIO" ? "Studio" : stage}
+          brandSuffix={stage === "STUDIO" ? "AI" : undefined}
+        />
         {rightContent && <div className="ml-auto flex items-center gap-4">{rightContent}</div>}
       </div>
     </header>
