@@ -47,16 +47,17 @@ export function TriveltaLogo({
         />
         {brandSuffix && (
           <span
-            className={cn("font-bold uppercase leading-none", dims.text)}
+            className={cn(
+              "font-semibold uppercase leading-none bg-clip-text text-transparent",
+              dims.text,
+            )}
             style={{
-              letterSpacing: "0.22em",
+              letterSpacing: "0.24em",
               backgroundImage:
-                "linear-gradient(135deg, #ffffff 0%, #e8ecf2 30%, #b8bfca 55%, #f4f6fa 80%, #cfd5de 100%)",
+                "linear-gradient(135deg, #f4f6fa 0%, #d3d8e0 25%, #aab1bd 50%, #e8ecf2 75%, #b8bfca 100%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
-              color: "transparent",
-              textShadow: "0 1px 2px rgba(0,0,0,0.25)",
-              filter: "drop-shadow(0 0 6px rgba(220,224,232,0.15))",
+              textShadow: "0 1px 0 rgba(255,255,255,0.05)",
             }}
           >
             {brandSuffix}
@@ -85,7 +86,7 @@ export function TriveltaLogo({
       </div>
       {poweredBy && (
         <span className="text-[9px] text-muted-foreground/45 tracking-wide pl-0.5">
-          Powered by Anthropic
+          Powered by Claude
         </span>
       )}
     </div>
