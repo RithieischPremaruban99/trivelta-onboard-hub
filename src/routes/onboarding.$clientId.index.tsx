@@ -7,6 +7,7 @@ import { ArrowRight, Lock, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TriveltaNav } from "@/components/TriveltaNav";
 import { PartnerLogos } from "@/components/PartnerLogos";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 export const Route = createFileRoute("/onboarding/$clientId/")({
   component: WelcomeGate,
@@ -46,12 +47,15 @@ function WelcomeGate() {
           .maybeSingle(),
         supabase
           .from("clients")
-          .select("studio_access")
+          .select("studio_access, studio_features")
           .eq("id", clientId)
           .maybeSingle(),
       ]);
       if (formRes.data?.submitted_at) {
-        if (clientRes.data?.studio_access) {
+        const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
+        if (sf?.landing_page_generator) {
+          navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+        } else if (clientRes.data?.studio_access) {
           navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
         } else {
           navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
@@ -72,13 +76,9 @@ function WelcomeGate() {
     })();
   }, [authLoading, loadingPublic, user, clientId]);
 
-  // Block while loading or redirecting an authenticated user
+  // Block while auth or public data is loading, or while an authed redirect is in flight
   if (authLoading || loadingPublic || redirecting) {
-    return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <OnboardingLoadingScreen />;
   }
 
   if (!welcomeInfo) {

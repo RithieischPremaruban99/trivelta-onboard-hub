@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { TriveltaNav } from "@/components/TriveltaNav";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 export const Route = createFileRoute("/onboarding/$clientId/auth")({
   component: AuthScreen,
@@ -22,6 +23,7 @@ function AuthScreen() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     document.title = "Trivelta Hub · Welcome";
@@ -30,7 +32,8 @@ function AuthScreen() {
   useEffect(() => {
     if (authLoading || loadingAuth) return;
     if (user && clientRole) {
-      // Check submission status + studio access - route conditionally
+      // Block the UI immediately — async redirect is about to fire
+      setRedirecting(true);
       (async () => {
         const [formRes, clientRes] = await Promise.all([
           supabase
@@ -40,12 +43,15 @@ function AuthScreen() {
             .maybeSingle(),
           supabase
             .from("clients")
-            .select("studio_access")
+            .select("studio_access, studio_features")
             .eq("id", clientId)
             .maybeSingle(),
         ]);
         if (formRes.data?.submitted_at) {
-          if (clientRes.data?.studio_access) {
+          const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
+          if (sf?.landing_page_generator) {
+            navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
+          } else if (clientRes.data?.studio_access) {
             navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
           } else {
             navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
@@ -56,6 +62,11 @@ function AuthScreen() {
       })();
     }
   }, [user, clientRole, authLoading, loadingAuth]);
+
+  // Block rendering while auth loads or we're about to redirect an already-authed user
+  if (authLoading || loadingAuth || redirecting) {
+    return <OnboardingLoadingScreen />;
+  }
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
