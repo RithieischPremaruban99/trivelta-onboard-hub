@@ -47,10 +47,12 @@ import {
   Smartphone,
   Sparkles,
 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AccordionSection } from "@/components/studio/AccordionSection";
 import { FormField } from "@/components/studio/FormField";
 import { LogoUploadField } from "@/components/studio/LogoUploadField";
 import { PremiumColorPicker } from "@/components/studio/PremiumColorPicker";
+import { useStudioFeatures } from "@/hooks/useStudioFeatures";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
