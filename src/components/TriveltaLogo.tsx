@@ -47,8 +47,17 @@ export function TriveltaLogo({
         />
         {brandSuffix && (
           <span
-            className={cn("font-semibold uppercase leading-none text-foreground", dims.text)}
-            style={{ letterSpacing: "0.18em" }}
+            className={cn("font-bold uppercase leading-none", dims.text)}
+            style={{
+              letterSpacing: "0.22em",
+              backgroundImage:
+                "linear-gradient(135deg, #ffffff 0%, #e8ecf2 30%, #b8bfca 55%, #f4f6fa 80%, #cfd5de 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+              textShadow: "0 1px 2px rgba(0,0,0,0.25)",
+              filter: "drop-shadow(0 0 6px rgba(220,224,232,0.15))",
+            }}
           >
             {brandSuffix}
           </span>
