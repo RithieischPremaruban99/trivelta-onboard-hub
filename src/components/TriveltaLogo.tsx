@@ -19,6 +19,7 @@ export function TriveltaLogo({
   size = "md",
   withSubtitle = true,
   product = "Studio",
+  brandSuffix,
   poweredBy = false,
   className,
 }: {
@@ -27,6 +28,8 @@ export function TriveltaLogo({
   withSubtitle?: boolean;
   /** Product name shown after the divider. Defaults to "Studio". */
   product?: string;
+  /** Optional suffix appended to the Trivelta wordmark before the divider (e.g. "AI"). */
+  brandSuffix?: string;
   /** Show "Powered by Anthropic" micro-text below the lockup. */
   poweredBy?: boolean;
   className?: string;
@@ -42,6 +45,14 @@ export function TriveltaLogo({
           className={cn(dims.h, "w-auto select-none")}
           draggable={false}
         />
+        {brandSuffix && (
+          <span
+            className={cn("font-semibold uppercase leading-none text-foreground", dims.text)}
+            style={{ letterSpacing: "0.18em" }}
+          >
+            {brandSuffix}
+          </span>
+        )}
         {withSubtitle && (
           <span
             className={cn(
