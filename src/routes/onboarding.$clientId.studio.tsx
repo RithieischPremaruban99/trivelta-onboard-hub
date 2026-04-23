@@ -24,7 +24,7 @@ import { AIChatPanel } from "@/components/studio/AIChatPanel";
 import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
 import { AdvancedModePanel } from "@/components/studio/AdvancedModePanel";
 import { AccordionSection } from "@/components/studio/AccordionSection";
-import { LandingPageGeneratorPlaceholder } from "@/components/studio/LandingPageGeneratorPlaceholder";
+import { LandingPageGenerator } from "@/components/studio/LandingPageGenerator";
 import { useStudioFeatures } from "@/hooks/useStudioFeatures";
 import {
   DEFAULT_STUDIO_FEATURES,
@@ -963,7 +963,7 @@ export function StudioInner({
                   setActivePanel((prev) => (prev === "landingPages" ? null : "landingPages"))
                 }
               >
-                <LandingPageGeneratorPlaceholder />
+                <LandingPageGenerator clientId={clientId} />
               </AccordionSection>
             )}
 
