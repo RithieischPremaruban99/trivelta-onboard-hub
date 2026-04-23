@@ -953,7 +953,9 @@ export function StudioInner({
           {/* ── Exclusive accordion (fills remaining height) ─────────── */}
           <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
 
-            {/* Panel 0 - Landing Page Generator (always visible — landing_page_generator is always on) */}
+            {/* Panel 0 - Landing Pages (canvas switcher — no body content)
+                Clicking the header switches the right canvas from mobile preview
+                to the full LandingPageGenerator. Body shows a minimal hint only. */}
             {hasFeature("landing_page_generator") && (
               <AccordionSection
                 title="Landing Pages"
@@ -963,7 +965,9 @@ export function StudioInner({
                   setActivePanel((prev) => (prev === "landingPages" ? null : "landingPages"))
                 }
               >
-                <LandingPageGenerator clientId={clientId} />
+                <div className="px-4 py-2.5 text-[11px] text-muted-foreground/60 italic select-none">
+                  Generator open in canvas →
+                </div>
               </AccordionSection>
             )}
 
@@ -1145,42 +1149,50 @@ export function StudioInner({
           </div>
         </div>
 
-        {/* ══ RIGHT PANEL - Preview (65%) ══════════════════════════════ */}
-        <div ref={tourPreviewRef} className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
-          {/* Mobile / Web toggle */}
-          <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
-            <button
-              onClick={() => setPreviewMode("mobile")}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
-                previewMode === "mobile"
-                  ? "bg-white/10 text-white ring-1 ring-white/20"
-                  : "text-white/35 hover:text-white/65",
-              )}
-            >
-              <Smartphone className="h-4 w-4" /> Mobile
-            </button>
-            <button
-              onClick={() => setPreviewMode("website")}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
-                previewMode === "website"
-                  ? "bg-white/10 text-white ring-1 ring-white/20"
-                  : "text-white/35 hover:text-white/65",
-              )}
-            >
-              <Monitor className="h-4 w-4" /> Web
-            </button>
+        {/* ══ RIGHT PANEL ══════════════════════════════════════════════ */}
+        {activePanel === "landingPages" ? (
+          /* Landing Pages canvas — full width generator */
+          <div className="flex flex-1 flex-col overflow-y-auto bg-background">
+            <LandingPageGenerator clientId={clientId} layout="fullpage" />
           </div>
+        ) : (
+          /* Default — mobile/web betting app preview */
+          <div ref={tourPreviewRef} className="flex flex-1 flex-col overflow-hidden bg-[#07070a]">
+            {/* Mobile / Web toggle */}
+            <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
+              <button
+                onClick={() => setPreviewMode("mobile")}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
+                  previewMode === "mobile"
+                    ? "bg-white/10 text-white ring-1 ring-white/20"
+                    : "text-white/35 hover:text-white/65",
+                )}
+              >
+                <Smartphone className="h-4 w-4" /> Mobile
+              </button>
+              <button
+                onClick={() => setPreviewMode("website")}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
+                  previewMode === "website"
+                    ? "bg-white/10 text-white ring-1 ring-white/20"
+                    : "text-white/35 hover:text-white/65",
+                )}
+              >
+                <Monitor className="h-4 w-4" /> Web
+              </button>
+            </div>
 
-          {/* Preview */}
-          <div
-            ref={previewContainerRef}
-            className="flex-1 overflow-auto transition-all duration-300"
-          >
-            <BettingAppPreview />
+            {/* Preview */}
+            <div
+              ref={previewContainerRef}
+              className="flex-1 overflow-auto transition-all duration-300"
+            >
+              <BettingAppPreview />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── Studio tour (first-time only) ───────────────────────────────── */}

@@ -4,10 +4,12 @@ import {
   ArrowRight,
   CheckCircle2,
   Download,
+  FileText,
   Loader2,
   Mail,
   Rocket,
   Settings2,
+  Sparkles,
   UserCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +34,7 @@ function SuccessScreen() {
     submittedAt: string;
     form: FormShape;
   } | null>(null);
+  const [hasLandingPageCTA, setHasLandingPageCTA] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -46,9 +49,10 @@ function SuccessScreen() {
           .select("data, submitted_at")
           .eq("client_id", clientId)
           .maybeSingle(),
-        supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any)
           .from("clients")
-          .select("name, primary_contact_email")
+          .select("name, primary_contact_email, studio_features")
           .eq("id", clientId)
           .maybeSingle(),
       ]);
@@ -62,6 +66,8 @@ function SuccessScreen() {
         submittedAt: formRes.data.submitted_at,
         form: formRes.data.data as FormShape,
       });
+      const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
+      if (sf?.landing_page_generator) setHasLandingPageCTA(true);
       setVerified(true);
     })();
   }, [user, authLoading, clientId]);
@@ -226,6 +232,45 @@ function SuccessScreen() {
               </button>
             )}
           </div>
+
+          {/* Landing Page Generator CTA — shown when feature is enabled */}
+          {hasLandingPageCTA && (
+            <div
+              className="mt-8 mx-auto max-w-xl w-full rounded-xl border border-primary/30 bg-primary/5 p-5 text-left animate-fade-in-up"
+              style={{ animationDelay: "820ms" }}
+            >
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 grid h-10 w-10 place-items-center rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="h-3.5 w-3.5 text-primary/70" />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary/70">
+                      Available now
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1">
+                    Generate your landing pages
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                    While we review your onboarding, you can create your branded landing, terms,
+                    privacy, and responsible gambling pages. Our team will deploy them to your
+                    domain.
+                  </p>
+                  <button
+                    onClick={() =>
+                      navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
+                    }
+                    className="group inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:opacity-90"
+                  >
+                    Open Landing Page Generator
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
