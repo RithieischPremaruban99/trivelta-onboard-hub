@@ -331,13 +331,7 @@ function SuccessScreen() {
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl text-center">
 
-          {/* Success indicator */}
-          <div
-            className="mx-auto mb-8 grid h-20 w-20 place-items-center rounded-2xl bg-success/10 animate-fade-in"
-            style={{ animationDelay: "80ms" }}
-          >
-            <CheckCircle2 className="h-10 w-10 text-success" strokeWidth={1.5} />
-          </div>
+
 
           {/* Strategic partnership lockup */}
           <img
