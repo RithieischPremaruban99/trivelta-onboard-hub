@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
+  Circle,
   Download,
   FileText,
   Loader2,
@@ -80,6 +81,145 @@ function SuccessScreen() {
     );
   }
 
+  // ── Step 2 mandatory layout ────────────────────────────────────────────────
+  if (hasLandingPageCTA) {
+    return (
+      <div className="relative min-h-screen bg-background">
+        <StageHeader stage="ONBOARDING" />
+        {/* Background layers */}
+        <div
+          className="pointer-events-none fixed inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 120%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 60%)",
+          }}
+        />
+        <div
+          className="pointer-events-none fixed inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at top, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 55%)",
+          }}
+        />
+        <div className="pointer-events-none fixed left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[100px] animate-pulse-slow" />
+        <div
+          className="pointer-events-none fixed bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-primary/5 blur-[80px] animate-pulse-slow"
+          style={{ animationDelay: "2s" }}
+        />
+
+        <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
+          <div className="w-full max-w-2xl text-center">
+
+            {/* Step indicator */}
+            <div
+              className="mx-auto mb-10 flex items-center justify-center gap-3 animate-fade-in"
+              style={{ animationDelay: "60ms" }}
+            >
+              {/* Step 1 — complete */}
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-success" strokeWidth={2} />
+                <span className="text-xs font-semibold text-success">Step 1: Onboarding</span>
+              </div>
+              {/* Connector */}
+              <div className="h-px w-10 bg-border" />
+              {/* Step 2 — current */}
+              <div className="flex items-center gap-2">
+                <Circle className="h-5 w-5 text-primary animate-pulse" strokeWidth={2} />
+                <span className="text-xs font-semibold text-primary">Step 2: Landing Pages</span>
+              </div>
+            </div>
+
+            {/* Micro-label */}
+            <div
+              className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-success animate-fade-in"
+              style={{ animationDelay: "100ms" }}
+            >
+              STEP 1 COMPLETE
+            </div>
+
+            {/* Headline */}
+            <h1
+              className="mb-5 text-4xl md:text-[52px] font-bold leading-[1.05] tracking-tight text-foreground animate-fade-in-up"
+              style={{ animationDelay: "160ms" }}
+            >
+              Onboarding received.
+              <br />
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
+                Now let's create your pages.
+              </span>
+            </h1>
+
+            <p
+              className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-muted-foreground animate-fade-in-up"
+              style={{ animationDelay: "240ms" }}
+            >
+              Before your Account Manager can proceed, we need your branded landing, terms, privacy,
+              and responsible gambling pages. This takes about five minutes.
+            </p>
+
+            {/* Required callout */}
+            <div
+              className="mx-auto mb-10 flex max-w-xl items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 px-5 py-4 text-left animate-fade-in-up"
+              style={{ animationDelay: "320ms" }}
+            >
+              <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="text-[13px] leading-relaxed text-foreground/90">
+                <span className="font-semibold">Required before go-live.</span>{" "}
+                <span className="text-muted-foreground/90">
+                  Your Account Manager is waiting on these pages before they can begin your platform
+                  setup. Completing Step 2 now keeps your launch on schedule.
+                </span>
+              </p>
+            </div>
+
+            {/* CTAs */}
+            <div
+              className="flex flex-col items-center gap-3 animate-fade-in-up"
+              style={{ animationDelay: "400ms" }}
+            >
+              <button
+                onClick={() =>
+                  navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
+                }
+                className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
+              >
+                <Sparkles className="h-5 w-5" />
+                Continue to Step 2: Landing Pages
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </button>
+
+              {pdfData && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await downloadClientPDF(
+                        {
+                          name: pdfData.clientName,
+                          primary_contact_email: pdfData.contactEmail,
+                          submitted_at: pdfData.submittedAt,
+                        },
+                        pdfData.form,
+                      );
+                    } catch (err) {
+                      console.error("[PDF] client generation failed:", err);
+                      toast.error("Could not generate PDF. Please try again.");
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-muted-foreground/60 hover:text-foreground/70 transition-colors"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download Submission Summary (PDF)
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Original "You're all set" layout (no landing page feature) ─────────────
   const cards = [
     {
       icon: UserCircle,
@@ -232,45 +372,6 @@ function SuccessScreen() {
               </button>
             )}
           </div>
-
-          {/* Landing Page Generator CTA — shown when feature is enabled */}
-          {hasLandingPageCTA && (
-            <div
-              className="mt-8 mx-auto max-w-xl w-full rounded-xl border border-primary/30 bg-primary/5 p-5 text-left animate-fade-in-up"
-              style={{ animationDelay: "820ms" }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 grid h-10 w-10 place-items-center rounded-lg bg-primary/10">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <FileText className="h-3.5 w-3.5 text-primary/70" />
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary/70">
-                      Available now
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-semibold text-foreground mb-1">
-                    Generate your landing pages
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    While we review your onboarding, you can create your branded landing, terms,
-                    privacy, and responsible gambling pages. Our team will deploy them to your
-                    domain.
-                  </p>
-                  <button
-                    onClick={() =>
-                      navigate({ to: "/onboarding/$clientId/studio", params: { clientId } })
-                    }
-                    className="group inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:opacity-90"
-                  >
-                    Open Landing Page Generator
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
         </div>
       </div>

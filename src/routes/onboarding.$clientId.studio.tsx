@@ -1589,24 +1589,26 @@ function StudioPage() {
         setIsAssignedAM(true);
       }
 
-      // Non-admins/non-AMs without studio access are redirected with a toast
-      const isAdminOrAM =
-        role === "admin" || role === "account_executive" || role === "account_manager";
-      if (!hasAccess && !isAdminOrAM) {
-        toast.error(
-          "Studio access has not been granted yet. Please contact your Account Manager.",
-        );
-        navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
-        return;
-      }
-
-      // Compute studio feature flags for mode detection + edge case guard
+      // Compute studio feature flags early — needed for access gate below
       const studioFeatures: StudioFeatures = {
         ...DEFAULT_STUDIO_FEATURES,
         ...((clientRes.data as { studio_features?: Partial<StudioFeatures> })
           ?.studio_features ?? {}),
       };
       const enabledFeatureCount = Object.values(studioFeatures).filter(Boolean).length;
+      const hasFeatureAccess = enabledFeatureCount > 0;
+
+      // Non-admins/non-AMs without studio access are redirected with a toast,
+      // UNLESS they have at least one studio_feature enabled (e.g. landing_page_generator)
+      const isAdminOrAM =
+        role === "admin" || role === "account_executive" || role === "account_manager";
+      if (!hasAccess && !hasFeatureAccess && !isAdminOrAM) {
+        toast.error(
+          "Studio access has not been granted yet. Please contact your Account Manager.",
+        );
+        navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
+        return;
+      }
 
       if (!isAdminOrAM) {
         // Edge case: all features disabled → redirect
