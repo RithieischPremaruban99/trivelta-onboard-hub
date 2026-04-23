@@ -56,6 +56,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TriveltaNav } from "@/components/TriveltaNav";
 import { logActivity } from "@/lib/activity-log";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 /* ─── Per-section field progress ─────────────────────────────── */
 
@@ -558,11 +559,7 @@ function FormScreen() {
   };
 
   if (authLoading || loading || loadingPublic || loadingAuth) {
-    return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <OnboardingLoadingScreen />;
   }
   if (!user) return null;
 

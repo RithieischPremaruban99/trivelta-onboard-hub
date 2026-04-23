@@ -25,6 +25,7 @@ import { StageHeader } from "@/components/StageHeader";
 import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
 import partnershipLogo from "@/assets/claude-trivelta-partnership.png";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
   component: SuccessScreen,
@@ -80,11 +81,7 @@ function SuccessScreen() {
   }, [user, authLoading, clientId]);
 
   if (authLoading || !verified) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <OnboardingLoadingScreen />;
   }
 
   // ── Step 2 mandatory layout ────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { StageHeader } from "@/components/StageHeader";
 import { toast } from "sonner";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 export const Route = createFileRoute("/onboarding/$clientId/studio-unlocked")({
   component: StudioUnlockedPage,
@@ -72,11 +73,7 @@ function StudioUnlockedPage() {
   }, [user, authLoading, clientId]);
 
   if (authLoading || !verified) {
-    return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <OnboardingLoadingScreen />;
   }
 
   const features = [

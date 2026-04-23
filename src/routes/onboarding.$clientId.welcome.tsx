@@ -6,6 +6,7 @@ import { StageHeader } from "@/components/StageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 export const Route = createFileRoute("/onboarding/$clientId/welcome")({
   component: ClientWelcomePage,
@@ -68,11 +69,7 @@ function ClientWelcomePage() {
   };
 
   if (authLoading || loadingPublic || !clientReady) {
-    return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <OnboardingLoadingScreen />;
   }
 
   const firstName = user ? emailToFirstName(user.email ?? "") : "";

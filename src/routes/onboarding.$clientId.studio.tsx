@@ -70,6 +70,7 @@ import {
 import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
 import logoUrl from "@/assets/trivelta-logo.png";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 
@@ -1632,11 +1633,7 @@ function StudioPage() {
   }, [authLoading, user, clientId]);
 
   if (authLoading || !ready) {
-    return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <OnboardingLoadingScreen variant="studio" />;
   }
 
   // AM has locked Studio access - show block page instead of Studio

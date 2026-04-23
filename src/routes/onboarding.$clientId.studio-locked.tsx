@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2, Palette, ClipboardList, ArrowRight } from "lucide-react";
 import { StageHeader } from "@/components/StageHeader";
+import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -50,11 +51,7 @@ function StudioLockedPage() {
   }, [user, authLoading, clientId, navigate]);
 
   if (authLoading || !verified) {
-    return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <OnboardingLoadingScreen />;
   }
 
   return (
