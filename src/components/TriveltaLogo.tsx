@@ -86,7 +86,7 @@ export function TriveltaLogo({
       </div>
       {poweredBy && (
         <span className="text-[9px] text-muted-foreground/45 tracking-wide pl-0.5">
-          Powered by Claude
+          Powered by Anthropic
         </span>
       )}
     </div>
