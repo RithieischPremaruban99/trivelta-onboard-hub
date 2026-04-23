@@ -1020,26 +1020,26 @@ function AdminPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmDelete?.kind === "client" ? "Kunde löschen?" : "Prospect löschen?"}
+              {confirmDelete?.kind === "client" ? "Delete client?" : "Delete prospect?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDelete?.kind === "client" ? (
                 <>
-                  Möchtest du <strong>{confirmDelete?.name}</strong> wirklich permanent löschen?
-                  Dies entfernt den Kunden und ALLE zugehörigen Onboarding-Daten, Tasks,
-                  Submissions, AM-Zuweisungen und Team-Mitglieder. Diese Aktion kann nicht
-                  rückgängig gemacht werden.
+                  Are you sure you want to permanently delete <strong>{confirmDelete?.name}</strong>?
+                  This will remove the client and ALL related onboarding data, tasks,
+                  submissions, AM assignments, and team members. This action cannot
+                  be undone.
                 </>
               ) : (
                 <>
-                  Möchtest du den Prospect <strong>{confirmDelete?.name}</strong> wirklich
-                  permanent löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                  Are you sure you want to permanently delete the prospect{" "}
+                  <strong>{confirmDelete?.name}</strong>? This action cannot be undone.
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={async () => {
@@ -1053,7 +1053,7 @@ function AdminPage() {
                 }
               }}
             >
-              Löschen
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
