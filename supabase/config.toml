@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.invite-am]
 verify_jwt = true
+
+[functions.generate-landing-pages]
+verify_jwt = true

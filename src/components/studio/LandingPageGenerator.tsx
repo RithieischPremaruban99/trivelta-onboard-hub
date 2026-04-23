@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileX, Loader2, Send, Sparkles } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, FileX, Loader2, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -35,10 +36,10 @@ interface LandingPageFormState {
 }
 
 interface GeneratedPages {
-  index: string | null;
-  terms: string | null;
-  privacy: string | null;
-  responsibleGambling: string | null;
+  index: string;
+  terms: string;
+  privacy: string;
+  rg: string;
 }
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
@@ -199,12 +200,9 @@ export function LandingPageGenerator({
   const { welcomeInfo } = useOnboardingCtx();
 
   const [form, setForm] = useState<LandingPageFormState>(DEFAULT_FORM);
-  const [generatedPages] = useState<GeneratedPages>({
-    index: null,
-    terms: null,
-    privacy: null,
-    responsibleGambling: null,
-  });
+  const [pages, setPages] = useState<GeneratedPages | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [attempted, setAttempted] = useState(false);
 
@@ -263,10 +261,42 @@ export function LandingPageGenerator({
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       set(f)(e.target.value);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setAttempted(true);
     if (!isValid) return;
-    toast.info("AI generation coming in Phase 4");
+
+    setGenerating(true);
+    setGenError(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-landing-pages", {
+        body: {
+          legalCompanyName: form.legalCompanyName,
+          brandName: form.brandName,
+          primaryDomain: form.primaryDomain,
+          platformSubdomain: form.platformSubdomain || undefined,
+          supportEmail: form.supportEmail,
+          supportHelpline: form.supportHelpline || undefined,
+          licenseJurisdiction: form.licenseJurisdiction,
+          licenseNumber: form.licenseNumber || undefined,
+          rgHelplines: form.rgHelplines || undefined,
+          brandPrimaryColor: form.brandPrimaryColor,
+          brandAccentColor: form.brandAccentColor || undefined,
+        },
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data?.pages) throw new Error("No pages returned from generation");
+
+      setPages(data.pages as GeneratedPages);
+      toast.success("Pages generated successfully");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setGenError(msg);
+      toast.error(`Generation failed: ${msg}`);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   /* ── Render helpers (close over state so no prop drilling) ── */
@@ -279,21 +309,21 @@ export function LandingPageGenerator({
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-legal" required compact={compact}>Legal company name</FieldLabel>
           <Input id="lpg-legal" value={form.legalCompanyName} onChange={onChange("legalCompanyName")}
-            placeholder="Scorama Limited" className={inputCls} />
+            placeholder="Scorama Limited" className={inputCls} disabled={generating} />
           <FieldHelper error={isInvalid("legalCompanyName")} compact={compact} />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-brand" required compact={compact}>Public brand name</FieldLabel>
           <Input id="lpg-brand" value={form.brandName} onChange={onChange("brandName")}
-            placeholder="Scorama" className={inputCls} />
+            placeholder="Scorama" className={inputCls} disabled={generating} />
           <FieldHelper error={isInvalid("brandName")} compact={compact} />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-domain" required compact={compact}>Primary domain</FieldLabel>
           <Input id="lpg-domain" value={form.primaryDomain} onChange={onChange("primaryDomain")}
-            placeholder="scorama.com" className={inputCls} />
+            placeholder="scorama.com" className={inputCls} disabled={generating} />
           <FieldHelper error={isInvalid("primaryDomain")}
             helper="The domain where your landing page will be hosted" compact={compact} />
         </div>
@@ -301,7 +331,7 @@ export function LandingPageGenerator({
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-sub" compact={compact}>Platform subdomain</FieldLabel>
           <Input id="lpg-sub" value={form.platformSubdomain} onChange={onChange("platformSubdomain")}
-            placeholder="play.scorama.com" className={inputCls} />
+            placeholder="play.scorama.com" className={inputCls} disabled={generating} />
           <FieldHelper helper="Where the betting app lives. Landing page links will point here." compact={compact} />
         </div>
       </div>
@@ -312,14 +342,14 @@ export function LandingPageGenerator({
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-email" required compact={compact}>Support email</FieldLabel>
           <Input id="lpg-email" type="email" value={form.supportEmail} onChange={onChange("supportEmail")}
-            placeholder="support@scorama.com" className={inputCls} />
+            placeholder="support@scorama.com" className={inputCls} disabled={generating} />
           <FieldHelper error={isInvalid("supportEmail")} compact={compact} />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-phone" compact={compact}>Support helpline</FieldLabel>
           <Input id="lpg-phone" value={form.supportHelpline} onChange={onChange("supportHelpline")}
-            placeholder="+234 800 123 4567" className={inputCls} />
+            placeholder="+234 800 123 4567" className={inputCls} disabled={generating} />
         </div>
       </div>
 
@@ -328,7 +358,7 @@ export function LandingPageGenerator({
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-jur" required compact={compact}>License jurisdiction</FieldLabel>
-          <Select value={form.licenseJurisdiction} onValueChange={set("licenseJurisdiction")}>
+          <Select value={form.licenseJurisdiction} onValueChange={set("licenseJurisdiction")} disabled={generating}>
             <SelectTrigger id="lpg-jur" className={inputCls}>
               <SelectValue placeholder="Select jurisdiction…" />
             </SelectTrigger>
@@ -344,7 +374,7 @@ export function LandingPageGenerator({
         <div className="flex flex-col gap-1.5">
           <FieldLabel htmlFor="lpg-lic" compact={compact}>License number</FieldLabel>
           <Input id="lpg-lic" value={form.licenseNumber} onChange={onChange("licenseNumber")}
-            placeholder="00123456" className={inputCls} />
+            placeholder="00123456" className={inputCls} disabled={generating} />
           <FieldHelper helper="Your operating license number, if assigned" compact={compact} />
         </div>
 
@@ -352,7 +382,8 @@ export function LandingPageGenerator({
           <FieldLabel htmlFor="lpg-rg" compact={compact}>Responsible gambling helplines</FieldLabel>
           <Textarea id="lpg-rg" value={form.rgHelplines} onChange={onChange("rgHelplines")}
             placeholder="Auto-populated when jurisdiction is selected"
-            className={cn("resize-none", compact ? "text-xs min-h-[72px]" : "min-h-[96px]")} />
+            className={cn("resize-none", compact ? "text-xs min-h-[72px]" : "min-h-[96px]")}
+            disabled={generating} />
           <FieldHelper helper="Local problem gambling support resources. Auto-filled based on jurisdiction." compact={compact} />
         </div>
       </div>
@@ -365,9 +396,10 @@ export function LandingPageGenerator({
           <div className="flex items-center gap-2">
             <input type="color" id="lpg-pc" value={form.brandPrimaryColor}
               onChange={onChange("brandPrimaryColor")}
+              disabled={generating}
               className={cn("cursor-pointer rounded border border-border bg-transparent p-0.5 w-10", compact ? "h-8" : "h-9")} />
             <Input value={form.brandPrimaryColor} onChange={onChange("brandPrimaryColor")}
-              placeholder="#6366f1" className={cn("flex-1 font-mono", inputCls)} maxLength={7} />
+              placeholder="#6366f1" className={cn("flex-1 font-mono", inputCls)} maxLength={7} disabled={generating} />
           </div>
           <FieldHelper error={isInvalid("brandPrimaryColor")} compact={compact} />
         </div>
@@ -377,9 +409,10 @@ export function LandingPageGenerator({
           <div className="flex items-center gap-2">
             <input type="color" id="lpg-ac" value={form.brandAccentColor}
               onChange={onChange("brandAccentColor")}
+              disabled={generating}
               className={cn("cursor-pointer rounded border border-border bg-transparent p-0.5 w-10", compact ? "h-8" : "h-9")} />
             <Input value={form.brandAccentColor} onChange={onChange("brandAccentColor")}
-              placeholder="#8b5cf6" className={cn("flex-1 font-mono", inputCls)} maxLength={7} />
+              placeholder="#8b5cf6" className={cn("flex-1 font-mono", inputCls)} maxLength={7} disabled={generating} />
           </div>
         </div>
       </div>
@@ -390,25 +423,42 @@ export function LandingPageGenerator({
     const CtaIcon = ctaIcon;
     return (
       <div className={cn("flex flex-col gap-2", compact ? "mt-5" : "mt-6")}>
+        {genError && (
+          <Alert variant="destructive" className="mb-1">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Generation failed</AlertTitle>
+            <AlertDescription>{genError}</AlertDescription>
+          </Alert>
+        )}
         <div className="flex gap-2">
           <Button
             size={compact ? "sm" : "default"}
             className="flex-1 gap-1.5"
-            disabled={attempted && !isValid}
+            disabled={generating || (attempted && !isValid)}
             onClick={handleGenerate}
           >
-            <CtaIcon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-            {ctaLabel}
+            {generating ? (
+              <>
+                <Loader2 className={cn("animate-spin", compact ? "h-3.5 w-3.5" : "h-4 w-4")} />
+                Generating...
+              </>
+            ) : (
+              <>
+                <CtaIcon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+                {ctaLabel}
+              </>
+            )}
           </Button>
           <Button
             size={compact ? "sm" : "default"}
             variant="outline"
+            disabled={generating}
             onClick={() => toast.info("Draft saving coming soon")}
           >
             Save Draft
           </Button>
         </div>
-        {attempted && !isValid && (
+        {attempted && !isValid && !generating && (
           <p className={cn("text-destructive", compact ? "text-[10px]" : "text-xs")}>
             Please fill in all required fields before generating.
           </p>
@@ -423,44 +473,58 @@ export function LandingPageGenerator({
   };
 
   const renderPreviewTabs = () => (
-    <Tabs defaultValue="landing">
-      <TabsList className={cn("w-full", compact ? "h-8 mb-3" : "h-10 mb-4")}>
-        <TabsTrigger value="landing" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
-          Landing
-        </TabsTrigger>
-        <TabsTrigger value="terms" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
-          Terms
-        </TabsTrigger>
-        <TabsTrigger value="privacy" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
-          Privacy
-        </TabsTrigger>
-        <TabsTrigger value="rg" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
-          {compact ? "Resp. Gambling" : "Responsible Gambling"}
-        </TabsTrigger>
-      </TabsList>
+    <div>
+      {generating && (
+        <div className={cn(
+          "flex items-center gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3",
+          compact ? "mb-3 text-xs" : "mb-4 text-sm",
+        )}>
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+          <span className="text-foreground/80">
+            Claude is generating your pages…{" "}
+            <span className="text-muted-foreground/70">(up to 30 seconds)</span>
+          </span>
+        </div>
+      )}
+      <Tabs defaultValue="landing">
+        <TabsList className={cn("w-full", compact ? "h-8 mb-3" : "h-10 mb-4")}>
+          <TabsTrigger value="landing" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
+            Landing
+          </TabsTrigger>
+          <TabsTrigger value="terms" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
+            Terms
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
+            Privacy
+          </TabsTrigger>
+          <TabsTrigger value="rg" className={cn("flex-1", compact ? "text-[11px]" : "text-sm")}>
+            {compact ? "Resp. Gambling" : "Responsible Gambling"}
+          </TabsTrigger>
+        </TabsList>
 
-      {(
-        [
-          { key: "landing", page: generatedPages.index, label: "landing" },
-          { key: "terms", page: generatedPages.terms, label: "Terms & Conditions" },
-          { key: "privacy", page: generatedPages.privacy, label: "Privacy Policy" },
-          { key: "rg", page: generatedPages.responsibleGambling, label: "Responsible Gambling" },
-        ] as const
-      ).map(({ key, page, label }) => (
-        <TabsContent key={key} value={key}>
-          {page ? (
-            <iframe
-              srcDoc={page}
-              className={cn("w-full rounded-lg border-0 bg-white", iframeHeight)}
-              sandbox="allow-same-origin"
-              title={`${label} preview`}
-            />
-          ) : (
-            <EmptyPreview label={label} minHeight={previewMinHeight} />
-          )}
-        </TabsContent>
-      ))}
-    </Tabs>
+        {(
+          [
+            { key: "landing", page: pages?.index ?? null, label: "landing" },
+            { key: "terms", page: pages?.terms ?? null, label: "Terms & Conditions" },
+            { key: "privacy", page: pages?.privacy ?? null, label: "Privacy Policy" },
+            { key: "rg", page: pages?.rg ?? null, label: "Responsible Gambling" },
+          ] as const
+        ).map(({ key, page, label }) => (
+          <TabsContent key={key} value={key}>
+            {page ? (
+              <iframe
+                srcDoc={page}
+                className={cn("w-full rounded-lg border-0 bg-white", iframeHeight)}
+                sandbox="allow-same-origin"
+                title={`${label} preview`}
+              />
+            ) : (
+              <EmptyPreview label={label} minHeight={previewMinHeight} />
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
   );
 
   /* ── Loading ── */
