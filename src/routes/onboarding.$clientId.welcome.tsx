@@ -1,9 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, ClipboardList, Save, Sparkles, Users } from "lucide-react";
-import { Loader2 } from "lucide-react";
 import { StageHeader } from "@/components/StageHeader";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
@@ -23,8 +21,6 @@ function ClientWelcomePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { welcomeInfo, loadingPublic } = useOnboardingCtx();
-  const [studioAccess, setStudioAccess] = useState(false);
-  const [clientReady, setClientReady] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
@@ -35,21 +31,7 @@ function ClientWelcomePage() {
     if (authLoading) return;
     if (!user) {
       navigate({ to: "/onboarding/$clientId/auth", params: { clientId }, replace: true });
-      return;
     }
-    (async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("studio_access")
-        .eq("id", clientId)
-        .maybeSingle();
-      if (!data) {
-        navigate({ to: "/", replace: true });
-        return;
-      }
-      setStudioAccess(data.studio_access ?? false);
-      setClientReady(true);
-    })();
   }, [authLoading, user, clientId, navigate]);
 
   const handleStart = () => {
@@ -68,23 +50,11 @@ function ClientWelcomePage() {
     navigate({ to: "/dashboard" });
   };
 
-  if (authLoading || loadingPublic || !clientReady) {
+  if (authLoading || loadingPublic) {
     return <OnboardingLoadingScreen />;
   }
 
   const firstName = user ? emailToFirstName(user.email ?? "") : "";
-
-  const studioCard = studioAccess
-    ? {
-        icon: Sparkles,
-        label: "Trivelta Studio",
-        desc: "Design your brand, colors, logo yourself",
-      }
-    : {
-        icon: Users,
-        label: "Expert guidance",
-        desc: "Your Account Manager walks you through setup",
-      };
 
   const cards = [
     {
@@ -93,7 +63,11 @@ function ClientWelcomePage() {
       desc: "Your pre-onboarding answers are already there",
     },
     { icon: Save, label: "Auto-saves", desc: "Keep working - nothing gets lost" },
-    studioCard,
+    {
+      icon: Users,
+      label: "Expert guidance",
+      desc: "Your Account Manager walks you through setup",
+    },
   ];
 
   return (

@@ -8,7 +8,6 @@ import {
   Download,
   Eye,
   FileText,
-  Loader2,
   Mail,
   Palette,
   Rocket,

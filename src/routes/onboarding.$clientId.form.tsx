@@ -275,19 +275,21 @@ function FormScreen() {
             .maybeSingle(),
           supabase
             .from("clients")
-            .select("studio_access")
+            .select("studio_access, studio_features")
             .eq("id", clientId)
             .maybeSingle(),
         ]);
         if (formRes.error) throw formRes.error;
         const hasStudio = clientRes.data?.studio_access ?? false;
-        setStudioAccess(hasStudio);
-        studioAccessRef.current = hasStudio;
+        const hasLandingPageGen = (clientRes.data?.studio_features as Record<string, boolean> | null)?.landing_page_generator === true;
+        const routeToStudio = hasStudio || hasLandingPageGen;
+        setStudioAccess(routeToStudio);
+        studioAccessRef.current = routeToStudio;
         if (formRes.data?.data) setForm(emptyForm(formRes.data.data as Partial<FormShape>));
         if (formRes.data?.submitted_at) {
           setSubmitted(formRes.data.submitted_at);
-          if (hasStudio) {
-            navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId }, replace: true });
+          if (routeToStudio) {
+            navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
           } else {
             navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
           }
@@ -334,7 +336,7 @@ function FormScreen() {
           if (remote.submitted_at) {
             setSubmitted(remote.submitted_at);
             if (studioAccessRef.current) {
-              navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId } });
+              navigate({ to: "/onboarding/$clientId/studio", params: { clientId } });
             } else {
               navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
             }
