@@ -10,7 +10,7 @@
  */
 
 import Anthropic from "npm:@anthropic-ai/sdk@^0.32.0";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { makeCorsHeaders } from "../_shared/cors.ts";
 import {
   INDEX_TEMPLATE,

@@ -5,7 +5,7 @@
 // 3. Appends a Pre-Onboarding section with all filled fields
 // 4. Stores notion_page_id back in prospects table
 
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
 const NOTION_API = "https://api.notion.com/v1";
