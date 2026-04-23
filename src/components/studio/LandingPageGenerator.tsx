@@ -33,8 +33,10 @@ import {
   Download,
   ExternalLink,
   FileCheck,
+  FileText,
   FileX,
   FolderOpen,
+  Shield,
   Loader2,
   Mail,
   Monitor,
@@ -183,27 +185,155 @@ function EmbeddedEmptyPreview({ label, minHeight }: { label: string; minHeight: 
 
 function FullpageEmptyPreview() {
   return (
-    <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10 flex items-center justify-center mb-6">
-        <Sparkles className="h-10 w-10 text-primary/60" />
+    <div className="flex items-center justify-center h-full min-h-[600px] relative">
+      {/* Background orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 h-96 w-96 bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-primary/5 rounded-full blur-[120px]" />
       </div>
-      <h3 className="text-lg font-semibold mb-2">Ready to generate</h3>
-      <p className="text-sm text-muted-foreground max-w-sm mb-6">
-        Fill in your brand details on the left, then click "Submit for Review" to generate your 4
-        branded pages.
-      </p>
-      <div className="flex items-center gap-6 text-[11px] text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Clock className="h-3.5 w-3.5" />
-          <span>~30 seconds</span>
+
+      {/* Content */}
+      <div className="relative z-10 max-w-md text-center space-y-8">
+
+        {/* Icon cluster */}
+        <div className="relative inline-block">
+          <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 flex items-center justify-center shadow-2xl shadow-primary/10">
+            <Sparkles className="h-11 w-11 text-primary" />
+          </div>
+          <div className="absolute -top-2 -right-3 h-8 w-8 rounded-xl bg-background border border-border/40 flex items-center justify-center shadow-lg animate-pulse">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="absolute -bottom-2 -left-3 h-8 w-8 rounded-xl bg-background border border-border/40 flex items-center justify-center shadow-lg animate-pulse" style={{ animationDelay: "0.5s" }}>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="absolute top-1/2 -left-8 -translate-y-1/2 h-8 w-8 rounded-xl bg-background border border-border/40 flex items-center justify-center shadow-lg animate-pulse" style={{ animationDelay: "1s" }}>
+            <Palette className="h-4 w-4 text-muted-foreground" />
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>AI-powered</span>
+
+        {/* Headline */}
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Your premium pages
+            <br />
+            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              in 30 seconds.
+            </span>
+          </h2>
+          <p className="text-muted-foreground text-base leading-relaxed max-w-sm mx-auto">
+            Fill in your brand details on the left. Our AI generates 4 compliant, beautifully
+            designed pages tailored to your jurisdiction.
+          </p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <FileCheck className="h-3.5 w-3.5" />
-          <span>4 pages</span>
+
+        {/* Stats row */}
+        <div className="flex items-center justify-center gap-6 pt-2">
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-primary" />
+            </div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              30 seconds
+            </div>
+          </div>
+          <div className="h-6 w-px bg-border/40" />
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-primary" />
+            </div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              AI-powered
+            </div>
+          </div>
+          <div className="h-6 w-px bg-border/40" />
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <FileCheck className="h-4 w-4 text-primary" />
+            </div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              4 pages
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function PreviewSkeleton({ genStage }: { genStage: string }) {
+  return (
+    <div
+      className={cn(
+        "relative flex-1 min-h-[600px] rounded-xl overflow-hidden",
+        "bg-background/60 border border-border/40",
+      )}
+    >
+      {/* Fake navbar skeleton */}
+      <div className="h-14 border-b border-border/30 flex items-center justify-between px-6 bg-background/40">
+        <div className="h-6 w-24 rounded-md bg-muted/40 animate-pulse" />
+        <div className="flex gap-4">
+          {[12, 14, 10, 13].map((w, i) => (
+            <div
+              key={i}
+              className="h-3 rounded-sm bg-muted/30 animate-pulse"
+              style={{ width: `${w * 4}px`, animationDelay: `${i * 0.1}s` }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Hero skeleton */}
+      <div className="p-12 space-y-8">
+        {/* Country badge */}
+        <div className="flex justify-center">
+          <div className="h-6 w-36 rounded-full bg-primary/10 animate-pulse" />
+        </div>
+
+        {/* Headlines */}
+        <div className="space-y-3 flex flex-col items-center">
+          <div className="h-14 w-3/4 rounded-lg bg-muted/40 animate-pulse" />
+          <div
+            className="h-14 w-1/2 rounded-lg bg-primary/20 animate-pulse"
+            style={{ animationDelay: "0.2s" }}
+          />
+        </div>
+
+        {/* Description */}
+        <div className="space-y-2 flex flex-col items-center">
+          <div
+            className="h-4 w-2/3 rounded-sm bg-muted/30 animate-pulse"
+            style={{ animationDelay: "0.4s" }}
+          />
+          <div
+            className="h-4 w-1/2 rounded-sm bg-muted/30 animate-pulse"
+            style={{ animationDelay: "0.5s" }}
+          />
+        </div>
+
+        {/* CTA buttons */}
+        <div className="flex justify-center gap-3 pt-4">
+          <div
+            className="h-11 w-28 rounded-lg bg-primary/20 animate-pulse"
+            style={{ animationDelay: "0.7s" }}
+          />
+          <div
+            className="h-11 w-28 rounded-lg bg-muted/30 animate-pulse"
+            style={{ animationDelay: "0.8s" }}
+          />
+        </div>
+      </div>
+
+      {/* AI working pill */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-primary/10 backdrop-blur-md border border-primary/20">
+          <div className="relative h-3 w-3 shrink-0">
+            <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" />
+          </div>
+          <span className="text-[11px] font-medium text-primary whitespace-nowrap">
+            {genStage || "AI is generating your pages…"}
+          </span>
         </div>
       </div>
     </div>
@@ -1221,50 +1351,57 @@ export function LandingPageGenerator({
           </div>
         </div>
 
-        {/* Generating indicator */}
-        {generating && (
-          <div className="flex items-center gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 mb-4 shrink-0 text-sm">
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
-            <span className="text-foreground/80">
-              Claude is generating your pages…{" "}
-              <span className="text-muted-foreground/70">(up to 30 seconds)</span>
-            </span>
+        {/* Preview content */}
+        {generating && !pages ? (
+          <PreviewSkeleton genStage={genStage} />
+        ) : !pages ? (
+          <div className="flex-1 min-h-0">
+            <FullpageEmptyPreview />
           </div>
+        ) : (
+          <>
+            {/* Regeneration banner (only when regenerating with existing pages) */}
+            {generating && (
+              <div className="flex items-center gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 mb-4 shrink-0 text-sm">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                <span className="text-foreground/80">
+                  Regenerating your pages…{" "}
+                  <span className="text-muted-foreground/70">(up to 30 seconds)</span>
+                </span>
+              </div>
+            )}
+
+            {/* Page tabs */}
+            <Tabs defaultValue="landing" className="flex-1 flex flex-col min-h-0">
+              <TabsList className="w-fit bg-card/50 border border-border/40 shrink-0">
+                {PAGE_TABS.map(({ key, label }) => (
+                  <TabsTrigger key={key} value={key}>
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {PAGE_TABS.map(({ key, page, label }) => (
+                <TabsContent key={key} value={key} className="flex-1 mt-4 min-h-0">
+                  <div
+                    className={cn(
+                      "h-full border border-border/40 rounded-xl overflow-hidden",
+                      "shadow-2xl shadow-primary/5 mx-auto",
+                      previewDevice === "mobile" ? "max-w-[390px]" : "max-w-full",
+                    )}
+                  >
+                    <iframe
+                      srcDoc={page ?? undefined}
+                      className="w-full h-full bg-white border-0"
+                      sandbox="allow-same-origin"
+                      title={`${label} preview`}
+                    />
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </>
         )}
-
-        {/* Page tabs */}
-        <Tabs defaultValue="landing" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="w-fit bg-card/50 border border-border/40 shrink-0">
-            {PAGE_TABS.map(({ key, label }) => (
-              <TabsTrigger key={key} value={key}>
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {PAGE_TABS.map(({ key, page, label }) => (
-            <TabsContent key={key} value={key} className="flex-1 mt-4 min-h-0">
-              {page ? (
-                <div
-                  className={cn(
-                    "h-full border border-border/40 rounded-xl overflow-hidden",
-                    "shadow-2xl shadow-primary/5 mx-auto",
-                    previewDevice === "mobile" ? "max-w-[390px]" : "max-w-full",
-                  )}
-                >
-                  <iframe
-                    srcDoc={page}
-                    className="w-full h-full bg-white border-0"
-                    sandbox="allow-same-origin"
-                    title={`${label} preview`}
-                  />
-                </div>
-              ) : (
-                <FullpageEmptyPreview />
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
       </main>
     </div>
   );

@@ -69,6 +69,7 @@ import {
 } from "lucide-react";
 import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
+import logoUrl from "@/assets/trivelta-logo.png";
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 
@@ -1748,30 +1749,56 @@ function LandingPageFullPageShell({
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Minimal nav bar */}
-      <header className="sticky top-0 z-30 h-[60px] shrink-0 flex items-center border-b border-border/50 bg-background/90 backdrop-blur-xl px-6">
-        <TriveltaLogo size="xl" withSubtitle product="AI · Studio" poweredBy />
-        <div className="ml-auto flex items-center gap-3">
-          {userEmail && (
-            <span className="hidden sm:block text-xs text-muted-foreground">{userEmail}</span>
-          )}
-          <button
-            onClick={onSignOut}
-            className="rounded-lg border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
-          >
-            Sign out
-          </button>
+      {/* Navbar */}
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
+        <div className="px-8 h-16 flex items-center justify-between">
+
+          {/* Left: Logo + wordmark */}
+          <div className="flex items-center gap-4">
+            <img src={logoUrl} alt="Trivelta" className="h-7 w-auto select-none" draggable={false} />
+            <div className="h-6 w-px bg-border/50 shrink-0" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 leading-none">
+                <span className="text-[13px] font-bold tracking-tight">TRIVELTA AI</span>
+                <span className="text-muted-foreground/60 text-[11px]">/</span>
+                <span className="text-[13px] text-muted-foreground tracking-wide">Studio</span>
+              </div>
+              <div className="text-[9px] text-muted-foreground/50 uppercase tracking-[0.15em] mt-1">
+                Powered by Anthropic
+              </div>
+            </div>
+          </div>
+
+          {/* Right: User + sign out */}
+          <div className="flex items-center gap-3">
+            {userEmail && (
+              <span className="hidden sm:block text-xs text-muted-foreground">{userEmail}</span>
+            )}
+            <button
+              onClick={onSignOut}
+              className="rounded-lg border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            >
+              Sign out
+            </button>
+          </div>
+
         </div>
       </header>
 
       {/* Premium brand banner */}
-      <div className="border-b border-primary/10 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 shrink-0">
-        <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-center gap-2 text-[11px]">
-          <Sparkles className="h-3 w-3 text-primary shrink-0" />
-          <span className="text-muted-foreground">
-            Welcome to <span className="text-foreground font-semibold">Trivelta AI Studio</span> —
-            exclusive access, powered by Anthropic's Claude
-          </span>
+      <div className="border-b border-primary/10 bg-gradient-to-r from-primary/[0.04] via-primary/[0.08] to-primary/[0.04] overflow-hidden shrink-0">
+        <div className="max-w-7xl mx-auto px-8 py-3 flex items-center justify-center gap-3">
+          <div className="relative shrink-0">
+            <Sparkles className="h-4 w-4 text-primary relative z-10" />
+            <div className="absolute inset-0 blur-md bg-primary/40 rounded-full animate-pulse" />
+          </div>
+          <div className="flex items-center gap-2 text-[12px]">
+            <span className="text-muted-foreground">Welcome to</span>
+            <span className="font-semibold text-foreground">Trivelta AI Studio</span>
+            <span className="text-muted-foreground/50">·</span>
+            <span className="text-muted-foreground">Exclusive access, powered by</span>
+            <span className="font-semibold text-primary">Anthropic's Claude</span>
+          </div>
         </div>
       </div>
 
