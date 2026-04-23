@@ -116,6 +116,15 @@ function SuccessScreen() {
         <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
           <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto w-full">
 
+            {/* Strategic partnership lockup */}
+            <img
+              src={partnershipLogo}
+              alt="Claude × Trivelta — Strategic Partnership"
+              className="h-16 md:h-20 w-auto select-none animate-fade-in"
+              style={{ animationDelay: "20ms" }}
+              draggable={false}
+            />
+
             {/* Step indicator */}
             <div
               className="flex items-center gap-4 animate-fade-in"
