@@ -100,6 +100,7 @@ export type Database = {
           studio_access_granted_at: string | null
           studio_access_granted_by: string | null
           studio_access_locked: boolean
+          studio_features: Json | null
           studio_locked_at: string | null
           updated_at: string
         }
@@ -120,6 +121,7 @@ export type Database = {
           studio_access_granted_at?: string | null
           studio_access_granted_by?: string | null
           studio_access_locked?: boolean
+          studio_features?: Json | null
           studio_locked_at?: string | null
           updated_at?: string
         }
@@ -140,6 +142,7 @@ export type Database = {
           studio_access_granted_at?: string | null
           studio_access_granted_by?: string | null
           studio_access_locked?: boolean
+          studio_features?: Json | null
           studio_locked_at?: string | null
           updated_at?: string
         }
@@ -522,6 +525,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      client_has_studio_feature: {
+        Args: { p_client_id: string; p_feature: string }
+        Returns: boolean
+      }
       current_user_email: { Args: never; Returns: string }
       get_client_welcome_info: {
         Args: { _client_id: string }
