@@ -15,7 +15,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, FileX, Loader2, Send, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  Building,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileCheck,
+  FileX,
+  Loader2,
+  Mail,
+  Monitor,
+  Palette,
+  Scale,
+  Send,
+  Smartphone,
+  Sparkles,
+} from "lucide-react";
+import { AccordionSection } from "@/components/studio/AccordionSection";
 import { LogoUploadField } from "@/components/studio/LogoUploadField";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -112,9 +129,9 @@ function rgbaToHex(rgba: string | undefined, fallback = "#6366f1"): string {
   return `#${toHex(m[1])}${toHex(m[2])}${toHex(m[3])}`;
 }
 
-/* ── Primitive sub-components (layout-agnostic) ───────────────────────────── */
+/* ── Primitive sub-components ─────────────────────────────────────────────── */
 
-function EmptyPreview({ label, minHeight }: { label: string; minHeight: string }) {
+function EmbeddedEmptyPreview({ label, minHeight }: { label: string; minHeight: string }) {
   return (
     <div
       className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-8 text-center"
@@ -125,6 +142,35 @@ function EmptyPreview({ label, minHeight }: { label: string; minHeight: string }
       <p className="mt-1 text-xs text-muted-foreground">
         Fill in the form and click Generate to see your {label} page.
       </p>
+    </div>
+  );
+}
+
+function FullpageEmptyPreview() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full p-12 text-center">
+      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10 flex items-center justify-center mb-6">
+        <Sparkles className="h-10 w-10 text-primary/60" />
+      </div>
+      <h3 className="text-lg font-semibold mb-2">Ready to generate</h3>
+      <p className="text-sm text-muted-foreground max-w-sm mb-6">
+        Fill in your brand details on the left, then click "Submit for Review" to generate your 4
+        branded pages.
+      </p>
+      <div className="flex items-center gap-6 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5" />
+          <span>~30 seconds</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>AI-powered</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <FileCheck className="h-3.5 w-3.5" />
+          <span>4 pages</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -181,6 +227,12 @@ function SectionHeading({ children, compact }: { children: React.ReactNode; comp
   );
 }
 
+/* ── Sidebar field styles ─────────────────────────────────────────────────── */
+
+const SI_LABEL = "block text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5";
+const SI_INPUT = "bg-background/50 border-border/60 hover:border-primary/30 focus-visible:border-primary/50 transition-all text-sm";
+const SI_HELPER = "text-[11px] text-muted-foreground mt-1.5";
+
 /* ── Main component ───────────────────────────────────────────────────────── */
 
 export function LandingPageGenerator({
@@ -207,6 +259,14 @@ export function LandingPageGenerator({
   const [genError, setGenError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [attempted, setAttempted] = useState(false);
+
+  // Fullpage-only UI state
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState<string>("company");
+  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+
+  const toggleSection = (key: string) =>
+    setActiveSection((s) => (s === key ? "" : key));
 
   /* ── Pre-fill on mount ── */
   useEffect(() => {
@@ -271,7 +331,6 @@ export function LandingPageGenerator({
     setGenError(null);
 
     try {
-      // ── Session diagnostic ─────────────────────────────────────────────
       const { data: { session } } = await supabase.auth.getSession();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       console.log("[landing-gen] Session present:", !!session);
@@ -279,7 +338,6 @@ export function LandingPageGenerator({
       console.log("[landing-gen] User email:", authUser?.email);
       console.log("[landing-gen] Token length:", session?.access_token?.length ?? 0);
       console.log("[landing-gen] Token first 50:", session?.access_token?.substring(0, 50));
-      // ───────────────────────────────────────────────────────────────────
 
       if (!session) {
         throw new Error("Your session has expired. Please refresh the page and try again.");
@@ -316,7 +374,7 @@ export function LandingPageGenerator({
     }
   };
 
-  /* ── Render helpers (close over state so no prop drilling) ── */
+  /* ── Embedded render helpers ──────────────────────────────────────────────── */
 
   const renderFormSections = () => (
     <>
@@ -557,7 +615,7 @@ export function LandingPageGenerator({
                 title={`${label} preview`}
               />
             ) : (
-              <EmptyPreview label={label} minHeight={previewMinHeight} />
+              <EmbeddedEmptyPreview label={label} minHeight={previewMinHeight} />
             )}
           </TabsContent>
         ))}
@@ -575,18 +633,16 @@ export function LandingPageGenerator({
     );
   }
 
-  /* ── Embedded layout ── */
+  /* ── Embedded layout (unchanged) ── */
 
   if (layout === "embedded") {
     return (
       <div className="px-4 py-3">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Form column — scrollable */}
           <div className="flex flex-col gap-1 max-h-[70vh] overflow-y-auto pr-2 pb-4">
             {renderFormSections()}
             {renderActionButtons()}
           </div>
-          {/* Preview column — sticky */}
           <div className="lg:sticky lg:top-0 pb-4">
             {renderPreviewTabs()}
           </div>
@@ -595,31 +651,402 @@ export function LandingPageGenerator({
     );
   }
 
-  /* ── Full-page layout ── */
+  /* ── Full-page layout — collapsible sidebar ── */
+
+  const PAGE_TABS = [
+    { key: "landing", page: pages?.index ?? null, label: "Landing" },
+    { key: "terms", page: pages?.terms ?? null, label: "Terms" },
+    { key: "privacy", page: pages?.privacy ?? null, label: "Privacy" },
+    { key: "rg", page: pages?.rg ?? null, label: "Responsible Gambling" },
+  ] as const;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Your Landing Pages</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">
-          Generate AI-powered landing, terms, privacy, and responsible gambling pages for your
-          brand. Preview below, then submit to Trivelta for deployment.
-        </p>
-      </div>
+    <div className="flex h-full relative overflow-hidden">
+      {/* ── Collapsible sidebar ── */}
+      <aside
+        className={cn(
+          "shrink-0 transition-all duration-300 ease-out border-r border-border/40",
+          "bg-gradient-to-b from-card/60 to-card/30 backdrop-blur-sm",
+          sidebarOpen ? "w-[420px]" : "w-0 overflow-hidden",
+        )}
+      >
+        <div className="w-[420px] h-full flex flex-col">
+          {/* Accordion sections */}
+          <div className="flex-1 min-h-0 flex flex-col">
 
-      {/* Two-column grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Form — 2 cols */}
-        <div className="lg:col-span-2 flex flex-col gap-1">
-          {renderFormSections()}
-          {renderActionButtons()}
+            {/* Company */}
+            <AccordionSection
+              title="Company"
+              icon={<Building />}
+              subtitle="Name · Domain · Brand"
+              active={activeSection === "company"}
+              onClick={() => toggleSection("company")}
+            >
+              <div className="px-5 py-4 space-y-4">
+                <div>
+                  <label htmlFor="si-legal" className={SI_LABEL}>
+                    Legal company name <span className="text-destructive">*</span>
+                  </label>
+                  <Input id="si-legal" value={form.legalCompanyName}
+                    onChange={onChange("legalCompanyName")} placeholder="Scorama Limited"
+                    className={SI_INPUT} disabled={generating} />
+                  {isInvalid("legalCompanyName") && (
+                    <p className={SI_HELPER + " text-destructive"}>Required</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="si-brand" className={SI_LABEL}>
+                    Public brand name <span className="text-destructive">*</span>
+                  </label>
+                  <Input id="si-brand" value={form.brandName}
+                    onChange={onChange("brandName")} placeholder="Scorama"
+                    className={SI_INPUT} disabled={generating} />
+                  {isInvalid("brandName") && (
+                    <p className={SI_HELPER + " text-destructive"}>Required</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="si-domain" className={SI_LABEL}>
+                    Primary domain <span className="text-destructive">*</span>
+                  </label>
+                  <Input id="si-domain" value={form.primaryDomain}
+                    onChange={onChange("primaryDomain")} placeholder="scorama.com"
+                    className={SI_INPUT} disabled={generating} />
+                  {isInvalid("primaryDomain")
+                    ? <p className={SI_HELPER + " text-destructive"}>Required</p>
+                    : <p className={SI_HELPER}>Where your landing page is hosted</p>
+                  }
+                </div>
+                <div>
+                  <label htmlFor="si-sub" className={SI_LABEL}>Platform subdomain</label>
+                  <Input id="si-sub" value={form.platformSubdomain}
+                    onChange={onChange("platformSubdomain")} placeholder="play.scorama.com"
+                    className={SI_INPUT} disabled={generating} />
+                  <p className={SI_HELPER}>The betting app URL. CTA buttons will link here.</p>
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Support */}
+            <AccordionSection
+              title="Support"
+              icon={<Mail />}
+              subtitle="Email · Helpline"
+              active={activeSection === "support"}
+              onClick={() => toggleSection("support")}
+            >
+              <div className="px-5 py-4 space-y-4">
+                <div>
+                  <label htmlFor="si-email" className={SI_LABEL}>
+                    Support email <span className="text-destructive">*</span>
+                  </label>
+                  <Input id="si-email" type="email" value={form.supportEmail}
+                    onChange={onChange("supportEmail")} placeholder="support@scorama.com"
+                    className={SI_INPUT} disabled={generating} />
+                  {isInvalid("supportEmail") && (
+                    <p className={SI_HELPER + " text-destructive"}>Required</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="si-phone" className={SI_LABEL}>Support helpline</label>
+                  <Input id="si-phone" value={form.supportHelpline}
+                    onChange={onChange("supportHelpline")} placeholder="+234 800 123 4567"
+                    className={SI_INPUT} disabled={generating} />
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Legal */}
+            <AccordionSection
+              title="Legal"
+              icon={<Scale />}
+              subtitle="Jurisdiction · License · RG"
+              active={activeSection === "legal"}
+              onClick={() => toggleSection("legal")}
+            >
+              <div className="px-5 py-4 space-y-4">
+                <div>
+                  <label htmlFor="si-jur" className={SI_LABEL}>
+                    License jurisdiction <span className="text-destructive">*</span>
+                  </label>
+                  <Select value={form.licenseJurisdiction} onValueChange={set("licenseJurisdiction")} disabled={generating}>
+                    <SelectTrigger id="si-jur" className={cn(SI_INPUT, "text-sm")}>
+                      <SelectValue placeholder="Select jurisdiction…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {JURISDICTIONS.map((j) => (
+                        <SelectItem key={j} value={j}>{j}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isInvalid("licenseJurisdiction") && (
+                    <p className={SI_HELPER + " text-destructive"}>Required</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="si-lic" className={SI_LABEL}>License number</label>
+                  <Input id="si-lic" value={form.licenseNumber}
+                    onChange={onChange("licenseNumber")} placeholder="00123456"
+                    className={SI_INPUT} disabled={generating} />
+                  <p className={SI_HELPER}>Your operating license number, if assigned</p>
+                </div>
+                <div>
+                  <label htmlFor="si-rg" className={SI_LABEL}>RG helplines</label>
+                  <Textarea id="si-rg" value={form.rgHelplines}
+                    onChange={onChange("rgHelplines")}
+                    placeholder="Auto-populated when jurisdiction is selected"
+                    className={cn(SI_INPUT, "resize-none min-h-[88px] text-sm")}
+                    disabled={generating} />
+                  <p className={SI_HELPER}>Auto-filled from jurisdiction. Override if needed.</p>
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Visuals */}
+            <AccordionSection
+              title="Visuals"
+              icon={<Palette />}
+              subtitle="Colors"
+              active={activeSection === "visuals"}
+              onClick={() => toggleSection("visuals")}
+            >
+              <div className="px-5 py-4 space-y-3">
+                {/* Primary color card */}
+                <div>
+                  <label className={SI_LABEL}>
+                    Primary color <span className="text-destructive">*</span>
+                  </label>
+                  <div
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-all cursor-pointer"
+                    onClick={() => document.getElementById("si-pc-input")?.click()}
+                  >
+                    <div
+                      className="h-10 w-10 rounded-lg shadow-sm shrink-0"
+                      style={{ background: form.brandPrimaryColor }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">Primary color</div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
+                        {form.brandPrimaryColor}
+                      </div>
+                    </div>
+                    <input
+                      type="color"
+                      id="si-pc-input"
+                      value={form.brandPrimaryColor}
+                      onChange={onChange("brandPrimaryColor")}
+                      disabled={generating}
+                      className="sr-only"
+                    />
+                  </div>
+                  {isInvalid("brandPrimaryColor") && (
+                    <p className={SI_HELPER + " text-destructive"}>Required</p>
+                  )}
+                </div>
+                {/* Accent color card */}
+                <div>
+                  <label className={SI_LABEL}>Accent color</label>
+                  <div
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 transition-all cursor-pointer"
+                    onClick={() => document.getElementById("si-ac-input")?.click()}
+                  >
+                    <div
+                      className="h-10 w-10 rounded-lg shadow-sm shrink-0"
+                      style={{ background: form.brandAccentColor }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">Accent color</div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
+                        {form.brandAccentColor}
+                      </div>
+                    </div>
+                    <input
+                      type="color"
+                      id="si-ac-input"
+                      value={form.brandAccentColor}
+                      onChange={onChange("brandAccentColor")}
+                      disabled={generating}
+                      className="sr-only"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Brand Assets */}
+            <AccordionSection
+              title="Brand Assets"
+              icon={<Sparkles />}
+              subtitle="Logo upload"
+              active={activeSection === "assets"}
+              onClick={() => toggleSection("assets")}
+            >
+              <div className="px-5 py-4">
+                <LogoUploadField
+                  clientId={clientId}
+                  currentLogoUrl={logoUrl}
+                  onUploadComplete={(url) => setLogoUrl(url)}
+                  onRemove={() => setLogoUrl(null)}
+                  disabled={generating}
+                />
+                {attempted && logoUrl === null && (
+                  <p className={SI_HELPER + " text-destructive mt-2"}>A logo is required</p>
+                )}
+              </div>
+            </AccordionSection>
+
+          </div>
+
+          {/* Action buttons */}
+          <div className="shrink-0 p-5 border-t border-border/40">
+            {genError && (
+              <Alert variant="destructive" className="mb-3">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Generation failed</AlertTitle>
+                <AlertDescription>{genError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 gap-1.5"
+                disabled={generating || (attempted && !isValid)}
+                onClick={handleGenerate}
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Submit for Review
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={generating}
+                onClick={() => toast.info("Draft saving coming soon")}
+              >
+                Save
+              </Button>
+            </div>
+            {attempted && !isValid && !generating && (
+              <p className="text-xs text-destructive mt-2">
+                Please fill in all required fields before generating.
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground/60 text-center mt-3">
+              Trivelta will deploy these pages to your domain.
+            </p>
+          </div>
         </div>
-        {/* Preview — 3 cols */}
-        <div className="lg:col-span-3">
-          {renderPreviewTabs()}
+      </aside>
+
+      {/* ── Sidebar toggle button ── */}
+      <button
+        onClick={() => setSidebarOpen((o) => !o)}
+        className={cn(
+          "absolute top-6 z-10 h-10 w-10",
+          "rounded-full bg-card border border-border shadow-md",
+          "flex items-center justify-center",
+          "hover:bg-primary/10 hover:border-primary/30 transition-all",
+          sidebarOpen ? "left-[404px]" : "left-2",
+        )}
+      >
+        {sidebarOpen ? (
+          <ChevronLeft className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </button>
+
+      {/* ── Main preview area ── */}
+      <main className="flex-1 overflow-hidden flex flex-col p-6">
+        {/* Header bar */}
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div>
+            <h2 className="text-lg font-semibold">Preview</h2>
+            <p className="text-xs text-muted-foreground">
+              See how your pages will look. Regenerate to apply changes.
+            </p>
+          </div>
+
+          {/* Desktop / Mobile toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-muted">
+            <button
+              onClick={() => setPreviewDevice("desktop")}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
+                previewDevice === "desktop"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Monitor className="h-3.5 w-3.5" />
+              Desktop
+            </button>
+            <button
+              onClick={() => setPreviewDevice("mobile")}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
+                previewDevice === "mobile"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+              Mobile
+            </button>
+          </div>
         </div>
-      </div>
+
+        {/* Generating indicator */}
+        {generating && (
+          <div className="flex items-center gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 mb-4 shrink-0 text-sm">
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+            <span className="text-foreground/80">
+              Claude is generating your pages…{" "}
+              <span className="text-muted-foreground/70">(up to 30 seconds)</span>
+            </span>
+          </div>
+        )}
+
+        {/* Page tabs */}
+        <Tabs defaultValue="landing" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="w-fit bg-card/50 border border-border/40 shrink-0">
+            {PAGE_TABS.map(({ key, label }) => (
+              <TabsTrigger key={key} value={key}>
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {PAGE_TABS.map(({ key, page, label }) => (
+            <TabsContent key={key} value={key} className="flex-1 mt-4 min-h-0">
+              {page ? (
+                <div
+                  className={cn(
+                    "h-full border border-border/40 rounded-xl overflow-hidden",
+                    "shadow-2xl shadow-primary/5 mx-auto",
+                    previewDevice === "mobile" ? "max-w-[390px]" : "max-w-full",
+                  )}
+                >
+                  <iframe
+                    srcDoc={page}
+                    className="w-full h-full bg-white border-0"
+                    sandbox="allow-same-origin"
+                    title={`${label} preview`}
+                  />
+                </div>
+              ) : (
+                <FullpageEmptyPreview />
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </main>
     </div>
   );
 }
