@@ -47,10 +47,12 @@ import {
   Smartphone,
   Sparkles,
 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AccordionSection } from "@/components/studio/AccordionSection";
 import { FormField } from "@/components/studio/FormField";
 import { LogoUploadField } from "@/components/studio/LogoUploadField";
 import { PremiumColorPicker } from "@/components/studio/PremiumColorPicker";
+import { useStudioFeatures } from "@/hooks/useStudioFeatures";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -427,6 +429,16 @@ export function LandingPageGenerator({
   const [genError, setGenError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [attempted, setAttempted] = useState(false);
+  const [confirmedUpload, setConfirmedUpload] = useState(false);
+
+  const { features: studioFeatures } = useStudioFeatures(clientId);
+  const otherFeaturesEnabled = useMemo(
+    () =>
+      Object.entries(studioFeatures).some(
+        ([key, value]) => key !== "landing_page_generator" && value === true,
+      ),
+    [studioFeatures],
+  );
 
   // Fullpage-only UI state
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -908,6 +920,126 @@ export function LandingPageGenerator({
 
   /* ── Embedded layout (unchanged) ── */
 
+  /* ── Final success screen (post-confirmation) ── */
+
+  if (confirmedUpload) {
+    return (
+      <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-6 py-16 space-y-8 animate-fade-in">
+        {/* Hero success icon */}
+        <div className="relative">
+          <div
+            className="absolute inset-0 blur-3xl scale-150 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, color-mix(in oklab, oklch(0.72 0.17 152) 22%, transparent) 0%, transparent 70%)",
+            }}
+          />
+          <div
+            className="relative h-24 w-24 rounded-3xl border flex items-center justify-center shadow-2xl"
+            style={{
+              background:
+                "linear-gradient(135deg, color-mix(in oklab, oklch(0.72 0.17 152) 20%, transparent), color-mix(in oklab, oklch(0.72 0.17 152) 5%, transparent))",
+              borderColor: "color-mix(in oklab, oklch(0.72 0.17 152) 25%, transparent)",
+              boxShadow: "0 25px 50px -12px color-mix(in oklab, oklch(0.72 0.17 152) 18%, transparent)",
+            }}
+          >
+            <CheckCircle2 className="h-12 w-12" style={{ color: "oklch(0.72 0.17 152)" }} />
+          </div>
+        </div>
+
+        {/* Headline */}
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold tracking-tight">All done.</h1>
+          <h2 className="text-2xl font-semibold text-muted-foreground">
+            Your pages are with Trivelta.
+          </h2>
+        </div>
+
+        {/* Status card */}
+        <div className="w-full rounded-2xl border border-border/40 bg-card/40 p-6 space-y-4">
+          <div className="flex items-center gap-4">
+            <div
+              className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "color-mix(in oklab, oklch(0.72 0.17 152) 12%, transparent)" }}
+            >
+              <FileCheck className="h-5 w-5" style={{ color: "oklch(0.72 0.17 152)" }} />
+            </div>
+            <div className="text-left flex-1">
+              <div className="text-sm font-semibold">Files received</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                Your Trivelta team will review and deploy your pages within 2–3 business days.
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Mail className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-left flex-1">
+              <div className="text-sm font-semibold">You'll be notified</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                We'll email you the moment your site is live on your domain.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Conditional CTA */}
+        {otherFeaturesEnabled ? (
+          <div className="w-full rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 h-40 w-40 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl -translate-y-20 translate-x-20 pointer-events-none" />
+            <div className="relative space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1">
+                <Sparkles className="h-3 w-3 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                  More to explore
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-left">
+                Your Trivelta AI Studio access is unlocked.
+              </h3>
+              <p className="text-sm text-muted-foreground text-left">
+                Your account manager has enabled additional tools in your AI Studio — chat
+                with Claude, design color palettes, customize animations and more.
+              </p>
+              <Button
+                size="lg"
+                className="w-full group"
+                onClick={() => {
+                  // Force reload so studio re-evaluates landing-page-only mode
+                  window.location.href = `/onboarding/${clientId}/studio`;
+                }}
+              >
+                <Sparkles className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
+                Explore Trivelta AI Studio
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              You can close this window. We'll be in touch soon.
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-4"
+              onClick={() => {
+                window.location.href = "/";
+              }}
+            >
+              Return to homepage
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ── Embedded layout (unchanged) ── */
+
   if (layout === "embedded") {
     return (
       <div className="px-4 py-3">
@@ -1286,6 +1418,37 @@ export function LandingPageGenerator({
                       </AlertDescription>
                     </Alert>
                   )}
+
+                  {/* Step 4: Confirm upload */}
+                  <div className="mt-2 pt-4 border-t border-border/40">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Step 4: Confirm upload
+                    </div>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full border-primary/30 hover:bg-primary/5 hover:border-primary/50"
+                      onClick={async () => {
+                        setConfirmedUpload(true);
+                        try {
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          await (supabase as any).rpc("log_client_activity", {
+                            p_action: "landing_pages_uploaded_confirmed",
+                            p_client_id: clientId,
+                            p_details: {},
+                          });
+                        } catch (err) {
+                          console.warn("[LandingPageGenerator] activity log failed", err);
+                        }
+                      }}
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      I've uploaded the ZIP to Trivelta Drive
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground text-center mt-2">
+                      Confirm once you've dragged the file into the folder
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
