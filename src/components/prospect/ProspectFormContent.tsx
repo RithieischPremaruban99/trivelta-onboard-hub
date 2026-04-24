@@ -66,10 +66,12 @@ function ProspectSuccessState({
   prospect,
   onRequestUpdate,
   onDownloadPDF,
+  downloading,
 }: {
   prospect: ProspectData;
   onRequestUpdate: () => void;
   onDownloadPDF: () => void;
+  downloading: boolean;
 }) {
   const cards = [
     {
