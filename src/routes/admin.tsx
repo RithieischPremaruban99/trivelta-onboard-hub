@@ -2219,12 +2219,6 @@ function NewProspectDialog({
     onCreated();
   };
 
-  const copyLink = () => {
-    if (!magicLink) return;
-    navigator.clipboard.writeText(magicLink);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
