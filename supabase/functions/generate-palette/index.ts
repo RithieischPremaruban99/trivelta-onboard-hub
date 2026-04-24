@@ -353,7 +353,7 @@ function buildUserMessage(req: GeneratePaletteRequest): string {
 
   if (req.manualOverrides && req.manualOverrides.length > 0 && req.currentPalette) {
     const overrideLines = req.manualOverrides
-      .map((f) => `${f}: ${(req.currentPalette as Record<string, string>)[f] ?? "(unknown)"}`)
+      .map((f) => `${f}: ${(req.currentPalette as unknown as Record<string, string>)[f] ?? "(unknown)"}`)
       .join("\n");
     parts.push(`MANUAL OVERRIDES (MUST PRESERVE EXACTLY):\n${overrideLines}`);
   }
@@ -542,7 +542,7 @@ function enforceContrast(palette: TCMPalette): TCMPalette {
       console.log(
         `[generate-palette] Contrast fix: ${text} ${textColor} → ${newTextColor} (${bg}=${bgColor}, ratio was ${ratio.toFixed(2)})`
       );
-      (corrected as Record<string, string>)[text] = newTextColor;
+      (corrected as unknown as Record<string, string>)[text] = newTextColor;
       correctionCount++;
     }
   }
@@ -580,7 +580,7 @@ function validateAndEnforce(
       );
       continue;
     }
-    (palette as Record<string, string>)[key] = aiValue as string;
+    (palette as unknown as Record<string, string>)[key] = aiValue as string;
     aiProvidedCount++;
   }
 
@@ -600,8 +600,8 @@ function validateAndEnforce(
   let pamResets = 0;
   for (const key of PAM_FIXED_FIELDS) {
     const defaultVal = DEFAULT_TCM_PALETTE[key];
-    if ((palette as Record<string, string>)[key] !== defaultVal) {
-      (palette as Record<string, string>)[key] = defaultVal;
+    if ((palette as unknown as Record<string, string>)[key] !== defaultVal) {
+      (palette as unknown as Record<string, string>)[key] = defaultVal;
       pamResets++;
     }
   }
@@ -613,8 +613,8 @@ function validateAndEnforce(
   let gpResets = 0;
   for (const key of GAMEPASS_GOLD_FIXED_FIELDS) {
     const defaultVal = DEFAULT_TCM_PALETTE[key];
-    if ((palette as Record<string, string>)[key] !== defaultVal) {
-      (palette as Record<string, string>)[key] = defaultVal;
+    if ((palette as unknown as Record<string, string>)[key] !== defaultVal) {
+      (palette as unknown as Record<string, string>)[key] = defaultVal;
       gpResets++;
     }
   }
@@ -625,7 +625,7 @@ function validateAndEnforce(
   // Auto-contrast safety net - runs before manual override restoration so user overrides win
   const contrastPalette = enforceContrast(palette);
   (Object.keys(contrastPalette) as (keyof TCMPalette)[]).forEach((k) => {
-    (palette as Record<string, string>)[k] = (contrastPalette as Record<string, string>)[k];
+    (palette as unknown as Record<string, string>)[k] = (contrastPalette as unknown as Record<string, string>)[k];
   });
 
   // Manual overrides enforcement
@@ -634,9 +634,9 @@ function validateAndEnforce(
     for (const field of req.manualOverrides) {
       const key = field as keyof TCMPalette;
       if (key in DEFAULT_TCM_PALETTE) {
-        const requiredVal = (req.currentPalette as Record<string, string>)[field];
-        if (requiredVal && (palette as Record<string, string>)[key] !== requiredVal) {
-          (palette as Record<string, string>)[key] = requiredVal;
+        const requiredVal = (req.currentPalette as unknown as Record<string, string>)[field];
+        if (requiredVal && (palette as unknown as Record<string, string>)[key] !== requiredVal) {
+          (palette as unknown as Record<string, string>)[key] = requiredVal;
           overrideResets++;
         }
       }
