@@ -1,7 +1,7 @@
 /**
  * pdf-builder.tsx - Premium PDF generation using @react-pdf/renderer.
  * Produces a cover page, table of contents, and per-section field tables.
- * Inter font loaded from rsms.me CDN (.woff - react-pdf does not support woff2).
+ * Inter font bundled locally in /public/fonts/ (.woff - react-pdf does not support woff2).
  */
 import {
   Document,
@@ -17,13 +17,18 @@ import type { FormShape } from "./onboarding-schema";
 
 /* ── Font registration ─────────────────────────────────────────────────────── */
 
+const FONT_BASE =
+  typeof window !== "undefined"
+    ? `${window.location.origin}/fonts`
+    : "/fonts";
+
 Font.register({
   family: "Inter",
   fonts: [
-    { src: "https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.19", fontWeight: 400 },
-    { src: "https://rsms.me/inter/font-files/Inter-Medium.woff?v=3.19", fontWeight: 500 },
-    { src: "https://rsms.me/inter/font-files/Inter-SemiBold.woff?v=3.19", fontWeight: 600 },
-    { src: "https://rsms.me/inter/font-files/Inter-Bold.woff?v=3.19", fontWeight: 700 },
+    { src: `${FONT_BASE}/Inter-Regular.woff`, fontWeight: 400 },
+    { src: `${FONT_BASE}/Inter-Medium.woff`, fontWeight: 500 },
+    { src: `${FONT_BASE}/Inter-SemiBold.woff`, fontWeight: 600 },
+    { src: `${FONT_BASE}/Inter-Bold.woff`, fontWeight: 700 },
   ],
 });
 
