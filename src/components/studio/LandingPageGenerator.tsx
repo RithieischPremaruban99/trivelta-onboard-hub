@@ -38,6 +38,7 @@ import {
   FolderOpen,
   Shield,
   Loader2,
+  LogOut,
   Mail,
   Monitor,
   Palette,
@@ -1430,6 +1431,19 @@ export function LandingPageGenerator({
                       className="w-full border-primary/30 hover:bg-primary/5 hover:border-primary/50"
                       onClick={async () => {
                         setConfirmedUpload(true);
+                        try {
+                          // Persist submission timestamp so client doesn't re-see
+                          // the generator on next login, and so the Studio route
+                          // can auto-promote them to full Studio when other
+                          // features get enabled later by the AE.
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          await (supabase as any)
+                            .from("clients")
+                            .update({ landing_pages_submitted_at: new Date().toISOString() })
+                            .eq("id", clientId);
+                        } catch (err) {
+                          console.warn("[LandingPageGenerator] submission flag failed", err);
+                        }
                         try {
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           await (supabase as any).rpc("log_client_activity", {
