@@ -71,8 +71,9 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
   /* ── select ── */
   if (field.type === "select") {
     const selectVal = typeof value === "string" ? value : "";
+    const otherSelected = selectVal === "Other";
     const showOtherDisclaimer =
-      field.otherDisclaimer === "integration_launch_impact" && selectVal === "Other";
+      field.otherDisclaimer === "integration_launch_impact" && otherSelected;
     return (
       <div>
         {label}
@@ -99,11 +100,11 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
             </p>
           </div>
         )}
-        {showOtherDisclaimer && (
+        {otherSelected && (
           <input
             type="text"
             className={cn(INPUT_BASE, "mt-2")}
-            placeholder="Please specify your provider…"
+            placeholder="Please specify…"
             value={otherValue ?? ""}
             onChange={(e) => onOtherChange?.(e.target.value)}
             disabled={disabled}
@@ -118,8 +119,9 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
     const selected: string[] = Array.isArray(value) ? (value as string[]) : [];
     const knownOptions = field.options ?? [];
     const staleValues = selected.filter((v) => !knownOptions.includes(v));
+    const otherSelected = selected.includes("Other");
     const showOtherDisclaimer =
-      field.otherDisclaimer === "integration_launch_impact" && selected.includes("Other");
+      field.otherDisclaimer === "integration_launch_impact" && otherSelected;
     return (
       <div>
         {label}
@@ -179,11 +181,11 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
             </p>
           </div>
         )}
-        {showOtherDisclaimer && (
+        {otherSelected && (
           <input
             type="text"
             className={cn(INPUT_BASE, "mt-2")}
-            placeholder="Please specify your provider…"
+            placeholder="Please specify…"
             value={otherValue ?? ""}
             onChange={(e) => onOtherChange?.(e.target.value)}
             disabled={disabled}
