@@ -151,9 +151,12 @@ serve(async (req) => {
     }
 
     if (prospect.converted_to_client_id) {
+      // Graceful idempotency — return 200 so the UI doesn't show an error toast
+      // and the admin doesn't retry (which would bypass this check if the stamp
+      // hasn't landed yet and create a duplicate row).
       return new Response(
-        JSON.stringify({ error: "Prospect already converted", client_id: prospect.converted_to_client_id }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ ok: true, already_converted: true, client_id: prospect.converted_to_client_id }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -188,7 +191,19 @@ serve(async (req) => {
 
     const clientId = newClient.id;
 
-    // ── 5. Transfer all prospect AMs to new client ────────────────────────
+    // ── 5. Stamp prospect immediately so retries see converted_to_client_id ──
+    // Done here — before AM transfer, onboarding_form, Notion, etc. — so that
+    // even if a later step throws, a retry will hit the idempotency guard above
+    // and return the existing client_id rather than creating a duplicate row.
+    const now = new Date().toISOString();
+    await adminClient.from("prospects").update({
+      converted_to_client_id: clientId,
+      converted_at: now,
+      contract_status: "signed",
+      access_token: null,
+    }).eq("id", prospect_id);
+
+    // ── 6. Transfer all prospect AMs to new client ────────────────────────
     const { data: prospectAMs } = await adminClient
       .from("prospect_account_managers")
       .select("am_email")
@@ -226,16 +241,7 @@ serve(async (req) => {
       { onConflict: "client_id" },
     );
 
-    // ── 7. Mark prospect as converted + invalidate magic link ─────────────
-    const now = new Date().toISOString();
-    await adminClient.from("prospects").update({
-      converted_to_client_id: clientId,
-      converted_at: now,
-      contract_status: "signed",
-      access_token: null,
-    }).eq("id", prospect_id);
-
-    // ── 8. Append "Contract Signed" to Notion page ────────────────────────
+    // ── 9. Append "Contract Signed" to Notion page ────────────────────────
     if (notionToken && prospect.notion_page_id) {
       await appendContractSigned(
         notionToken,
@@ -244,7 +250,7 @@ serve(async (req) => {
       ).catch((e) => console.warn("[convert-prospect] Notion append threw:", e));
     }
 
-    // ── 9. Generate client invite link ────────────────────────────────────
+    // ── 10. Generate client invite link ───────────────────────────────────
     const origin = app_origin ?? "https://trivelta.com";
     const redirectTo = `${origin}/onboarding/${clientId}/form`;
 
@@ -263,7 +269,7 @@ serve(async (req) => {
       console.warn("[convert-prospect] generateLink failed, using base URL:", e);
     }
 
-    // ── 10. Log activity ──────────────────────────────────────────────────
+    // ── 11. Log activity ──────────────────────────────────────────────────
     await adminClient.from("client_activity_log").insert({
       client_id: clientId,
       prospect_id: prospect_id,
