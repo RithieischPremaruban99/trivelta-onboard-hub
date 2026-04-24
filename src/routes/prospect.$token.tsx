@@ -69,6 +69,18 @@ function ProspectPage() {
         p_fields: { last_accessed_at: new Date().toISOString() },
       }).then(() => {});
 
+      // Check welcome redirect BEFORE setting state to valid — prevents a
+      // one-frame flash of the form while the navigation is scheduled.
+      try {
+        const seen = localStorage.getItem(`prospect-welcome-seen-${token}`);
+        if (!seen) {
+          navigate({ to: "/prospect/welcome/$token", params: { token }, replace: true });
+          return; // stay in "loading" state; component unmounts on navigation
+        }
+      } catch {
+        /* localStorage unavailable - show form directly */
+      }
+
       setProspect({
         ...row,
         update_requested_at: (row.update_requested_at as string | null) ?? null,
@@ -83,16 +95,6 @@ function ProspectPage() {
       } as ProspectData);
 
       setState("valid");
-
-      // Redirect to welcome screen on first visit
-      try {
-        const seen = localStorage.getItem(`prospect-welcome-seen-${token}`);
-        if (!seen) {
-          navigate({ to: "/prospect/welcome/$token", params: { token }, replace: true });
-        }
-      } catch {
-        /* localStorage unavailable - show form directly */
-      }
     })();
   }, [token]);
 
