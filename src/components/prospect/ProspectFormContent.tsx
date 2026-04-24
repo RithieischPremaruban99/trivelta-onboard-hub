@@ -11,10 +11,10 @@ import {
   SendHorizonal,
   UserCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import { StageHeader } from "@/components/StageHeader";
 import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
 import { PROSPECT_SECTIONS } from "@/lib/prospect-fields";
-import { downloadProspectPDF } from "@/lib/pdf-builder";
 import {
   Dialog,
   DialogContent,
@@ -66,10 +66,12 @@ function ProspectSuccessState({
   prospect,
   onRequestUpdate,
   onDownloadPDF,
+  downloading,
 }: {
   prospect: ProspectData;
   onRequestUpdate: () => void;
   onDownloadPDF: () => void;
+  downloading: boolean;
 }) {
   const cards = [
     {
@@ -200,10 +202,15 @@ function ProspectSuccessState({
           >
             <button
               onClick={onDownloadPDF}
-              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
+              disabled={downloading}
+              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              <Download className="h-5 w-5" />
-              Download Your Submission (PDF)
+              {downloading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Download className="h-5 w-5" />
+              )}
+              {downloading ? "Preparing PDF…" : "Download Your Submission (PDF)"}
             </button>
           </div>
 
@@ -265,6 +272,7 @@ export function ProspectFormContent({
   const [reqDialogOpen, setReqDialogOpen] = useState(false);
   const [reqReason, setReqReason] = useState("");
   const [reqSubmitting, setReqSubmitting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleRequestUpdate = async () => {
     if (!onRequestUpdate) return;
@@ -279,13 +287,23 @@ export function ProspectFormContent({
   };
 
   const handleDownloadPDF = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    const toastId = toast.loading("Preparing your PDF…");
     try {
+      // Lazy-load the PDF builder so @react-pdf/renderer never runs during SSR
+      // and never blocks the success screen from rendering.
+      const { downloadProspectPDF } = await import("@/lib/pdf-builder");
       await downloadProspectPDF({
         ...prospect,
         submitted_at: prospect.submitted_at!,
       });
+      toast.success("PDF downloaded", { id: toastId });
     } catch (err) {
       console.error("[PDF] prospect generation failed:", err);
+      toast.error("Could not generate PDF. Please try again.", { id: toastId });
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -297,6 +315,7 @@ export function ProspectFormContent({
           prospect={prospect}
           onRequestUpdate={() => setReqDialogOpen(true)}
           onDownloadPDF={handleDownloadPDF}
+          downloading={downloading}
         />
 
         {/* Request Update Dialog - rendered via portal, works regardless of parent */}
