@@ -490,6 +490,21 @@ export const RG_TEMPLATE = `<!DOCTYPE html>
   .footer-links a{color:var(--muted);text-decoration:none;font-size:0.85rem}
   .footer-links a:hover{color:var(--brand-light)}
   .footer-copy{font-size:0.78rem;color:var(--muted)}
+  @media (max-width: 768px) {
+    nav { padding: 0.9rem 1.25rem; }
+    .back { font-size: 0.8rem; }
+    .content { padding: 2.5rem 1.25rem 4rem; }
+    h1 { font-size: 1.75rem; line-height: 1.15; }
+    .last-updated { margin-bottom: 2rem; font-size: 0.8rem; }
+    h2 { font-size: 1rem; margin: 2rem 0 0.65rem; }
+    p, li { font-size: 0.9rem; line-height: 1.7; }
+    .license-block { padding: 1.1rem; font-size: 0.8rem; margin-top: 2rem; }
+    .callout { padding: 1.1rem 1.25rem; }
+    .callout p { font-size: 0.9rem; }
+    .support-card { padding: 1rem 1.1rem; }
+    footer { padding: 1.5rem 1.25rem; }
+    .footer-links { flex-direction: column; gap: 0.75rem; }
+  }
 </style>
 </head>
 <body>
