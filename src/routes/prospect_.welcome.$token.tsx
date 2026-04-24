@@ -37,21 +37,15 @@ function ProspectWelcome() {
     (async () => {
       const { data } = await db
         .from("prospects")
-        .select("primary_contact_name, token_expires_at")
+        .select("primary_contact_name")
         .eq("access_token", token)
         .maybeSingle();
-
-      if (!data) {
-        navigate({ to: "/prospect/$token", params: { token }, replace: true });
-        return;
-      }
-      if (new Date(data.token_expires_at as string) < new Date()) {
-        navigate({ to: "/prospect/$token", params: { token }, replace: true });
-        return;
-      }
-      setContactName(data.primary_contact_name ?? null);
+      // Only set the name — token validity was already checked before navigating here.
+      // Do NOT redirect back to /prospect/$token: that causes an infinite loop because
+      // localStorage isn't set yet, so /prospect/$token would immediately bounce back here.
+      if (data) setContactName(data.primary_contact_name ?? null);
     })();
-  }, [token, navigate]);
+  }, [token]);
 
   const handleStart = () => {
     try {
