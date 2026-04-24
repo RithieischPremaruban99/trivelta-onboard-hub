@@ -171,10 +171,58 @@ export const INDEX_TEMPLATE = `<!DOCTYPE html>
   .footer-social a:hover { color: var(--text); }
   .footer-copy { font-size: 0.78rem; color: var(--muted); }
 
-  @media (max-width: 600px) {
-    nav { padding: 1rem 1.25rem; }
+  /* Mobile menu */
+  .mobile-menu-toggle { display: none; background: transparent; border: none; color: var(--text); cursor: pointer; padding: 0.5rem; align-items: center; justify-content: center; }
+  .mobile-menu-toggle svg { width: 24px; height: 24px; display: block; }
+  .mobile-menu-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,15,0.98); backdrop-filter: blur(20px); z-index: 200; flex-direction: column; justify-content: center; align-items: center; gap: 1.75rem; }
+  .mobile-menu-overlay a { color: var(--text); text-decoration: none; font-size: 1.25rem; font-weight: 500; }
+  .mobile-menu-overlay a:hover { color: var(--brand-light); }
+  .mobile-menu-close { position: absolute; top: 1.25rem; right: 1.25rem; background: transparent; border: none; color: var(--text); cursor: pointer; padding: 0.5rem; }
+  .mobile-menu-close svg { width: 24px; height: 24px; display: block; }
+  body.menu-open { overflow: hidden; }
+  body.menu-open .mobile-menu-overlay { display: flex; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0.9rem 1.25rem; }
     .nav-links { display: none; }
-    .hero { padding: 4.5rem 1.5rem 3.5rem; }
+    .mobile-menu-toggle { display: inline-flex; }
+
+    .hero { padding: 3.5rem 1.25rem 3rem; }
+    .hero-badge { font-size: 0.7rem; padding: 0.3rem 0.85rem; margin-bottom: 1.25rem; }
+    .hero h1 {
+      font-size: clamp(2rem, 8vw, 3rem) !important;
+      line-height: 1.1 !important;
+      letter-spacing: -0.02em !important;
+      max-width: 100%;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      padding: 0 0.25rem;
+    }
+    .hero p { font-size: 0.95rem; padding: 0 0.5rem; margin-bottom: 1.75rem; max-width: 100%; }
+
+    .cta-group { flex-direction: column; width: 100%; padding: 0 1rem; gap: 0.75rem; }
+    .btn-primary, .btn-secondary { width: 100%; padding: 0.85rem 1.25rem; text-align: center; }
+
+    .app-badges { margin-top: 2rem; gap: 0.6rem; padding: 0 1rem; }
+    .app-badge { padding: 0.6rem 1rem; flex: 1; min-width: 0; justify-content: center; }
+
+    .steps { padding: 3.5rem 1.25rem; }
+    .steps h2 { font-size: 1.6rem; margin-bottom: 2rem; }
+    .steps-grid { gap: 1.5rem; flex-direction: column; align-items: center; }
+    .step { min-width: 100%; max-width: 100%; }
+
+    .responsible { padding: 2.5rem 1.25rem; }
+    .responsible p { font-size: 0.8rem; }
+
+    footer { padding: 2rem 1.25rem; gap: 1.25rem; }
+    .footer-links { flex-direction: column; gap: 0.75rem; }
+    .footer-social { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  }
+
+  @media (max-width: 480px) {
+    .hero { padding: 2.75rem 1rem 2.5rem; }
+    .hero h1 { font-size: clamp(1.75rem, 7vw, 2.5rem) !important; }
+    .hero-badge { font-size: 0.65rem; }
   }
 </style>
 </head>
