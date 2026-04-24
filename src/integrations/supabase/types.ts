@@ -85,14 +85,23 @@ export type Database = {
       clients: {
         Row: {
           assigned_am_id: string | null
+          contract_signed_at: string | null
+          contract_start_date: string | null
           country: string | null
           created_at: string
           created_by: string | null
           drive_link: string | null
+          go_live_date: string | null
+          health_score: string | null
           id: string
           landing_pages_submitted_at: string | null
           name: string
+          next_renewal_date: string | null
           notion_page_id: string | null
+          notion_sync_attempted_at: string | null
+          notion_sync_error: string | null
+          notion_sync_pending: boolean | null
+          onboarding_phase: string | null
           platform_live: boolean
           platform_url: string | null
           primary_contact_email: string | null
@@ -107,14 +116,23 @@ export type Database = {
         }
         Insert: {
           assigned_am_id?: string | null
+          contract_signed_at?: string | null
+          contract_start_date?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
           drive_link?: string | null
+          go_live_date?: string | null
+          health_score?: string | null
           id?: string
           landing_pages_submitted_at?: string | null
           name: string
+          next_renewal_date?: string | null
           notion_page_id?: string | null
+          notion_sync_attempted_at?: string | null
+          notion_sync_error?: string | null
+          notion_sync_pending?: boolean | null
+          onboarding_phase?: string | null
           platform_live?: boolean
           platform_url?: string | null
           primary_contact_email?: string | null
@@ -129,14 +147,23 @@ export type Database = {
         }
         Update: {
           assigned_am_id?: string | null
+          contract_signed_at?: string | null
+          contract_start_date?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
           drive_link?: string | null
+          go_live_date?: string | null
+          health_score?: string | null
           id?: string
           landing_pages_submitted_at?: string | null
           name?: string
+          next_renewal_date?: string | null
           notion_page_id?: string | null
+          notion_sync_attempted_at?: string | null
+          notion_sync_error?: string | null
+          notion_sync_pending?: boolean | null
+          onboarding_phase?: string | null
           platform_live?: boolean
           platform_url?: string | null
           primary_contact_email?: string | null
