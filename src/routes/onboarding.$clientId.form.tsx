@@ -57,6 +57,9 @@ import { cn } from "@/lib/utils";
 import { TriveltaNav } from "@/components/TriveltaNav";
 import { logActivity } from "@/lib/activity-log";
 import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
+import { ActiveLandingPageCard } from "@/components/onboarding/ActiveLandingPageCard";
+import { ActiveFullStudioCard } from "@/components/onboarding/ActiveFullStudioCard";
+import { LockedFullStudioTeaser } from "@/components/onboarding/LockedFullStudioTeaser";
 
 /* ─── Per-section field progress ─────────────────────────────── */
 
@@ -790,7 +793,7 @@ function FormScreen() {
                 showErrors={submitAttempted}
                 clientId={clientId}
                 navigate={navigate}
-                studio_access={studioAccess}
+                hasFullStudioAccess={studioAccess}
               />
             </SectionShell>
             <SectionShell
@@ -1449,7 +1452,7 @@ function SectionMedia({
   showErrors,
   clientId,
   navigate,
-  studio_access,
+  hasFullStudioAccess,
 }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
@@ -1457,136 +1460,25 @@ function SectionMedia({
   showErrors?: boolean;
   clientId: string;
   navigate: ReturnType<typeof useNavigate>;
-  studio_access?: boolean;
+  hasFullStudioAccess?: boolean;
 }) {
   return (
     <div className="space-y-6">
       {/* eslint-disable-next-line no-console */}
-      {(console.log("[DEBUG] SectionMedia render — studio_access prop:", studio_access), null)}
-      {studio_access ? (
-      <div className="relative my-2 overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card/60 to-transparent p-7 shadow-premium transition-shadow hover:shadow-premium-hover">
-        {/* Gradient orb decoration */}
-        <div className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-primary/15 opacity-60 blur-[80px]" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-32 w-32 rounded-full bg-primary/5 blur-[60px]" />
+      {(console.log("[DEBUG] SectionMedia render — hasFullStudioAccess prop:", hasFullStudioAccess), null)}
 
-        <div className="relative z-10">
-          {/* Micro-label */}
-          <div className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-            <span className="h-1 w-1 animate-pulse rounded-full bg-primary" />
-            TRIVELTA STUDIO · AI-POWERED
-          </div>
+      {/* Two-card layout: Landing Page Generator (always active) + Full Studio (locked/active) */}
+      <div className="space-y-4">
+        {/* Card 1: Landing Page Generator — always active */}
+        <ActiveLandingPageCard clientId={clientId} />
 
-          {/* Headline with gradient text */}
-          <h3 className="mb-3 text-2xl md:text-[28px] font-bold leading-tight tracking-tight text-foreground">
-            Design your platform
-            <br />
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
-              in minutes, not weeks
-            </span>
-          </h3>
-
-          <p className="mb-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Our AI generates your complete color system, creates custom logos, and tunes every
-            visual detail of your sportsbook - all from a single brand description.
-          </p>
-
-          {/* Feature pills */}
-          <div className="mb-6 flex flex-wrap gap-2">
-            {[
-              { Icon: Palette, label: "344 color fields" },
-              { Icon: Sparkles, label: "AI logo generation" },
-              { Icon: MessageSquare, label: "Natural language editing" },
-              { Icon: Eye, label: "Live preview" },
-            ].map(({ Icon, label }) => (
-              <div
-                key={label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-card/40 px-3 py-1.5 text-[11px] font-medium text-foreground/80 backdrop-blur-sm"
-              >
-                <Icon className="h-3 w-3 text-primary" />
-                {label}
-              </div>
-            ))}
-          </div>
-
-          {/* CTA Button */}
-          <button
-            type="button"
-            onClick={() =>
-              navigate({
-                to: "/onboarding/$clientId/studio-intro",
-                params: { clientId },
-              })
-            }
-            className="group inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
-          >
-            Open Trivelta Studio
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </button>
-
-          {/* Subtext */}
-          <p className="mt-3 text-[11px] text-muted-foreground/70">
-            Auto-saves as you work · Return anytime
-          </p>
-        </div>
+        {/* Card 2: Full Studio — locked until AE grants access */}
+        {hasFullStudioAccess ? (
+          <ActiveFullStudioCard clientId={clientId} />
+        ) : (
+          <LockedFullStudioTeaser />
+        )}
       </div>
-      ) : (
-        // Locked "Coming Soon" variant for clients without Studio access
-        <div className="relative my-2 cursor-not-allowed overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card/60 to-card/20 p-6">
-          {/* Faded background decoration */}
-          <div className="pointer-events-none absolute inset-0 opacity-40">
-            <div className="absolute top-0 right-0 h-40 w-40 -translate-y-12 translate-x-12 rounded-full bg-gradient-to-bl from-primary/20 to-transparent blur-3xl" />
-          </div>
-
-          {/* Coming Soon badge */}
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2.5 py-1 backdrop-blur-sm">
-            <Lock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Coming Soon
-            </span>
-          </div>
-
-          {/* Dimmed content */}
-          <div className="relative space-y-4 opacity-60">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/10 bg-primary/5">
-              <Sparkles className="h-5 w-5 text-primary/40" />
-            </div>
-
-            <div>
-              <h3 className="text-base font-semibold text-muted-foreground">
-                Trivelta AI Studio
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground/70 max-w-xl">
-                Generate branded landing pages, customize your platform design, and chat with AI
-                — all powered by Anthropic's Claude.
-              </p>
-            </div>
-
-            <div className="space-y-2 pt-2">
-              {[
-                "AI-powered landing page generation",
-                "Custom color palettes + brand assets",
-                "Live design preview on desktop + mobile",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-2 text-[11px] text-muted-foreground/60"
-                >
-                  <div className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="relative mt-4 flex items-center gap-2 border-t border-border/30 pt-4">
-            <Info className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
-            <p className="text-[11px] leading-relaxed text-muted-foreground/70">
-              Your Trivelta Account Manager will unlock this after onboarding review.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Info banner */}
       <div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
