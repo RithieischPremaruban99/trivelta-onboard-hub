@@ -10,6 +10,7 @@ import {
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/onboarding/$clientId/studio-intro")({
   component: StudioIntro,
@@ -27,25 +28,38 @@ function StudioIntro() {
   const [skipNextTime, setSkipNextTime] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
-  // Auth guard + auto-skip if previously opted out
+  // Auth guard + studio_access guard + auto-skip if previously opted out
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
       navigate({ to: "/onboarding/$clientId/auth", params: { clientId }, replace: true });
       return;
     }
-    try {
-      if (localStorage.getItem(skipKey(clientId)) === "true") {
-        sessionStorage.setItem(`studio-from-intro-${clientId}`, "true");
-        navigate({
-          to: "/onboarding/$clientId/studio",
-          params: { clientId },
-          replace: true,
-        });
+    (async () => {
+      const { data: clientRes } = await supabase
+        .from("clients")
+        .select("studio_access, studio_features")
+        .eq("id", clientId)
+        .maybeSingle();
+      const sf = clientRes?.studio_features as Record<string, boolean> | null;
+      const hasAccess = clientRes?.studio_access || sf?.landing_page_generator;
+      if (!hasAccess) {
+        navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
+        return;
       }
-    } catch {
-      /* localStorage unavailable - show intro */
-    }
+      try {
+        if (localStorage.getItem(skipKey(clientId)) === "true") {
+          sessionStorage.setItem(`studio-from-intro-${clientId}`, "true");
+          navigate({
+            to: "/onboarding/$clientId/studio",
+            params: { clientId },
+            replace: true,
+          });
+        }
+      } catch {
+        /* localStorage unavailable - show intro */
+      }
+    })();
   }, [authLoading, user, clientId, navigate]);
 
   useEffect(() => {
