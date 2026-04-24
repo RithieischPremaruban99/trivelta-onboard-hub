@@ -192,6 +192,27 @@ function ProspectPage() {
         toast.success("Sent to Trivelta team - we'll be in touch soon.");
       }
 
+      // v2 Notion flow — fires in parallel, never blocks submission
+      try {
+        await supabase.functions.invoke("prospect-submitted-v2", {
+          body: {
+            prospect_id: prospect.id,
+            client_id: null,
+            client_name: prospect.legal_company_name,
+            primary_contact_name: prospect.primary_contact_name,
+            primary_contact_email: prospect.primary_contact_email,
+            website: (prospect.company_details?.website_url as string | null) ?? null,
+            country: (prospect.kyc_compliance?.license_jurisdiction as string | null)
+              ?? (prospect.company_details?.business_country as string | null)
+              ?? null,
+            drive_link: null,
+          },
+        });
+      } catch (err) {
+        console.warn("[prospect-submitted-v2] non-fatal:", err);
+        // Never block the form — v2 failures are logged in Supabase notion_sync_pending
+      }
+
       setProspect({
         ...prospect,
         submitted_at: now,

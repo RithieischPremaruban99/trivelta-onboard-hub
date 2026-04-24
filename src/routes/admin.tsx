@@ -44,6 +44,8 @@ import {
   Link2,
   ArrowRight,
   LayoutGrid,
+  FileSignature,
+  Rocket,
 } from "lucide-react";
 import {
   Tooltip,
@@ -122,10 +124,18 @@ interface ClientRow {
   drive_link: string | null;
   platform_url: string | null;
   primary_contact_email: string | null;
+  primary_contact_name: string | null;
   created_at: string;
   studio_access: boolean;
   platform_live?: boolean;
   studio_features: StudioFeatures | null;
+  notion_page_id?: string | null;
+  onboarding_phase?: "Pre-Sale" | "Contract" | "Initial Setup" | "Full Config" | "Pre-Launch" | "Post-Launch" | null;
+  contract_signed_at?: string | null;
+  contract_start_date?: string | null;
+  go_live_date?: string | null;
+  next_renewal_date?: string | null;
+  health_score?: string | null;
 }
 
 interface ProspectRow {
@@ -144,6 +154,151 @@ interface ProspectRow {
   converted_to_client_id: string | null;
   converted_at: string | null;
 }
+
+// ─── Lifecycle action: Mark Contract Signed ───────────────────────────────────
+
+function MarkContractSignedButton({ clientId, onSuccess }: { clientId: string; onSuccess: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("contract-signed", {
+        body: { client_id: clientId },
+      });
+      if (error) throw error;
+      toast.success("Contract marked as signed. Notion updated.");
+      onSuccess();
+    } catch (err) {
+      toast.error(`Failed to mark contract signed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setLoading(false);
+      setConfirmOpen(false);
+    }
+  }
+
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 gap-1.5 text-[11px] font-semibold"
+        onClick={() => setConfirmOpen(true)}
+        disabled={loading}
+      >
+        <FileSignature className="h-3.5 w-3.5" />
+        Mark Contract Signed
+      </Button>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark contract as signed?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This transitions the client from Pre-Sale to Contract phase.
+              Contract Start Date will be set to today.
+              Notion will be updated automatically.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm} disabled={loading}>
+              {loading ? "Processing..." : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+// ─── Lifecycle action: Launch & Send Confirmation ─────────────────────────────
+
+function LaunchAndSendButton({
+  clientId,
+  clientName,
+  contactEmail,
+  onSuccess,
+}: {
+  clientId: string;
+  clientName: string;
+  contactEmail: string | null;
+  onSuccess: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  if (!contactEmail) {
+    return (
+      <Button size="sm" disabled variant="outline" className="h-7 gap-1.5 text-[11px] font-semibold" title="Primary contact email required">
+        <Rocket className="h-3.5 w-3.5" />
+        Launch (email missing)
+      </Button>
+    );
+  }
+
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("go-live", {
+        body: { client_id: clientId },
+      });
+      if (error) throw error;
+      toast.success(`${clientName} is live. Confirmation email sent to ${contactEmail}.`);
+      onSuccess();
+    } catch (err) {
+      toast.error(`Go Live failed: ${err instanceof Error ? err.message : "Unknown error"}. Client remains in Pre-Launch.`);
+    } finally {
+      setLoading(false);
+      setConfirmOpen(false);
+    }
+  }
+
+  return (
+    <>
+      <Button
+        size="sm"
+        className="h-7 gap-1.5 bg-gradient-to-r from-primary to-primary/80 text-[11px] font-semibold shadow-md"
+        onClick={() => setConfirmOpen(true)}
+        disabled={loading}
+      >
+        <Rocket className="h-3.5 w-3.5" />
+        🚀 Launch & Send Confirmation
+      </Button>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Launch {clientName}?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <span className="block">This will:</span>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  <li>Send a launch confirmation email to <strong>{contactEmail}</strong></li>
+                  <li>Transition Notion page to Status = Active, Phase = Post-Launch</li>
+                  <li>Set Next Renewal to Contract Start + 12 months</li>
+                  <li>Set Health Score to Good</li>
+                </ul>
+                <span className="block pt-2 text-xs text-amber-600">
+                  The email is sent ONCE and cannot be undone. Only proceed if you've verified the platform is ready.
+                </span>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm} disabled={loading}>
+              {loading ? "Launching..." : "Yes — launch & send email"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function AdminPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -216,7 +371,7 @@ function AdminPage() {
           supabase
             .from("clients")
             .select(
-              "id, name, country, status, drive_link, platform_url, primary_contact_email, created_at, studio_access, platform_live, studio_features",
+              "id, name, country, status, drive_link, platform_url, primary_contact_email, primary_contact_name, created_at, studio_access, platform_live, studio_features, notion_page_id, onboarding_phase, contract_signed_at, contract_start_date, go_live_date, next_renewal_date, health_score",
             )
             .order("created_at", { ascending: false }),
           supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
@@ -910,6 +1065,28 @@ function AdminPage() {
                               </Button>
                             )}
                           </div>
+                          {/* Lifecycle actions — shown only for actionable phases */}
+                          {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Pre-Launch") && (
+                            <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
+                              {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale") && (
+                                <MarkContractSignedButton clientId={c.id} onSuccess={refresh} />
+                              )}
+                              {c.onboarding_phase === "Pre-Launch" && (
+                                <LaunchAndSendButton
+                                  clientId={c.id}
+                                  clientName={c.name}
+                                  contactEmail={c.primary_contact_email}
+                                  onSuccess={refresh}
+                                />
+                              )}
+                              {c.onboarding_phase && (
+                                <div className="ml-auto flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2.5 py-0.5">
+                                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Phase</span>
+                                  <span className="text-[10px] font-semibold">{c.onboarding_phase}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );
