@@ -283,6 +283,10 @@ function FormScreen() {
         const hasStudio = clientRes.data?.studio_access ?? false;
         const hasLandingPageGen = (clientRes.data?.studio_features as Record<string, boolean> | null)?.landing_page_generator === true;
         const routeToStudio = hasStudio || hasLandingPageGen;
+        console.log("[DEBUG] studio_access DB value:", clientRes.data?.studio_access);
+        console.log("[DEBUG] studio_features DB value:", clientRes.data?.studio_features);
+        console.log("[DEBUG] hasStudio:", hasStudio, "hasLandingPageGen:", hasLandingPageGen);
+        console.log("[DEBUG] studioAccess computed (routeToStudio):", routeToStudio);
         setStudioAccess(routeToStudio);
         studioAccessRef.current = routeToStudio;
         if (formRes.data?.data) setForm(emptyForm(formRes.data.data as Partial<FormShape>));
@@ -1452,6 +1456,8 @@ function SectionMedia({
 }) {
   return (
     <div className="space-y-6">
+      {/* eslint-disable-next-line no-console */}
+      {(console.log("[DEBUG] SectionMedia render — studio_access prop:", studio_access), null)}
       {studio_access ? (
       <div className="relative my-2 overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card/60 to-transparent p-7 shadow-premium transition-shadow hover:shadow-premium-hover">
         {/* Gradient orb decoration */}
