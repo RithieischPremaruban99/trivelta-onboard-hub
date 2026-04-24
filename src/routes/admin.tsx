@@ -1994,16 +1994,14 @@ function InvitePreviewDialog({
 
         <div className="mt-3 space-y-4">
           {/* Invite link */}
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-            <Link2 className="h-4 w-4 shrink-0 text-primary" />
-            <div className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground/80">
-              {result.inviteLink}
-            </div>
-            <Button size="sm" variant="outline" className="shrink-0 h-7 text-xs" onClick={copyLink}>
-              {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          </div>
+          <CopyableLink
+            url={result.inviteLink}
+            label="Onboarding invite link"
+            clientEmail={result.clientEmail}
+            emailSubject={subject}
+            emailBody={body}
+            messageTemplate={`Hi ${result.clientName}, here's your Trivelta onboarding link: {link}`}
+          />
 
           {/* Email preview */}
           <div>
