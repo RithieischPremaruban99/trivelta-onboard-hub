@@ -167,6 +167,15 @@ serve(async (req) => {
       (companyDetails.country as string) ??
       null;
 
+    // Generate opaque access token — same base64url algorithm as generateProspectToken()
+    // 24 random bytes → 32 URL-safe base64 chars (no padding).
+    const tokenBytes = new Uint8Array(24);
+    crypto.getRandomValues(tokenBytes);
+    const clientAccessToken = btoa(String.fromCharCode(...tokenBytes))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+
     const { data: newClient, error: clientErr } = await adminClient
       .from("clients")
       .insert({
@@ -177,6 +186,7 @@ serve(async (req) => {
         status: "onboarding",
         notion_page_id: prospect.notion_page_id ?? null,
         onboarding_phase: "Pre-Sale",
+        access_token: clientAccessToken,
       })
       .select("id")
       .single();
@@ -288,6 +298,7 @@ serve(async (req) => {
       JSON.stringify({
         ok: true,
         client_id: clientId,
+        access_token: clientAccessToken,
         invite_link: inviteLink,
         client_email: prospect.primary_contact_email,
         client_name: prospect.legal_company_name,

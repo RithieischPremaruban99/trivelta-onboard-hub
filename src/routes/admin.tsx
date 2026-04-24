@@ -136,6 +136,7 @@ interface ClientRow {
   go_live_date?: string | null;
   next_renewal_date?: string | null;
   health_score?: string | null;
+  access_token?: string | null;
 }
 
 interface ProspectRow {
@@ -304,6 +305,7 @@ function AdminPage() {
   const [convertingProspect, setConvertingProspect] = useState<ProspectRow | null>(null);
   const [convertResult, setConvertResult] = useState<{
     clientId: string;
+    accessToken: string;
     inviteLink: string;
     clientEmail: string;
     clientName: string;
@@ -359,7 +361,7 @@ function AdminPage() {
           supabase
             .from("clients")
             .select(
-              "id, name, country, status, drive_link, platform_url, primary_contact_email, primary_contact_name, created_at, studio_access, platform_live, studio_features, notion_page_id, onboarding_phase, contract_signed_at, contract_start_date, go_live_date, next_renewal_date, health_score",
+              "id, name, country, status, drive_link, platform_url, primary_contact_email, primary_contact_name, created_at, studio_access, platform_live, studio_features, notion_page_id, onboarding_phase, contract_signed_at, contract_start_date, go_live_date, next_renewal_date, health_score, access_token",
             )
             .order("created_at", { ascending: false }),
           supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
@@ -1053,6 +1055,23 @@ function AdminPage() {
                               </Button>
                             )}
                           </div>
+                          {/* Persistent onboarding link — always visible once client has access_token */}
+                          {c.access_token && (
+                            <div className="mt-2 flex items-center gap-2 border-t border-border/30 pt-2">
+                              <span className="text-[10px] text-muted-foreground shrink-0">Onboarding link</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 gap-1 text-[10px]"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(`${window.location.origin}/onboarding/${c.id}`);
+                                  toast.success("Onboarding link copied");
+                                }}
+                              >
+                                <Copy className="h-3 w-3" /> Copy
+                              </Button>
+                            </div>
+                          )}
                           {/* Lifecycle actions — shown only for actionable phases */}
                           {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Pre-Launch") && (
                             <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
@@ -2182,6 +2201,7 @@ function ConvertProspectDialog({
   onClose: () => void;
   onConverted: (result: {
     clientId: string;
+    accessToken: string;
     inviteLink: string;
     clientEmail: string;
     clientName: string;
@@ -2208,6 +2228,7 @@ function ConvertProspectDialog({
       }
       const res = data as {
         client_id: string;
+        access_token: string;
         invite_link: string;
         client_email: string;
         client_name: string;
@@ -2215,6 +2236,7 @@ function ConvertProspectDialog({
       toast.success(`${prospect.legal_company_name} converted to client`);
       onConverted({
         clientId: res.client_id,
+        accessToken: res.access_token,
         inviteLink: res.invite_link,
         clientEmail: res.client_email,
         clientName: res.client_name,
@@ -2298,7 +2320,7 @@ function InvitePreviewDialog({
   ams,
   onClose,
 }: {
-  result: { clientId: string; inviteLink: string; clientEmail: string; clientName: string };
+  result: { clientId: string; accessToken: string; inviteLink: string; clientEmail: string; clientName: string };
   ams: AmLite[];
   onClose: () => void;
 }) {
@@ -2325,15 +2347,29 @@ function InvitePreviewDialog({
         </DialogHeader>
 
         <div className="mt-3 space-y-4">
-          {/* Invite link */}
+          {/* Magic invite link — time-limited, use for first send */}
           <CopyableLink
             url={result.inviteLink}
-            label="Onboarding invite link"
+            label="Onboarding invite link (magic link — send now)"
             clientEmail={result.clientEmail}
             emailSubject={subject}
             emailBody={body}
             messageTemplate={`Hi ${result.clientName}, here's your Trivelta onboarding link: {link}`}
           />
+
+          {/* Permanent onboarding URL — always recoverable from client table */}
+          <div className="rounded-md border border-border/40 bg-muted/30 p-3 space-y-2">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">
+              Permanent onboarding link
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              This link is always available in your client table (Copy icon). Client enters their
+              email to receive a fresh magic link — no expiry on this URL.
+            </p>
+            <CopyableLink
+              url={`${typeof window !== "undefined" ? window.location.origin : ""}/onboarding/${result.clientId}`}
+            />
+          </div>
 
           {/* Email preview */}
           <div>
