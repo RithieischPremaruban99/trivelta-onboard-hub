@@ -508,7 +508,7 @@ function FormScreen() {
 
     void logActivity({ clientId, action: "form_submitted" });
 
-    // Always route to /success first — the Partnership Lockup moment (Claude × Trivelta)
+    // Always route to /success first — the Trivelta AI hero moment
     // is intentional UX for all clients. /success handles onward routing to Studio.
     navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
     setSubmitting(false);
