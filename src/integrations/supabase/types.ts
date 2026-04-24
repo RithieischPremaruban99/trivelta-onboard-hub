@@ -377,6 +377,9 @@ export type Database = {
           legal_company_name: string
           marketing_stack: Json | null
           notion_page_id: string | null
+          notion_sync_attempted_at: string | null
+          notion_sync_error: string | null
+          notion_sync_pending: boolean
           optional_features: Json | null
           payment_providers: Json | null
           primary_contact_email: string
@@ -405,6 +408,9 @@ export type Database = {
           legal_company_name: string
           marketing_stack?: Json | null
           notion_page_id?: string | null
+          notion_sync_attempted_at?: string | null
+          notion_sync_error?: string | null
+          notion_sync_pending?: boolean
           optional_features?: Json | null
           payment_providers?: Json | null
           primary_contact_email: string
@@ -433,6 +439,9 @@ export type Database = {
           legal_company_name?: string
           marketing_stack?: Json | null
           notion_page_id?: string | null
+          notion_sync_attempted_at?: string | null
+          notion_sync_error?: string | null
+          notion_sync_pending?: boolean
           optional_features?: Json | null
           payment_providers?: Json | null
           primary_contact_email?: string
@@ -592,6 +601,9 @@ export type Database = {
           legal_company_name: string
           marketing_stack: Json | null
           notion_page_id: string | null
+          notion_sync_attempted_at: string | null
+          notion_sync_error: string | null
+          notion_sync_pending: boolean
           optional_features: Json | null
           payment_providers: Json | null
           primary_contact_email: string
