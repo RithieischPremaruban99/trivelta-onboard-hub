@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { useStudio } from "@/contexts/StudioContext";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -930,14 +931,10 @@ export function LandingPageGenerator({
         </div>
 
         <div className="relative z-10 max-w-2xl w-full flex flex-col items-center text-center space-y-10">
-          {/* Partnership lockup */}
-          <div className="relative">
+          {/* Trivelta AI lockup */}
+          <div className="relative flex items-center justify-center">
             <div className="absolute inset-0 bg-primary/20 blur-3xl scale-150 pointer-events-none rounded-full" />
-            <img
-              src="/claude-trivelta-partnership.png"
-              alt="Claude × Trivelta"
-              className="relative h-20 w-auto object-contain"
-            />
+            <TriveltaLogo size="xl" brandSuffix="AI" product="Studio" className="relative" />
           </div>
 
           {/* Step indicator — both complete */}
