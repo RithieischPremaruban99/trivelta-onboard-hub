@@ -272,6 +272,7 @@ export function ProspectFormContent({
   const [reqDialogOpen, setReqDialogOpen] = useState(false);
   const [reqReason, setReqReason] = useState("");
   const [reqSubmitting, setReqSubmitting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleRequestUpdate = async () => {
     if (!onRequestUpdate) return;
@@ -286,13 +287,23 @@ export function ProspectFormContent({
   };
 
   const handleDownloadPDF = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    const toastId = toast.loading("Preparing your PDF…");
     try {
+      // Lazy-load the PDF builder so @react-pdf/renderer never runs during SSR
+      // and never blocks the success screen from rendering.
+      const { downloadProspectPDF } = await import("@/lib/pdf-builder");
       await downloadProspectPDF({
         ...prospect,
         submitted_at: prospect.submitted_at!,
       });
+      toast.success("PDF downloaded", { id: toastId });
     } catch (err) {
       console.error("[PDF] prospect generation failed:", err);
+      toast.error("Could not generate PDF. Please try again.", { id: toastId });
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -304,6 +315,7 @@ export function ProspectFormContent({
           prospect={prospect}
           onRequestUpdate={() => setReqDialogOpen(true)}
           onDownloadPDF={handleDownloadPDF}
+          downloading={downloading}
         />
 
         {/* Request Update Dialog - rendered via portal, works regardless of parent */}
