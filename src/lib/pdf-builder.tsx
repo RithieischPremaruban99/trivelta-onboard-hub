@@ -1,7 +1,7 @@
 /**
  * pdf-builder.tsx - Premium PDF generation using @react-pdf/renderer.
  * Produces a cover page, table of contents, and per-section field tables.
- * Inter font bundled locally in /public/fonts/ as woff2 (@react-pdf/renderer v4+ supports woff2).
+ * Uses built-in Helvetica/Helvetica-Bold — no external font loading required.
  */
 import {
   Document,
@@ -15,34 +15,9 @@ import {
 import { PROSPECT_SECTIONS } from "./prospect-fields";
 import type { FormShape } from "./onboarding-schema";
 
-/* ── Font registration ─────────────────────────────────────────────────────── */
+/* ── Font ──────────────────────────────────────────────────────────────────── */
 
-// Pre-fetch fonts as ArrayBuffer so react-pdf embeds them directly,
-// rather than trying to fetch URLs at render time (which fails silently).
-let fontsLoaded = false;
-
-async function ensureFontsLoaded() {
-  if (fontsLoaded) return;
-  const base = `${window.location.origin}/fonts`;
-  const weights = [
-    { file: "Inter-Regular.woff2", fontWeight: 400 },
-    { file: "Inter-Medium.woff2", fontWeight: 500 },
-    { file: "Inter-SemiBold.woff2", fontWeight: 600 },
-    { file: "Inter-Bold.woff2", fontWeight: 700 },
-  ];
-  const fonts = await Promise.all(
-    weights.map(async ({ file, fontWeight }) => {
-      const res = await fetch(`${base}/${file}`);
-      if (!res.ok) throw new Error(`Font fetch failed: ${file} (${res.status})`);
-      const src = await res.arrayBuffer();
-      return { src: src as unknown as string, fontWeight };
-    }),
-  );
-  Font.register({ family: "Inter", fonts });
-  fontsLoaded = true;
-}
-
-// Prevent automatic word hyphenation
+// No custom font loading — use built-in Helvetica which is always available.
 Font.registerHyphenationCallback((word) => [word]);
 
 /* ── Brand colors ──────────────────────────────────────────────────────────── */
@@ -63,7 +38,7 @@ const C = {
 
 const s = StyleSheet.create({
   page: {
-    fontFamily: "Inter",
+    fontFamily: "Helvetica",
     fontSize: 10,
     color: C.text,
     backgroundColor: C.white,
@@ -88,8 +63,8 @@ const s = StyleSheet.create({
     marginBottom: 0,
   },
   wordmark: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 26,
-    fontWeight: 700,
     color: C.primary,
     letterSpacing: 1,
     marginBottom: 6,
@@ -101,8 +76,8 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   typeLabel: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 9,
-    fontWeight: 600,
     color: C.muted,
     letterSpacing: 1,
     textTransform: "uppercase",
@@ -112,8 +87,8 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   companyName: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 38,
-    fontWeight: 700,
     color: C.dark,
     lineHeight: 1.1,
     marginBottom: 14,
@@ -141,16 +116,16 @@ const s = StyleSheet.create({
     marginBottom: 50,
   },
   contactLabel: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 8,
-    fontWeight: 600,
     color: C.muted,
     letterSpacing: 1,
     textTransform: "uppercase",
     marginBottom: 5,
   },
   contactName: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 13,
-    fontWeight: 600,
     color: C.dark,
     marginBottom: 2,
   },
@@ -166,8 +141,8 @@ const s = StyleSheet.create({
     paddingBottom: 80,
   },
   pageTitle: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 26,
-    fontWeight: 700,
     color: C.dark,
     marginBottom: 8,
   },
@@ -197,20 +172,18 @@ const s = StyleSheet.create({
     marginRight: 12,
   },
   tocNumText: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 9,
-    fontWeight: 700,
     color: C.white,
   },
   tocLabel: {
     flex: 1,
     fontSize: 12,
-    fontWeight: 500,
     color: C.dark,
   },
   tocPageNum: {
     fontSize: 10,
     color: C.subtle,
-    fontWeight: 500,
   },
 
   // ── Section pages ──
@@ -234,16 +207,16 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   sectionBadgeText: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 11,
-    fontWeight: 700,
     color: C.white,
   },
   sectionTitleBlock: {
     flex: 1,
   },
   sectionTitle: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 22,
-    fontWeight: 700,
     color: C.dark,
     lineHeight: 1.2,
   },
@@ -266,9 +239,9 @@ const s = StyleSheet.create({
     borderBottomStyle: "solid",
   },
   fieldLabel: {
+    fontFamily: "Helvetica-Bold",
     width: "40%",
     fontSize: 9,
-    fontWeight: 600,
     color: C.muted,
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -279,7 +252,6 @@ const s = StyleSheet.create({
     fontSize: 11,
     color: C.dark,
     lineHeight: 1.45,
-    fontWeight: 400,
   },
 
   // ── Footer (absolute, pinned to bottom of every page) ──
@@ -302,9 +274,9 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
   },
   footerRight: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 8,
     color: C.subtle,
-    fontWeight: 600,
   },
 });
 
@@ -542,7 +514,6 @@ function ProspectDocument({ prospect }: { prospect: ProspectPDFInput }) {
 }
 
 export async function downloadProspectPDF(prospect: ProspectPDFInput) {
-  await ensureFontsLoaded();
   const blob = await pdf(<ProspectDocument prospect={prospect} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -785,7 +756,6 @@ function ClientDocument({
 }
 
 export async function downloadClientPDF(client: ClientPDFInput, form: FormShape) {
-  await ensureFontsLoaded();
   const blob = await pdf(<ClientDocument client={client} form={form} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
