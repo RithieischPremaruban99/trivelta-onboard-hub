@@ -40,6 +40,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { DEFAULT_ADMIN_FILTERS } from "@/components/admin/AdminFilterBar";
 
 /* ── Admin email allow-list ─────────────────────────────────────────────── */
 
@@ -106,7 +107,7 @@ function StudioPreviewPage() {
     }
 
     if (!isAdmin) {
-      navigate({ to: "/admin", replace: true });
+      navigate({ to: "/admin", search: DEFAULT_ADMIN_FILTERS, replace: true });
       return;
     }
 
@@ -246,7 +247,7 @@ function StudioPreviewPage() {
 
   /* Not admin - should have been redirected above, but guard here too */
   if (!isAdmin) {
-    navigate({ to: "/admin", replace: true });
+    navigate({ to: "/admin", search: DEFAULT_ADMIN_FILTERS, replace: true });
     return null;
   }
 
@@ -282,7 +283,7 @@ function StudioPreviewPage() {
       clientId={clientId}
       onBack={() => {
         if (window.history.length > 1) window.history.back();
-        else navigate({ to: "/admin" });
+        else navigate({ to: "/admin", search: DEFAULT_ADMIN_FILTERS });
       }}
       onToggleAccess={toggleStudioAccess}
       onToggleLock={toggleStudioLock}

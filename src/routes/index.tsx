@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Loader2 } from "lucide-react";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { DEFAULT_ADMIN_FILTERS } from "@/components/admin/AdminFilterBar";
 
 export const Route = createFileRoute("/")({
   component: IndexGateway,
@@ -38,8 +39,8 @@ function IndexGateway() {
 
   if (!user) return <Navigate to="/login" />;
 
-  if (role === "admin") return <Navigate to="/admin" />;
-  if (role === "account_executive") return <Navigate to="/admin" />;
+  if (role === "admin") return <Navigate to="/admin" search={DEFAULT_ADMIN_FILTERS} />;
+  if (role === "account_executive") return <Navigate to="/admin" search={DEFAULT_ADMIN_FILTERS} />;
   if (role === "account_manager") return <Navigate to="/dashboard" />;
   if (role === "client") return <Navigate to="/my-onboarding" />;
 

@@ -1,5 +1,5 @@
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Navigate, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -84,11 +84,30 @@ import { DialogDescription } from "@/components/ui/dialog";
 import { StudioFeatureAccessDialog } from "@/components/admin/StudioFeatureAccessDialog";
 import { CopyableLink } from "@/components/CopyableLink";
 import {
+  AdminFilterBar,
+  DEFAULT_ADMIN_FILTERS,
+  type AdminFilters,
+} from "@/components/admin/AdminFilterBar";
+import {
   DEFAULT_STUDIO_FEATURES,
   type StudioFeatures,
 } from "@/lib/studio-features";
 
 export const Route = createFileRoute("/admin")({
+  validateSearch: (search: Record<string, unknown>): AdminFilters => ({
+    q: typeof search.q === "string" ? search.q : DEFAULT_ADMIN_FILTERS.q,
+    am: Array.isArray(search.am) ? (search.am as string[]) : DEFAULT_ADMIN_FILTERS.am,
+    status: Array.isArray(search.status)
+      ? (search.status as string[])
+      : DEFAULT_ADMIN_FILTERS.status,
+    studio: Array.isArray(search.studio)
+      ? (search.studio as string[])
+      : DEFAULT_ADMIN_FILTERS.studio,
+    pStatus: Array.isArray(search.pStatus)
+      ? (search.pStatus as string[])
+      : DEFAULT_ADMIN_FILTERS.pStatus,
+    sort: typeof search.sort === "string" ? search.sort : DEFAULT_ADMIN_FILTERS.sort,
+  }),
   component: AdminPage,
 });
 
@@ -146,6 +165,7 @@ function AdminPage() {
     clientName: string;
   } | null>(null);
   const navigate = useNavigate();
+  const searchParams = useSearch({ from: "/admin" });
   const [studioData, setStudioData] = useState<
     Record<
       string,
@@ -383,16 +403,54 @@ function AdminPage() {
 
   const canDelete = role === "admin";
 
+  // Filter + sort helpers
+  function applySortToClients(
+    list: typeof clientsWithProgress,
+    sort: string,
+  ): typeof clientsWithProgress {
+    const [field, dir] = sort.split("_") as [string, string];
+    return [...list].sort((a, b) => {
+      let av: string | number, bv: string | number;
+      if (field === "name") {
+        av = (a.name ?? "").toLowerCase();
+        bv = (b.name ?? "").toLowerCase();
+      } else {
+        av = new Date(a.created_at).getTime();
+        bv = new Date(b.created_at).getTime();
+      }
+      if (av < bv) return dir === "asc" ? -1 : 1;
+      if (av > bv) return dir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function applySortToProspects(list: ProspectRow[], sort: string): ProspectRow[] {
+    const [field, dir] = sort.split("_") as [string, string];
+    return [...list].sort((a, b) => {
+      let av: string | number, bv: string | number;
+      if (field === "name") {
+        av = (a.legal_company_name ?? "").toLowerCase();
+        bv = (b.legal_company_name ?? "").toLowerCase();
+      } else {
+        av = new Date(a.created_at).getTime();
+        bv = new Date(b.created_at).getTime();
+      }
+      if (av < bv) return dir === "asc" ? -1 : 1;
+      if (av > bv) return dir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
   // AMs see only their assigned rows (DB RLS already filters the raw queries;
   // this client-side filter powers the "Mine" tab for admin users).
-  const filteredClients =
+  const mineFilteredClients =
     showMineOnly || role === "account_manager"
       ? clientsWithProgress.filter((c) =>
           (clientAms[c.id] ?? []).includes(user?.email ?? ""),
         )
       : clientsWithProgress;
 
-  const filteredProspects =
+  const mineFilteredProspects =
     showMineOnly || role === "account_manager"
       ? prospects.filter((p) => {
           const emails =
@@ -401,6 +459,83 @@ function AdminPage() {
           return emails.includes(user?.email ?? "");
         })
       : prospects;
+
+  // Apply advanced filters from URL search params
+  const { q, am: amFilter, status: statusFilter, studio: studioFilter, pStatus, sort } =
+    searchParams;
+
+  const filteredClients = useMemo(() => {
+    let result = mineFilteredClients;
+
+    if (q) {
+      const lq = q.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(lq) ||
+          c.primary_contact_email?.toLowerCase().includes(lq) ||
+          c.platform_url?.toLowerCase().includes(lq),
+      );
+    }
+
+    if (amFilter.length > 0) {
+      result = result.filter((c) =>
+        (clientAms[c.id] ?? []).some((email) => amFilter.includes(email)),
+      );
+    }
+
+    if (statusFilter.length > 0) {
+      result = result.filter((c) => statusFilter.includes(c.status));
+    }
+
+    if (studioFilter.length > 0) {
+      result = result.filter((c) => {
+        const features = (c.studio_features ?? {}) as Record<string, boolean>;
+        if (studioFilter.includes("none")) {
+          return !c.studio_access && !Object.values(features).some(Boolean);
+        }
+        if (studioFilter.includes("any")) {
+          return c.studio_access || Object.values(features).some(Boolean);
+        }
+        return studioFilter.some((f) => features[f] === true || (f === "any" && c.studio_access));
+      });
+    }
+
+    return applySortToClients(result, sort);
+  }, [mineFilteredClients, q, amFilter, statusFilter, studioFilter, sort, clientAms]);
+
+  const filteredProspects = useMemo(() => {
+    let result = mineFilteredProspects;
+
+    if (q) {
+      const lq = q.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.legal_company_name?.toLowerCase().includes(lq) ||
+          p.primary_contact_email?.toLowerCase().includes(lq) ||
+          p.primary_contact_name?.toLowerCase().includes(lq),
+      );
+    }
+
+    if (amFilter.length > 0) {
+      result = result.filter((p) => {
+        const emails =
+          prospectAms[p.id] ??
+          (p.assigned_account_manager ? [p.assigned_account_manager] : []);
+        return emails.some((email) => amFilter.includes(email));
+      });
+    }
+
+    if (pStatus.length > 0) {
+      result = result.filter((p) => pStatus.includes(p.contract_status));
+    }
+
+    return applySortToProspects(result, sort);
+  }, [mineFilteredProspects, q, amFilter, pStatus, sort, prospectAms]);
+
+  // Filter state helpers for URL sync
+  function setFilter(updates: AdminFilters) {
+    navigate({ to: "/admin", search: updates, replace: true });
+  }
 
   const requestDeleteClient = (clientId: string, clientName: string) => {
     setConfirmDelete({ kind: "client", id: clientId, name: clientName });
@@ -493,7 +628,7 @@ function AdminPage() {
         </div>
 
         {/* Section heading */}
-        <div className="mb-4 flex items-end justify-between">
+        <div className="mb-3 flex items-end justify-between">
           <div>
             <div className="micro-label">
               {isAdminRole ? "All clients & prospects" : "Your assigned clients & prospects"}
@@ -519,6 +654,19 @@ function AdminPage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Filter + sort bar */}
+        <div className="mb-4">
+          <AdminFilterBar
+            filters={searchParams}
+            onFiltersChange={(f) => setFilter(f)}
+            amOptions={ams.map((a) => ({ value: a.email, label: a.name ?? a.email }))}
+            clientCount={filteredClients.length}
+            totalClients={mineFilteredClients.length}
+            prospectCount={filteredProspects.length}
+            totalProspects={mineFilteredProspects.length}
+          />
         </div>
 
         {/* Table */}

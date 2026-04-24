@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { DEFAULT_ADMIN_FILTERS } from "@/components/admin/AdminFilterBar";
 import { useEffect, useMemo, useState } from "react";
 import {
   Loader2,
@@ -482,7 +483,7 @@ function StudioPreviewPage() {
   const handleBack = useMemo(() => {
     return () => {
       if (role === "admin" || role === "account_executive" || role === "account_manager") {
-        navigate({ to: "/admin" });
+        navigate({ to: "/admin", search: DEFAULT_ADMIN_FILTERS });
       } else {
         navigate({ to: "/onboarding/$clientId/studio-locked", params: { clientId } });
       }

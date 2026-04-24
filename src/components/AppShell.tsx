@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { TriveltaNav } from "@/components/TriveltaNav";
 import { StageHeader, type Stage } from "@/components/StageHeader";
+import { DEFAULT_ADMIN_FILTERS } from "@/components/admin/AdminFilterBar";
 
 export function AppShell({
   children,
@@ -40,6 +41,7 @@ export function AppShell({
           {(role === "admin" || role === "account_executive") && (
             <Link
               to="/admin"
+              search={DEFAULT_ADMIN_FILTERS}
               className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
               activeProps={{ className: "bg-accent text-foreground" }}
             >
