@@ -91,24 +91,25 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
           ))}
         </select>
         {helper}
-        {showOtherDisclaimer && (
-          <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-            <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
-              Using an unlisted provider may delay your integration launch. Please discuss
-              with your Account Manager before proceeding.
-            </p>
-          </div>
-        )}
         {otherSelected && (
-          <input
-            type="text"
-            className={cn(INPUT_BASE, "mt-2")}
-            placeholder="Please specify…"
-            value={otherValue ?? ""}
-            onChange={(e) => onOtherChange?.(e.target.value)}
-            disabled={disabled}
-          />
+          <>
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+              <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
+                <span className="font-semibold">Bitte mit dem Account Manager absprechen.</span>{" "}
+                Die Auswahl eines nicht gelisteten Anbieters kann Ihr Launch-Datum beeinflussen und
+                zusätzliche Integrationskosten verursachen.
+              </p>
+            </div>
+            <input
+              type="text"
+              className={cn(INPUT_BASE, "mt-2")}
+              placeholder="Bitte spezifizieren…"
+              value={otherValue ?? ""}
+              onChange={(e) => onOtherChange?.(e.target.value)}
+              disabled={disabled}
+            />
+          </>
         )}
       </div>
     );
@@ -172,24 +173,25 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
           ))}
         </div>
         {helper}
-        {showOtherDisclaimer && (
-          <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-            <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
-              Using an unlisted provider may delay your integration launch. Please discuss
-              with your Account Manager before proceeding.
-            </p>
-          </div>
-        )}
         {otherSelected && (
-          <input
-            type="text"
-            className={cn(INPUT_BASE, "mt-2")}
-            placeholder="Please specify…"
-            value={otherValue ?? ""}
-            onChange={(e) => onOtherChange?.(e.target.value)}
-            disabled={disabled}
-          />
+          <>
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+              <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
+                <span className="font-semibold">Bitte mit dem Account Manager absprechen.</span>{" "}
+                Die Auswahl eines nicht gelisteten Anbieters kann Ihr Launch-Datum beeinflussen und
+                zusätzliche Integrationskosten verursachen.
+              </p>
+            </div>
+            <input
+              type="text"
+              className={cn(INPUT_BASE, "mt-2")}
+              placeholder="Bitte spezifizieren…"
+              value={otherValue ?? ""}
+              onChange={(e) => onOtherChange?.(e.target.value)}
+              disabled={disabled}
+            />
+          </>
         )}
       </div>
     );

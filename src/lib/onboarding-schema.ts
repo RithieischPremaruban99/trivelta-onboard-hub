@@ -37,6 +37,7 @@ export type FormShape = {
   // Section 3
   platform_url: string;
   country: string;
+  country_other: string;
   dns_provider: string;
   dns_access: "yes" | "no" | "";
   color_background: string;
@@ -72,6 +73,7 @@ export type FormShape = {
   psp_bitolo: boolean;
   psp_evervault: boolean;
   psp_other: boolean;
+  psp_other_name: string;
   psp_priority: string;
   kyc_surt: "yes" | "no" | "";
   kyc_notes: string;
@@ -108,6 +110,7 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   asset_live_icon_anim: false,
   platform_url: "",
   country: "",
+  country_other: "",
   dns_provider: "",
   dns_access: "",
   color_background: "#0a0d14",
@@ -139,6 +142,7 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   psp_bitolo: false,
   psp_evervault: false,
   psp_other: false,
+  psp_other_name: "",
   psp_priority: "",
   kyc_surt: "",
   kyc_notes: "",

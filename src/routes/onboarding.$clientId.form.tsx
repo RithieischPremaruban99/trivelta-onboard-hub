@@ -1734,6 +1734,17 @@ function SectionPlatform({
           {fe(form.country) && (
             <p className="mt-1 text-[11px] text-destructive">This field is required</p>
           )}
+          {form.country === "Other" && (
+            <>
+              <Input
+                className="mt-2"
+                placeholder="Please specify your country…"
+                value={form.country_other}
+                onChange={(e) => update("country_other", e.target.value)}
+              />
+              <OtherIntegrationDisclaimer />
+            </>
+          )}
         </FieldGroup>
         <FieldGroup label="DNS provider" required>
           <Input
@@ -1918,7 +1929,19 @@ function SectionThirdParty({
         {showErrors && !pspOk && (
           <p className="mt-2 text-[11px] text-destructive">Select at least one payment provider</p>
         )}
-        {form.psp_other && <OtherIntegrationDisclaimer />}
+        {form.psp_other && (
+          <>
+            <OtherIntegrationDisclaimer />
+            <div className="mt-2 space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Provider name</Label>
+              <Input
+                placeholder="Please specify your provider…"
+                value={form.psp_other_name}
+                onChange={(e) => update("psp_other_name", e.target.value)}
+              />
+            </div>
+          </>
+        )}
         <div className="mt-4 space-y-1.5">
           <Label className="text-xs text-muted-foreground">Routing priority</Label>
           <Textarea
