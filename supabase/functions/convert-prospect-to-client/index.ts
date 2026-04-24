@@ -172,6 +172,7 @@ serve(async (req) => {
         primary_contact_email: prospect.primary_contact_email,
         studio_access: false,
         status: "onboarding",
+        notion_page_id: prospect.notion_page_id ?? null,
       })
       .select("id")
       .single();

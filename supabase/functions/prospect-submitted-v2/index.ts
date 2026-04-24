@@ -99,10 +99,12 @@ Deno.serve(async (req) => {
       notionError = err instanceof Error ? err.message : String(err);
     }
 
-    // Persist result to Supabase (so we have the Notion page ID for Event 2 + 3)
+    // Persist result to Supabase.
+    // At form-submit time a clients row does not exist yet — write to prospects.
+    // convert-prospect-to-client will copy notion_page_id to the clients row on conversion.
     if (notionResult) {
       await supabase
-        .from("clients")
+        .from("prospects")
         .update({
           notion_page_id: notionResult.pageId,
           notion_sync_pending: false,
@@ -112,7 +114,7 @@ Deno.serve(async (req) => {
         .eq("id", triveltaId);
     } else if (notionError) {
       await supabase
-        .from("clients")
+        .from("prospects")
         .update({
           notion_sync_pending: true,
           notion_sync_error: notionError,
