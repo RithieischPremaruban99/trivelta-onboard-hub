@@ -213,30 +213,19 @@ function MarkContractSignedButton({ clientId, onSuccess }: { clientId: string; o
   );
 }
 
-// ─── Lifecycle action: Launch & Send Confirmation ─────────────────────────────
+// ─── Lifecycle action: Mark as Live ──────────────────────────────────────────
 
-function LaunchAndSendButton({
+function MarkAsLiveButton({
   clientId,
   clientName,
-  contactEmail,
   onSuccess,
 }: {
   clientId: string;
   clientName: string;
-  contactEmail: string | null;
   onSuccess: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  if (!contactEmail) {
-    return (
-      <Button size="sm" disabled variant="outline" className="h-7 gap-1.5 text-[11px] font-semibold" title="Primary contact email required">
-        <Rocket className="h-3.5 w-3.5" />
-        Launch (email missing)
-      </Button>
-    );
-  }
 
   async function handleConfirm() {
     setLoading(true);
@@ -245,7 +234,7 @@ function LaunchAndSendButton({
         body: { client_id: clientId },
       });
       if (error) throw error;
-      toast.success(`${clientName} is live. Confirmation email sent to ${contactEmail}.`);
+      toast.success(`${clientName} is now live. Don't forget to email the client manually.`);
       onSuccess();
     } catch (err) {
       toast.error(`Go Live failed: ${err instanceof Error ? err.message : "Unknown error"}. Client remains in Pre-Launch.`);
@@ -264,24 +253,23 @@ function LaunchAndSendButton({
         disabled={loading}
       >
         <Rocket className="h-3.5 w-3.5" />
-        🚀 Launch & Send Confirmation
+        🚀 Mark as Live
       </Button>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Launch {clientName}?</AlertDialogTitle>
+            <AlertDialogTitle>Mark {clientName} as live?</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2">
                 <span className="block">This will:</span>
                 <ul className="list-disc space-y-1 pl-5 text-sm">
-                  <li>Send a launch confirmation email to <strong>{contactEmail}</strong></li>
                   <li>Transition Notion page to Status = Active, Phase = Post-Launch</li>
                   <li>Set Next Renewal to Contract Start + 12 months</li>
                   <li>Set Health Score to Good</li>
                 </ul>
                 <span className="block pt-2 text-xs text-amber-600">
-                  The email is sent ONCE and cannot be undone. Only proceed if you've verified the platform is ready.
+                  After confirming, remember to send a launch confirmation email to the client manually via Gmail.
                 </span>
               </div>
             </AlertDialogDescription>
@@ -289,7 +277,7 @@ function LaunchAndSendButton({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirm} disabled={loading}>
-              {loading ? "Launching..." : "Yes — launch & send email"}
+              {loading ? "Launching..." : "Yes — mark as live"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1072,10 +1060,9 @@ function AdminPage() {
                                 <MarkContractSignedButton clientId={c.id} onSuccess={refresh} />
                               )}
                               {c.onboarding_phase === "Pre-Launch" && (
-                                <LaunchAndSendButton
+                                <MarkAsLiveButton
                                   clientId={c.id}
                                   clientName={c.name}
-                                  contactEmail={c.primary_contact_email}
                                   onSuccess={refresh}
                                 />
                               )}

@@ -2,25 +2,21 @@
 //
 // Event 3: Go Live
 //
-// Triggered by a "Launch & Send Confirmation" button in the Trivelta
-// Suite Admin Dashboard. Two things happen in parallel:
+// Triggered by a "Mark as Live" button in the Trivelta Suite Admin Dashboard.
+// Updates the Notion page + Supabase client row to reflect launch.
 //
-//   1. Update Notion page:
-//      - Status          → Active
-//      - Onboarding Phase → Post-Launch
-//      - Next Renewal    → Contract Start + 12 months
-//      - Health Score    → Good
+// What this does:
+//   - Notion: Status → Active, Phase → Post-Launch, Next Renewal, Health Score, Go Live Date
+//   - Supabase: mirrors those fields on the clients row
 //
-//   2. Send confirmation email to client (SendGrid / Resend / etc.)
+// What this does NOT do:
+//   - Send a confirmation email. The AM sends it manually via Gmail.
+//     This is intentional: Trivelta doesn't have an email provider configured,
+//     and keeping the operation idempotent (safe to retry) is more valuable
+//     than auto-emailing at the wrong moment.
 //
-// The Phase 6 "🚀 Send launch confirmation email to client" task in the
-// Notion page body is left unchecked — the AM manually ticks it after
-// verifying the email landed. (We could auto-tick it but that couples
-// the handler to scanning/modifying block content; keep it simple.)
-//
-// This handler is INTENTIONALLY SYNCHRONOUS about the email: if email
-// sending fails, Notion is NOT updated. This preserves the invariant
-// "client is Active ⇒ client received confirmation email".
+// Idempotency: this is safe to call multiple times — property updates
+// converge to the same state.
 
 // deno-lint-ignore-file no-explicit-any
 
@@ -35,11 +31,6 @@ import { makeCorsHeaders } from "../_shared/cors.ts";
 const NOTION_TOKEN = Deno.env.get("NOTION_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-// Email provider — swap for whatever Trivelta standardizes on.
-// Current default: Resend. Set RESEND_API_KEY + FROM_EMAIL in Supabase secrets.
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_EMAIL = Deno.env.get("FROM_EMAIL") ?? "launch@trivelta.com";
 
 Deno.serve(async (req) => {
   const corsHeaders = makeCorsHeaders(req);
@@ -60,12 +51,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch client details for email + renewal calc
+    // Fetch client details for Notion page lookup + renewal calc
     const { data: client, error: clientErr } = await supabase
       .from("clients")
-      .select(
-        "id, name, primary_contact_email, primary_contact_name, contract_start_date, notion_page_id, primary_domain",
-      )
+      .select("id, name, contract_start_date, notion_page_id")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -76,34 +65,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!client.primary_contact_email) {
-      return new Response(
-        JSON.stringify({
-          error: "Cannot go live without primary_contact_email set on client",
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // ─── Step 1: Send confirmation email (hard requirement) ───
-    const emailSent = await sendLaunchConfirmationEmail({
-      toEmail: client.primary_contact_email,
-      toName: client.primary_contact_name ?? client.name,
-      clientName: client.name,
-      domain: client.primary_domain ?? null,
-    });
-
-    if (!emailSent.ok) {
-      return new Response(
-        JSON.stringify({
-          error: "Email sending failed — aborted Go Live",
-          details: emailSent.error,
-        }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // ─── Step 2: Resolve Notion page ───
+    // Resolve Notion page ID
     let notionPageId = client.notion_page_id;
     if (!notionPageId) {
       try {
@@ -113,10 +75,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Step 3: Update Notion properties ───
-    let notionError: string | null = null;
     const nextRenewal = computeNextRenewal(client.contract_start_date);
+    const goLiveDate = new Date().toISOString().split("T")[0];
 
+    // Update Notion
+    let notionError: string | null = null;
     if (notionPageId) {
       try {
         await updatePageProperties(NOTION_TOKEN, notionPageId, {
@@ -124,7 +87,7 @@ Deno.serve(async (req) => {
           "Onboarding Phase": props.select("Post-Launch"),
           "Next Renewal": props.date(nextRenewal),
           "Health Score": props.select("Good"),
-          "Go Live Date": props.date(new Date().toISOString().split("T")[0]),
+          "Go Live Date": props.date(goLiveDate),
         });
         console.log(`[go-live] Notion updated for ${client_id}`);
       } catch (err) {
@@ -135,7 +98,7 @@ Deno.serve(async (req) => {
       notionError = "Notion page not found at Go Live";
     }
 
-    // ─── Step 4: Update Supabase ───
+    // Update Supabase
     await supabase
       .from("clients")
       .update({
@@ -153,10 +116,10 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        email_sent: true,
         notion_synced: notionError === null,
         notion_page_id: notionPageId,
         next_renewal: nextRenewal,
+        note: "Email not sent — send confirmation manually via Gmail",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
@@ -169,104 +132,9 @@ Deno.serve(async (req) => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
-
 function computeNextRenewal(contractStart: string | null | undefined): string {
   const base = contractStart ? new Date(contractStart) : new Date();
   const next = new Date(base);
   next.setFullYear(next.getFullYear() + 1);
   return next.toISOString().split("T")[0];
-}
-
-type EmailResult = { ok: true } | { ok: false; error: string };
-
-async function sendLaunchConfirmationEmail(args: {
-  toEmail: string;
-  toName: string;
-  clientName: string;
-  domain: string | null;
-}): Promise<EmailResult> {
-  if (!RESEND_API_KEY) {
-    console.warn("[go-live] RESEND_API_KEY not set — skipping email (dev mode)");
-    return { ok: true }; // in dev, don't block the flow
-  }
-
-  const subject = `🎉 ${args.clientName} is live — welcome to Trivelta`;
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
-        <div style="text-align: center; margin-bottom: 32px;">
-          <h1 style="font-size: 24px; margin: 0; color: #1a1a1a;">Welcome to Trivelta</h1>
-          <p style="font-size: 14px; color: #666; margin-top: 8px;">Your platform is live.</p>
-        </div>
-
-        <p>Hi ${escapeHtml(args.toName)},</p>
-
-        <p>
-          Congratulations — <strong>${escapeHtml(args.clientName)}</strong> has officially
-          gone live on the Trivelta platform${args.domain ? ` at <a href="https://${escapeHtml(args.domain)}" style="color: #D97757;">${escapeHtml(args.domain)}</a>` : ""}.
-        </p>
-
-        <p>
-          Your dedicated Account Management team is here to support you through every phase
-          of post-launch. We'll reach out shortly with next steps, but don't hesitate to
-          contact us at any time.
-        </p>
-
-        <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; margin: 24px 0;">
-          <p style="margin: 0; font-size: 13px; color: #555;">
-            <strong>What's next:</strong><br/>
-            • Your AM will schedule a post-launch check-in within 7 days<br/>
-            • Monthly performance reviews start next month<br/>
-            • First renewal date: 12 months from contract start
-          </p>
-        </div>
-
-        <p>Welcome aboard.</p>
-
-        <p style="margin-top: 32px;">
-          The Trivelta Team<br/>
-          <a href="https://trivelta.com" style="color: #D97757;">trivelta.com</a>
-        </p>
-      </body>
-    </html>
-  `.trim();
-
-  try {
-    const resp = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: args.toEmail,
-        subject,
-        html,
-      }),
-    });
-
-    if (!resp.ok) {
-      const errorText = await resp.text();
-      return { ok: false, error: `Resend ${resp.status}: ${errorText}` };
-    }
-
-    return { ok: true };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  }
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
