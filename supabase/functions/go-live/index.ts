@@ -99,11 +99,11 @@ Deno.serve(async (req) => {
     }
 
     // Update Supabase
-    await supabase
+    const { error: updateErr } = await supabase
       .from("clients")
       .update({
         go_live_date: new Date().toISOString(),
-        onboarding_status: "active",
+        status: "active",
         onboarding_phase: "Post-Launch",
         next_renewal_date: nextRenewal,
         health_score: "Good",
@@ -112,6 +112,14 @@ Deno.serve(async (req) => {
         notion_sync_attempted_at: new Date().toISOString(),
       })
       .eq("id", client_id);
+
+    if (updateErr) {
+      console.error("[go-live] Supabase update failed:", updateErr);
+      return new Response(
+        JSON.stringify({ error: updateErr.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     return new Response(
       JSON.stringify({
