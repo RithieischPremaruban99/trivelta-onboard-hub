@@ -24,6 +24,7 @@ import { StageHeader } from "@/components/StageHeader";
 import { downloadClientPDF } from "@/lib/pdf-builder";
 import type { FormShape } from "@/lib/onboarding-schema";
 import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadingScreen";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 
 export const Route = createFileRoute("/onboarding/$clientId/success")({
   component: SuccessScreen,
@@ -111,27 +112,21 @@ function SuccessScreen() {
         <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
           <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto w-full">
 
-            {/* Strategic Partnership Hero — Claude × Trivelta */}
+            {/* Trivelta AI Hero */}
             <div
               className="relative flex flex-col items-center gap-8 animate-fade-in"
               style={{ animationDelay: "20ms" }}
             >
-              {/* Partnership logo with soft radial glow */}
+              {/* Logo lockup with soft radial glow */}
               <div className="relative flex items-center justify-center px-4">
-                {/* Soft glow backdrop */}
                 <div
                   className="pointer-events-none absolute inset-0 -z-10 blur-3xl scale-[1.6]"
                   style={{
                     background:
-                      "radial-gradient(ellipse at center, color-mix(in oklab, var(--color-primary) 22%, transparent) 0%, color-mix(in oklab, #D97757 14%, transparent) 45%, transparent 72%)",
+                      "radial-gradient(ellipse at center, color-mix(in oklab, var(--color-primary) 22%, transparent) 0%, transparent 72%)",
                   }}
                 />
-                <img
-                  src="/claude-trivelta-partnership.png"
-                  alt="Claude × Trivelta — Strategic Partnership"
-                  className="relative h-24 md:h-28 w-auto object-contain select-none"
-                  draggable={false}
-                />
+                <TriveltaLogo size="xl" brandSuffix="AI" product="Studio" />
               </div>
 
               {/* Announcement */}
@@ -139,16 +134,15 @@ function SuccessScreen() {
                 <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-                    Strategic Partnership
+                    Exclusive Access
                   </span>
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold tracking-tight">
                   World-class AI meets world-class iGaming.
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Trivelta has partnered with Anthropic — makers of Claude, the most trusted AI for
-                  regulated industries — to bring you an exclusive AI Studio experience reserved for
-                  Trivelta clients only.
+                  You now have access to Trivelta AI Studio — an exclusive AI experience built for
+                  regulated iGaming operators and reserved for Trivelta clients only.
                 </p>
               </div>
             </div>
@@ -214,8 +208,8 @@ function SuccessScreen() {
 
                   <p className="text-muted-foreground leading-relaxed">
                     Our AI Studio is powered by{" "}
-                    <span className="text-foreground font-medium">Anthropic's Claude</span> —
-                    the same AI used by Fortune 500 companies for legal and compliance work. Every page is generated
+                    <span className="text-foreground font-medium">Trivelta AI</span> —
+                    purpose-built for legal and compliance work in regulated iGaming markets. Every page is generated
                     specifically for your brand, your jurisdiction, and your market.
                   </p>
 
@@ -264,7 +258,7 @@ function SuccessScreen() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Zap className="h-3 w-3" />
-                    <span>Powered by Anthropic</span>
+                    <span>Powered by Trivelta AI</span>
                   </div>
                 </div>
 
@@ -361,27 +355,17 @@ function SuccessScreen() {
 
 
 
-          {/* Compact partnership badge */}
+          {/* Compact brand badge */}
           <div
             className="mx-auto mb-8 inline-flex items-center gap-3 rounded-full border border-border/40 bg-card/30 backdrop-blur-md px-4 py-2 animate-fade-in"
             style={{ animationDelay: "80ms" }}
           >
-            <div
-              className="h-6 w-6 rounded-md flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #D97757, #C56B4A)" }}
-            >
-              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white" fill="currentColor">
-                <path d="M12 2L13.09 8.26L22 9L13.09 10.74L12 22L10.91 10.74L2 9L10.91 8.26L12 2Z" />
-              </svg>
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80">
-              Claude × Trivelta
-            </span>
-            <div
-              className="h-6 w-6 rounded-md flex items-center justify-center p-1 bg-primary"
-            >
+            <div className="h-6 w-6 rounded-md flex items-center justify-center p-1 bg-primary">
               <img src="/favicon.png" alt="Trivelta" className="h-full w-full object-contain" />
             </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/80">
+              Trivelta AI
+            </span>
           </div>
 
           {/* Micro-label */}
