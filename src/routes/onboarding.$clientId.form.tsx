@@ -305,11 +305,7 @@ function FormScreen() {
         if (formRes.data?.data) setForm(emptyForm(formRes.data.data as Partial<FormShape>));
         if (formRes.data?.submitted_at) {
           setSubmitted(formRes.data.submitted_at);
-          if (routeToStudio) {
-            navigate({ to: "/onboarding/$clientId/studio", params: { clientId }, replace: true });
-          } else {
-            navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
-          }
+          navigate({ to: "/onboarding/$clientId/success", params: { clientId }, replace: true });
           return;
         }
         // Not submitted - redirect to welcome on first visit
@@ -352,11 +348,7 @@ function FormScreen() {
           setForm(emptyForm(remote.data));
           if (remote.submitted_at) {
             setSubmitted(remote.submitted_at);
-            if (studioAccessRef.current) {
-              navigate({ to: "/onboarding/$clientId/studio", params: { clientId } });
-            } else {
-              navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
-            }
+            navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
           }
         },
       )
@@ -516,13 +508,9 @@ function FormScreen() {
 
     void logActivity({ clientId, action: "form_submitted" });
 
-    // Route based on studio access — use the already-computed studioAccessRef
-    // (includes studio_access flag + any studio_features, including landing_page_generator)
-    if (studioAccessRef.current) {
-      navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId } });
-    } else {
-      navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
-    }
+    // Always route to /success first — the Partnership Lockup moment (Claude × Trivelta)
+    // is intentional UX for all clients. /success handles onward routing to Studio.
+    navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
     setSubmitting(false);
   };
 
