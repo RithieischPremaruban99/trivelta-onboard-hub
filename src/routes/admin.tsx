@@ -2169,7 +2169,7 @@ function NewProspectDialog({
     setContactName("");
     setSelectedAMs([]);
     setMagicLink(null);
-    setCopiedLink(false);
+    
   };
 
   const handleClose = (v: boolean) => {
