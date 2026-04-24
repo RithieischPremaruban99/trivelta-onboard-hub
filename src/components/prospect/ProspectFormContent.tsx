@@ -11,10 +11,10 @@ import {
   SendHorizonal,
   UserCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import { StageHeader } from "@/components/StageHeader";
 import { ProspectAccordionSection } from "@/components/prospect/ProspectAccordionSection";
 import { PROSPECT_SECTIONS } from "@/lib/prospect-fields";
-import { downloadProspectPDF } from "@/lib/pdf-builder";
 import {
   Dialog,
   DialogContent,
