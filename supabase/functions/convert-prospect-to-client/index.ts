@@ -173,6 +173,7 @@ serve(async (req) => {
         studio_access: false,
         status: "onboarding",
         notion_page_id: prospect.notion_page_id ?? null,
+        onboarding_phase: "Pre-Sale",
       })
       .select("id")
       .single();
