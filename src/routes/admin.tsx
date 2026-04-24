@@ -1962,8 +1962,6 @@ function InvitePreviewDialog({
   ams: AmLite[];
   onClose: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
-
   // Pick first AM from list as fallback
   const am = ams[0] ?? { name: "Your Account Manager", email: "team@trivelta.com" };
   const { subject, body } = buildClientInviteEmail({
@@ -1973,12 +1971,6 @@ function InvitePreviewDialog({
     amEmail: am.email,
     studioAccessGranted: false,
   });
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(result.inviteLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
