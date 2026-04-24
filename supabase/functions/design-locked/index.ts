@@ -5,7 +5,7 @@
 // 3. Appends a 7-section "Studio Config" block to the Notion page
 // 4. Stores notion_page_id + studio_locked_at back in clients table
 
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   ADVANCED_FIELD_GROUPS,
   FIELD_LABELS,

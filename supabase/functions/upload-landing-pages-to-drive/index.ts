@@ -14,7 +14,7 @@
  * Auth: verify_jwt=false + internal callerClient.auth.getUser() check
  */
 
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { makeCorsHeaders } from "../_shared/cors.ts";
 
 // ── Types ──────────────────────────────────────────────────────────────────
