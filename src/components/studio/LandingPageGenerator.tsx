@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { useStudio } from "@/contexts/StudioContext";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -859,7 +860,7 @@ export function LandingPageGenerator({
         )}>
           <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
           <span className="text-foreground/80">
-            Claude is generating your pages…{" "}
+            Trivelta AI is generating your pages…{" "}
             <span className="text-muted-foreground/70">(up to 30 seconds)</span>
           </span>
         </div>
@@ -930,14 +931,10 @@ export function LandingPageGenerator({
         </div>
 
         <div className="relative z-10 max-w-2xl w-full flex flex-col items-center text-center space-y-10">
-          {/* Partnership lockup */}
-          <div className="relative">
+          {/* Trivelta AI lockup */}
+          <div className="relative flex items-center justify-center">
             <div className="absolute inset-0 bg-primary/20 blur-3xl scale-150 pointer-events-none rounded-full" />
-            <img
-              src="/claude-trivelta-partnership.png"
-              alt="Claude × Trivelta"
-              className="relative h-20 w-auto object-contain"
-            />
+            <TriveltaLogo size="xl" brandSuffix="AI" product="Studio" className="relative" />
           </div>
 
           {/* Step indicator — both complete */}
@@ -1024,8 +1021,8 @@ export function LandingPageGenerator({
                   Your Trivelta AI Studio access is unlocked.
                 </h3>
                 <p className="text-sm text-muted-foreground text-left leading-relaxed">
-                  Your account manager has enabled additional tools — chat with Claude, design
-                  color palettes, customize animations and more.
+                  Your account manager has enabled additional tools — chat with Trivelta AI,
+                  design color palettes, customize animations and more.
                 </p>
                 <Button
                   size="lg"
@@ -1068,7 +1065,7 @@ export function LandingPageGenerator({
             </div>
             <div className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />
-              <span>Powered by Anthropic</span>
+              <span>Powered by Trivelta AI</span>
             </div>
           </div>
         </div>

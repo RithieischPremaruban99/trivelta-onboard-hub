@@ -30,7 +30,7 @@ export function TriveltaLogo({
   product?: string;
   /** Optional suffix appended to the Trivelta wordmark before the divider (e.g. "AI"). */
   brandSuffix?: string;
-  /** Show "Powered by Anthropic" micro-text below the lockup. */
+  /** Show "Powered by Trivelta AI" micro-text below the lockup. */
   poweredBy?: boolean;
   className?: string;
 }) {
@@ -96,7 +96,7 @@ export function TriveltaLogo({
             textShadow: "0 1px 0 rgba(255,255,255,0.05)",
           }}
         >
-          Powered by Anthropic
+          Powered by Trivelta AI
         </span>
       )}
     </div>

@@ -1795,7 +1795,7 @@ function LandingPageFullPageShell({
             <span className="font-semibold text-foreground">Trivelta AI Studio</span>
             <span className="text-muted-foreground/50">·</span>
             <span className="text-muted-foreground">Exclusive access, powered by</span>
-            <span className="font-semibold text-primary">Anthropic's Claude</span>
+            <span className="font-semibold text-primary">Trivelta AI</span>
           </div>
         </div>
       </div>

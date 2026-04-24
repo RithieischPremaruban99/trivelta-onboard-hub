@@ -36,7 +36,7 @@ export function LockedFullStudioTeaser() {
               Trivelta AI Studio
             </h3>
             <span className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-[0.14em]">
-              Full Suite · Powered by Anthropic
+              Full Suite · Trivelta AI
             </span>
           </div>
           <p className="text-[13px] text-muted-foreground/80 mt-2 leading-relaxed">
