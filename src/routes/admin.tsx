@@ -82,6 +82,7 @@ import { logActivity } from "@/lib/activity-log";
 import { buildClientInviteEmail } from "@/lib/client-invite-email";
 import { DialogDescription } from "@/components/ui/dialog";
 import { StudioFeatureAccessDialog } from "@/components/admin/StudioFeatureAccessDialog";
+import { CopyableLink } from "@/components/CopyableLink";
 import {
   DEFAULT_STUDIO_FEATURES,
   type StudioFeatures,
