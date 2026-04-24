@@ -107,36 +107,41 @@ function slackChannel(clientName: string): string {
 }
 
 function buildNotes(p: Payload): string {
-  const f = p.form_data;
+  const f = (p.form_data ?? {}) as Partial<FormData>;
   const analytics =
     (["meta", "ga", "gtm", "snapchat", "reddit"] as const)
-      .filter((k) => f[`analytics_${k}` as keyof FormData])
+      .filter((k) => f?.[`analytics_${k}` as keyof FormData])
       .join(", ") || "-";
+
+  const cs = f.contact_sportsbook ?? { name: "", email: "", phone: "" };
+  const co = f.contact_operational ?? { name: "", email: "", phone: "" };
+  const cc = f.contact_compliance ?? { name: "", email: "", phone: "" };
+  const psps = p.psps ?? [];
 
   const lines = [
     "TEAM CONTACTS",
-    `Sportsbook : ${f.contact_sportsbook?.name}  |  ${f.contact_sportsbook?.email}  |  ${f.contact_sportsbook?.phone}`,
-    `Operational: ${f.contact_operational?.name}  |  ${f.contact_operational?.email}  |  ${f.contact_operational?.phone}`,
-    `Compliance : ${f.contact_compliance?.name}  |  ${f.contact_compliance?.email}  |  ${f.contact_compliance?.phone}`,
+    `Sportsbook : ${cs.name ?? "-"}  |  ${cs.email ?? "-"}  |  ${cs.phone ?? "-"}`,
+    `Operational: ${co.name ?? "-"}  |  ${co.email ?? "-"}  |  ${co.phone ?? "-"}`,
+    `Compliance : ${cc.name ?? "-"}  |  ${cc.email ?? "-"}  |  ${cc.phone ?? "-"}`,
     `Slack invites: ${f.slack_team_emails || "-"}`,
     "",
     "PLATFORM SETUP",
-    `URL: ${f.platform_url}  |  Country: ${f.country}`,
-    `DNS provider: ${f.dns_provider}  |  DNS access granted: ${f.dns_access}`,
-    `Colours - BG: ${f.color_background}  Primary: ${f.color_primary}`,
+    `URL: ${f.platform_url ?? "-"}  |  Country: ${f.country ?? "-"}`,
+    `DNS provider: ${f.dns_provider ?? "-"}  |  DNS access granted: ${f.dns_access ?? "-"}`,
+    `Colours - BG: ${f.color_background ?? "-"}  Primary: ${f.color_primary ?? "-"}`,
     "",
     "LEGAL & POLICIES",
-    `Footer: ${f.footer_required}  |  Landing page: ${f.landing_page}${f.landing_page_url ? `  (${f.landing_page_url})` : ""}`,
-    `Terms: ${f.terms_url}`,
-    `Privacy: ${f.privacy_url}`,
-    `Responsible Gaming: ${f.rg_url}`,
+    `Footer: ${f.footer_required ?? "-"}  |  Landing page: ${f.landing_page ?? "-"}${f.landing_page_url ? `  (${f.landing_page_url})` : ""}`,
+    `Terms: ${f.terms_url ?? "-"}`,
+    `Privacy: ${f.privacy_url ?? "-"}`,
+    `Responsible Gaming: ${f.rg_url ?? "-"}`,
     "",
     "3RD PARTY",
-    `PSPs: ${p.psps.join(", ") || "-"}  |  Priority: ${f.psp_priority || "-"}`,
-    `KYC SURT: ${f.kyc_surt}${f.kyc_notes ? `  (${f.kyc_notes})` : ""}`,
-    `SMS: ${f.sms_provider}${f.sms_provider_other ? ` - ${f.sms_provider_other}` : ""}`,
-    `DUNS: ${f.duns_status}${f.duns_number ? ` - ${f.duns_number}` : ""}`,
-    `Zendesk: ${f.zendesk}`,
+    `PSPs: ${psps.join(", ") || "-"}  |  Priority: ${f.psp_priority || "-"}`,
+    `KYC SURT: ${f.kyc_surt ?? "-"}${f.kyc_notes ? `  (${f.kyc_notes})` : ""}`,
+    `SMS: ${f.sms_provider ?? "-"}${f.sms_provider_other ? ` - ${f.sms_provider_other}` : ""}`,
+    `DUNS: ${f.duns_status ?? "-"}${f.duns_number ? ` - ${f.duns_number}` : ""}`,
+    `Zendesk: ${f.zendesk ?? "-"}`,
     `Analytics: ${analytics}`,
   ];
 
