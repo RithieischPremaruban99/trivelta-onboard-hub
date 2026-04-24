@@ -1,7 +1,7 @@
 /**
  * pdf-builder.tsx - Premium PDF generation using @react-pdf/renderer.
  * Produces a cover page, table of contents, and per-section field tables.
- * Inter font bundled locally in /public/fonts/ (.woff - react-pdf does not support woff2).
+ * Inter font bundled locally in /public/fonts/ as woff2 (@react-pdf/renderer v4+ supports woff2).
  */
 import {
   Document,
@@ -25,10 +25,10 @@ const FONT_BASE =
 Font.register({
   family: "Inter",
   fonts: [
-    { src: `${FONT_BASE}/Inter-Regular.woff`, fontWeight: 400 },
-    { src: `${FONT_BASE}/Inter-Medium.woff`, fontWeight: 500 },
-    { src: `${FONT_BASE}/Inter-SemiBold.woff`, fontWeight: 600 },
-    { src: `${FONT_BASE}/Inter-Bold.woff`, fontWeight: 700 },
+    { src: `${FONT_BASE}/Inter-Regular.woff2`, fontWeight: 400 },
+    { src: `${FONT_BASE}/Inter-Medium.woff2`, fontWeight: 500 },
+    { src: `${FONT_BASE}/Inter-SemiBold.woff2`, fontWeight: 600 },
+    { src: `${FONT_BASE}/Inter-Bold.woff2`, fontWeight: 700 },
   ],
 });
 
