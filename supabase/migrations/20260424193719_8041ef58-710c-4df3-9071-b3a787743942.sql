@@ -1,0 +1,2 @@
+UPDATE public.prospects SET converted_to_client_id = NULL, converted_at = NULL, contract_status = 'in_discussion' WHERE legal_company_name = 'ZZ Real E2E Final Test';
+DELETE FROM public.clients WHERE name = 'ZZ Real E2E Final Test';
