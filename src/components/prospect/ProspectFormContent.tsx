@@ -202,10 +202,15 @@ function ProspectSuccessState({
           >
             <button
               onClick={onDownloadPDF}
-              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0"
+              disabled={downloading}
+              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-premium transition-all hover:-translate-y-0.5 hover:shadow-premium-hover active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              <Download className="h-5 w-5" />
-              Download Your Submission (PDF)
+              {downloading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Download className="h-5 w-5" />
+              )}
+              {downloading ? "Preparing PDF…" : "Download Your Submission (PDF)"}
             </button>
           </div>
 
