@@ -56,5 +56,5 @@ function MyOnboardingRedirect() {
       </div>
     );
   }
-  return <Navigate to="/onboarding/$clientId/form" params={{ clientId: target }} />;
+  return <Navigate to="/onboarding/$clientId" params={{ clientId: target }} />;
 }

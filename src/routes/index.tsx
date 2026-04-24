@@ -41,7 +41,7 @@ function IndexGateway() {
 
   if (role === "admin") return <Navigate to="/admin" search={DEFAULT_ADMIN_FILTERS} />;
   if (role === "account_executive") return <Navigate to="/admin" search={DEFAULT_ADMIN_FILTERS} />;
-  if (role === "account_manager") return <Navigate to="/dashboard" />;
+  if (role === "account_manager") return <Navigate to="/admin" search={DEFAULT_ADMIN_FILTERS} />;
   if (role === "client") return <Navigate to="/my-onboarding" />;
 
   // Authenticated but no role assigned
