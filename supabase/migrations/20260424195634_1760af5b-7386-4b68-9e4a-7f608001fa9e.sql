@@ -1,0 +1,1 @@
+DELETE FROM public.clients WHERE name = 'ZZ Real E2E Final Test' AND id != '454d7d38-974d-4a0f-805b-b42e529bcf9a';
