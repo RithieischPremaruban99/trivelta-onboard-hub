@@ -880,7 +880,23 @@ function AdminPage() {
                         </td>
                         <td className="px-4 py-4">
                           {isConverted ? (
-                            <span className="text-xs text-muted-foreground/40">-</span>
+                            canDelete ? (
+                              <div className="row-actions flex items-center gap-0.5">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  title="Delete prospect (the linked client is kept)"
+                                  onClick={() =>
+                                    requestDeleteProspect(p.id, p.legal_company_name)
+                                  }
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground/40">-</span>
+                            )
                           ) : (
                             <div className="row-actions flex items-center gap-0.5">
                               {/* Mark update handled */}
