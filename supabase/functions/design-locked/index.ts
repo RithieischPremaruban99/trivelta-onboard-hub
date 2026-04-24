@@ -310,7 +310,7 @@ function buildSection5(palette: Record<string, string>): object[] {
 
     for (const fieldName of fields) {
       const label = FIELD_LABELS[fieldName] ?? String(fieldName);
-      const value = palette[fieldName] ?? (DEFAULT_TCM_PALETTE as Record<string, string>)[fieldName] ?? "";
+      const value = palette[fieldName] ?? (DEFAULT_TCM_PALETTE as unknown as Record<string, string>)[fieldName] ?? "";
       blocks.push(
         paragraph([
           { text: { content: label + ": " }, annotations: { bold: true } },
@@ -327,7 +327,7 @@ function buildSection5(palette: Record<string, string>): object[] {
 function buildSection6(palette: Record<string, string>): object[] {
   // Build the full 344-field palette (merge with defaults for any missing fields)
   const fullPalette: Record<string, string> = {
-    ...(DEFAULT_TCM_PALETTE as unknown as Record<string, string>),
+    ...(DEFAULT_TCM_PALETTE as unknown as unknown as Record<string, string>),
     ...palette,
   };
 
