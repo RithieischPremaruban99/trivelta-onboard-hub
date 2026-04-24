@@ -1,0 +1,3 @@
+DELETE FROM onboarding_forms WHERE client_id = 'f3dc809c-0709-43c1-b8d4-3c3503aff908';
+DELETE FROM prospects WHERE id = '11111111-1111-1111-1111-111111111111';
+DELETE FROM clients WHERE id = 'f3dc809c-0709-43c1-b8d4-3c3503aff908';
