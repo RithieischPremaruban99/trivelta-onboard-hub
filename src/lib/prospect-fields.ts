@@ -1,3 +1,6 @@
+import { KYC_PROVIDERS } from "./kyc-providers";
+import type { KycProvider } from "./kyc-providers";
+
 export type FieldType =
   | "text"
   | "email"
@@ -18,6 +21,8 @@ export interface ProspectField {
   required?: boolean; // display hint only - all fields are truly optional
   /** When set, an amber disclaimer is shown if the user selects "Other" */
   otherDisclaimer?: "integration_launch_impact";
+  /** When set, renders a rich select with description subtexts instead of native <select> */
+  kycProviders?: KycProvider[];
 }
 
 export interface ProspectSection {
@@ -213,7 +218,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         label: "Preferred KYC Provider",
         type: "select",
         otherDisclaimer: "integration_launch_impact",
-        options: ["Surt", "Plaid", "SEON", "Other"],
+        kycProviders: KYC_PROVIDERS,
       },
       {
         key: "license_status",
