@@ -2161,7 +2161,7 @@ function NewProspectDialog({
   const [selectedAMs, setSelectedAMs] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [magicLink, setMagicLink] = useState<string | null>(null);
-  const [copiedLink, setCopiedLink] = useState(false);
+  
 
   const reset = () => {
     setCompanyName("");
