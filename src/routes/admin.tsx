@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertTriangle,
   Loader2,
   Plus,
   Users,
@@ -187,6 +188,9 @@ function AdminPage() {
       }
     >
   >({});
+  const [failedNotionSyncs, setFailedNotionSyncs] = useState<
+    Array<{ client_id: string; notion_sync_error: string | null }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<
@@ -220,7 +224,7 @@ function AdminPage() {
           supabase.from("client_account_managers").select("client_id, am_email"),
           supabase
             .from("onboarding_forms")
-            .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
+            .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data, notion_sync_pending, notion_sync_error"),
           (supabase as unknown as { from: (t: string) => any })
             .from("prospects")
             .select(
@@ -239,7 +243,7 @@ function AdminPage() {
         { config: StudioSavedConfig | null; locked: boolean; lockedAt: string | null }
       > = {};
       (
-        (studioRes.data ?? []) as Array<{
+        (studioRes.data ?? []) as unknown as Array<{
           client_id: string;
           studio_config: unknown;
           studio_locked: boolean | null;
@@ -259,7 +263,7 @@ function AdminPage() {
         { formExists: boolean; formHasData: boolean; formSubmitted: boolean; studioStarted: boolean }
       > = {};
       (
-        (studioRes.data ?? []) as Array<{
+        (studioRes.data ?? []) as unknown as Array<{
           client_id: string;
           studio_config: unknown;
           studio_locked: boolean | null;
@@ -278,6 +282,15 @@ function AdminPage() {
         };
       });
       setProgressData(pdMap);
+
+      const failedSyncs = (
+        (studioRes.data ?? []) as unknown as Array<{
+          client_id: string;
+          notion_sync_pending: boolean | null;
+          notion_sync_error: string | null;
+        }>
+      ).filter((r) => r.notion_sync_pending === true);
+      setFailedNotionSyncs(failedSyncs.map((r) => ({ client_id: r.client_id, notion_sync_error: r.notion_sync_error ?? null })));
 
       const amList: AmLite[] = (
         (amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>
@@ -617,6 +630,21 @@ function AdminPage() {
             )}
           </div>
         </div>
+
+        {/* Notion sync failure banner */}
+        {failedNotionSyncs.length > 0 && (
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <div>
+              <p className="text-sm font-semibold text-destructive">
+                Notion sync failed for {failedNotionSyncs.length} client submission{failedNotionSyncs.length > 1 ? "s" : ""}
+              </p>
+              <p className="mt-0.5 text-xs text-destructive/80">
+                The form was saved successfully but the Notion page was not created. Check Supabase logs and verify <code className="font-mono">NOTION_TOKEN</code> is set correctly.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Hero stats */}
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

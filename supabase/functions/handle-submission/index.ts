@@ -226,9 +226,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const NOTION_TOKEN = Deno.env.get("NOTION_TOKEN");
-    if (!NOTION_TOKEN) throw new Error("NOTION_TOKEN environment variable is not set");
-
     const payload: Payload = await req.json();
     const {
       client_id,
@@ -241,13 +238,13 @@ Deno.serve(async (req) => {
       psps,
     } = payload;
 
-    // Build AM email → Notion user ID map dynamically from role_assignments table,
-    // then look up which AMs are assigned to this client.
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Build AM email → Notion user ID map dynamically from role_assignments table,
+    // then look up which AMs are assigned to this client.
     const [{ data: raRows }, { data: camRows }] = await Promise.all([
       supabase
         .from("role_assignments")
@@ -267,12 +264,6 @@ Deno.serve(async (req) => {
     const am_notion_ids: string[] = (camRows ?? [])
       .map((r: { am_email: string | null }) => r.am_email && notionIdByEmail[r.am_email])
       .filter(Boolean) as string[];
-
-    const notionHeaders = {
-      Authorization: `Bearer ${NOTION_TOKEN}`,
-      "Content-Type": "application/json",
-      "Notion-Version": NOTION_VER,
-    };
 
     // ── Properties ───────────────────────────────────────────────────────────
 
@@ -324,30 +315,62 @@ Deno.serve(async (req) => {
       ...buildSopBlocks(client_name),
     ];
 
-    // ── POST to Notion ────────────────────────────────────────────────────────
+    // ── POST to Notion (non-fatal) ────────────────────────────────────────────
 
-    const res = await fetch(NOTION_API, {
-      method: "POST",
-      headers: notionHeaders,
-      body: JSON.stringify({
-        parent: { database_id: NOTION_DB_ID },
-        properties,
-        children,
-      }),
-    });
+    const NOTION_TOKEN = Deno.env.get("NOTION_TOKEN");
+    let notionSynced = false;
+    let notionPageId: string | null = null;
 
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`Notion API ${res.status}: ${body}`);
+    try {
+      if (!NOTION_TOKEN) {
+        throw new Error("NOTION_TOKEN environment variable is not set");
+      }
+
+      const res = await fetch(NOTION_API, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${NOTION_TOKEN}`,
+          "Content-Type": "application/json",
+          "Notion-Version": NOTION_VER,
+        },
+        body: JSON.stringify({
+          parent: { database_id: NOTION_DB_ID },
+          properties,
+          children,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Notion API ${res.status}: ${body}`);
+      }
+
+      const page = await res.json();
+      notionPageId = page.id;
+      notionSynced = true;
+      console.log("[handle-submission] Notion page created", page.id, "for client", client_name);
+    } catch (notionErr) {
+      // Network error, timeout, DNS failure, bad token, API error — Notion unreachable.
+      // This is non-fatal: the client's form submission must still succeed.
+      const errMsg = notionErr instanceof Error ? notionErr.message : String(notionErr);
+      console.error("[handle-submission] Notion sync failed (non-fatal):", errMsg);
+
+      // Record failure in DB so admins can see it and retry later.
+      await supabase
+        .from("onboarding_forms")
+        .update({
+          notion_sync_pending: true,
+          notion_sync_error: errMsg,
+          notion_sync_attempted_at: new Date().toISOString(),
+        })
+        .eq("client_id", client_id);
     }
 
-    const page = await res.json();
-
-    console.log("[handle-submission] Notion page created", page.id, "for client", client_name);
-
-    return new Response(JSON.stringify({ success: true, notion_page_id: page.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Return success to client regardless of Notion status.
+    return new Response(
+      JSON.stringify({ success: true, notion_synced: notionSynced, notion_page_id: notionPageId }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
     console.error("[handle-submission] Error:", err);
     return new Response(JSON.stringify({ success: false, error: (err as Error).message }), {
