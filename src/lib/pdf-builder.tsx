@@ -17,20 +17,30 @@ import type { FormShape } from "./onboarding-schema";
 
 /* ── Font registration ─────────────────────────────────────────────────────── */
 
-const FONT_BASE =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/fonts`
-    : "/fonts";
+// Pre-fetch fonts as ArrayBuffer so react-pdf embeds them directly,
+// rather than trying to fetch URLs at render time (which fails silently).
+let fontsLoaded = false;
 
-Font.register({
-  family: "Inter",
-  fonts: [
-    { src: `${FONT_BASE}/Inter-Regular.woff2`, fontWeight: 400 },
-    { src: `${FONT_BASE}/Inter-Medium.woff2`, fontWeight: 500 },
-    { src: `${FONT_BASE}/Inter-SemiBold.woff2`, fontWeight: 600 },
-    { src: `${FONT_BASE}/Inter-Bold.woff2`, fontWeight: 700 },
-  ],
-});
+async function ensureFontsLoaded() {
+  if (fontsLoaded) return;
+  const base = `${window.location.origin}/fonts`;
+  const weights = [
+    { file: "Inter-Regular.woff2", fontWeight: 400 },
+    { file: "Inter-Medium.woff2", fontWeight: 500 },
+    { file: "Inter-SemiBold.woff2", fontWeight: 600 },
+    { file: "Inter-Bold.woff2", fontWeight: 700 },
+  ];
+  const fonts = await Promise.all(
+    weights.map(async ({ file, fontWeight }) => {
+      const res = await fetch(`${base}/${file}`);
+      if (!res.ok) throw new Error(`Font fetch failed: ${file} (${res.status})`);
+      const src = await res.arrayBuffer();
+      return { src: src as unknown as string, fontWeight };
+    }),
+  );
+  Font.register({ family: "Inter", fonts });
+  fontsLoaded = true;
+}
 
 // Prevent automatic word hyphenation
 Font.registerHyphenationCallback((word) => [word]);
@@ -532,6 +542,7 @@ function ProspectDocument({ prospect }: { prospect: ProspectPDFInput }) {
 }
 
 export async function downloadProspectPDF(prospect: ProspectPDFInput) {
+  await ensureFontsLoaded();
   const blob = await pdf(<ProspectDocument prospect={prospect} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -774,6 +785,7 @@ function ClientDocument({
 }
 
 export async function downloadClientPDF(client: ClientPDFInput, form: FormShape) {
+  await ensureFontsLoaded();
   const blob = await pdf(<ClientDocument client={client} form={form} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
