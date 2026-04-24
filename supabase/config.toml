@@ -26,3 +26,12 @@ verify_jwt = false
 
 [functions.upload-landing-pages-to-drive]
 verify_jwt = false
+
+[functions.prospect-submitted-v2]
+verify_jwt = false
+
+[functions.contract-signed]
+verify_jwt = true
+
+[functions.go-live]
+verify_jwt = true
