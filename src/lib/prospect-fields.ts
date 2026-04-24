@@ -44,6 +44,13 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
     storageKey: "company_details",
     fields: [
       { key: "legal_name", label: "Legal Company Name", type: "text", required: true },
+      {
+        key: "registration_number",
+        label: "Company Registration Number or Tax ID",
+        type: "text",
+        placeholder: "e.g. RC123456, EIN 12-3456789",
+        required: true,
+      },
       { key: "trading_name", label: "Trading Name / Brand", type: "text" },
       { key: "primary_contact_name", label: "Primary Contact Name", type: "text" },
       {

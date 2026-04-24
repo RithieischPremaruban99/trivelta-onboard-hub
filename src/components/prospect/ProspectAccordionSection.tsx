@@ -99,6 +99,8 @@ export function ProspectAccordionSection({
               field={field}
               value={values[field.key]}
               onChange={(v) => onChange(field.key, v)}
+              otherValue={values[`${field.key}_other`] as string | undefined}
+              onOtherChange={(v) => onChange(`${field.key}_other`, v)}
               disabled={disabled}
             />
           ))}

@@ -7,13 +7,15 @@ interface Props {
   field: ProspectFieldDef;
   value: unknown;
   onChange: (value: unknown) => void;
+  otherValue?: string;
+  onOtherChange?: (text: string) => void;
   disabled?: boolean;
 }
 
 const INPUT_BASE =
   "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
-export function ProspectField({ field, value, onChange, disabled }: Props) {
+export function ProspectField({ field, value, onChange, otherValue, onOtherChange, disabled }: Props) {
   const label = (
     <label className="flex items-center text-xs font-semibold text-foreground mb-1.5">
       <span>{field.label}</span>
@@ -97,6 +99,16 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
             </p>
           </div>
         )}
+        {showOtherDisclaimer && (
+          <input
+            type="text"
+            className={cn(INPUT_BASE, "mt-2")}
+            placeholder="Please specify your provider…"
+            value={otherValue ?? ""}
+            onChange={(e) => onOtherChange?.(e.target.value)}
+            disabled={disabled}
+          />
+        )}
       </div>
     );
   }
@@ -166,6 +178,16 @@ export function ProspectField({ field, value, onChange, disabled }: Props) {
               with your Account Manager before proceeding.
             </p>
           </div>
+        )}
+        {showOtherDisclaimer && (
+          <input
+            type="text"
+            className={cn(INPUT_BASE, "mt-2")}
+            placeholder="Please specify your provider…"
+            value={otherValue ?? ""}
+            onChange={(e) => onOtherChange?.(e.target.value)}
+            disabled={disabled}
+          />
         )}
       </div>
     );
