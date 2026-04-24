@@ -113,3 +113,67 @@ export const RG_HELPLINES: Record<string, string> = {
   "Kahnawake (Canada)": "Gamblers Anonymous International\ngamblersanonymous.org",
   "Other (free text)": "Gamblers Anonymous International\ngamblersanonymous.org",
 };
+
+// ─── Jurisdiction metadata ─────────────────────────────────────────────────
+
+export interface JurisdictionMeta {
+  legalAge: number;
+  dataLaw?: string;
+  regulator?: string;
+  language?: "en" | "pt" | "es" | "fr" | "ar";
+}
+
+/** Keyed by the short `value` string (e.g. "nigeria", "brazil"). */
+export const JURISDICTION_META: Record<string, JurisdictionMeta> = {
+  nigeria: { legalAge: 18, dataLaw: "Nigeria Data Protection Act 2023 (NDPA)", regulator: "NLRC / State Gaming Boards", language: "en" },
+  south_africa_wc: { legalAge: 18, dataLaw: "POPIA (Protection of Personal Information Act)", regulator: "WCGRB", language: "en" },
+  south_africa_other: { legalAge: 18, dataLaw: "POPIA (Protection of Personal Information Act)", regulator: "Provincial Gambling Board", language: "en" },
+  kenya: { legalAge: 18, dataLaw: "Kenya Data Protection Act 2019", regulator: "BCLB", language: "en" },
+  ghana: { legalAge: 18, dataLaw: "Ghana Data Protection Act 2012", regulator: "Gaming Commission of Ghana", language: "en" },
+  tanzania: { legalAge: 18, dataLaw: "Tanzania Personal Data Protection Act 2022", regulator: "Gaming Board of Tanzania", language: "en" },
+  uganda: { legalAge: 25, dataLaw: "Uganda Data Protection and Privacy Act 2019", regulator: "NLGRB", language: "en" },
+  angola: { legalAge: 18, dataLaw: "Angola Data Protection Law (Law 22/11)", language: "pt" },
+  mozambique: { legalAge: 18, dataLaw: "Mozambique Data Protection Law", language: "pt" },
+  zimbabwe: { legalAge: 18, dataLaw: "Zimbabwe Data Protection Act 2021", language: "en" },
+  zambia: { legalAge: 18, dataLaw: "Zambia Data Protection Act 2021", language: "en" },
+  namibia: { legalAge: 18, dataLaw: "Namibia Data Protection Bill (pending)", language: "en" },
+  rwanda: { legalAge: 18, dataLaw: "Rwanda Law on Personal Data Protection 2021", language: "en" },
+  ethiopia: { legalAge: 18, dataLaw: "Ethiopia Personal Data Protection Proclamation", language: "en" },
+  senegal: { legalAge: 18, dataLaw: "Senegal Data Protection Law 2008", language: "fr" },
+  ivory_coast: { legalAge: 18, dataLaw: "Côte d'Ivoire Data Protection Law 2013", language: "fr" },
+  cameroon: { legalAge: 18, dataLaw: "Cameroon Data Protection Law", language: "fr" },
+  drc: { legalAge: 18, dataLaw: "DRC Telecoms & ICT Law", language: "fr" },
+  botswana: { legalAge: 18, dataLaw: "Botswana Data Protection Act 2018", language: "en" },
+  egypt: { legalAge: 18, dataLaw: "Egypt Personal Data Protection Law 2020", language: "ar" },
+  morocco: { legalAge: 18, dataLaw: "Morocco Data Protection Law 09-08", language: "ar" },
+  mexico: { legalAge: 18, dataLaw: "LFPDPPP (Ley Federal de Protección de Datos Personales)", regulator: "SEGOB / DGJS", language: "es" },
+  brazil: { legalAge: 18, dataLaw: "LGPD (Lei Geral de Proteção de Dados)", regulator: "SPA", language: "pt" },
+  argentina: { legalAge: 18, dataLaw: "Ley 25.326 Protección de Datos Personales", regulator: "Provincial Authorities", language: "es" },
+  colombia: { legalAge: 18, dataLaw: "Ley 1581 de 2012 (Habeas Data)", regulator: "Coljuegos", language: "es" },
+  peru: { legalAge: 18, dataLaw: "Ley 29733 Protección de Datos Personales", regulator: "MINCETUR", language: "es" },
+  chile: { legalAge: 18, dataLaw: "Ley 19.628 Protección de Datos", language: "es" },
+  dominican_republic: { legalAge: 18, dataLaw: "Ley 172-13 Protección de Datos", language: "es" },
+  panama: { legalAge: 18, dataLaw: "Ley 81 de Protección de Datos", regulator: "JCJ", language: "es" },
+  ecuador: { legalAge: 18, dataLaw: "Ley Orgánica de Protección de Datos Personales", language: "es" },
+  uruguay: { legalAge: 18, dataLaw: "Ley 18.331 Protección de Datos Personales", language: "es" },
+  bolivia: { legalAge: 18, dataLaw: "Bolivia Data Protection (pending regulation)", language: "es" },
+  paraguay: { legalAge: 18, dataLaw: "Ley 6534 Protección de Datos Personales", language: "es" },
+  costa_rica: { legalAge: 18, dataLaw: "Ley 8968 Protección de Datos Personales", language: "es" },
+  curacao: { legalAge: 18, dataLaw: "Curaçao Data Protection Ordinance", regulator: "CGCB", language: "en" },
+  malta: { legalAge: 18, dataLaw: "GDPR + Data Protection Act Malta", regulator: "MGA", language: "en" },
+  anjouan: { legalAge: 18, dataLaw: "applicable local law", language: "en" },
+  isle_of_man: { legalAge: 18, dataLaw: "Isle of Man Data Protection Act 2018", language: "en" },
+  gibraltar: { legalAge: 18, dataLaw: "Gibraltar GDPR + Data Protection Act", language: "en" },
+  kahnawake: { legalAge: 18, dataLaw: "Canadian PIPEDA + provincial laws", language: "en" },
+};
+
+/** Look up meta by short value key (e.g. "nigeria"). */
+export function getJurisdictionMeta(jurisdictionValue: string): JurisdictionMeta {
+  return JURISDICTION_META[jurisdictionValue] ?? { legalAge: 18, language: "en" };
+}
+
+/** Look up meta by full label string — matches what licenseJurisdiction contains. */
+export function getJurisdictionMetaByLabel(label: string): JurisdictionMeta {
+  const j = JURISDICTIONS.find((jur) => jur.label === label);
+  return j ? (JURISDICTION_META[j.value] ?? { legalAge: 18, language: "en" }) : { legalAge: 18, language: "en" };
+}

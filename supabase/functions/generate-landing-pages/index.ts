@@ -12,6 +12,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { makeCorsHeaders } from "../_shared/cors.ts";
+import { getJurisdictionMeta } from "../_shared/jurisdiction-meta.ts";
 import {
   INDEX_TEMPLATE,
   TERMS_TEMPLATE,
@@ -167,44 +168,53 @@ Return ONLY this JSON:
 }
 
 function termsPrompt(input: GenerationRequest): string {
+  const meta = getJurisdictionMeta(input.licenseJurisdiction);
+  const regulator = meta.regulator ?? "the relevant regulatory authority";
   return `Generate Terms & Conditions HTML body for this iGaming operator:
 
 Brand: ${input.brandName}
 Legal entity: ${input.legalCompanyName}
 Jurisdiction: ${input.licenseJurisdiction}
+Regulator: ${regulator}
+Legal age: ${meta.legalAge}+
 License number: ${input.licenseNumber ?? "not yet assigned"}
 Domain: ${input.primaryDomain}
 
 Return ONLY this JSON:
 {
-  "terms_content": "<h2>1. Introduction</h2><p>...</p> Full jurisdiction-appropriate Terms & Conditions HTML body. ~1200 words. Sections: Introduction (mention ${input.legalCompanyName} and ${input.licenseJurisdiction}), Amending Terms, Account Eligibility (18+), Verification, Duplicate Accounts, Account Security, Bet Confirmation, Bonuses, Payouts, Deposits, Exceptional Occurrence, Intellectual Property, Liability, Governing Law (${input.licenseJurisdiction}), Entire Agreement. Use <h2>, <p>, <ul>, <li> tags only."
+  "terms_content": "<h2>1. Introduction</h2><p>...</p> Full jurisdiction-appropriate Terms & Conditions HTML body. ~1200 words. Sections: Introduction (mention ${input.legalCompanyName} and ${input.licenseJurisdiction}), Amending Terms, Account Eligibility (${meta.legalAge}+ — IMPORTANT: use ${meta.legalAge} not 18 if different), Verification, Duplicate Accounts, Account Security, Bet Confirmation, Bonuses, Payouts, Deposits, Exceptional Occurrence, Intellectual Property, Liability, Governing Law (${input.licenseJurisdiction} — reference ${regulator}), Entire Agreement. Use <h2>, <p>, <ul>, <li> tags only."
 }`;
 }
 
 function privacyPrompt(input: GenerationRequest): string {
+  const meta = getJurisdictionMeta(input.licenseJurisdiction);
+  const dataLaw = meta.dataLaw ?? "applicable local data protection law";
   return `Generate Privacy Policy HTML body for this iGaming operator:
 
 Brand: ${input.brandName}
 Legal entity: ${input.legalCompanyName}
 Jurisdiction: ${input.licenseJurisdiction}
+Applicable data protection law: ${dataLaw}
 Support email: ${input.supportEmail}
 
 Return ONLY this JSON:
 {
-  "privacy_content": "<p>We are committed to protecting your privacy...</p><h2>1. What information we collect</h2><p>...</p> Full Privacy Policy HTML. ~700 words. Sections: intro, What we collect, How we use, Disclosure, Security, Retention, Your rights, Changes, Contact (${input.supportEmail}). Use <h2>, <p>, <ul>, <li> tags only."
+  "privacy_content": "<p>We are committed to protecting your privacy...</p><h2>1. What information we collect</h2><p>...</p> Full Privacy Policy HTML. ~700 words. Sections: intro, What we collect, How we use, Disclosure, Security, Retention, Your rights (explicitly reference ${dataLaw} and the rights it grants users), Changes, Contact (${input.supportEmail}). Mention compliance with ${dataLaw} in the introduction. Use <h2>, <p>, <ul>, <li> tags only."
 }`;
 }
 
 function rgPrompt(input: GenerationRequest): string {
+  const meta = getJurisdictionMeta(input.licenseJurisdiction);
   return `Generate Responsible Gambling content for this iGaming operator:
 
 Brand: ${input.brandName}
 Jurisdiction: ${input.licenseJurisdiction}
+Legal age: ${meta.legalAge}+
 RG helplines override: ${input.rgHelplines ?? "(use jurisdiction defaults)"}
 
 Return ONLY this JSON:
 {
-  "rg_content": "<h2>Our Commitment</h2><p>...</p> Responsible Gambling body HTML (do NOT include helplines here — those go in rg_helplines_html). ~400 words. Sections: Our Commitment, Staying in Control (bullet list), Responsible Gambling Tools (Deposit Limits, Time-Outs & Self-Exclusion), Signs of Problem Gambling (bullet list), Underage Gambling Prohibited. Use <h2>, <p>, <ul>, <li>, <strong> tags only.",
+  "rg_content": "<h2>Our Commitment</h2><p>...</p> Responsible Gambling body HTML (do NOT include helplines here — those go in rg_helplines_html). ~400 words. Sections: Our Commitment, Staying in Control (bullet list), Responsible Gambling Tools (Deposit Limits, Time-Outs & Self-Exclusion), Signs of Problem Gambling (bullet list), Underage Gambling Prohibited (${meta.legalAge}+ only — use ${meta.legalAge} not 18 if different). Use <h2>, <p>, <ul>, <li>, <strong> tags only.",
   "rg_helplines_html": "<div class='support-card'><strong>Organization Name</strong><p>Website: <a href='https://...' target='_blank'>url</a><br>Helpline: number</p></div> Minimum 2 jurisdiction-specific gambling help resources for ${input.licenseJurisdiction} formatted as support-card divs."
 }`;
 }
@@ -293,9 +303,14 @@ Deno.serve(async (req) => {
       ? (input.platformSubdomain.startsWith("http") ? input.platformSubdomain : `https://${input.platformSubdomain}`)
       : `https://${input.primaryDomain}`;
 
+    const jMeta = getJurisdictionMeta(input.licenseJurisdiction);
+    const lastReviewed = new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+
     const vars: Record<string, string> = {
       BRAND_NAME: input.brandName,
       LEGAL_COMPANY: input.legalCompanyName,
+      LEGAL_AGE: String(jMeta.legalAge),
+      LAST_REVIEWED_DATE: lastReviewed,
       LOGO_URL: input.brandLogoUrl,
       PRIMARY_COLOR: primaryColor,
       PRIMARY_LIGHT: lightColor,

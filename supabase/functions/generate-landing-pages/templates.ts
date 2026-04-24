@@ -384,7 +384,7 @@ export const TERMS_TEMPLATE = `<!DOCTYPE html>
 
   <div class="license-block">
     <p>{{BRAND_NAME}} is licensed and regulated under the laws of {{JURISDICTION_FULL}}.<br>
-    <strong>18+</strong> Only persons aged 18 years and above are permitted to register and play. Please gamble responsibly.<br><br>
+    <strong>{{LEGAL_AGE}}+</strong> Only persons aged {{LEGAL_AGE}} years and above are permitted to register and play. Please gamble responsibly.<br><br>
     Customer Support — Email: <a href="mailto:{{SUPPORT_EMAIL}}" style="color:var(--brand-light)">{{SUPPORT_EMAIL}}</a></p>
   </div>
 </div>
@@ -396,6 +396,7 @@ export const TERMS_TEMPLATE = `<!DOCTYPE html>
     <li><a href="responsible-gambling.html">Responsible Gambling</a></li>
   </ul>
   <p class="footer-copy">&copy; 2026 {{LEGAL_COMPANY}}. All rights reserved.</p>
+  <p style="font-size:11px;color:#555;margin-top:8px;">Last reviewed: {{LAST_REVIEWED_DATE}} &middot; Content generated with AI assistance &middot; Please consult qualified legal counsel before publishing</p>
 </footer>
 </body>
 </html>`;
@@ -461,7 +462,7 @@ export const PRIVACY_TEMPLATE = `<!DOCTYPE html>
 
   <div class="license-block">
     <p>{{BRAND_NAME}} is licensed and regulated under the laws of {{JURISDICTION_FULL}}.<br>
-    <strong>18+</strong> Only persons aged 18 years and above are permitted to register and play. Please gamble responsibly.<br><br>
+    <strong>{{LEGAL_AGE}}+</strong> Only persons aged {{LEGAL_AGE}} years and above are permitted to register and play. Please gamble responsibly.<br><br>
     Customer Support — Email: <a href="mailto:{{SUPPORT_EMAIL}}" style="color:var(--brand-light)">{{SUPPORT_EMAIL}}</a></p>
   </div>
 </div>
@@ -473,6 +474,7 @@ export const PRIVACY_TEMPLATE = `<!DOCTYPE html>
     <li><a href="responsible-gambling.html">Responsible Gambling</a></li>
   </ul>
   <p class="footer-copy">&copy; 2026 {{LEGAL_COMPANY}}. All rights reserved.</p>
+  <p style="font-size:11px;color:#555;margin-top:8px;">Last reviewed: {{LAST_REVIEWED_DATE}} &middot; Content generated with AI assistance &middot; Please consult qualified legal counsel before publishing</p>
 </footer>
 </body>
 </html>`;
@@ -558,7 +560,7 @@ export const RG_TEMPLATE = `<!DOCTYPE html>
 
   <div class="license-block">
     <p>{{BRAND_NAME}} is licensed and regulated under the laws of {{JURISDICTION_FULL}}.<br>
-    <strong>18+</strong> Only persons aged 18 years and above are permitted to register and play.<br><br>
+    <strong>{{LEGAL_AGE}}+</strong> Only persons aged {{LEGAL_AGE}} years and above are permitted to register and play.<br><br>
     Customer Support — Email: <a href="mailto:{{SUPPORT_EMAIL}}" style="color:var(--brand-light)">{{SUPPORT_EMAIL}}</a></p>
   </div>
 </div>
@@ -570,6 +572,7 @@ export const RG_TEMPLATE = `<!DOCTYPE html>
     <li><a href="responsible-gambling.html">Responsible Gambling</a></li>
   </ul>
   <p class="footer-copy">&copy; 2026 {{LEGAL_COMPANY}}. All rights reserved.</p>
+  <p style="font-size:11px;color:#555;margin-top:8px;">Last reviewed: {{LAST_REVIEWED_DATE}} &middot; Content generated with AI assistance &middot; Please consult qualified legal counsel before publishing</p>
 </footer>
 </body>
 </html>`;
