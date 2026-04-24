@@ -2,7 +2,7 @@
 // Fires after a client submits their onboarding form.
 // Creates a Notion page in the client tracker database with full SOP checklist.
 
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { makeCorsHeaders } from "../_shared/cors.ts";
 
 const NOTION_DB_ID = "31aac1484e348067977dda1128916077";
