@@ -1748,23 +1748,10 @@ function LandingPageFullPageShell({
     <div className="min-h-screen flex flex-col bg-background">
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
-        <div className="px-8 h-16 flex items-center justify-between">
+        <div className="px-5 sm:px-8 h-[60px] flex items-center justify-between">
 
           {/* Left: Logo + wordmark */}
-          <div className="flex items-center gap-4">
-            <img src={logoUrl} alt="Trivelta" className="h-7 w-auto select-none" draggable={false} />
-            <div className="h-6 w-px bg-border/50 shrink-0" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 leading-none">
-                <span className="text-[13px] font-bold tracking-tight">TRIVELTA AI</span>
-                <span className="text-muted-foreground/60 text-[11px]">/</span>
-                <span className="text-[13px] text-muted-foreground tracking-wide">Studio</span>
-              </div>
-              <div className="text-[9px] text-muted-foreground/50 uppercase tracking-[0.15em] mt-1">
-                Powered by Anthropic
-              </div>
-            </div>
-          </div>
+          <TriveltaLogo size="xl" product="AI · Studio" poweredBy />
 
           {/* Right: User + sign out */}
           <div className="flex items-center gap-3">
