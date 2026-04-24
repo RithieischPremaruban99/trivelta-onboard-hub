@@ -29,54 +29,16 @@ const NOTION_VERSION = "2022-06-28";
 // ─────────────────────────────────────────────────────────────
 //
 // Primary AM is ALWAYS Aidan (Head AM).
-// Secondary AM(s) routed by country:
-//   LatAm (incl. Iberia Spain + Portugal) → Alex
-//   Iberia (Spain + Portugal)             → Alex AND Davi (both — per user decision)
-//   All other (Africa, US, UK, AU, Asia)  → Davi
-//
-// Returns:
-//   primary: always [AIDAN]
-//   secondary: array of AM IDs (can be 1 or 2 persons)
+// Account Manager (secondary) is ALWAYS both Davi AND Alex — for every
+// prospect, regardless of country/region. No conditional routing.
 
 export type AmRouting = {
   primary: string[]; // always [AIDAN]
-  secondary: string[]; // Davi and/or Alex
+  secondary: string[]; // always [DAVI, ALEX]
 };
 
-const LATAM_COUNTRIES = new Set([
-  "mexico",
-  "brazil",
-  "argentina",
-  "colombia",
-  "peru",
-  "chile",
-  "dominican_republic",
-  "panama",
-  "ecuador",
-  "uruguay",
-  "bolivia",
-  "paraguay",
-  "costa_rica",
-]);
-
-const IBERIA_COUNTRIES = new Set(["spain", "portugal"]);
-
-export function routeAccountManagers(countryValue: string | null | undefined): AmRouting {
-  const country = (countryValue ?? "").toLowerCase().trim();
-
-  // Iberia: both Alex + Davi as secondary (user decision — Spain/Portugal sit between
-  // LatAm-sprachlich and Anglo-Default, so tag both)
-  if (IBERIA_COUNTRIES.has(country)) {
-    return { primary: [AIDAN], secondary: [ALEX, DAVI] };
-  }
-
-  // LatAm: Alex
-  if (LATAM_COUNTRIES.has(country)) {
-    return { primary: [AIDAN], secondary: [ALEX] };
-  }
-
-  // Everything else (Africa, Anglo, Asia, unknown): Davi
-  return { primary: [AIDAN], secondary: [DAVI] };
+export function routeAccountManagers(_countryValue?: string | null | undefined): AmRouting {
+  return { primary: [AIDAN], secondary: [DAVI, ALEX] };
 }
 
 // ─────────────────────────────────────────────────────────────
