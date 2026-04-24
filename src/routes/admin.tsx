@@ -2241,25 +2241,18 @@ function NewProspectDialog({
                   </div>
                 </div>
               </div>
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-wide mb-2">
-                  Magic Link
-                </div>
-                <div className="flex items-center gap-2">
-                  <Input readOnly value={magicLink} className="font-mono text-[11px]" />
-                  <Button variant="outline" onClick={copyLink} className="shrink-0">
-                    {copiedLink ? (
-                      <Check className="h-4 w-4 text-success" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Expires in 30 days. The prospect doesn't need to create an account - this link is
-                  their access.
-                </p>
-              </div>
+              <CopyableLink
+                url={magicLink}
+                label="Magic link"
+                clientEmail={contactEmail || undefined}
+                emailSubject={`Your ${companyName} pre-onboarding link`}
+                emailBody={`Hi,\n\nHere's your Trivelta pre-onboarding link for ${companyName}:\n\n${magicLink}\n\nNo account needed - just click the link to get started.\n\nBest regards,\nThe Trivelta Team`}
+                messageTemplate={`Hi, here's your Trivelta pre-onboarding link for ${companyName}: {link}`}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Expires in 30 days. The prospect doesn't need to create an account - this link is
+                their access.
+              </p>
             </div>
             <DialogFooter className="mt-4 gap-2 sm:justify-between">
               <Button variant="outline" onClick={reset}>
