@@ -90,6 +90,7 @@ export type Database = {
           created_by: string | null
           drive_link: string | null
           id: string
+          landing_pages_submitted_at: string | null
           name: string
           notion_page_id: string | null
           platform_live: boolean
@@ -111,6 +112,7 @@ export type Database = {
           created_by?: string | null
           drive_link?: string | null
           id?: string
+          landing_pages_submitted_at?: string | null
           name: string
           notion_page_id?: string | null
           platform_live?: boolean
@@ -132,6 +134,7 @@ export type Database = {
           created_by?: string | null
           drive_link?: string | null
           id?: string
+          landing_pages_submitted_at?: string | null
           name?: string
           notion_page_id?: string | null
           platform_live?: boolean
