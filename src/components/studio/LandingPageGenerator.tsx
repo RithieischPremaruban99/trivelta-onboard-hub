@@ -453,11 +453,18 @@ export function LandingPageGenerator({
   /* ── Pre-fill on mount ── */
   useEffect(() => {
     (async () => {
-      const { data: clientData } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: clientData } = await (supabase as any)
         .from("clients")
-        .select("primary_contact_email")
+        .select("primary_contact_email, landing_pages_submitted_at")
         .eq("id", clientId)
         .maybeSingle();
+
+      // If client has already confirmed upload in a previous session, jump
+      // straight to the success screen instead of re-showing the generator.
+      if (clientData?.landing_pages_submitted_at) {
+        setConfirmedUpload(true);
+      }
 
       const clientName = welcomeInfo?.clientName ?? "";
       setForm((prev) => ({

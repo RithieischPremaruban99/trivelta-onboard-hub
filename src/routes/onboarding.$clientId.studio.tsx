@@ -1527,7 +1527,7 @@ function StudioPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as any)
           .from("clients")
-          .select("studio_access, studio_access_locked, studio_features")
+          .select("studio_access, studio_access_locked, studio_features, landing_pages_submitted_at")
           .eq("id", clientId)
           .maybeSingle(),
         supabase
@@ -1622,8 +1622,22 @@ function StudioPage() {
           return;
         }
 
-        // Landing-page-only mode: client has exactly one feature enabled (landing_page_generator)
-        if (studioFeatures.landing_page_generator && enabledFeatureCount === 1) {
+        // Landing-page-only mode triggers when:
+        //   (a) only landing_page_generator is enabled (regardless of completion) — so
+        //       the client lands on the generator OR its post-submission success screen, OR
+        //   (b) landing pages are NOT yet completed AND it's their only path forward.
+        // If other features are enabled AND landing pages are already submitted, fall
+        // through to the full Studio so the AE-unlocked tools are immediately visible.
+        const landingPagesCompleted = Boolean(
+          (clientRes.data as { landing_pages_submitted_at?: string | null } | null)
+            ?.landing_pages_submitted_at,
+        );
+        const otherEnabled = enabledFeatureCount > 1; // anything besides landing_page_generator
+        if (
+          studioFeatures.landing_page_generator &&
+          (enabledFeatureCount === 1 || !landingPagesCompleted) &&
+          !(landingPagesCompleted && otherEnabled)
+        ) {
           setIsLandingPageOnlyMode(true);
         }
       }
