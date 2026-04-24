@@ -658,10 +658,14 @@ export function LandingPageGenerator({
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Defer revoke so the browser has time to start the download
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
 
       setDownloadedAt(new Date());
       toast.success("Download started");
+    } catch (err) {
+      console.error("[LandingPageGenerator] ZIP download failed:", err);
+      toast.error("Download failed. Please try again.");
     } finally {
       setDownloading(false);
     }
