@@ -238,7 +238,20 @@ export const INDEX_TEMPLATE = `<!DOCTYPE html>
     <li><a href="{{PLATFORM_URL}}/casino">Casino</a></li>
     <li><a href="mailto:{{SUPPORT_EMAIL}}">Support</a></li>
   </ul>
+  <button class="mobile-menu-toggle" aria-label="Open menu" onclick="document.body.classList.add('menu-open')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </nav>
+
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu" onclick="document.body.classList.remove('menu-open')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <a href="#how-it-works" onclick="document.body.classList.remove('menu-open')">How it works</a>
+  <a href="{{PLATFORM_URL}}/sportsbook">Sports</a>
+  <a href="{{PLATFORM_URL}}/casino">Casino</a>
+  <a href="mailto:{{SUPPORT_EMAIL}}">Support</a>
+</div>
 
 <section class="hero">
   <span class="hero-badge"><span class="badge-dot"></span>Now Live in {{COUNTRY}}</span>
