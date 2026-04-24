@@ -280,14 +280,24 @@ function FormScreen() {
             .maybeSingle(),
         ]);
         if (formRes.error) throw formRes.error;
-        const hasStudio = clientRes.data?.studio_access ?? false;
-        const hasLandingPageGen = (clientRes.data?.studio_features as Record<string, boolean> | null)?.landing_page_generator === true;
-        const routeToStudio = hasStudio || hasLandingPageGen;
-        console.log("[DEBUG] studio_access DB value:", clientRes.data?.studio_access);
-        console.log("[DEBUG] studio_features DB value:", clientRes.data?.studio_features);
-        console.log("[DEBUG] hasStudio:", hasStudio, "hasLandingPageGen:", hasLandingPageGen);
-        console.log("[DEBUG] studioAccess computed (routeToStudio):", routeToStudio);
-        setStudioAccess(routeToStudio);
+        const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
+        const hasStudioAccessFlag = clientRes.data?.studio_access ?? false;
+        const hasLandingPageGen = sf?.landing_page_generator === true;
+
+        // Full-Studio features (excludes landing_page_generator which has its own flow)
+        const hasAnyFullStudioFeature = (
+          [sf?.ai_chat, sf?.color_editor, sf?.animation_tools, sf?.logo_editor, sf?.asset_library]
+            .some((v) => v === true)
+        );
+
+        // CTA visibility: landing_page_generator alone does NOT unlock the full Studio CTA
+        // (344 color fields, AI logo, etc. — features the client doesn't actually have)
+        const canSeeStudioAdvertising = hasStudioAccessFlag || hasAnyFullStudioFeature;
+
+        // Post-load routing: landing_page_generator clients DO go to /studio (landing-only mode)
+        const routeToStudio = hasStudioAccessFlag || hasLandingPageGen || hasAnyFullStudioFeature;
+
+        setStudioAccess(canSeeStudioAdvertising);
         studioAccessRef.current = routeToStudio;
         if (formRes.data?.data) setForm(emptyForm(formRes.data.data as Partial<FormShape>));
         if (formRes.data?.submitted_at) {
@@ -503,14 +513,9 @@ function FormScreen() {
 
     void logActivity({ clientId, action: "form_submitted" });
 
-    // Route based on studio access
-    const { data: clientData } = await supabase
-      .from("clients")
-      .select("studio_access")
-      .eq("id", clientId)
-      .single();
-
-    if (clientData?.studio_access) {
+    // Route based on studio access — use the already-computed studioAccessRef
+    // (includes studio_access flag + any studio_features, including landing_page_generator)
+    if (studioAccessRef.current) {
       navigate({ to: "/onboarding/$clientId/studio-unlocked", params: { clientId } });
     } else {
       navigate({ to: "/onboarding/$clientId/success", params: { clientId } });
