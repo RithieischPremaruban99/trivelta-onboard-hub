@@ -11,10 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { JURISDICTIONS_BY_REGION, RG_HELPLINES } from "@/lib/jurisdictions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -81,39 +84,6 @@ interface GeneratedPages {
 }
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
-
-const JURISDICTIONS = [
-  "Nigeria (Federal Republic of Nigeria)",
-  "South Africa (Western Cape Gambling Board)",
-  "South Africa (other provincial board)",
-  "Kenya (Betting Control & Licensing Board)",
-  "Ghana (Gaming Commission of Ghana)",
-  "Tanzania (Gaming Board of Tanzania)",
-  "Uganda (National Lotteries & Gaming Regulatory Board)",
-  "Mexico (SEGOB / DGJS)",
-  "Curaçao (CGCB)",
-  "Malta (MGA)",
-  "Other (free text)",
-] as const;
-
-const RG_HELPLINES: Record<string, string> = {
-  "Nigeria (Federal Republic of Nigeria)":
-    "GambleAlert Nigeria\ngamblealert.org.ng\n+234 705 889 0073",
-  "South Africa (Western Cape Gambling Board)":
-    "Responsible Gambling Foundation\nresponsiblegambling.org.za\n0800 006 008",
-  "South Africa (other provincial board)":
-    "Responsible Gambling Foundation\nresponsiblegambling.org.za\n0800 006 008",
-  "Kenya (Betting Control & Licensing Board)": "Gamblers Anonymous Kenya\ngakenya.org",
-  "Ghana (Gaming Commission of Ghana)": "Gamblers Anonymous International\ngamblersanonymous.org",
-  "Tanzania (Gaming Board of Tanzania)": "Gamblers Anonymous International\ngamblersanonymous.org",
-  "Uganda (National Lotteries & Gaming Regulatory Board)":
-    "Gamblers Anonymous International\ngamblersanonymous.org",
-  "Mexico (SEGOB / DGJS)": "Gamblers Anonymous International\ngamblersanonymous.org",
-  "Curaçao (CGCB)": "Gamblers Anonymous International\ngamblersanonymous.org",
-  "Malta (MGA)":
-    "GamCare\ngamcare.org.uk\n0808 802 0133\n\nGamblers Anonymous\ngamblersanonymous.org",
-  "Other (free text)": "Gamblers Anonymous International\ngamblersanonymous.org",
-};
 
 const REQUIRED_FIELDS: (keyof LandingPageFormState)[] = [
   "legalCompanyName",
@@ -735,9 +705,24 @@ export function LandingPageGenerator({
               <SelectValue placeholder="Select jurisdiction…" />
             </SelectTrigger>
             <SelectContent>
-              {JURISDICTIONS.map((j) => (
-                <SelectItem key={j} value={j} className={compact ? "text-xs" : undefined}>{j}</SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>Africa</SelectLabel>
+                {JURISDICTIONS_BY_REGION.africa.map((j) => (
+                  <SelectItem key={j.value} value={j.label} className={compact ? "text-xs" : undefined}>{j.label}</SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>LATAM</SelectLabel>
+                {JURISDICTIONS_BY_REGION.latam.map((j) => (
+                  <SelectItem key={j.value} value={j.label} className={compact ? "text-xs" : undefined}>{j.label}</SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>International / Offshore</SelectLabel>
+                {JURISDICTIONS_BY_REGION.other.map((j) => (
+                  <SelectItem key={j.value} value={j.label} className={compact ? "text-xs" : undefined}>{j.label}</SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
           <FieldHelper error={isInvalid("licenseJurisdiction")} compact={compact} />
@@ -1225,9 +1210,24 @@ export function LandingPageGenerator({
                       <SelectValue placeholder="Select jurisdiction…" />
                     </SelectTrigger>
                     <SelectContent>
-                      {JURISDICTIONS.map((j) => (
-                        <SelectItem key={j} value={j}>{j}</SelectItem>
-                      ))}
+                      <SelectGroup>
+                        <SelectLabel>Africa</SelectLabel>
+                        {JURISDICTIONS_BY_REGION.africa.map((j) => (
+                          <SelectItem key={j.value} value={j.label}>{j.label}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>LATAM</SelectLabel>
+                        {JURISDICTIONS_BY_REGION.latam.map((j) => (
+                          <SelectItem key={j.value} value={j.label}>{j.label}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>International / Offshore</SelectLabel>
+                        {JURISDICTIONS_BY_REGION.other.map((j) => (
+                          <SelectItem key={j.value} value={j.label}>{j.label}</SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                 </FormField>
