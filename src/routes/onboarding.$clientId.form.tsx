@@ -1742,7 +1742,6 @@ function SectionPlatform({
                 value={form.country_other}
                 onChange={(e) => update("country_other", e.target.value)}
               />
-              <OtherIntegrationDisclaimer />
             </>
           )}
         </FieldGroup>
