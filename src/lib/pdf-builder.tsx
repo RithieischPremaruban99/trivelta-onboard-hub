@@ -533,8 +533,10 @@ export async function downloadProspectPDF(prospect: ProspectPDFInput) {
   a.href = url;
   const safeName = prospect.legal_company_name.replace(/\s+/g, "-").toLowerCase();
   a.download = `${safeName}-pre-onboarding-${new Date().toISOString().split("T")[0]}.pdf`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 /* ── Client onboarding field extraction ───────────────────────────────────── */
@@ -773,6 +775,8 @@ export async function downloadClientPDF(client: ClientPDFInput, form: FormShape)
   a.href = url;
   const safeName = client.name.replace(/\s+/g, "-").toLowerCase();
   a.download = `${safeName}-onboarding-${new Date().toISOString().split("T")[0]}.pdf`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
