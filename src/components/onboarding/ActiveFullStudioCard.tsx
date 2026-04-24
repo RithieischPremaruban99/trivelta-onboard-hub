@@ -32,7 +32,7 @@ export function ActiveFullStudioCard({ clientId }: ActiveFullStudioCardProps) {
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-base font-semibold text-foreground">Trivelta AI Studio</h3>
               <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                Full Suite · Powered by Anthropic
+                Full Suite · Trivelta AI
               </span>
             </div>
             <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground">

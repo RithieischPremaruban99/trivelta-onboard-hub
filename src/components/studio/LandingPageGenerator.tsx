@@ -859,7 +859,7 @@ export function LandingPageGenerator({
         )}>
           <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
           <span className="text-foreground/80">
-            Claude is generating your pages…{" "}
+            Trivelta AI is generating your pages…{" "}
             <span className="text-muted-foreground/70">(up to 30 seconds)</span>
           </span>
         </div>
@@ -1024,8 +1024,8 @@ export function LandingPageGenerator({
                   Your Trivelta AI Studio access is unlocked.
                 </h3>
                 <p className="text-sm text-muted-foreground text-left leading-relaxed">
-                  Your account manager has enabled additional tools — chat with Claude, design
-                  color palettes, customize animations and more.
+                  Your account manager has enabled additional tools — chat with Trivelta AI,
+                  design color palettes, customize animations and more.
                 </p>
                 <Button
                   size="lg"
@@ -1068,7 +1068,7 @@ export function LandingPageGenerator({
             </div>
             <div className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />
-              <span>Powered by Anthropic</span>
+              <span>Powered by Trivelta AI</span>
             </div>
           </div>
         </div>

@@ -41,7 +41,7 @@ export function ActiveLandingPageCard({ clientId: _clientId }: ActiveLandingPage
           <div className="flex items-baseline gap-2 flex-wrap">
             <h3 className="text-lg font-bold tracking-tight">Landing Page Generator</h3>
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.14em]">
-              Powered by Anthropic
+              Powered by Trivelta AI
             </span>
           </div>
           <p className="text-[13px] text-muted-foreground/90 mt-2 leading-relaxed">
