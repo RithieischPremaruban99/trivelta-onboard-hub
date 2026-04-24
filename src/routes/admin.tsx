@@ -82,6 +82,7 @@ import { logActivity } from "@/lib/activity-log";
 import { buildClientInviteEmail } from "@/lib/client-invite-email";
 import { DialogDescription } from "@/components/ui/dialog";
 import { StudioFeatureAccessDialog } from "@/components/admin/StudioFeatureAccessDialog";
+import { CopyableLink } from "@/components/CopyableLink";
 import {
   DEFAULT_STUDIO_FEATURES,
   type StudioFeatures,
@@ -1961,8 +1962,6 @@ function InvitePreviewDialog({
   ams: AmLite[];
   onClose: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
-
   // Pick first AM from list as fallback
   const am = ams[0] ?? { name: "Your Account Manager", email: "team@trivelta.com" };
   const { subject, body } = buildClientInviteEmail({
@@ -1972,12 +1971,6 @@ function InvitePreviewDialog({
     amEmail: am.email,
     studioAccessGranted: false,
   });
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(result.inviteLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -1993,16 +1986,14 @@ function InvitePreviewDialog({
 
         <div className="mt-3 space-y-4">
           {/* Invite link */}
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-            <Link2 className="h-4 w-4 shrink-0 text-primary" />
-            <div className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground/80">
-              {result.inviteLink}
-            </div>
-            <Button size="sm" variant="outline" className="shrink-0 h-7 text-xs" onClick={copyLink}>
-              {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          </div>
+          <CopyableLink
+            url={result.inviteLink}
+            label="Onboarding invite link"
+            clientEmail={result.clientEmail}
+            emailSubject={subject}
+            emailBody={body}
+            messageTemplate={`Hi ${result.clientName}, here's your Trivelta onboarding link: {link}`}
+          />
 
           {/* Email preview */}
           <div>
@@ -2170,7 +2161,7 @@ function NewProspectDialog({
   const [selectedAMs, setSelectedAMs] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [magicLink, setMagicLink] = useState<string | null>(null);
-  const [copiedLink, setCopiedLink] = useState(false);
+  
 
   const reset = () => {
     setCompanyName("");
@@ -2178,7 +2169,7 @@ function NewProspectDialog({
     setContactName("");
     setSelectedAMs([]);
     setMagicLink(null);
-    setCopiedLink(false);
+    
   };
 
   const handleClose = (v: boolean) => {
@@ -2228,12 +2219,6 @@ function NewProspectDialog({
     onCreated();
   };
 
-  const copyLink = () => {
-    if (!magicLink) return;
-    navigator.clipboard.writeText(magicLink);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -2256,25 +2241,18 @@ function NewProspectDialog({
                   </div>
                 </div>
               </div>
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-wide mb-2">
-                  Magic Link
-                </div>
-                <div className="flex items-center gap-2">
-                  <Input readOnly value={magicLink} className="font-mono text-[11px]" />
-                  <Button variant="outline" onClick={copyLink} className="shrink-0">
-                    {copiedLink ? (
-                      <Check className="h-4 w-4 text-success" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Expires in 30 days. The prospect doesn't need to create an account - this link is
-                  their access.
-                </p>
-              </div>
+              <CopyableLink
+                url={magicLink}
+                label="Magic link"
+                clientEmail={contactEmail || undefined}
+                emailSubject={`Your ${companyName} pre-onboarding link`}
+                emailBody={`Hi,\n\nHere's your Trivelta pre-onboarding link for ${companyName}:\n\n${magicLink}\n\nNo account needed - just click the link to get started.\n\nBest regards,\nThe Trivelta Team`}
+                messageTemplate={`Hi, here's your Trivelta pre-onboarding link for ${companyName}: {link}`}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Expires in 30 days. The prospect doesn't need to create an account - this link is
+                their access.
+              </p>
             </div>
             <DialogFooter className="mt-4 gap-2 sm:justify-between">
               <Button variant="outline" onClick={reset}>
