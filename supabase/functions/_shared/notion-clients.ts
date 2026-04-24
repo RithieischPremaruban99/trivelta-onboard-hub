@@ -62,6 +62,10 @@ async function notionRequest(
   token: string,
   body?: unknown,
 ): Promise<any> {
+  if (body !== undefined) {
+    console.log(`[notion-request] ${method} ${path} request body:`, JSON.stringify(body, null, 2));
+  }
+
   const response = await fetch(`${NOTION_API}${path}`, {
     method,
     headers: {
@@ -74,8 +78,10 @@ async function notionRequest(
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error(`[notion-request] ${method} ${path} → ${response.status}`);
+    console.error(`[notion-request] Response body: ${errorText}`);
     throw new NotionError(
-      `Notion API ${method} ${path} failed: ${response.status}`,
+      `Notion API ${method} ${path} failed: ${response.status} — ${errorText}`,
       response.status,
       errorText,
     );

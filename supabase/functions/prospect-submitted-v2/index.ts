@@ -93,6 +93,9 @@ Deno.serve(async (req) => {
       }
     } catch (err) {
       console.error("[prospect-submitted-v2] Notion sync failed:", err);
+      if (err instanceof Error && "body" in err) {
+        console.error("[prospect-submitted-v2] Notion error body:", (err as any).body);
+      }
       notionError = err instanceof Error ? err.message : String(err);
     }
 
