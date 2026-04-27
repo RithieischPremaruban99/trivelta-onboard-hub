@@ -37,6 +37,8 @@ interface Props {
   disabled?: boolean;
   /** 1-based section number for display */
   sectionNumber?: number;
+  /** Prospect's country string — used for country-aware recommendation badges */
+  country?: string;
 }
 
 /** Check if a value counts as "filled" */
@@ -56,6 +58,7 @@ export function ProspectAccordionSection({
   onToggle,
   disabled,
   sectionNumber,
+  country,
 }: Props) {
   const Icon = ICON_MAP[section.icon] ?? Building2;
   const [showOptional, setShowOptional] = useState(false);
@@ -181,6 +184,7 @@ export function ProspectAccordionSection({
                   onOtherChange={(v) => onChange(`${field.key}_other`, v)}
                   disabled={disabled}
                   sectionValues={values}
+                  country={country}
                 />
               ))}
             </div>
@@ -205,6 +209,7 @@ export function ProspectAccordionSection({
                     onOtherChange={(v) => onChange(`${field.key}_other`, v)}
                     disabled={disabled}
                     sectionValues={values}
+                    country={country}
                   />
                 ))}
               </div>
@@ -243,6 +248,7 @@ export function ProspectAccordionSection({
                       onOtherChange={(v) => onChange(`${field.key}_other`, v)}
                       disabled={disabled}
                       sectionValues={values}
+                      country={country}
                     />
                   ))}
                 </div>

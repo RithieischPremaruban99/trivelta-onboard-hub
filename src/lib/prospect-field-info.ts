@@ -105,6 +105,86 @@ export const PROSPECT_FIELD_INFO: Record<string, FieldInfoData> = {
     marketContext: "Nigeria: Paystack + OPay recommended. Kenya: M-Pesa mandatory. Brazil: PIX required. Mexico: OXXO cash vouchers popular.",
     recommendation: "Select 2-3 providers",
     recommendationReason: "A primary PSP + 1 fallback ensures continuity when a provider has downtime. Avoid over-indexing on a single provider.",
+    countryRecommendation: (country) => {
+      const lower = country.toLowerCase();
+      if (lower.includes("nigeria")) return "Paystack";
+      if (lower.includes("ghana")) return "Paystack";
+      if (lower.includes("kenya")) return "M-Pesa";
+      if (lower.includes("south africa")) return "PayFast";
+      if (lower.includes("brazil")) return "PIX Direct";
+      if (lower.includes("mexico")) return "Conekta";
+      return null;
+    },
+  },
+
+  primary_currency: {
+    what: "The default currency your platform will display prices, balances, and transactions in.",
+    why: "Currency selection affects player UX, exchange rate exposure, and which PSPs you can use. Mismatches cause friction and abandoned deposits.",
+    countryRecommendation: (country) => {
+      const map: Record<string, string> = {
+        nigeria: "NGN",
+        ghana: "GHS",
+        kenya: "KES",
+        tanzania: "TZS",
+        "south africa": "ZAR",
+        brazil: "BRL",
+        mexico: "MXN",
+        colombia: "COP",
+        peru: "PEN",
+        argentina: "ARS",
+        ethiopia: "ETH",
+      };
+      const lower = country.toLowerCase();
+      return Object.entries(map).find(([k]) => lower.includes(k))?.[1] ?? null;
+    },
+  },
+
+  supported_languages: {
+    what: "The languages your platform will support for the player-facing UI, notifications, and support.",
+    why: "Localisation directly affects sign-up conversion and player retention. Players are more likely to deposit when the UI is in their native language.",
+    countryRecommendation: (country) => {
+      const lower = country.toLowerCase();
+      if (
+        ["nigeria", "ghana", "kenya", "uganda", "zambia", "zimbabwe", "south africa"].some((c) =>
+          lower.includes(c),
+        )
+      )
+        return "English";
+      if (
+        ["senegal", "ivory coast", "cote d", "drc", "congo", "cameroon", "mali", "benin"].some(
+          (c) => lower.includes(c),
+        )
+      )
+        return "French";
+      if (["brazil", "angola", "mozambique"].some((c) => lower.includes(c))) return "Portuguese";
+      if (
+        ["mexico", "colombia", "peru", "argentina", "ecuador", "bolivia", "chile"].some((c) =>
+          lower.includes(c),
+        )
+      )
+        return "Spanish";
+      return null;
+    },
+  },
+
+  primary_timezone: {
+    what: "The primary timezone used for scheduled events, bonus expiry, and reporting in your platform.",
+    why: "Timezone configuration affects when promotions activate, when reports reset, and how players see bonus expiry countdowns.",
+    countryRecommendation: (country) => {
+      const lower = country.toLowerCase();
+      if (["nigeria", "ghana", "benin", "togo"].some((c) => lower.includes(c)))
+        return "Africa/Lagos";
+      if (["kenya", "tanzania", "ethiopia", "uganda"].some((c) => lower.includes(c)))
+        return "Africa/Nairobi";
+      if (["south africa", "zimbabwe", "zambia"].some((c) => lower.includes(c)))
+        return "Africa/Johannesburg";
+      if (["brazil"].some((c) => lower.includes(c))) return "America/Sao_Paulo";
+      if (["mexico"].some((c) => lower.includes(c))) return "America/Mexico_City";
+      if (["colombia", "peru", "ecuador"].some((c) => lower.includes(c))) return "America/Bogota";
+      if (["argentina", "chile"].some((c) => lower.includes(c)))
+        return "America/Argentina/Buenos_Aires";
+      return null;
+    },
   },
 
   expected_monthly_volume: {
@@ -152,6 +232,11 @@ export const PROSPECT_FIELD_INFO: Record<string, FieldInfoData> = {
     marketContext: "Most African markets accept Tier 2. South Africa increasingly requires Tier 3 for large transactions. EU regulators mandate Tier 3 for all operations.",
     recommendation: "Tier 2 — Standard",
     recommendationReason: "Best balance of conversion rate and compliance for African/LATAM markets. You can escalate to Tier 3 for high-value players.",
+    countryRecommendation: (country) => {
+      const strict = ["south_africa", "spain", "portugal", "malta", "isle_of_man", "gibraltar", "uk", "germany"];
+      if (strict.some((c) => country.toLowerCase().includes(c))) return "Tier 3 — Enhanced";
+      return "Tier 2 — Standard";
+    },
   },
 
   kyc_provider: {

@@ -494,6 +494,11 @@ export function ProspectFormContent({
             isOpen={openSection === section.id}
             onToggle={() => onSectionToggle(openSection === section.id ? null : section.id)}
             sectionNumber={idx + 1}
+            country={
+              (prospect.company_details?.business_country as string | undefined) ??
+              (prospect.kyc_compliance?.license_jurisdiction as string | undefined) ??
+              ""
+            }
           />
         ))}
       </div>

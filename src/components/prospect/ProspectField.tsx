@@ -21,12 +21,14 @@ interface Props {
   disabled?: boolean;
   /** All values in the section — used to evaluate conditionalOn */
   sectionValues?: Record<string, unknown>;
+  /** Prospect's country string — drives countryRecommendation badges */
+  country?: string;
 }
 
 const INPUT_BASE =
   "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
-export function ProspectField({ field, value, onChange, otherValue, onOtherChange, disabled, sectionValues }: Props) {
+export function ProspectField({ field, value, onChange, otherValue, onOtherChange, disabled, sectionValues, country }: Props) {
   // Evaluate conditional visibility
   if (field.conditionalOn && sectionValues) {
     const depValue = sectionValues[field.conditionalOn.dependsOn];
@@ -36,6 +38,17 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
       : String(depValue ?? "") === showWhen;
     if (!matches) return null;
   }
+
+  // Country recommendation
+  const fieldInfo = PROSPECT_FIELD_INFO[field.key];
+  const countryRec =
+    country && fieldInfo?.countryRecommendation
+      ? fieldInfo.countryRecommendation(country)
+      : null;
+  // Derive a short display name for the country (capitalize first word)
+  const countryName = country
+    ? country.charAt(0).toUpperCase() + country.slice(1).split("_").join(" ")
+    : "";
 
   // Tier badge styling
   const tierBadge =
@@ -180,6 +193,14 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
             </option>
           ))}
         </select>
+        {/* Country recommendation hint below the select */}
+        {countryRec && (
+          <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs text-amber-700">
+              ✨ Recommended for {countryName}: <span className="font-semibold">{countryRec}</span>
+            </span>
+          </p>
+        )}
         {helper}
         {showOtherDisclaimer && (
           <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
@@ -219,6 +240,7 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
         <div className="flex flex-wrap gap-2">
           {knownOptions.map((opt) => {
             const isSelected = selected.includes(opt);
+            const isRecommended = countryRec !== null && opt === countryRec;
             return (
               <button
                 key={opt}
@@ -239,6 +261,11 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
                 )}
               >
                 {opt}
+                {isRecommended && (
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs text-amber-700">
+                    ✨ Recommended for {countryName}
+                  </span>
+                )}
               </button>
             );
           })}

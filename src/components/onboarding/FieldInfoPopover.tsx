@@ -31,6 +31,8 @@ export type FieldInfoData = {
   marketContext?: string;
   recommendation?: string;
   recommendationReason?: string;
+  /** Returns a recommended value label for the given country string, or null */
+  countryRecommendation?: (country: string) => string | null;
 };
 
 /* ─── Badge color helpers ─────────────────────────────────────── */

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useFormAutoSave } from "@/hooks/useFormAutoSave";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingCtx } from "@/lib/onboarding-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -232,6 +233,48 @@ export const Route = createFileRoute("/onboarding/$clientId/form")({
   component: FormScreen,
 });
 
+/* ─── Save status indicator ───────────────────────────────────── */
+
+function SaveStatus({
+  status,
+  lastSaved,
+  onRetry,
+}: {
+  status: "idle" | "saving" | "saved" | "error";
+  lastSaved: Date | null;
+  onRetry: () => void;
+}) {
+  if (status === "idle") return null;
+  if (status === "saving")
+    return (
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-md bg-background border px-3 py-1.5 text-sm shadow-sm">
+        <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+        Saving...
+      </div>
+    );
+  if (status === "saved")
+    return (
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-md bg-background border px-3 py-1.5 text-sm shadow-sm text-green-600">
+        <div className="h-2 w-2 rounded-full bg-green-500" />
+        Saved{" "}
+        {lastSaved
+          ? `${Math.round((Date.now() - lastSaved.getTime()) / 1000)}s ago`
+          : ""}
+      </div>
+    );
+  if (status === "error")
+    return (
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-md bg-background border border-red-200 px-3 py-1.5 text-sm shadow-sm text-red-600">
+        <div className="h-2 w-2 rounded-full bg-red-500" />
+        Couldn't save —{" "}
+        <button onClick={onRetry} className="underline">
+          retry
+        </button>
+      </div>
+    );
+  return null;
+}
+
 function FormScreen() {
   const { clientId } = useParams({ from: "/onboarding/$clientId/form" });
   const { welcomeInfo, clientRole, ownerEmail, loadingPublic, loadingAuth } = useOnboardingCtx();
@@ -244,8 +287,51 @@ function FormScreen() {
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const isRemoteUpdate = useRef(false);
+
+  // Auto-save wiring: build a react-hook-form-compatible watch adapter
+  // from plain useState so useFormAutoSave can subscribe to form changes.
+  const autoSaveSubscriberRef = useRef<((value: Record<string, unknown>) => void) | null>(null);
+  const watchAdapter = useCallback(
+    (cb: (value: Record<string, unknown>) => void) => {
+      autoSaveSubscriberRef.current = cb;
+      return { unsubscribe: () => { autoSaveSubscriberRef.current = null; } };
+    },
+    [],
+  );
+  // Mark the `data` column as dirty — the facade maps this to an upsert
+  const dirtyFieldsAdapter: Record<string, unknown> = { data: true };
   const [studioAccess, setStudioAccess] = useState(false);
   const studioAccessRef = useRef(false);
+
+  // Auto-save hook — drives the save status indicator.
+  // onboarding_forms uses a `data` JSON column + client_id key (not id),
+  // so we pass the whole form as { data: form } and query by client_id via
+  // a tiny supabase proxy that wraps the upsert in place of a plain update.
+  // The hook's generic .update().eq("id", …) path is replaced by injecting
+  // a supabase facade below that routes to the correct upsert call.
+  // Thin facade so useFormAutoSave can drive status tracking.
+  // The actual upsert maps to onboarding_forms(data) via client_id, not id.
+  const supabaseFacade = {
+    from: (_table: string) => ({
+      update: (data: Record<string, unknown>) => ({
+        eq: (_col: string, _val: string) =>
+          supabase
+            .from("onboarding_forms")
+            .upsert([{ client_id: clientId, ...data } as never], {
+              onConflict: "client_id",
+            }),
+      }),
+    }),
+  } as unknown as typeof supabase;
+
+  const { status: saveStatus, lastSaved: autoSavedAt } = useFormAutoSave({
+    prospectId: clientId,
+    watch: watchAdapter,
+    dirtyFields: dirtyFieldsAdapter,
+    supabase: supabaseFacade,
+    table: "onboarding_forms",
+    delay: 800,
+  });
 
   // Presence
   const [otherUsers, setOtherUsers] = useState<PresenceUser[]>([]);
@@ -359,22 +445,16 @@ function FormScreen() {
     };
   }, [user, clientId]);
 
-  // Auto-save
+  // Notify the auto-save subscriber whenever form changes (feeds useFormAutoSave status)
   useEffect(() => {
     if (!user || submitted) return;
     if (isRemoteUpdate.current) {
       isRemoteUpdate.current = false;
       return;
     }
-    const timer = setTimeout(async () => {
-      await supabase
-        .from("onboarding_forms")
-        .upsert([{ client_id: clientId, data: form as unknown as never }], {
-          onConflict: "client_id",
-        });
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [form, user, clientId, submitted]);
+    // Pass { data: form } so the facade upserts into the data JSON column
+    autoSaveSubscriberRef.current?.({ data: form as unknown });
+  }, [form, user, submitted]);
 
   // Presence: join channel
   useEffect(() => {
@@ -557,6 +637,12 @@ function FormScreen() {
 
   return (
     <div className="route-fade-in flex min-h-screen flex-col">
+      {/* Auto-save status indicator */}
+      <SaveStatus
+        status={saveStatus}
+        lastSaved={autoSavedAt}
+        onRetry={() => autoSaveSubscriberRef.current?.({ data: form as unknown })}
+      />
       {/* Sticky brand nav with progress bar underneath */}
       <TriveltaNav
         product="Hub"
