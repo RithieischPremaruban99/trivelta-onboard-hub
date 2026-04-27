@@ -11,6 +11,9 @@ import { OtherIntegrationDisclaimer } from "@/components/form/OtherIntegrationDi
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -51,6 +54,9 @@ import {
   MessageSquare,
   Eye,
   ArrowRight,
+  ChevronsUpDown,
+  Check,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -100,14 +106,9 @@ function sectionFieldStats(id: string, f: FormShape): { filled: number; total: n
       return { filled: checks.filter(Boolean).length, total: checks.length };
     }
     case "5": {
-      const pspOk =
-        f.psp_opay || f.psp_palmpay || f.psp_paystack ||
-        f.psp_aeropay || f.psp_finix || f.psp_nmi ||
-        f.psp_worldpay || f.psp_bitolo || f.psp_evervault || f.psp_other;
-      const smsOk =
-        f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
-      const checks = [pspOk, !!f.kyc_surt, smsOk, !!f.duns_status, !!f.zendesk];
-      return { filled: checks.filter(Boolean).length, total: 5 };
+      const pspOk = f.payment_providers.length > 0;
+      const checks = [pspOk, !!f.kyc_surt, !!f.duns_status, !!f.zendesk];
+      return { filled: checks.filter(Boolean).length, total: 4 };
     }
     default:
       return { filled: 0, total: 0 };
@@ -477,18 +478,7 @@ function FormScreen() {
 
     // 2. Create Notion page + SOP checklist (fire-and-forget - don't block navigation)
     if (welcomeInfo) {
-      const psps: string[] = [
-        ...(form.psp_opay ? ["Opay"] : []),
-        ...(form.psp_palmpay ? ["PalmPay"] : []),
-        ...(form.psp_paystack ? ["Paystack"] : []),
-        ...(form.psp_aeropay ? ["Aeropay"] : []),
-        ...(form.psp_finix ? ["Finix"] : []),
-        ...(form.psp_nmi ? ["NMI"] : []),
-        ...(form.psp_worldpay ? ["Worldpay"] : []),
-        ...(form.psp_bitolo ? ["Bitolo"] : []),
-        ...(form.psp_evervault ? ["Evervault"] : []),
-        ...(form.psp_other ? ["Other"] : []),
-      ];
+      const psps: string[] = form.payment_providers;
       supabase.functions.invoke("handle-submission", {
         body: {
           client_id: clientId,
@@ -1766,6 +1756,166 @@ function SectionLegal({
   );
 }
 
+/* ─── Payment Provider list ───────────────────────────────────── */
+
+const PAYMENT_PROVIDER_GROUPS: Array<{ group: string; options: string[] }> = [
+  {
+    group: "Africa",
+    options: [
+      "Cellulant", "Flutterwave", "Interswitch", "M-Pesa", "MFS Africa",
+      "Monnify", "Mukuru", "NETcash", "OPay", "Ozow", "PalmPay",
+      "PayFast", "Paystack", "Peach Payments", "Pesapal", "Remita",
+      "Squad", "Yellowpay", "Yoco",
+    ],
+  },
+  {
+    group: "LATAM",
+    options: [
+      "AstroPay", "Conekta", "dLocal", "EBANX", "Khipu", "Kushki",
+      "MercadoPago", "Openpay", "Pago Fácil", "PagSeguro", "Payku",
+      "PicPay", "PIX Direct", "RapiPago", "SafetyPay", "Webpay",
+    ],
+  },
+  {
+    group: "Crypto / Stablecoin",
+    options: [
+      "Bitolo", "BitPay", "Coinbase Commerce", "CoinPayments",
+      "Confirmo", "CryptoProcessing", "MoonPay", "NOWPayments",
+      "Triple-A", "Utorg",
+    ],
+  },
+  {
+    group: "Global Tier-1",
+    options: [
+      "Adyen", "Aeropay", "Apple Pay", "Boku", "Checkout.com",
+      "ecoPayz", "Evervault", "Finix", "GiroPay", "Google Pay",
+      "Klarna", "Neteller", "NMI", "Paysafe", "Skrill",
+      "Sofort", "Stripe", "Trustly", "Worldpay",
+    ],
+  },
+  {
+    group: "iGaming Specialized",
+    options: [
+      "Cashlib", "Continent 8", "Dimoco", "EMerchantPay", "Inpay",
+      "Intergiro", "iSignthis", "Jeton", "MuchBetter", "Nuvei",
+      "PaymentIQ", "Praxis Cashier", "Rapid Transfer",
+    ],
+  },
+];
+
+const ALL_PAYMENT_PROVIDERS: string[] = PAYMENT_PROVIDER_GROUPS.flatMap((g) => g.options).sort((a, b) =>
+  a.toLowerCase().localeCompare(b.toLowerCase()),
+);
+const OTHER_PROVIDER = "Other (please specify)";
+
+/* ─── MultiSelectCombobox ─────────────────────────────────────── */
+
+function MultiSelectCombobox({
+  selected,
+  onChange,
+  hasError,
+}: {
+  selected: string[];
+  onChange: (v: string[]) => void;
+  hasError?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const allOptions = [...ALL_PAYMENT_PROVIDERS, OTHER_PROVIDER];
+  const filtered = search.trim()
+    ? allOptions.filter((o) => o.toLowerCase().includes(search.toLowerCase()))
+    : allOptions;
+
+  const toggle = (value: string) => {
+    if (selected.includes(value)) {
+      onChange(selected.filter((s) => s !== value));
+    } else {
+      onChange([...selected, value]);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between font-normal",
+              hasError ? "border-destructive" : "",
+            )}
+          >
+            <span className="text-muted-foreground">
+              {selected.length === 0
+                ? "Search and select providers…"
+                : `${selected.length} provider${selected.length !== 1 ? "s" : ""} selected`}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[420px] p-0" align="start">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Search providers…"
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandList className="max-h-[280px]">
+              <CommandEmpty>No providers found.</CommandEmpty>
+              {filtered.length > 0 && (
+                <CommandGroup>
+                  {filtered.map((option) => (
+                    <CommandItem
+                      key={option}
+                      value={option}
+                      onSelect={() => toggle(option)}
+                      className="cursor-pointer"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selected.includes(option) ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                      {option}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {/* Selected badges */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((s) => (
+            <Badge
+              key={s}
+              variant="secondary"
+              className="flex items-center gap-1 pl-2 pr-1 py-0.5 text-[11px]"
+            >
+              {s}
+              <button
+                type="button"
+                onClick={() => toggle(s)}
+                className="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                aria-label={`Remove ${s}`}
+              >
+                <X className="h-2.5 w-2.5" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Section 5: 3rd Party ───────────────────────────────────── */
 
 function SectionThirdParty({
@@ -1777,57 +1927,29 @@ function SectionThirdParty({
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   showErrors?: boolean;
 }) {
-  const pspOk =
-    form.psp_opay || form.psp_palmpay || form.psp_paystack ||
-    form.psp_aeropay || form.psp_finix || form.psp_nmi ||
-    form.psp_worldpay || form.psp_bitolo || form.psp_evervault || form.psp_other;
-  const smsOk =
-    form.sms_provider === "infobip" || (form.sms_provider === "other" && !!form.sms_provider_other);
+  const pspOk = form.payment_providers.length > 0;
+  const hasOtherProvider = form.payment_providers.includes(OTHER_PROVIDER);
+
   return (
     <div className="space-y-4">
       <SubCard title="Payment service providers *" fieldKey="payment_service_providers">
-        <div
-          className={cn(
-            "flex flex-wrap gap-5 rounded-lg p-2 -m-2",
-            showErrors && !pspOk ? "ring-1 ring-destructive/50 bg-destructive/5" : "",
-          )}
-        >
-          {[
-            { k: "psp_opay", label: "Opay" },
-            { k: "psp_palmpay", label: "PalmPay" },
-            { k: "psp_paystack", label: "Paystack" },
-            { k: "psp_aeropay", label: "Aeropay" },
-            { k: "psp_finix", label: "Finix" },
-            { k: "psp_nmi", label: "NMI" },
-            { k: "psp_worldpay", label: "Worldpay" },
-            { k: "psp_bitolo", label: "Bitolo" },
-            { k: "psp_evervault", label: "Evervault" },
-            { k: "psp_other", label: "Other" },
-          ].map((p) => (
-            <label
-              key={p.k}
-              className="flex cursor-pointer items-center gap-2 text-sm text-foreground/85"
-            >
-              <Checkbox
-                checked={form[p.k as keyof FormShape] as boolean}
-                onCheckedChange={(c) => update(p.k as keyof FormShape, !!c as never)}
-              />
-              {p.label}
-            </label>
-          ))}
-        </div>
+        <MultiSelectCombobox
+          selected={form.payment_providers}
+          onChange={(v) => update("payment_providers", v)}
+          hasError={showErrors && !pspOk}
+        />
         {showErrors && !pspOk && (
           <p className="mt-2 text-[11px] text-destructive">Select at least one payment provider</p>
         )}
-        {form.psp_other && (
+        {hasOtherProvider && (
           <>
             <OtherIntegrationDisclaimer />
             <div className="mt-2 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Provider name</Label>
+              <Label className="text-xs text-muted-foreground">Please specify your provider</Label>
               <Input
-                placeholder="Please specify your provider…"
-                value={form.psp_other_name}
-                onChange={(e) => update("psp_other_name", e.target.value)}
+                placeholder="Provider name…"
+                value={form.payment_providers_other}
+                onChange={(e) => update("payment_providers_other", e.target.value)}
               />
             </div>
           </>
@@ -1842,6 +1964,7 @@ function SectionThirdParty({
           />
         </div>
       </SubCard>
+
       <SubCard title="KYC SURT integration *" fieldKey="kyc_surt_integration">
         <YesNo value={form.kyc_surt} onChange={(v) => update("kyc_surt", v)} idPrefix="kyc" />
         {showErrors && !form.kyc_surt && (
@@ -1856,42 +1979,86 @@ function SectionThirdParty({
           />
         </div>
       </SubCard>
-      <SubCard title="SMS provider *" fieldKey="sms_provider">
-        <RadioGroup
-          value={form.sms_provider}
-          onValueChange={(v) => update("sms_provider", v as FormShape["sms_provider"])}
-          className="flex gap-6"
-        >
-          <div className="flex items-center gap-2">
-            <RadioGroupItem id="sms-infobip" value="infobip" />
-            <Label htmlFor="sms-infobip" className="cursor-pointer font-normal text-foreground/85">
-              Infobip
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <RadioGroupItem id="sms-other" value="other" />
-            <Label htmlFor="sms-other" className="cursor-pointer font-normal text-foreground/85">
-              Other
-            </Label>
-          </div>
-        </RadioGroup>
-        {showErrors && !smsOk && (
-          <p className="mt-2 text-[11px] text-destructive">This field is required</p>
-        )}
-        {form.sms_provider === "other" && (
-          <>
-            <div className="mt-4 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Provider name</Label>
-              <Input
-                value={form.sms_provider_other}
-                onChange={(e) => update("sms_provider_other", e.target.value)}
-                className={cn(showErrors && !form.sms_provider_other ? "border-destructive" : "")}
-              />
+
+      <SubCard title="Affiliate marketing" fieldKey="affiliate_marketing">
+        <div className="space-y-3">
+          <FieldGroup label="Do you have an existing affiliate marketing system?">
+            <RadioGroup
+              value={
+                form.affiliate_marketing_existing === true
+                  ? "yes"
+                  : form.affiliate_marketing_existing === false
+                    ? "no"
+                    : ""
+              }
+              onValueChange={(v) =>
+                update("affiliate_marketing_existing", v === "yes" ? true : false)
+              }
+              className="flex gap-6 pt-1"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem id="aff-yes" value="yes" />
+                <Label htmlFor="aff-yes" className="cursor-pointer font-normal text-foreground/85">
+                  Yes
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem id="aff-no" value="no" />
+                <Label htmlFor="aff-no" className="cursor-pointer font-normal text-foreground/85">
+                  No
+                </Label>
+              </div>
+            </RadioGroup>
+          </FieldGroup>
+
+          {form.affiliate_marketing_existing === true && (
+            <div className="space-y-3 rounded-lg border border-border/50 bg-background/30 p-3">
+              <FieldGroup label="Which affiliate marketing system?">
+                <Select
+                  value={form.affiliate_marketing_system}
+                  onValueChange={(v) => update("affiliate_marketing_system", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a system…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      "Affilka by SOFTSWISS",
+                      "Cake",
+                      "Cellxpert",
+                      "HasOffers (TUNE)",
+                      "Income Access",
+                      "MyAffiliates",
+                      "NetRefer",
+                      "PostAffiliate Pro",
+                      "Scaleo",
+                      "Smartico",
+                      "Trackier",
+                      "Voluum",
+                      "Other (please specify)",
+                    ].map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FieldGroup>
+
+              {form.affiliate_marketing_system === "Other (please specify)" && (
+                <FieldGroup label="Please specify">
+                  <Input
+                    placeholder="Name of your affiliate system…"
+                    value={form.affiliate_marketing_system_other}
+                    onChange={(e) => update("affiliate_marketing_system_other", e.target.value)}
+                  />
+                </FieldGroup>
+              )}
             </div>
-            <OtherIntegrationDisclaimer />
-          </>
-        )}
+          )}
+        </div>
       </SubCard>
+
       <SubCard title="DUNS number *" fieldKey="duns_number">
         <RadioGroup
           value={form.duns_status}
@@ -1928,6 +2095,7 @@ function SectionThirdParty({
           </div>
         )}
       </SubCard>
+
       <SubCard title="Zendesk widget *" fieldKey="zendesk_account">
         <YesNo value={form.zendesk} onChange={(v) => update("zendesk", v)} idPrefix="zendesk" />
         {showErrors && !form.zendesk && (
@@ -1946,6 +2114,7 @@ function SectionThirdParty({
           </div>
         )}
       </SubCard>
+
       <SubCard title="Analytics tags" fieldKey="advertising_pixels">
         <div className="flex flex-wrap gap-5">
           {[

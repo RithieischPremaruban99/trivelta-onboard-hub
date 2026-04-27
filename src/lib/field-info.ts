@@ -148,33 +148,6 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
     ],
   },
 
-  // Used by client form (SubCard fieldKey="sms_provider") and prospect form (field.key="infobip")
-  sms_provider: {
-    tooltip: "The service that sends SMS messages to your players for verification codes, deposit confirmations, and marketing.",
-    summary:
-      "Every regulated iGaming platform needs a reliable SMS gateway for account verification OTPs, transactional notifications, and bulk marketing campaigns.",
-    features: [
-      {
-        title: "OTP delivery",
-        description: "Failed verification codes are the top cause of sign-up drop-off. Reliability matters more than price.",
-      },
-      {
-        title: "Bulk campaigns",
-        description: "Promotional messages, re-engagement campaigns, and deposit confirmations - all routed through your SMS provider.",
-      },
-    ],
-    useCases: [
-      "Account verification OTPs at sign-up",
-      "Deposit and withdrawal confirmations",
-      "Promotional and re-engagement campaigns",
-    ],
-    notes:
-      "Infobip is a tier-one global SMS provider with strong delivery rates across Africa, Europe, and LATAM. Cost is roughly $0.01-0.05 per SMS depending on destination country.",
-    learnMoreLinks: [
-      { label: "Infobip", url: "https://www.infobip.com" },
-    ],
-  },
-
   kyc_surt_integration: {
     tooltip: "A premium identity verification platform specializing in fast, high-accuracy KYC for regulated industries.",
     summary:
@@ -213,5 +186,3 @@ export const FIELD_INFO: Record<string, FieldInfo> = {
   },
 };
 
-// Alias: prospect form uses field.key="infobip" - wire to same content as sms_provider
-FIELD_INFO.infobip = FIELD_INFO.sms_provider;

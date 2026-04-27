@@ -651,29 +651,19 @@ function extractClientSections(form: FormShape): ClientSection[] {
 
   // ── Section 5: 3rd Party Integrations ──
   const thirdFields: Array<{ label: string; value: string }> = [];
-  const psps: string[] = [];
-  if (form.psp_opay) psps.push("Opay");
-  if (form.psp_palmpay) psps.push("PalmPay");
-  if (form.psp_paystack) psps.push("Paystack");
-  if (form.psp_aeropay) psps.push("Aeropay");
-  if (form.psp_finix) psps.push("Finix");
-  if (form.psp_nmi) psps.push("NMI");
-  if (form.psp_worldpay) psps.push("Worldpay");
-  if (form.psp_bitolo) psps.push("Bitolo");
-  if (form.psp_evervault) psps.push("Evervault");
-  if (form.psp_other) psps.push("Other");
-  if (psps.length > 0) thirdFields.push({ label: "Payment Providers", value: psps.join(", ") });
+  if (form.payment_providers.length > 0)
+    thirdFields.push({ label: "Payment Providers", value: form.payment_providers.join(", ") });
+  if (form.payment_providers_other)
+    thirdFields.push({ label: "Other Provider (specified)", value: form.payment_providers_other });
   if (form.psp_priority) thirdFields.push({ label: "PSP Priority", value: form.psp_priority });
   if (form.kyc_surt) thirdFields.push({ label: "KYC SURT", value: form.kyc_surt === "yes" ? "Yes" : "No" });
   if (form.kyc_notes) thirdFields.push({ label: "KYC Notes", value: form.kyc_notes });
-
-  const smsValue =
-    form.sms_provider === "infobip"
-      ? "Infobip"
-      : form.sms_provider === "other"
-        ? `Other: ${form.sms_provider_other || "-"}`
-        : "";
-  if (smsValue) thirdFields.push({ label: "SMS Provider", value: smsValue });
+  if (form.affiliate_marketing_existing !== null && form.affiliate_marketing_existing !== undefined)
+    thirdFields.push({ label: "Affiliate Marketing System", value: form.affiliate_marketing_existing ? "Yes" : "No" });
+  if (form.affiliate_marketing_system)
+    thirdFields.push({ label: "Affiliate System", value: form.affiliate_marketing_system });
+  if (form.affiliate_marketing_system_other)
+    thirdFields.push({ label: "Affiliate System (other)", value: form.affiliate_marketing_system_other });
 
   const dunsValue =
     form.duns_status === "have"

@@ -1058,15 +1058,9 @@ function FormDataSummary({ data }: { data: FormShape }) {
     ["Compliance contact", data.contact_compliance?.name || "-"],
     [
       "PSPs",
-      [data.psp_opay && "Opay", data.psp_palmpay && "PalmPay", data.psp_paystack && "Paystack"]
-        .filter(Boolean)
-        .join(", ") || "-",
+      data.payment_providers?.length > 0 ? data.payment_providers.join(", ") : "-",
     ],
     ["KYC SURT", data.kyc_surt || "-"],
-    [
-      "SMS",
-      data.sms_provider === "other" ? data.sms_provider_other || "Other" : data.sms_provider || "-",
-    ],
     ["Zendesk", data.zendesk || "-"],
     [
       "Analytics",

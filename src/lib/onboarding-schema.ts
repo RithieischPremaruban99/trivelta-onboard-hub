@@ -92,22 +92,11 @@ export type FormShape = {
   landing_page_url: string;
 
   // Section 5
-  psp_opay: boolean;
-  psp_palmpay: boolean;
-  psp_paystack: boolean;
-  psp_aeropay: boolean;
-  psp_finix: boolean;
-  psp_nmi: boolean;
-  psp_worldpay: boolean;
-  psp_bitolo: boolean;
-  psp_evervault: boolean;
-  psp_other: boolean;
-  psp_other_name: string;
+  payment_providers: string[];
+  payment_providers_other: string;
   psp_priority: string;
   kyc_surt: "yes" | "no" | "";
   kyc_notes: string;
-  sms_provider: "infobip" | "other" | "";
-  sms_provider_other: string;
   duns_status: "have" | "in_progress" | "none" | "";
   duns_number: string;
   zendesk: "yes" | "no" | "";
@@ -118,6 +107,11 @@ export type FormShape = {
   analytics_snapchat: boolean;
   analytics_reddit: boolean;
   analytics_onefeed: boolean;
+
+  // Marketing / Affiliate
+  affiliate_marketing_existing: boolean | null;
+  affiliate_marketing_system: string;
+  affiliate_marketing_system_other: string;
 };
 
 export const emptyContact = (): ContactBlock => ({ name: "", email: "", phone: "" });
@@ -161,22 +155,11 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   privacy_url: "",
   rg_url: "",
   landing_page_url: "",
-  psp_opay: false,
-  psp_palmpay: false,
-  psp_paystack: false,
-  psp_aeropay: false,
-  psp_finix: false,
-  psp_nmi: false,
-  psp_worldpay: false,
-  psp_bitolo: false,
-  psp_evervault: false,
-  psp_other: false,
-  psp_other_name: "",
+  payment_providers: [],
+  payment_providers_other: "",
   psp_priority: "",
   kyc_surt: "",
   kyc_notes: "",
-  sms_provider: "",
-  sms_provider_other: "",
   duns_status: "",
   duns_number: "",
   zendesk: "",
@@ -187,6 +170,9 @@ export const emptyForm = (defaults?: Partial<FormShape>): FormShape => ({
   analytics_snapchat: false,
   analytics_reddit: false,
   analytics_onefeed: false,
+  affiliate_marketing_existing: null,
+  affiliate_marketing_system: "",
+  affiliate_marketing_system_other: "",
   ...defaults,
 });
 
@@ -210,13 +196,8 @@ export const validators: Record<number, (f: FormShape) => boolean> = {
       (f.landing_page === "no" || f.landing_page_url)
     ),
   5: (f) => {
-    const pspOk =
-      f.psp_opay || f.psp_palmpay || f.psp_paystack ||
-      f.psp_aeropay || f.psp_finix || f.psp_nmi ||
-      f.psp_worldpay || f.psp_bitolo || f.psp_evervault || f.psp_other;
-    const smsOk =
-      f.sms_provider === "infobip" || (f.sms_provider === "other" && !!f.sms_provider_other);
-    return !!(pspOk && f.kyc_surt && smsOk && f.duns_status && f.zendesk);
+    const pspOk = f.payment_providers.length > 0;
+    return !!(pspOk && f.kyc_surt && f.duns_status && f.zendesk);
   },
 };
 
@@ -242,12 +223,9 @@ export function countRequiredFields(f: FormShape): { filled: number; total: numb
     !!f.terms_url,
     !!f.privacy_url,
     !!f.rg_url,
-    // 5 third party
-    !!(f.psp_opay || f.psp_palmpay || f.psp_paystack ||
-       f.psp_aeropay || f.psp_finix || f.psp_nmi ||
-       f.psp_worldpay || f.psp_bitolo || f.psp_evervault || f.psp_other),
+    // 4 third party
+    f.payment_providers.length > 0,
     !!f.kyc_surt,
-    !!f.sms_provider,
     !!f.duns_status,
     !!f.zendesk,
   ];
