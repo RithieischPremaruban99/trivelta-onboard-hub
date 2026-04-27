@@ -2,6 +2,8 @@ import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProspectField as ProspectFieldDef } from "@/lib/prospect-fields";
 import { FieldInfo } from "@/components/form/FieldInfo";
+import { ProspectFieldInfoPopover } from "@/components/onboarding/FieldInfoPopover";
+import { PROSPECT_FIELD_INFO } from "@/lib/prospect-field-info";
 import {
   Select,
   SelectContent,
@@ -17,17 +19,42 @@ interface Props {
   otherValue?: string;
   onOtherChange?: (text: string) => void;
   disabled?: boolean;
+  /** All values in the section — used to evaluate conditionalOn */
+  sectionValues?: Record<string, unknown>;
 }
 
 const INPUT_BASE =
   "w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
-export function ProspectField({ field, value, onChange, otherValue, onOtherChange, disabled }: Props) {
+export function ProspectField({ field, value, onChange, otherValue, onOtherChange, disabled, sectionValues }: Props) {
+  // Evaluate conditional visibility
+  if (field.conditionalOn && sectionValues) {
+    const depValue = sectionValues[field.conditionalOn.dependsOn];
+    const showWhen = field.conditionalOn.showWhen;
+    const matches = Array.isArray(showWhen)
+      ? showWhen.includes(String(depValue ?? ""))
+      : String(depValue ?? "") === showWhen;
+    if (!matches) return null;
+  }
+
+  // Tier badge styling
+  const tierBadge =
+    field.tier === "required" ? null : // no badge for required — it's the default state
+    field.tier === "recommended" ? (
+      <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/25">
+        rec
+      </span>
+    ) : null; // optional tier fields are hidden behind a toggle — this badge won't show
+
   const label = (
     <label className="flex items-center text-xs font-semibold text-foreground mb-1.5">
       <span>{field.label}</span>
       {field.required && <span className="text-primary ml-1">*</span>}
-      <FieldInfo fieldKey={field.key} />
+      {tierBadge}
+      {/* Show the new structured popover if registered, otherwise fall back to legacy sheet */}
+      {PROSPECT_FIELD_INFO[field.key]
+        ? <ProspectFieldInfoPopover fieldKey={field.key} />
+        : <FieldInfo fieldKey={field.key} />}
     </label>
   );
 

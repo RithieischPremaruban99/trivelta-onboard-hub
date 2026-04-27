@@ -472,7 +472,7 @@ export function ProspectFormContent({
 
       {/* Accordion sections */}
       <div className="mx-auto max-w-4xl px-6 pb-28">
-        {PROSPECT_SECTIONS.map((section) => (
+        {PROSPECT_SECTIONS.map((section, idx) => (
           <ProspectAccordionSection
             key={section.id}
             section={section}
@@ -482,9 +482,18 @@ export function ProspectFormContent({
                 unknown
               >) ?? {}
             }
+            allValues={
+              Object.fromEntries(
+                PROSPECT_SECTIONS.map((s) => [
+                  s.storageKey,
+                  (prospect[s.storageKey as keyof ProspectData] as Record<string, unknown>) ?? {},
+                ])
+              )
+            }
             onChange={(fieldKey, value) => onFieldChange(section.storageKey, fieldKey, value)}
             isOpen={openSection === section.id}
             onToggle={() => onSectionToggle(openSection === section.id ? null : section.id)}
+            sectionNumber={idx + 1}
           />
         ))}
       </div>

@@ -23,6 +23,19 @@ export interface ProspectField {
   otherDisclaimer?: "integration_launch_impact";
   /** When set, renders a rich select with description subtexts instead of native <select> */
   kycProviders?: KycProvider[];
+  /**
+   * Importance tier for the field within its section.
+   *   "required"    — must fill before launch; shown immediately, highlighted
+   *   "recommended" — strongly advisable; shown below required fields, slightly lighter
+   *   "optional"    — nice to have; hidden behind "Show optional fields" toggle by default
+   * Defaults to "optional" if not set.
+   */
+  tier?: "required" | "recommended" | "optional";
+  /**
+   * When set, this field is only revealed when another field has a specific value.
+   * e.g. { dependsOn: "domain_owned", showWhen: "yes" }
+   */
+  conditionalOn?: { dependsOn: string; showWhen: string | string[] };
 }
 
 export interface ProspectSection {
@@ -48,24 +61,26 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
     icon: "Building2",
     storageKey: "company_details",
     fields: [
-      { key: "legal_name", label: "Legal Company Name", type: "text", required: true },
+      { key: "legal_name", label: "Legal Company Name", type: "text", required: true, tier: "required" },
       {
         key: "registration_number",
         label: "Company Registration Number or Tax ID",
         type: "text",
         placeholder: "e.g. RC123456, EIN 12-3456789",
         required: true,
+        tier: "required",
       },
-      { key: "trading_name", label: "Trading Name / Brand", type: "text" },
-      { key: "primary_contact_name", label: "Primary Contact Name", type: "text" },
+      { key: "primary_contact_name", label: "Primary Contact Name", type: "text", tier: "required" },
       {
         key: "primary_contact_email",
         label: "Primary Contact Email",
         type: "email",
         required: true,
+        tier: "required",
       },
-      { key: "primary_contact_phone", label: "Primary Contact Phone", type: "phone" },
-      { key: "business_country", label: "Business HQ Country", type: "text" },
+      { key: "primary_contact_phone", label: "Primary Contact Phone", type: "phone", tier: "recommended" },
+      { key: "trading_name", label: "Trading Name / Brand", type: "text", tier: "recommended" },
+      { key: "business_country", label: "Business HQ Country", type: "text", tier: "recommended" },
       {
         key: "target_markets",
         label: "Target Markets",
@@ -111,6 +126,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
           "Other",
         ],
         helperText: "Where do you plan to operate?",
+        tier: "required",
       },
       {
         key: "current_platform",
@@ -127,12 +143,14 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
           "BetRadar",
           "Other",
         ],
+        tier: "recommended",
       },
       {
         key: "launch_timeframe",
         label: "Expected Launch Timeframe",
         type: "select",
         options: ["Q2 2026", "Q3 2026", "Q4 2026", "Q1 2027", "Q2 2027", "Later"],
+        tier: "required",
       },
       {
         key: "estimated_mau",
@@ -146,6 +164,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
           "500k-1M",
           "1M+",
         ],
+        tier: "recommended",
       },
     ],
   },
@@ -161,6 +180,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         label: "Payment Providers Needed",
         type: "multi_select",
         otherDisclaimer: "integration_launch_impact",
+        tier: "required",
         options: [
           // Africa
           "Cellulant",
@@ -249,16 +269,10 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         ],
       },
       {
-        key: "current_psp_setup",
-        label: "Current PSP Setup",
-        type: "textarea",
-        placeholder:
-          "What are you using today? Any existing contracts we should know about?",
-      },
-      {
         key: "expected_monthly_volume",
         label: "Expected Monthly Transaction Volume",
         type: "select",
+        tier: "recommended",
         options: [
           "Under $100k",
           "$100k-$500k",
@@ -266,6 +280,14 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
           "$2M-$10M",
           "$10M+",
         ],
+      },
+      {
+        key: "current_psp_setup",
+        label: "Current PSP Setup",
+        type: "textarea",
+        placeholder:
+          "What are you using today? Any existing contracts we should know about?",
+        tier: "optional",
       },
     ],
   },
@@ -280,6 +302,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "kyc_tier",
         label: "KYC Tier Needed",
         type: "select",
+        tier: "required",
         options: [
           "Basic (Tier 1) - minimal verification",
           "Full (Tier 2) - standard KYC with document upload",
@@ -291,6 +314,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "kyc_provider",
         label: "Preferred KYC Provider",
         type: "select",
+        tier: "required",
         otherDisclaimer: "integration_launch_impact",
         kycProviders: KYC_PROVIDERS,
       },
@@ -298,6 +322,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "license_status",
         label: "Regulatory License Status",
         type: "select",
+        tier: "required",
         options: [
           "Held",
           "In Application",
@@ -310,6 +335,7 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "license_jurisdiction",
         label: "License Jurisdiction",
         type: "text",
+        tier: "recommended",
         placeholder:
           "e.g. Lagos State Lotteries Board, Malta Gaming Authority",
       },
@@ -323,14 +349,27 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
     storageKey: "marketing_stack",
     fields: [
       {
+        key: "braze_account",
+        label: "Braze Account",
+        type: "select",
+        tier: "recommended",
+        options: [
+          "New - need Trivelta to set up",
+          "Existing - will share credentials",
+          "Not using Braze",
+        ],
+      },
+      {
         key: "affiliate_marketing_existing",
         label: "Do you have an existing affiliate marketing system?",
         type: "boolean_tri",
+        tier: "recommended",
       },
       {
         key: "affiliate_marketing_system",
         label: "Which affiliate marketing system?",
         type: "select",
+        tier: "recommended",
         options: [
           "Affilka by SOFTSWISS",
           "Cake",
@@ -347,28 +386,22 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
           "Other (please specify)",
         ],
         helperText: "Only if you answered Yes above",
+        conditionalOn: { dependsOn: "affiliate_marketing_existing", showWhen: "yes" },
       },
       {
         key: "affiliate_marketing_system_other",
         label: "Affiliate System (other)",
         type: "text",
+        tier: "optional",
         placeholder: "Please specify your affiliate system…",
         helperText: "Only if you selected 'Other (please specify)' above",
-      },
-      {
-        key: "braze_account",
-        label: "Braze Account",
-        type: "select",
-        options: [
-          "New - need Trivelta to set up",
-          "Existing - will share credentials",
-          "Not using Braze",
-        ],
+        conditionalOn: { dependsOn: "affiliate_marketing_system", showWhen: "Other (please specify)" },
       },
       {
         key: "current_marketing_tool",
         label: "Current Marketing Automation Tool (if any)",
         type: "text",
+        tier: "optional",
       },
     ],
   },
@@ -383,17 +416,14 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "geolocation_needed",
         label: "Geolocation / IP Check Needed?",
         type: "boolean_tri",
+        tier: "required",
         helperText: "For regulatory compliance - restrict access by location",
-      },
-      {
-        key: "geolocation_justification",
-        label: "Geolocation Justification (optional)",
-        type: "textarea",
       },
       {
         key: "dns_provider",
         label: "DNS Provider",
         type: "select",
+        tier: "required",
         options: [
           "GoDaddy",
           "Cloudflare",
@@ -407,17 +437,28 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "domain_owned",
         label: "Domain Already Owned?",
         type: "boolean_tri",
+        tier: "required",
       },
       {
         key: "domain_name",
         label: "Domain Name",
         type: "text",
+        tier: "recommended",
         placeholder: "e.g. betexample.com",
+        conditionalOn: { dependsOn: "domain_owned", showWhen: "yes" },
+      },
+      {
+        key: "geolocation_justification",
+        label: "Geolocation Justification",
+        type: "textarea",
+        tier: "optional",
+        conditionalOn: { dependsOn: "geolocation_needed", showWhen: "yes" },
       },
       {
         key: "custom_integrations",
         label: "Custom Integrations Needed",
         type: "textarea",
+        tier: "optional",
         placeholder:
           "Third-party APIs, bespoke features, existing systems to connect...",
       },
@@ -434,12 +475,14 @@ export const PROSPECT_SECTIONS: ProspectSection[] = [
         key: "custom_features",
         label: "Other Features You'd Want",
         type: "textarea",
+        tier: "optional",
         placeholder: "Anything specific to your market or audience...",
       },
       {
         key: "questions_for_us",
         label: "Questions for Trivelta",
         type: "textarea",
+        tier: "optional",
         placeholder: "Anything you'd like us to address before contract?",
       },
     ],
