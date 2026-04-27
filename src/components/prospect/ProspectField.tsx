@@ -4,6 +4,7 @@ import type { ProspectField as ProspectFieldDef } from "@/lib/prospect-fields";
 import { FieldInfo } from "@/components/form/FieldInfo";
 import { ProspectFieldInfoPopover } from "@/components/onboarding/FieldInfoPopover";
 import { PROSPECT_FIELD_INFO } from "@/lib/prospect-field-info";
+import { PaymentProviderSelect } from "@/components/onboarding/PaymentProviderSelect";
 import {
   Select,
   SelectContent,
@@ -222,6 +223,24 @@ export function ProspectField({ field, value, onChange, otherValue, onOtherChang
             disabled={disabled}
           />
         )}
+      </div>
+    );
+  }
+
+  /* ── multi_select (Payment Providers) - grouped accordion ── */
+  if (field.type === "multi_select" && field.key === "psps_needed") {
+    const selected: string[] = Array.isArray(value) ? (value as string[]) : [];
+    return (
+      <div>
+        {label}
+        <PaymentProviderSelect
+          value={selected}
+          onChange={(v) => onChange(v)}
+          otherValue={otherValue}
+          onOtherChange={onOtherChange}
+          country={country}
+        />
+        {helper}
       </div>
     );
   }

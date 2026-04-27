@@ -67,6 +67,7 @@ import { OnboardingLoadingScreen } from "@/components/onboarding/OnboardingLoadi
 import { ActiveLandingPageCard } from "@/components/onboarding/ActiveLandingPageCard";
 import { ActiveFullStudioCard } from "@/components/onboarding/ActiveFullStudioCard";
 import { LockedFullStudioTeaser } from "@/components/onboarding/LockedFullStudioTeaser";
+import { PaymentProviderSelect } from "@/components/onboarding/PaymentProviderSelect";
 
 /* ─── Per-section field progress ─────────────────────────────── */
 
@@ -903,7 +904,7 @@ function FormScreen() {
               hasError={submitAttempted && !sectionDone["5"]}
               shakeErrors={shakeErrors}
             >
-              <SectionThirdParty form={form} update={update} showErrors={submitAttempted} />
+              <SectionThirdParty form={form} update={update} showErrors={submitAttempted} country={form.country} />
             </SectionShell>
           </Accordion>
         </div>
@@ -2008,37 +2009,31 @@ function SectionThirdParty({
   form,
   update,
   showErrors,
+  country,
 }: {
   form: FormShape;
   update: <K extends keyof FormShape>(k: K, v: FormShape[K]) => void;
   showErrors?: boolean;
+  country?: string;
 }) {
   const pspOk = form.payment_providers.length > 0;
-  const hasOtherProvider = form.payment_providers.includes(OTHER_PROVIDER);
 
   return (
     <div className="space-y-4">
       <SubCard title="Payment service providers *" fieldKey="payment_service_providers">
-        <MultiSelectCombobox
-          selected={form.payment_providers}
+        <PaymentProviderSelect
+          value={form.payment_providers}
           onChange={(v) => update("payment_providers", v)}
+          otherValue={form.payment_providers_other}
+          onOtherChange={(v) => update("payment_providers_other", v)}
+          country={country}
           hasError={showErrors && !pspOk}
         />
         {showErrors && !pspOk && (
           <p className="mt-2 text-[11px] text-destructive">Select at least one payment provider</p>
         )}
-        {hasOtherProvider && (
-          <>
-            <OtherIntegrationDisclaimer />
-            <div className="mt-2 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Please specify your provider</Label>
-              <Input
-                placeholder="Provider name…"
-                value={form.payment_providers_other}
-                onChange={(e) => update("payment_providers_other", e.target.value)}
-              />
-            </div>
-          </>
+        {form.payment_providers.includes("Other (please specify)") && (
+          <OtherIntegrationDisclaimer />
         )}
         <div className="mt-4 space-y-1.5">
           <Label className="text-xs text-muted-foreground">Routing priority</Label>
