@@ -2425,11 +2425,13 @@ function InviteAmDialog({
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [doneStatus, setDoneStatus] = useState<"sent" | "resent" | "already_active">("sent");
 
   const reset = () => {
     setEmail("");
     setName("");
     setDone(false);
+    setDoneStatus("sent");
   };
 
   const handleInvite = async () => {
@@ -2443,10 +2445,24 @@ function InviteAmDialog({
       toast.error(error?.message ?? (data as { error?: string })?.error ?? "Failed to invite");
       return;
     }
+    const status = (data as { status?: string })?.status ?? "sent";
+    setDoneStatus(status as "sent" | "resent" | "already_active");
     setDone(true);
     void logActivity({ action: "am_invited", details: { invited_email: email, invited_role: "account_manager" } });
     onInvited();
   };
+
+  const doneTitle =
+    doneStatus === "already_active" ? "Already active" :
+    doneStatus === "resent" ? "Invite resent" :
+    "Invite sent";
+
+  const doneBody =
+    doneStatus === "already_active"
+      ? `${email} already has an active account — no invite needed.`
+      : doneStatus === "resent"
+      ? `${email} hadn't confirmed yet. A fresh invite email has been resent.`
+      : `${email} will receive an email to set up their account. They'll appear in the AM list once they accept.`;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
@@ -2455,12 +2471,11 @@ function InviteAmDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-success" /> Invite sent
+                <CheckCircle2 className="h-5 w-5 text-success" /> {doneTitle}
               </DialogTitle>
             </DialogHeader>
             <p className="text-sm text-muted-foreground mt-2">
-              <span className="font-semibold text-foreground">{email}</span> will receive an email
-              to set up their account. They'll appear in the AM list once they accept.
+              {doneBody}
             </p>
             <DialogFooter className="mt-4 gap-2 sm:justify-between">
               <Button variant="outline" onClick={reset}>
