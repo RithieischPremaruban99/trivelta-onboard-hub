@@ -226,11 +226,16 @@ export function AIChatPanel() {
           ...(conversationHistory.length > 0 && { conversationHistory }),
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error("No active session — please sign in again");
+
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-palette`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify(palettePayload),
         });
