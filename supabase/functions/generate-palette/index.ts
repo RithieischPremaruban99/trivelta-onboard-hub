@@ -2,13 +2,13 @@
  * Edge Function: generate-palette
  *
  * Translates a natural-language brand description into a complete TCMPalette
- * (344 fields) via Claude Sonnet 4.
+ * (344 fields) via Claude Sonnet 4.6 with extended thinking + vision logo input.
  *
  * POST /functions/v1/generate-palette
  * Body: { brandPrompt, language?, logoUrl?, currentPalette?, manualOverrides?, regenerationFeedback? }
  */
 
-import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.32.1?target=deno";
+import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.40.0?target=deno";
 import {
   DEFAULT_TCM_PALETTE,
   type TCMPalette,
@@ -119,6 +119,8 @@ If the user's request is PURELY about creating a logo (e.g. "create a logo", "ge
 If the user's request is MIXED (e.g. "create a logo AND colors for BetNova"), respond normally with a palette - the logo system handles the logo in parallel. In your reasoning, mention that you've applied the palette and that logo generation is being handled separately.
 
 If the user asks to MODIFY an existing logo (e.g. "make my logo more red"), respond in reasoning that logo modifications happen via: (a) regenerating the palette to shift surrounding colors to match the logo, or (b) asking for a new logo generation or uploading a different logo in Brand Assets.
+
+If a logo image is provided visually: analyse its dominant colors, gradients, and overall aesthetic to inform your palette choices. Extract the key brand colors directly from the image and build the full palette around them.
 
 ═══ SEMANTIC COLOR GRAMMAR - SACRED, NEVER VIOLATE ═══
 
@@ -329,10 +331,58 @@ interface GeneratePaletteResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Build user message
+// Fetch logo as base64 for vision input (5s timeout, 4MB cap)
 // ---------------------------------------------------------------------------
 
-function buildUserMessage(req: GeneratePaletteRequest): string {
+async function fetchLogoAsBase64(
+  url: string
+): Promise<{ base64: string; mediaType: string } | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    let res: Response;
+    try {
+      res = await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) {
+      console.warn(`[generate-palette] Logo fetch HTTP ${res.status}, falling back to text`);
+      return null;
+    }
+    const contentType = res.headers.get("content-type") ?? "image/png";
+    const mediaType = contentType.split(";")[0].trim();
+    const supportedTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+    if (!supportedTypes.includes(mediaType)) {
+      console.warn(`[generate-palette] Unsupported logo MIME ${mediaType}, falling back to text`);
+      return null;
+    }
+    const buf = await res.arrayBuffer();
+    const MAX_BYTES = 4 * 1024 * 1024; // 4MB
+    if (buf.byteLength > MAX_BYTES) {
+      console.warn(`[generate-palette] Logo too large (${buf.byteLength} bytes), falling back to text`);
+      return null;
+    }
+    // Encode to base64
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    console.log(`[generate-palette] Logo fetched: ${bytes.byteLength} bytes, type=${mediaType}`);
+    return { base64, mediaType };
+  } catch (e) {
+    console.warn(`[generate-palette] Logo fetch failed: ${e instanceof Error ? e.message : e}, falling back to text`);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Build user message text (logo handled separately via vision)
+// ---------------------------------------------------------------------------
+
+function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boolean): string {
   const parts: string[] = [];
 
   parts.push(`BRAND DESCRIPTION:\n${req.brandPrompt}`);
@@ -341,7 +391,8 @@ function buildUserMessage(req: GeneratePaletteRequest): string {
     parts.push(`TARGET LANGUAGE: ${req.language}`);
   }
 
-  if (req.logoUrl) {
+  // Only include logo URL as text if we failed to attach it as a vision image
+  if (req.logoUrl && !logoFetchedViaVision) {
     parts.push(`LOGO URL FOR REFERENCE: ${req.logoUrl}`);
   }
 
@@ -368,14 +419,15 @@ function buildUserMessage(req: GeneratePaletteRequest): string {
 }
 
 // ---------------------------------------------------------------------------
-// Parse AI response - with one retry on JSON parse failure
+// streamAnthropic - used for retry path (no thinking, with prompt caching)
 // ---------------------------------------------------------------------------
 
 async function streamAnthropic(
   client: Anthropic,
   messages: Anthropic.MessageParam[],
   model: string,
-  temperature: number
+  temperature: number,
+  systemText: string
 ): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
   const streamStart = Date.now();
   console.log(`[generate-palette] Starting stream with model: ${model}`);
@@ -388,7 +440,9 @@ async function streamAnthropic(
     model,
     max_tokens: 16000,
     temperature,
-    system: SYSTEM_PROMPT,
+    system: [
+      { type: "text", text: systemText, cache_control: { type: "ephemeral" } },
+    ] as Parameters<typeof client.messages.stream>[0]["system"],
     messages,
   });
 
@@ -411,48 +465,6 @@ async function streamAnthropic(
   );
 
   return { text: accumulated, inputTokens, outputTokens };
-}
-
-async function callAnthropicWithRetry(
-  client: Anthropic,
-  userMessage: string,
-  model: string
-): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
-  const messages: Anthropic.MessageParam[] = [
-    { role: "user", content: userMessage },
-  ];
-
-  const first = await streamAnthropic(client, messages, model, 0.7);
-
-  // Try parse - if fails, retry once with corrective instruction
-  try {
-    JSON.parse(first.text);
-    return first;
-  } catch {
-    console.error(
-      `[generate-palette] JSON parse failed. First 500 chars:`,
-      first.text.slice(0, 500)
-    );
-    console.log("[generate-palette] JSON parse failed on first attempt, retrying");
-
-    const retryMessages: Anthropic.MessageParam[] = [
-      { role: "user", content: userMessage },
-      { role: "assistant", content: first.text },
-      {
-        role: "user",
-        content:
-          "Your last response was not valid JSON. Return ONLY valid JSON with no markdown fences, no extra prose. Start your response with { and end with }.",
-      },
-    ];
-
-    const retry = await streamAnthropic(client, retryMessages, model, 0.3);
-
-    return {
-      text: retry.text,
-      inputTokens: first.inputTokens + retry.inputTokens,
-      outputTokens: first.outputTokens + retry.outputTokens,
-    };
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -745,40 +757,77 @@ Deno.serve(async (req: Request) => {
   console.log(
     `[generate-palette] Request: prompt_length=${body.brandPrompt.length}, ` +
     `has_current_palette=${!!body.currentPalette}, ` +
-    `overrides_count=${body.manualOverrides?.length ?? 0}`
+    `overrides_count=${body.manualOverrides?.length ?? 0}, ` +
+    `has_logo=${!!body.logoUrl}`
   );
 
-  // ── Build Anthropic client + model selection ──────────────────────────────
-  const client = new Anthropic({ apiKey });
+  // ── Fetch logo as vision image (best-effort, 5s, 4MB cap) ─────────────────
+  let logoData: { base64: string; mediaType: string } | null = null;
+  if (body.logoUrl) {
+    logoData = await fetchLogoAsBase64(body.logoUrl);
+  }
 
-  const PRIMARY_MODEL = "claude-sonnet-4-20250514";
+  // ── Build Anthropic client + model selection ──────────────────────────────
+  const client = new Anthropic({
+    apiKey,
+    defaultHeaders: {
+      "anthropic-beta": "interleaved-thinking-2025-05-14,prompt-caching-2024-07-31",
+    },
+  });
+
+  const PRIMARY_MODEL = "claude-sonnet-4-6";
   const HAIKU_MODEL = "claude-haiku-4-5-20251001";
   const isRefine = isSimpleRefinement(body.brandPrompt, !!body.currentPalette);
   const model = isRefine ? HAIKU_MODEL : PRIMARY_MODEL;
+  const isPrimary = model === PRIMARY_MODEL;
   const maxTokens = isRefine ? 2000 : 16000;
   const effectiveSystemPrompt = isRefine ? REFINEMENT_PREFIX + SYSTEM_PROMPT : SYSTEM_PROMPT;
+  // Extended thinking requires temperature=1; Haiku uses 0.7
+  const temperature = isPrimary ? 1 : 0.7;
 
   console.log(
-    `[generate-palette] Model: ${model} (isRefine=${isRefine}, prompt_length=${body.brandPrompt.length})`
+    `[generate-palette] Model: ${model} (isRefine=${isRefine}, isPrimary=${isPrimary}, logoVision=${!!logoData})`
   );
 
-  const userMessage = buildUserMessage(body);
+  // ── Build user content (text + optional vision image) ─────────────────────
+  const userText = buildUserMessage(body, !!logoData);
+  type ContentBlock = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
+  const userContent: ContentBlock[] = [{ type: "text", text: userText }];
+  if (logoData) {
+    userContent.push({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: logoData.mediaType as "image/png" | "image/jpeg" | "image/gif" | "image/webp",
+        data: logoData.base64,
+      },
+    });
+    userContent.push({
+      type: "text",
+      text: "The image above is the brand logo. Analyse its colors and aesthetic to inform the palette.",
+    });
+  }
 
-  // ── SSE streaming response ─────────────────────────────────────────────────
-  const encoder = new TextEncoder();
-
-  // Build messages array - prepend conversation history (last ≤10 turns) then current message
+  // ── Build messages array - prepend conversation history (last ≤10 turns) ──
   const historyMessages: Anthropic.MessageParam[] = (body.conversationHistory ?? [])
     .slice(-10)
     .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
   const anthropicMessages: Anthropic.MessageParam[] = [
     ...historyMessages,
-    { role: "user", content: userMessage },
+    { role: "user", content: userContent },
   ];
 
   console.log(
     `[generate-palette] History turns: ${historyMessages.length}, total messages: ${anthropicMessages.length}`
   );
+
+  // ── SSE streaming response ─────────────────────────────────────────────────
+  const encoder = new TextEncoder();
+
+  // Cached system block (shared between primary and haiku paths)
+  const cachedSystem = [
+    { type: "text", text: effectiveSystemPrompt, cache_control: { type: "ephemeral" } },
+  ] as Parameters<typeof client.messages.stream>[0]["system"];
 
   const sseStream = new ReadableStream({
     async start(controller) {
@@ -790,37 +839,48 @@ Deno.serve(async (req: Request) => {
         let reasoningDone = false;
         let reasoningSentUpTo = 0;
 
-        const stream = client.messages.stream({
+        // Build stream params - extended thinking only for primary model
+        const streamParams: Parameters<typeof client.messages.stream>[0] = {
           model,
           max_tokens: maxTokens,
-          temperature: 0.7,
-          system: effectiveSystemPrompt,
+          temperature,
+          system: cachedSystem,
           messages: anthropicMessages,
-        });
+          ...(isPrimary && {
+            thinking: { type: "enabled", budget_tokens: 4000 },
+          }),
+        };
+
+        const stream = client.messages.stream(streamParams);
 
         for await (const event of stream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            accumulated += event.delta.text;
+          if (event.type === "content_block_delta") {
+            // Extended thinking delta - emit as thinking_chunk
+            if ((event.delta as { type: string }).type === "thinking_delta") {
+              const thinkingText = (event.delta as { type: string; thinking: string }).thinking ?? "";
+              if (thinkingText) {
+                send({ type: "thinking_chunk", text: thinkingText });
+              }
+            } else if (event.delta.type === "text_delta") {
+              accumulated += event.delta.text;
 
-            // Stream pre-JSON text as reasoning chunks
-            if (!reasoningDone) {
-              const boundary = accumulated.indexOf("\n{");
-              if (boundary !== -1) {
-                // Found JSON boundary - stream anything unsent before it
-                const unsent = accumulated.slice(reasoningSentUpTo, boundary);
-                if (unsent.trim()) send({ type: "reasoning_chunk", text: unsent });
-                reasoningDone = true;
-                reasoningSentUpTo = boundary;
-              } else {
-                // Stream up to 2 chars before end to avoid splitting \n{ boundary
-                const safeEnd = Math.max(reasoningSentUpTo, accumulated.length - 2);
-                if (safeEnd > reasoningSentUpTo) {
-                  const chunk = accumulated.slice(reasoningSentUpTo, safeEnd);
-                  if (chunk) send({ type: "reasoning_chunk", text: chunk });
-                  reasoningSentUpTo = safeEnd;
+              // Stream pre-JSON text as reasoning chunks
+              if (!reasoningDone) {
+                const boundary = accumulated.indexOf("\n{");
+                if (boundary !== -1) {
+                  // Found JSON boundary - stream anything unsent before it
+                  const unsent = accumulated.slice(reasoningSentUpTo, boundary);
+                  if (unsent.trim()) send({ type: "reasoning_chunk", text: unsent });
+                  reasoningDone = true;
+                  reasoningSentUpTo = boundary;
+                } else {
+                  // Stream up to 2 chars before end to avoid splitting \n{ boundary
+                  const safeEnd = Math.max(reasoningSentUpTo, accumulated.length - 2);
+                  if (safeEnd > reasoningSentUpTo) {
+                    const chunk = accumulated.slice(reasoningSentUpTo, safeEnd);
+                    if (chunk) send({ type: "reasoning_chunk", text: chunk });
+                    reasoningSentUpTo = safeEnd;
+                  }
                 }
               }
             }
@@ -849,13 +909,13 @@ Deno.serve(async (req: Request) => {
             parsed = JSON.parse(trimmed);
             preJsonReasoning = typeof parsed.reasoning === "string" ? parsed.reasoning : preJsonReasoning;
           } catch {
-            // Last resort: retry with explicit JSON instruction
+            // Last resort: retry with explicit JSON instruction (no thinking on retry)
             console.warn("[generate-palette] JSON parse failed, doing inline retry");
             const retryResult = await streamAnthropic(
               client,
               [
                 ...historyMessages,
-                { role: "user", content: userMessage },
+                { role: "user", content: userContent },
                 { role: "assistant", content: accumulated },
                 {
                   role: "user",
@@ -864,7 +924,8 @@ Deno.serve(async (req: Request) => {
                 },
               ],
               model,
-              0.3
+              0.3,
+              effectiveSystemPrompt
             );
             try {
               parsed = JSON.parse(retryResult.text.trim());
