@@ -61,6 +61,12 @@ import { PremiumColorPicker } from "@/components/studio/PremiumColorPicker";
 import { useStudioFeatures } from "@/hooks/useStudioFeatures";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
 
@@ -91,8 +97,12 @@ const REQUIRED_FIELDS: (keyof LandingPageFormState)[] = [
   "legalCompanyName",
   "brandName",
   "primaryDomain",
+  "platformSubdomain",
   "supportEmail",
+  "supportHelpline",
   "licenseJurisdiction",
+  "licenseNumber",
+  "rgHelplines",
   "brandPrimaryColor",
 ];
 
@@ -114,8 +124,12 @@ const FIELD_LABELS: Record<string, string> = {
   legalCompanyName: "Legal company name",
   brandName: "Brand name",
   primaryDomain: "Primary domain",
+  platformSubdomain: "Platform subdomain",
   supportEmail: "Support email",
+  supportHelpline: "Support helpline",
   licenseJurisdiction: "License jurisdiction",
+  licenseNumber: "License number",
+  rgHelplines: "RG helplines",
   brandPrimaryColor: "Primary color",
   logo: "Brand logo",
 };
@@ -124,8 +138,12 @@ const FIELD_SECTION: Record<string, { section: string; id: string }> = {
   legalCompanyName: { section: "company", id: "si-legal" },
   brandName: { section: "company", id: "si-brand" },
   primaryDomain: { section: "company", id: "si-domain" },
+  platformSubdomain: { section: "company", id: "si-sub" },
   supportEmail: { section: "support", id: "si-email" },
+  supportHelpline: { section: "support", id: "si-phone" },
   licenseJurisdiction: { section: "legal", id: "si-jur" },
+  licenseNumber: { section: "legal", id: "si-lic" },
+  rgHelplines: { section: "legal", id: "si-rg" },
   brandPrimaryColor: { section: "visuals", id: "" },
   logo: { section: "assets", id: "" },
 };
@@ -513,6 +531,8 @@ export function LandingPageGenerator({
   }, [form, logoUrl]);
 
   const canGenerate = missingFields.length === 0;
+  const totalRequired = REQUIRED_FIELDS.length + 1; // +1 for logo
+  const filledCount = totalRequired - missingFields.length;
 
   const isInvalid = (f: keyof LandingPageFormState) =>
     attempted && REQUIRED_FIELDS.includes(f) && form[f].trim() === "";
@@ -685,10 +705,10 @@ export function LandingPageGenerator({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <FieldLabel htmlFor="lpg-sub" compact={compact}>Platform subdomain</FieldLabel>
+          <FieldLabel htmlFor="lpg-sub" required compact={compact}>Platform subdomain</FieldLabel>
           <Input id="lpg-sub" value={form.platformSubdomain} onChange={onChange("platformSubdomain")}
             placeholder="play.scorama.com" className={inputCls} disabled={generating} />
-          <FieldHelper helper="Where the betting app lives. Landing page links will point here." compact={compact} />
+          <FieldHelper error={isInvalid("platformSubdomain")} helper={!isInvalid("platformSubdomain") ? "Where the betting app lives. Landing page links will point here." : undefined} compact={compact} />
         </div>
       </div>
 
@@ -703,9 +723,10 @@ export function LandingPageGenerator({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <FieldLabel htmlFor="lpg-phone" compact={compact}>Support helpline</FieldLabel>
+          <FieldLabel htmlFor="lpg-phone" required compact={compact}>Support helpline</FieldLabel>
           <Input id="lpg-phone" value={form.supportHelpline} onChange={onChange("supportHelpline")}
             placeholder="+234 800 123 4567" className={inputCls} disabled={generating} />
+          <FieldHelper error={isInvalid("supportHelpline")} compact={compact} />
         </div>
       </div>
 
@@ -743,19 +764,19 @@ export function LandingPageGenerator({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <FieldLabel htmlFor="lpg-lic" compact={compact}>License number</FieldLabel>
+          <FieldLabel htmlFor="lpg-lic" required compact={compact}>License number</FieldLabel>
           <Input id="lpg-lic" value={form.licenseNumber} onChange={onChange("licenseNumber")}
             placeholder="00123456" className={inputCls} disabled={generating} />
-          <FieldHelper helper="Your operating license number, if assigned" compact={compact} />
+          <FieldHelper error={isInvalid("licenseNumber")} helper={!isInvalid("licenseNumber") ? "Your operating license number, if assigned" : undefined} compact={compact} />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <FieldLabel htmlFor="lpg-rg" compact={compact}>Responsible gambling helplines</FieldLabel>
+          <FieldLabel htmlFor="lpg-rg" required compact={compact}>Responsible gambling helplines</FieldLabel>
           <Textarea id="lpg-rg" value={form.rgHelplines} onChange={onChange("rgHelplines")}
             placeholder="Auto-populated when jurisdiction is selected"
             className={cn("resize-none", compact ? "text-xs min-h-[72px]" : "min-h-[96px]")}
             disabled={generating} />
-          <FieldHelper helper="Local problem gambling support resources. Auto-filled based on jurisdiction." compact={compact} />
+          <FieldHelper error={isInvalid("rgHelplines")} helper={!isInvalid("rgHelplines") ? "Local problem gambling support resources. Auto-filled based on jurisdiction." : undefined} compact={compact} />
         </div>
       </div>
 
@@ -822,25 +843,57 @@ export function LandingPageGenerator({
             <AlertDescription>{genError}</AlertDescription>
           </Alert>
         )}
-        <div className="flex gap-2">
-          <Button
-            size={compact ? "sm" : "default"}
-            className="flex-1 gap-1.5"
-            disabled={generating}
-            onClick={handleGenerate}
-          >
-            {generating ? (
-              <>
-                <Loader2 className={cn("animate-spin", compact ? "h-3.5 w-3.5" : "h-4 w-4")} />
-                Generating...
-              </>
-            ) : (
-              <>
-                <CtaIcon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-                {ctaLabel}
-              </>
+
+        {/* Progress indicator */}
+        <div className="flex flex-col gap-1 mb-1">
+          <div className="flex items-center justify-between">
+            <span className={cn(compact ? "text-[10px]" : "text-xs", "text-muted-foreground")}>
+              {filledCount} of {totalRequired} fields complete
+            </span>
+            {canGenerate && (
+              <span className={cn(compact ? "text-[10px]" : "text-xs", "text-green-500 font-medium flex items-center gap-1")}>
+                <CheckCircle2 className="h-3 w-3" /> Ready
+              </span>
             )}
-          </Button>
+          </div>
+          <div className="h-1 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300 rounded-full"
+              style={{ width: `${Math.round((filledCount / totalRequired) * 100)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={cn("flex-1", !canGenerate && !generating ? "cursor-not-allowed" : "")}>
+                  <Button
+                    size={compact ? "sm" : "default"}
+                    className="w-full gap-1.5"
+                    disabled={generating || !canGenerate}
+                    onClick={handleGenerate}
+                  >
+                    {generating ? (
+                      <>
+                        <Loader2 className={cn("animate-spin", compact ? "h-3.5 w-3.5" : "h-4 w-4")} />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <CtaIcon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+                        {ctaLabel}
+                      </>
+                    )}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!canGenerate && !generating && (
+                <TooltipContent>Fill all fields to generate</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <Button
             size={compact ? "sm" : "default"}
             variant="outline"
@@ -1166,7 +1219,9 @@ export function LandingPageGenerator({
                 </FormField>
                 <FormField
                   label="Platform subdomain"
-                  helperText="The betting app URL. CTA buttons will link here."
+                  required
+                  error={isInvalid("platformSubdomain") ? "Required" : undefined}
+                  helperText={!isInvalid("platformSubdomain") ? "The betting app URL. CTA buttons will link here." : undefined}
                 >
                   <Input id="si-sub" value={form.platformSubdomain}
                     onChange={onChange("platformSubdomain")} placeholder="play.scorama.com"
@@ -1193,7 +1248,11 @@ export function LandingPageGenerator({
                     onChange={onChange("supportEmail")} placeholder="support@scorama.com"
                     className={SI_INPUT} disabled={generating} />
                 </FormField>
-                <FormField label="Support helpline">
+                <FormField
+                  label="Support helpline"
+                  required
+                  error={isInvalid("supportHelpline") ? "Required" : undefined}
+                >
                   <Input id="si-phone" value={form.supportHelpline}
                     onChange={onChange("supportHelpline")} placeholder="+234 800 123 4567"
                     className={SI_INPUT} disabled={generating} />
@@ -1243,7 +1302,9 @@ export function LandingPageGenerator({
                 </FormField>
                 <FormField
                   label="License number"
-                  helperText="Your operating license number, if assigned"
+                  required
+                  error={isInvalid("licenseNumber") ? "Required" : undefined}
+                  helperText={!isInvalid("licenseNumber") ? "Your operating license number, if assigned" : undefined}
                 >
                   <Input id="si-lic" value={form.licenseNumber}
                     onChange={onChange("licenseNumber")} placeholder="00123456"
@@ -1251,7 +1312,9 @@ export function LandingPageGenerator({
                 </FormField>
                 <FormField
                   label="RG helplines"
-                  helperText="Auto-filled from jurisdiction. Override if needed."
+                  required
+                  error={isInvalid("rgHelplines") ? "Required" : undefined}
+                  helperText={!isInvalid("rgHelplines") ? "Auto-filled from jurisdiction. Override if needed." : undefined}
                 >
                   <Textarea id="si-rg" value={form.rgHelplines}
                     onChange={onChange("rgHelplines")}
@@ -1323,39 +1386,72 @@ export function LandingPageGenerator({
 
             {/* Step 1 — Generate (shown until pages are ready) */}
             {!pages && (
-              <Button
-                size="lg"
-                disabled={generating}
-                onClick={handleGenerate}
-                className={cn(
-                  "w-full relative overflow-hidden transition-all duration-500 group",
-                  generating && "cursor-wait",
-                  !canGenerate && !generating && "opacity-70",
-                )}
-              >
-                {generating ? (
-                  <div className="flex items-center justify-center gap-3 w-full">
-                    <div className="relative h-4 w-4 shrink-0">
-                      <div className="absolute inset-0 rounded-full border-2 border-white/20" />
-                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
-                    </div>
-                    <span
-                      key={genStage}
-                      className="animate-in fade-in slide-in-from-bottom-1 duration-300"
-                    >
-                      {genStage || "Starting…"}
+              <>
+                {/* Progress indicator */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {filledCount} of {totalRequired} fields complete
                     </span>
+                    {canGenerate && (
+                      <span className="text-xs text-green-500 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Ready
+                      </span>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Pages
-                  </>
-                )}
-                {canGenerate && !generating && (
-                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
-                )}
-              </Button>
+                  <div className="h-1 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-300 rounded-full"
+                      style={{ width: `${Math.round((filledCount / totalRequired) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={cn(!canGenerate && !generating ? "cursor-not-allowed" : "")}>
+                        <Button
+                          size="lg"
+                          disabled={generating || !canGenerate}
+                          onClick={handleGenerate}
+                          className={cn(
+                            "w-full relative overflow-hidden transition-all duration-500 group",
+                            generating && "cursor-wait",
+                            !canGenerate && !generating && "opacity-60",
+                          )}
+                        >
+                          {generating ? (
+                            <div className="flex items-center justify-center gap-3 w-full">
+                              <div className="relative h-4 w-4 shrink-0">
+                                <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+                                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
+                              </div>
+                              <span
+                                key={genStage}
+                                className="animate-in fade-in slide-in-from-bottom-1 duration-300"
+                              >
+                                {genStage || "Starting…"}
+                              </span>
+                            </div>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              Generate Pages
+                            </>
+                          )}
+                          {canGenerate && !generating && (
+                            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+                          )}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {!canGenerate && !generating && (
+                      <TooltipContent>Fill all fields to generate</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              </>
             )}
 
             {/* Step 2 — Download + Regenerate (shown after pages are ready) */}
