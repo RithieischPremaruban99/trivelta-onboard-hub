@@ -83,6 +83,9 @@ export function AIChatPanel() {
   const [loadingType, setLoadingType] = useState<"palette" | "logo">("palette");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Keep a ref so sendMessage can read current messages without a stale closure
+  const messagesRef = useRef(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Update welcome message if logo is uploaded after initial mount
   const prevHasLogoRef = useRef(hasLogo);
@@ -208,7 +211,9 @@ export function AIChatPanel() {
         const isRefinement = brandPromptHistory.length > 0;
 
         // Collect last 10 messages as conversation history (skip welcome msg at index 0)
-        const conversationHistory = messages
+        // Use messagesRef to avoid stale closure — messages grows with conversational replies
+        // that don't trigger a sendMessage deps change via addBrandPrompt
+        const conversationHistory = messagesRef.current
           .slice(1)
           .slice(-10)
           .map((m) => ({
@@ -253,10 +258,34 @@ export function AIChatPanel() {
         let buffer = "";
         let streamingStarted = false;
         let streamedReasoning = "";
+        let streamCompleted = false;
 
         outer: while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            // Stream closed without a complete/error/conversational event (network drop, edge crash)
+            if (!streamCompleted) {
+              if (streamingStarted) {
+                // Clear the dangling isStreaming cursor
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = {
+                    ...updated[updated.length - 1],
+                    content: updated[updated.length - 1].content.trim() || "Response ended unexpectedly. Please try again.",
+                    isStreaming: false,
+                    isError: !updated[updated.length - 1].content.trim(),
+                  };
+                  return updated;
+                });
+              } else {
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "assistant", content: "Response ended unexpectedly. Please try again.", isError: true },
+                ]);
+              }
+            }
+            break;
+          }
 
           buffer += decoder.decode(value, { stream: true });
           const parts = buffer.split("\n\n");
@@ -274,7 +303,10 @@ export function AIChatPanel() {
               continue;
             }
 
-            if (evt.type === "reasoning_chunk" && typeof evt.text === "string") {
+            if (evt.type === "thinking_chunk") {
+              // Extended thinking in progress — model is reasoning deeply, no UI action needed
+              // (loading spinner already visible; thinking content is internal reasoning, not shown)
+            } else if (evt.type === "reasoning_chunk" && typeof evt.text === "string") {
               if (!streamingStarted) {
                 streamingStarted = true;
                 setLoading(false);
@@ -294,6 +326,8 @@ export function AIChatPanel() {
               });
             } else if (evt.type === "conversational" && typeof evt.message === "string") {
               // Conversational reply — no palette change
+              streamCompleted = true;
+              setLoading(false);
               setMessages((prev) => {
                 const updated = streamingStarted
                   ? [...prev]
@@ -305,8 +339,10 @@ export function AIChatPanel() {
                 };
                 return updated;
               });
+              reader.cancel().catch(() => {});
               break outer;
             } else if (evt.type === "complete" && evt.palette) {
+              streamCompleted = true;
               setPalette(evt.palette as TCMPalette);
               const reasoning =
                 typeof evt.reasoning === "string" ? evt.reasoning : undefined;
@@ -329,8 +365,10 @@ export function AIChatPanel() {
               if (Array.isArray(evt.warnings) && evt.warnings.length > 0) {
                 toast.warning((evt.warnings as string[]).join("; "), { duration: 4000 });
               }
+              reader.cancel().catch(() => {});
               break outer;
             } else if (evt.type === "error") {
+              streamCompleted = true;
               const streamErr = typeof evt.message === "string" ? evt.message : JSON.stringify(evt);
               console.error("[AIChatPanel] generate-palette stream error:", streamErr);
               toast.error(`Palette generation failed: ${streamErr}`);
@@ -344,6 +382,7 @@ export function AIChatPanel() {
                 };
                 return base;
               });
+              reader.cancel().catch(() => {});
               break outer;
             }
           }
