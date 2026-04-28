@@ -2009,6 +2009,8 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
           drive_link: driveLink.trim() || null,
           primary_contact_email: contactEmail.trim().toLowerCase(),
           studio_access: grantStudioAccess,
+          status: "onboarding",
+          onboarding_phase: "Pre-Sale",
           ...(grantStudioAccess ? { studio_access_granted_at: new Date().toISOString() } : {}),
         },
       ])

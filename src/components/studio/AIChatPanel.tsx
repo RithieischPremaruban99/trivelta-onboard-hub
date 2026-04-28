@@ -131,16 +131,22 @@ export function AIChatPanel() {
       setLoading(true);
 
       try {
+        const logoPayload = {
+          userRequest: userMessage,
+          primaryColor: palette.primary,
+          secondaryColor: palette.secondary,
+          fallbackBrandName: appName || "the platform",
+        };
+        console.log("[AIChatPanel] Calling generate-logo with:", logoPayload);
         const { data, error } = await supabase.functions.invoke("generate-logo", {
-          body: {
-            userRequest: userMessage,
-            primaryColor: palette.primary,
-            secondaryColor: palette.secondary,
-            fallbackBrandName: appName || "the platform",
-          },
+          body: logoPayload,
         });
 
-        if (error) throw new Error(error.message);
+        if (error) {
+          console.error("[AIChatPanel] generate-logo error:", error);
+          throw new Error(error.message);
+        }
+        console.log("[AIChatPanel] generate-logo response:", data);
 
         const logos = (data?.logos ?? []) as LogoVariant[];
 
@@ -159,7 +165,9 @@ export function AIChatPanel() {
 
         addBrandPrompt(userMessage, "Logo variants generated", undefined, undefined, logos);
       } catch (err) {
-        console.error("[AIChatPanel] generate-logo error:", err);
+        console.error("[AIChatPanel] generate-logo threw:", err);
+        const errMsg = err instanceof Error ? err.message : "Unknown error";
+        toast.error(`Logo generation failed: ${errMsg}`);
         setMessages((prev) => [
           ...prev,
           {
@@ -208,24 +216,29 @@ export function AIChatPanel() {
             content: m.content.slice(0, 500),
           }));
 
+        const palettePayload = {
+          brandPrompt: trimmed,
+          language,
+          logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
+          currentPalette: isRefinement ? palette : undefined,
+          manualOverrides: Array.from(manualOverrides),
+          ...(isRefinement && { regenerationFeedback: trimmed }),
+          ...(conversationHistory.length > 0 && { conversationHistory }),
+        };
+        console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-palette`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             apikey: SUPABASE_ANON_KEY,
           },
-          body: JSON.stringify({
-            brandPrompt: trimmed,
-            language,
-            logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
-            currentPalette: isRefinement ? palette : undefined,
-            manualOverrides: Array.from(manualOverrides),
-            ...(isRefinement && { regenerationFeedback: trimmed }),
-            ...(conversationHistory.length > 0 && { conversationHistory }),
-          }),
+          body: JSON.stringify(palettePayload),
         });
 
-        if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok || !res.body) {
+          console.error("[AIChatPanel] generate-palette HTTP error:", res.status, res.statusText);
+          throw new Error(`HTTP ${res.status}`);
+        }
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -296,6 +309,9 @@ export function AIChatPanel() {
               }
               break outer;
             } else if (evt.type === "error") {
+              const streamErr = typeof evt.message === "string" ? evt.message : JSON.stringify(evt);
+              console.error("[AIChatPanel] generate-palette stream error:", streamErr);
+              toast.error(`Palette generation failed: ${streamErr}`);
               setMessages((prev) => {
                 const base = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
                 base[base.length - 1] = {
@@ -311,7 +327,9 @@ export function AIChatPanel() {
           }
         }
       } catch (err) {
-        console.error("[AIChatPanel] generate-palette error:", err);
+        console.error("[AIChatPanel] generate-palette threw:", err);
+        const errMsg = err instanceof Error ? err.message : "Unknown error";
+        toast.error(`Palette generation failed: ${errMsg}`);
         setMessages((prev) => [
           ...prev,
           {
