@@ -216,13 +216,16 @@ export function AIChatPanel() {
             content: m.content.slice(0, 500),
           }));
 
+        const refinementVerbs = /\b(more|less|darker|lighter|brighter|adjust|change|make it|tweak|refine|shift|deeper|softer|punchier)\b/i;
+        const looksLikeRefinement = isRefinement && refinementVerbs.test(trimmed);
+
         const palettePayload = {
           brandPrompt: trimmed,
           language,
           logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
           currentPalette: isRefinement ? palette : undefined,
           manualOverrides: Array.from(manualOverrides),
-          ...(isRefinement && { regenerationFeedback: trimmed }),
+          ...(looksLikeRefinement && { regenerationFeedback: trimmed }),
           ...(conversationHistory.length > 0 && { conversationHistory }),
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
@@ -289,6 +292,20 @@ export function AIChatPanel() {
                 };
                 return updated;
               });
+            } else if (evt.type === "conversational" && typeof evt.message === "string") {
+              // Conversational reply — no palette change
+              setMessages((prev) => {
+                const updated = streamingStarted
+                  ? [...prev]
+                  : [...prev, { role: "assistant" as const, content: "" }];
+                updated[updated.length - 1] = {
+                  role: "assistant",
+                  content: evt.message as string,
+                  isStreaming: false,
+                };
+                return updated;
+              });
+              break outer;
             } else if (evt.type === "complete" && evt.palette) {
               setPalette(evt.palette as TCMPalette);
               const reasoning =

@@ -85,6 +85,33 @@ All other fields: include only if you have a specific brand-driven reason to cha
 
 Every rgba() string: valid format, alpha between 0 and 1.
 
+═══ WHEN TO RESPOND CONVERSATIONALLY (NO PALETTE) ═══
+
+Some user messages are NOT brand-design requests. They include:
+- Questions about your capabilities ("what can you do?", "how does this work?")
+- Requests for recommendations or advice without a specific brand
+  ("what colors are popular in Nigeria?", "any tips?", "what would you suggest?")
+- Meta questions about the product, the platform, or the design process
+- Greetings, thanks, or unclear messages
+- Requests to explain a previous palette decision
+
+For these messages, respond with this JSON shape on the first line of output
+(no pre-text, just the JSON):
+
+  {"mode": "conversational", "message": "...your helpful answer (2-5 sentences)..."}
+
+Do NOT include a "palette" field in conversational responses. Do NOT invent
+a palette to satisfy the format. The system handles conversational mode
+separately.
+
+When you're confident the user IS describing a brand (mentions a name,
+mentions colors/vibe, refers to a market, says "make me a palette"), use
+the normal palette generation format.
+
+When in doubt, prefer conversational mode and ask a clarifying question.
+It's better to ask "Sport-focused, casino, or both? Mass-market or premium?"
+than to guess.
+
 ═══ BRAND FACTS - VERIFIED, NEVER INVENT ═══
 
 If user mentions any of these operators, use these EXACT primary colors:
@@ -865,6 +892,10 @@ Deno.serve(async (req: Request) => {
               accumulated += event.delta.text;
 
               // Stream pre-JSON text as reasoning chunks
+              // Skip streaming if response starts with { (conversational JSON or direct JSON)
+              if (!reasoningDone && accumulated.trimStart().startsWith("{")) {
+                reasoningDone = true;
+              }
               if (!reasoningDone) {
                 const boundary = accumulated.indexOf("\n{");
                 if (boundary !== -1) {
@@ -899,7 +930,7 @@ Deno.serve(async (req: Request) => {
           jsonText = trimmed.slice(boundaryIdx + 1).trim();
         }
 
-        let parsed: { palette?: Record<string, unknown>; reasoning?: string; keyColorsSummary?: string };
+        let parsed: { palette?: Record<string, unknown>; reasoning?: string; keyColorsSummary?: string; mode?: string; message?: string };
 
         try {
           parsed = JSON.parse(jsonText);
@@ -935,6 +966,13 @@ Deno.serve(async (req: Request) => {
               return;
             }
           }
+        }
+
+        // Conversational mode — model chose to respond without a palette
+        if (parsed.mode === "conversational" && typeof parsed.message === "string") {
+          send({ type: "conversational", message: parsed.message });
+          controller.close();
+          return;
         }
 
         if (!parsed.palette || typeof parsed.palette !== "object") {
