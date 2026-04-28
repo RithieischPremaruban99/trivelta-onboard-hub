@@ -130,7 +130,7 @@ interface ClientRow {
   platform_live?: boolean;
   studio_features: StudioFeatures | null;
   notion_page_id?: string | null;
-  onboarding_phase?: "Pre-Sale" | "Contract" | "Initial Setup" | "Full Config" | "Pre-Launch" | "Post-Launch" | null;
+  onboarding_phase?: "Pre-Sale" | "Post-Sale" | "Contract" | "Initial Setup" | "Full Config" | "Pre-Launch" | "Post-Launch" | null;
   contract_signed_at?: string | null;
   contract_start_date?: string | null;
   go_live_date?: string | null;
@@ -156,7 +156,7 @@ interface ProspectRow {
   converted_at: string | null;
 }
 
-// ─── Lifecycle action: Mark Contract Signed ───────────────────────────────────
+// ─── Lifecycle action: Mark Commitment Fee Paid ───────────────────────────────
 
 function MarkContractSignedButton({ clientId, onSuccess }: { clientId: string; onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
@@ -169,10 +169,10 @@ function MarkContractSignedButton({ clientId, onSuccess }: { clientId: string; o
         body: { client_id: clientId },
       });
       if (error) throw error;
-      toast.success("Contract marked as signed. Notion updated.");
+      toast.success("Commitment fee marked as paid. Notion updated.");
       onSuccess();
     } catch (err) {
-      toast.error(`Failed to mark contract signed: ${err instanceof Error ? err.message : "Unknown error"}`);
+      toast.error(`Failed to mark commitment fee paid: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
       setLoading(false);
       setConfirmOpen(false);
@@ -189,15 +189,15 @@ function MarkContractSignedButton({ clientId, onSuccess }: { clientId: string; o
         disabled={loading}
       >
         <FileSignature className="h-3.5 w-3.5" />
-        Mark Contract Signed
+        Commitment Fee Paid
       </Button>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark contract as signed?</AlertDialogTitle>
+            <AlertDialogTitle>Mark commitment fee as paid?</AlertDialogTitle>
             <AlertDialogDescription>
-              This transitions the client from Pre-Sale to Contract phase.
+              This transitions the client to Contract phase.
               Contract Start Date will be set to today.
               Notion will be updated automatically.
             </AlertDialogDescription>
@@ -1071,9 +1071,9 @@ function AdminPage() {
                             </div>
                           )}
                           {/* Lifecycle actions — shown only for actionable phases */}
-                          {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Pre-Launch") && (
+                          {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Post-Sale" || c.onboarding_phase === "Pre-Launch") && (
                             <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
-                              {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale") && (
+                              {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Post-Sale") && (
                                 <MarkContractSignedButton clientId={c.id} onSuccess={refresh} />
                               )}
                               {c.onboarding_phase === "Pre-Launch" && (
@@ -2008,7 +2008,7 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
           primary_contact_email: contactEmail.trim().toLowerCase(),
           studio_access: grantStudioAccess,
           status: "onboarding",
-          onboarding_phase: "Pre-Sale",
+          onboarding_phase: "Post-Sale",
           ...(grantStudioAccess ? { studio_access_granted_at: new Date().toISOString() } : {}),
         },
       ])
@@ -2276,7 +2276,7 @@ function ConvertProspectDialog({
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
-                Notion page updated with "Contract Signed" section
+                Notion page updated with "Commitment Fee Paid" section
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
