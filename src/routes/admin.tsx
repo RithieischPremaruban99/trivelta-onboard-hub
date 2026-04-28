@@ -2021,6 +2021,13 @@ function NewClientDialog({ ams, onCreated }: { ams: AmLite[]; onCreated: () => v
       return;
     }
 
+    // Seed an empty onboarding_forms row so the form's auto-save always
+    // hits the UPDATE path (onConflict) rather than trying to INSERT,
+    // which avoids FK violations if the row doesn't exist yet.
+    await supabase
+      .from("onboarding_forms")
+      .upsert({ client_id: data.id, data: {} }, { onConflict: "client_id" });
+
     if (amIds.length > 0) {
       const { error: camErr } = await supabase
         .from("client_account_managers")

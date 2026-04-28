@@ -371,6 +371,22 @@ function FormScreen() {
             .maybeSingle(),
         ]);
         if (formRes.error) throw formRes.error;
+
+        // Guard: client doesn't exist — stale URL or deleted client
+        if (!clientRes.data) {
+          toast.error("This onboarding session is no longer valid. Please contact your account manager.");
+          setLoading(false);
+          return;
+        }
+
+        // Ensure the onboarding_forms row exists so every auto-save is an
+        // UPDATE (onConflict path) rather than an INSERT — prevents FK violations.
+        if (!formRes.data) {
+          await supabase
+            .from("onboarding_forms")
+            .upsert({ client_id: clientId, data: {} }, { onConflict: "client_id" });
+        }
+
         const sf = clientRes.data?.studio_features as Record<string, boolean> | null;
         const hasStudioAccessFlag = clientRes.data?.studio_access ?? false;
         const hasLandingPageGen = sf?.landing_page_generator === true;
