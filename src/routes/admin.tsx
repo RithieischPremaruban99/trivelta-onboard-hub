@@ -361,7 +361,7 @@ function AdminPage() {
           supabase
             .from("clients")
             .select(
-              "id, name, country, status, drive_link, platform_url, primary_contact_email, primary_contact_name, created_at, studio_access, platform_live, studio_features, notion_page_id, onboarding_phase, contract_signed_at, contract_start_date, go_live_date, next_renewal_date, health_score, access_token",
+              "id, name, country, status, drive_link, platform_url, primary_contact_email, primary_contact_name, created_at, studio_access, platform_live, studio_features, notion_page_id, onboarding_phase, contract_signed_at, contract_start_date, go_live_date, next_renewal_date, health_score",
             )
             .order("created_at", { ascending: false }),
           supabase.from("role_assignments").select("email, name").eq("role", "account_manager"),
@@ -369,7 +369,7 @@ function AdminPage() {
           supabase.from("client_account_managers").select("client_id, am_email"),
           supabase
             .from("onboarding_forms")
-            .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data, notion_sync_pending, notion_sync_error"),
+            .select("client_id, studio_config, studio_locked, studio_locked_at, submitted_at, data"),
           (supabase as unknown as { from: (t: string) => any })
             .from("prospects")
             .select(
@@ -428,14 +428,9 @@ function AdminPage() {
       });
       setProgressData(pdMap);
 
-      const failedSyncs = (
-        (studioRes.data ?? []) as unknown as Array<{
-          client_id: string;
-          notion_sync_pending: boolean | null;
-          notion_sync_error: string | null;
-        }>
-      ).filter((r) => r.notion_sync_pending === true);
-      setFailedNotionSyncs(failedSyncs.map((r) => ({ client_id: r.client_id, notion_sync_error: r.notion_sync_error ?? null })));
+      // notion_sync_pending / notion_sync_error don't exist on onboarding_forms —
+      // those columns live on clients/prospects. Banner hidden until a proper source is wired.
+      setFailedNotionSyncs([]);
 
       const amList: AmLite[] = (
         (amAssignmentsRes.data ?? []) as Array<{ email: string; name: string | null }>
@@ -489,19 +484,22 @@ function AdminPage() {
   }
   const isAdminRole = role === "admin" || role === "account_executive";
 
-  const clientsWithProgress = clients.map((c) => {
-    const pd = progressData[c.id];
-    const sd = studioData[c.id];
-    const input: ClientProgressInput = {
-      hasOnboardingForm: pd?.formExists ?? false,
-      formHasData: pd?.formHasData ?? false,
-      formSubmitted: pd?.formSubmitted ?? false,
-      studioStarted: pd?.studioStarted ?? false,
-      studioLocked: sd?.locked ?? false,
-      platformLive: c.platform_live ?? false,
-    };
-    return { ...c, progress: calculateProgress(input), milestones: getMilestoneList(input) };
-  });
+  const clientsWithProgress = useMemo(() => {
+    if (!clients || clients.length === 0) return [];
+    return clients.map((c) => {
+      const pd = progressData[c.id];
+      const sd = studioData[c.id];
+      const input: ClientProgressInput = {
+        hasOnboardingForm: pd?.formExists ?? false,
+        formHasData: pd?.formHasData ?? false,
+        formSubmitted: pd?.formSubmitted ?? false,
+        studioStarted: pd?.studioStarted ?? false,
+        studioLocked: sd?.locked ?? false,
+        platformLive: c.platform_live ?? false,
+      };
+      return { ...c, progress: calculateProgress(input), milestones: getMilestoneList(input) };
+    });
+  }, [clients, progressData, studioData]);
 
   const stats = {
     total: clients.length,
@@ -1055,8 +1053,8 @@ function AdminPage() {
                               </Button>
                             )}
                           </div>
-                          {/* Persistent onboarding link — always visible once client has access_token */}
-                          {c.access_token && (
+                          {/* Persistent onboarding link — always visible for any valid client */}
+                          {c.id && (
                             <div className="mt-2 flex items-center gap-2 border-t border-border/30 pt-2">
                               <span className="text-[10px] text-muted-foreground shrink-0">Onboarding link</span>
                               <Button
