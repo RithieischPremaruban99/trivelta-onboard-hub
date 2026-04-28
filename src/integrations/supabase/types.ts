@@ -105,6 +105,7 @@ export type Database = {
           platform_live: boolean
           platform_url: string | null
           primary_contact_email: string | null
+          primary_contact_name: string | null
           status: Database["public"]["Enums"]["client_status"]
           studio_access: boolean
           studio_access_granted_at: string | null
@@ -136,6 +137,7 @@ export type Database = {
           platform_live?: boolean
           platform_url?: string | null
           primary_contact_email?: string | null
+          primary_contact_name?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           studio_access?: boolean
           studio_access_granted_at?: string | null
@@ -167,6 +169,7 @@ export type Database = {
           platform_live?: boolean
           platform_url?: string | null
           primary_contact_email?: string | null
+          primary_contact_name?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           studio_access?: boolean
           studio_access_granted_at?: string | null
