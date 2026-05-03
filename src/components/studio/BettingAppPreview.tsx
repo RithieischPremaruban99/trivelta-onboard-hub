@@ -1231,7 +1231,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       {activeNav === 0 && renderFeedView()}
       {activeNav === 1 && renderSportsView()}
       {activeNav === 2 && renderPlaceholder("Discovery", Compass)}
-      {activeNav === 3 && renderPlaceholder("Casino", Gamepad2)}
+      {activeNav === 3 && (
+        <div className="flex-1 min-h-0 flex">
+          <CasinoContent variant="web" />
+          {renderRightPanel()}
+        </div>
+      )}
       {activeNav === 4 && renderPlaceholder("Peer-to-Peer", Swords)}
     </div>
   );
