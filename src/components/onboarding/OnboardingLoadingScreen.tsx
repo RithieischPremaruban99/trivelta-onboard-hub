@@ -10,7 +10,7 @@ export function OnboardingLoadingScreen({ variant = "onboarding" }: OnboardingLo
       <div className="flex flex-col items-center gap-6">
 
         {variant === "studio" ? (
-          <TriveltaLogo size="xl" product="AI · Studio" poweredBy />
+          <TriveltaLogo size="xl" product="AI · Studio" />
         ) : (
           <TriveltaLogo size="xl" product="Onboarding" />
         )}
