@@ -40,12 +40,8 @@ import {
   Check,
   Circle,
   UserPlus,
-  Pencil,
-  Link2,
   ArrowRight,
-  LayoutGrid,
-  FileSignature,
-  Rocket,
+  ChevronRight,
 } from "lucide-react";
 import {
   Tooltip,
@@ -95,6 +91,13 @@ import {
   DEFAULT_STUDIO_FEATURES,
   type StudioFeatures,
 } from "@/lib/studio-features";
+import {
+  ClientDetailDrawer,
+  phaseDotColor,
+  type ClientRow,
+  type ProspectRow,
+  type DrawerTarget,
+} from "@/components/admin/ClientDetailDrawer";
 
 export const Route = createFileRoute("/admin")({
   validateSearch: (search: Record<string, unknown>): AdminFilters => ({
@@ -115,177 +118,6 @@ export const Route = createFileRoute("/admin")({
 });
 
 const DEFAULT_DRIVE_LINK = "https://drive.google.com/drive/folders/0ACsQEvOAQlgrUk9PVA";
-
-interface ClientRow {
-  id: string;
-  name: string;
-  country: string | null;
-  status: "onboarding" | "active" | "churned";
-  drive_link: string | null;
-  platform_url: string | null;
-  primary_contact_email: string | null;
-  primary_contact_name: string | null;
-  created_at: string;
-  studio_access: boolean;
-  platform_live?: boolean;
-  studio_features: StudioFeatures | null;
-  notion_page_id?: string | null;
-  onboarding_phase?: "Pre-Sale" | "Post-Sale" | "Contract" | "Initial Setup" | "Full Config" | "Pre-Launch" | "Post-Launch" | null;
-  contract_signed_at?: string | null;
-  contract_start_date?: string | null;
-  go_live_date?: string | null;
-  next_renewal_date?: string | null;
-  health_score?: string | null;
-  access_token?: string | null;
-}
-
-interface ProspectRow {
-  id: string;
-  legal_company_name: string;
-  primary_contact_email: string;
-  primary_contact_name: string | null;
-  assigned_account_manager: string | null;
-  contract_status: string;
-  form_progress: number;
-  access_token: string;
-  created_at: string;
-  submitted_at: string | null;
-  update_requested_at: string | null;
-  notion_page_id: string | null;
-  converted_to_client_id: string | null;
-  converted_at: string | null;
-}
-
-// ─── Lifecycle action: Mark Commitment Fee Paid ───────────────────────────────
-
-function MarkContractSignedButton({ clientId, onSuccess }: { clientId: string; onSuccess: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  async function handleConfirm() {
-    setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("contract-signed", {
-        body: { client_id: clientId },
-      });
-      if (error) throw error;
-      toast.success("Commitment fee marked as paid. Notion updated.");
-      onSuccess();
-    } catch (err) {
-      toast.error(`Failed to mark commitment fee paid: ${err instanceof Error ? err.message : "Unknown error"}`);
-    } finally {
-      setLoading(false);
-      setConfirmOpen(false);
-    }
-  }
-
-  return (
-    <>
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-7 gap-1.5 text-[11px] font-semibold"
-        onClick={() => setConfirmOpen(true)}
-        disabled={loading}
-      >
-        <FileSignature className="h-3.5 w-3.5" />
-        Commitment Fee Paid
-      </Button>
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Mark commitment fee as paid?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This transitions the client to Contract phase.
-              Contract Start Date will be set to today.
-              Notion will be updated automatically.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} disabled={loading}>
-              {loading ? "Processing..." : "Confirm"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-}
-
-// ─── Lifecycle action: Mark as Live ──────────────────────────────────────────
-
-function MarkAsLiveButton({
-  clientId,
-  clientName,
-  onSuccess,
-}: {
-  clientId: string;
-  clientName: string;
-  onSuccess: () => void;
-}) {
-  const [loading, setLoading] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  async function handleConfirm() {
-    setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("go-live", {
-        body: { client_id: clientId },
-      });
-      if (error) throw error;
-      toast.success(`${clientName} is now live. Don't forget to email the client manually.`);
-      onSuccess();
-    } catch (err) {
-      toast.error(`Go Live failed: ${err instanceof Error ? err.message : "Unknown error"}. Client remains in Pre-Launch.`);
-    } finally {
-      setLoading(false);
-      setConfirmOpen(false);
-    }
-  }
-
-  return (
-    <>
-      <Button
-        size="sm"
-        className="h-7 gap-1.5 bg-gradient-to-r from-primary to-primary/80 text-[11px] font-semibold shadow-md"
-        onClick={() => setConfirmOpen(true)}
-        disabled={loading}
-      >
-        <Rocket className="h-3.5 w-3.5" />
-        🚀 Mark as Live
-      </Button>
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Mark {clientName} as live?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2">
-                <span className="block">This will:</span>
-                <ul className="list-disc space-y-1 pl-5 text-sm">
-                  <li>Transition Notion page to Status = Active, Phase = Post-Launch</li>
-                  <li>Set Next Renewal to Contract Start + 12 months</li>
-                  <li>Set Health Score to Good</li>
-                </ul>
-                <span className="block pt-2 text-xs text-amber-600">
-                  After confirming, remember to send a launch confirmation email to the client manually via Gmail.
-                </span>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} disabled={loading}>
-              {loading ? "Launching..." : "Yes — mark as live"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -343,6 +175,8 @@ function AdminPage() {
     | { kind: "prospect"; id: string; name: string }
     | null
   >(null);
+  const [drawerTarget, setDrawerTarget] = useState<DrawerTarget | null>(null);
+
   const [studioFeaturesDialog, setStudioFeaturesDialog] = useState<{
     clientId: string;
     clientName: string;
@@ -872,8 +706,7 @@ function AdminPage() {
                     <th className="px-4 py-4 micro-label">Progress</th>
                     <th className="px-4 py-4 micro-label">Created</th>
                     <th className="px-4 py-4 micro-label">Studio</th>
-                    <th className="px-4 py-4 micro-label">Config</th>
-                    <th className="px-4 py-4 micro-label">Actions</th>
+                    <th className="w-10 px-4 py-4"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -888,7 +721,8 @@ function AdminPage() {
                     return (
                       <tr
                         key={c.id}
-                        className="row-premium border-b border-border/40 last:border-b-0"
+                        className="row-premium border-b border-border/40 last:border-b-0 cursor-pointer"
+                        onClick={() => setDrawerTarget({ kind: "client", id: c.id })}
                       >
                         <td className="px-5 py-4">
                           <div className="font-semibold text-foreground">{c.name}</div>
@@ -966,7 +800,7 @@ function AdminPage() {
                             year: "2-digit",
                           })}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                           <StudioAccessCell
                             clientId={c.id}
                             hasAccess={c.studio_access}
@@ -978,119 +812,16 @@ function AdminPage() {
                             }
                           />
                         </td>
-                        <td className="px-4 py-4">
-                          <StudioLockCell
-                            clientId={c.id}
-                            clientName={c.name}
-                            data={studioData[c.id] ?? null}
-                            canEdit={isAdminRole}
-                            onChanged={(locked, lockedAt) =>
-                              setStudioData((prev) => ({
-                                ...prev,
-                                [c.id]: { ...prev[c.id], locked, lockedAt },
-                              }))
-                            }
-                          />
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="row-actions flex items-center gap-0.5">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Copy onboarding link"
-                              onClick={() => {
-                                navigator.clipboard.writeText(onboardingUrl);
-                                toast.success("Link copied");
-                              }}
-                            >
-                              <Copy className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Open onboarding"
-                              onClick={() => window.open(onboardingUrl, "_blank")}
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Open Studio (admin preview)"
-                              onClick={() => window.open(`/studio-preview/${c.id}`, "_blank")}
-                            >
-                              <Palette className="h-3.5 w-3.5" />
-                            </Button>
-                            {isAdminRole && (
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                                title="Configure Studio feature access"
-                                onClick={() =>
-                                  setStudioFeaturesDialog({
-                                    clientId: c.id,
-                                    clientName: c.name,
-                                    currentFeatures: c.studio_features ?? DEFAULT_STUDIO_FEATURES,
-                                  })
-                                }
-                              >
-                                <LayoutGrid className="h-3.5 w-3.5" />
-                              </Button>
+                        <td className="w-10 px-4 py-4">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {c.onboarding_phase && (
+                              <span
+                                className={`h-2 w-2 rounded-full ${phaseDotColor(c.onboarding_phase)}`}
+                                title={c.onboarding_phase}
+                              />
                             )}
-                            {canDelete && (
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                title="Delete client (permanent)"
-                                onClick={() => requestDeleteClient(c.id, c.name)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
                           </div>
-                          {/* Persistent onboarding link — always visible for any valid client */}
-                          {c.id && (
-                            <div className="mt-2 flex items-center gap-2 border-t border-border/30 pt-2">
-                              <span className="text-[10px] text-muted-foreground shrink-0">Onboarding link</span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 gap-1 text-[10px]"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(`${window.location.origin}/onboarding/${c.id}`);
-                                  toast.success("Onboarding link copied");
-                                }}
-                              >
-                                <Copy className="h-3 w-3" /> Copy
-                              </Button>
-                            </div>
-                          )}
-                          {/* Lifecycle actions — shown only for actionable phases */}
-                          {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Post-Sale" || c.onboarding_phase === "Pre-Launch") && (
-                            <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/30 pt-2">
-                              {(c.onboarding_phase == null || c.onboarding_phase === "Pre-Sale" || c.onboarding_phase === "Post-Sale") && (
-                                <MarkContractSignedButton clientId={c.id} onSuccess={refresh} />
-                              )}
-                              {c.onboarding_phase === "Pre-Launch" && (
-                                <MarkAsLiveButton
-                                  clientId={c.id}
-                                  clientName={c.name}
-                                  onSuccess={refresh}
-                                />
-                              )}
-                              {c.onboarding_phase && (
-                                <div className="ml-auto flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2.5 py-0.5">
-                                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Phase</span>
-                                  <span className="text-[10px] font-semibold">{c.onboarding_phase}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
                         </td>
                       </tr>
                     );
@@ -1112,7 +843,8 @@ function AdminPage() {
                     return (
                       <tr
                         key={p.id}
-                        className={`row-premium border-b border-border/40 last:border-b-0 ${isConverted ? "bg-success/[0.02]" : "bg-amber-500/[0.02]"}`}
+                        className={`row-premium border-b border-border/40 last:border-b-0 cursor-pointer ${isConverted ? "bg-success/[0.02]" : "bg-amber-500/[0.02]"}`}
+                        onClick={() => setDrawerTarget({ kind: "prospect", id: p.id })}
                       >
                         <td className="px-5 py-4">
                           <div className="font-semibold text-foreground">
@@ -1160,6 +892,7 @@ function AdminPage() {
                             <select
                               value={p.contract_status}
                               onChange={(e) => handleContractStatusChange(p, e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
                               className="rounded-md border border-border/60 bg-background/60 px-2 py-1 text-[11px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
                             >
                               {CONTRACT_OPTIONS.map((opt) => (
@@ -1202,7 +935,7 @@ function AdminPage() {
                             year: "2-digit",
                           })}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                           {p.notion_page_id ? (
                             <a
                               href={`https://www.notion.so/${p.notion_page_id.replace(/-/g, "")}`}
@@ -1217,114 +950,10 @@ function AdminPage() {
                             <span className="text-xs text-muted-foreground/40">-</span>
                           )}
                         </td>
-                        <td className="px-4 py-4">
-                          {isConverted ? (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 gap-1 text-[11px] text-success hover:text-success hover:bg-success/10"
-                              onClick={() =>
-                                navigate({
-                                  to: "/onboarding/$clientId/form",
-                                  params: { clientId: p.converted_to_client_id! },
-                                })
-                              }
-                            >
-                              View Client <ArrowRight className="h-3 w-3" />
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/40">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-4">
-                          {isConverted ? (
-                            canDelete ? (
-                              <div className="row-actions flex items-center gap-0.5">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                  title="Delete prospect (the linked client is kept)"
-                                  onClick={() =>
-                                    requestDeleteProspect(p.id, p.legal_company_name)
-                                  }
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground/40">-</span>
-                            )
-                          ) : (
-                            <div className="row-actions flex items-center gap-0.5">
-                              {/* Mark update handled */}
-                              {p.update_requested_at && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
-                                  title="Mark update request as handled (resets form)"
-                                  onClick={() => handleMarkUpdateHandled(p)}
-                                >
-                                  <Check className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                              {/* Edit prospect (admin/AM) */}
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                                title="Edit prospect"
-                                onClick={() =>
-                                  navigate({
-                                    to: "/admin/prospects/$id/edit",
-                                    params: { id: p.id },
-                                  })
-                                }
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              {/* Copy magic link */}
-                              {prospectUrl && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8"
-                                  title="Copy magic link"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(prospectUrl);
-                                    toast.success("Magic link copied");
-                                  }}
-                                >
-                                  <Copy className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                              {prospectUrl && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8"
-                                  title="Open prospect form"
-                                  onClick={() => window.open(prospectUrl, "_blank")}
-                                >
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                              {canDelete && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                  title="Delete prospect (permanent)"
-                                  onClick={() =>
-                                    requestDeleteProspect(p.id, p.legal_company_name)
-                                  }
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                            </div>
-                          )}
+                        <td className="w-10 px-4 py-4">
+                          <div className="flex items-center justify-end">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1451,6 +1080,38 @@ function AdminPage() {
           }}
         />
       )}
+
+      <ClientDetailDrawer
+        target={drawerTarget}
+        onClose={() => setDrawerTarget(null)}
+        onRefresh={refresh}
+        clients={clients}
+        prospects={prospects}
+        studioData={studioData}
+        progressData={progressData}
+        clientAms={clientAms}
+        prospectAms={prospectAms}
+        ams={ams}
+        isAdminRole={isAdminRole}
+        canDelete={canDelete}
+        onConvertProspect={(p) => {
+          setProspects((prev) =>
+            prev.map((pp) => (pp.id === p.id ? { ...pp, contract_status: "signed" } : pp)),
+          );
+          setConvertingProspect({ ...p, contract_status: "signed" });
+          setDrawerTarget(null);
+        }}
+        onRequestDelete={(kind, id, name) => {
+          setConfirmDelete({ kind, id, name });
+          setDrawerTarget(null);
+        }}
+        onMarkUpdateHandled={handleMarkUpdateHandled}
+        onContractStatusChange={handleContractStatusChange}
+        onOpenStudioFeatures={(params) => {
+          setStudioFeaturesDialog(params);
+          setDrawerTarget(null);
+        }}
+      />
     </AppShell>
   );
 }
