@@ -51,7 +51,18 @@ import {
   Ticket,
   MoreHorizontal,
   LayoutGrid,
+  Volleyball,
+  TableProperties,
+  Snowflake,
+  Bike,
+  Shield,
+  Target,
+  CircleDot,
+  Mountain,
+  Sparkles,
+  Star,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import imgAviator from "@/assets/casino/aviator.jpg";
 import imgFortuneSpin from "@/assets/casino/fortune-spin.jpg";
