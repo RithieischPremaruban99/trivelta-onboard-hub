@@ -47,6 +47,13 @@ import {
   Users,
 } from "lucide-react";
 
+function pickContrastText(rgbaStr: string): string {
+  const m = rgbaStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!m) return "var(--p-light-text-color)";
+  const lum = (0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]) / 255;
+  return lum > 0.4 ? "rgba(0,0,0,0.85)" : "var(--p-light-text-color)";
+}
+
 /* ─── Static placeholder data ─────────────────────────────────────────── */
 
 function getSportsSidebar(strings: TCMStrings) {
@@ -275,7 +282,7 @@ const LiveDot = () => {
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
 function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
-  const { strings } = useStudio();
+  const { strings, palette } = useStudio();
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
@@ -535,7 +542,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     border: "1px solid var(--p-primary)",
                   }}
                 >
-                  <div className="text-[9.5px] font-semibold" style={{ color: "var(--p-primary)" }}>
+                  <div className="text-[9.5px] font-semibold" style={{ color: pickContrastText(palette.activeSecondaryGradientColor) }}>
                     {p.bet}
                   </div>
                   <div className="text-[8px] mt-0.5" style={{ color: "var(--p-text-secondary-color)" }}>
@@ -566,7 +573,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               >
                 <span
                   className="text-[9px] font-bold px-1.5 py-[1px] rounded"
-                  style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
+                  style={{ background: "var(--p-active-secondary-gradient-color)", color: pickContrastText(palette.activeSecondaryGradientColor) }}
                 >
                   {p.badge}
                 </span>
@@ -633,7 +640,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                 <span className="text-[10px]">{s.flag}</span>
                 <span
                   className="flex-1 text-[10px] font-medium"
-                  style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
+                  style={{ color: active ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-light-text-color)" }}
                 >
                   {s.name}
                 </span>
@@ -687,7 +694,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               style={{
                 background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
-                color: "var(--p-primary)",
+                color: pickContrastText(palette.activeSecondaryGradientColor),
               }}
             >
               <Flame className="h-3 w-3" /> {strings.BET_BUILDER}
@@ -698,7 +705,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
               style={{
                 background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
-                color: "var(--p-primary)",
+                color: pickContrastText(palette.activeSecondaryGradientColor),
               }}
             >
               <ArrowLeftRight className="h-3 w-3" /> {strings.PEER_TO_PEER_BTN}
@@ -739,7 +746,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     activeSportRow === i
                       ? "1px solid var(--p-primary)"
                       : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeSportRow === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  color: activeSportRow === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
                 {strings[k]} ⚽
@@ -835,7 +842,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     activeLeague === i
                       ? "1px solid var(--p-primary)"
                       : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
                 ⚽ {l}
@@ -856,7 +863,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                     activeBetType === i
                       ? "1px solid var(--p-primary)"
                       : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  color: activeBetType === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
@@ -945,7 +952,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                         style={{
                           background: "var(--p-active-secondary-gradient-color)",
                           border: "1px solid var(--p-primary)",
-                          color: "var(--p-primary)",
+                          color: pickContrastText(palette.activeSecondaryGradientColor),
                         }}
                       >
                         {o}
@@ -1084,7 +1091,7 @@ function MobilePreview({
   const [expandedBetCard, setExpandedBetCard] = useState(false);
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
 
-  const { strings } = useStudio();
+  const { strings, palette } = useStudio();
   const statusLabel = (s: string) =>
     s === "WON"
       ? strings.STATUS_WON
@@ -1193,7 +1200,7 @@ function MobilePreview({
             style={{
               background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
-              color: "var(--p-primary)",
+              color: pickContrastText(palette.activeSecondaryGradientColor),
             }}
           >
             <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
@@ -1203,7 +1210,7 @@ function MobilePreview({
             style={{
               background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
-              color: "var(--p-primary)",
+              color: pickContrastText(palette.activeSecondaryGradientColor),
             }}
           >
             <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
@@ -1293,7 +1300,7 @@ function MobilePreview({
                           style={{
                             background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
                             border: "1px solid var(--p-primary)",
-                            color: sel ? "var(--p-light-text-color)" : "var(--p-primary)",
+                            color: sel ? "var(--p-light-text-color)" : pickContrastText(palette.activeSecondaryGradientColor),
                           }}
                         >
                           {m.odds[j]}
@@ -1346,7 +1353,7 @@ function MobilePreview({
               style={{
                 background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
-                color: "var(--p-primary)",
+                color: pickContrastText(palette.activeSecondaryGradientColor),
               }}
             >
               <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
@@ -1356,7 +1363,7 @@ function MobilePreview({
               style={{
                 background: "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
-                color: "var(--p-primary)",
+                color: pickContrastText(palette.activeSecondaryGradientColor),
               }}
             >
               <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
@@ -1378,7 +1385,7 @@ function MobilePreview({
                   background: activeSport === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
                     activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeSport === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  color: activeSport === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
                 {strings[k]}
@@ -1399,7 +1406,7 @@ function MobilePreview({
                     activeLeague === i
                       ? "1px solid var(--p-primary)"
                       : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
                 ⚽ {l.split(" - ")[0]}
@@ -1420,7 +1427,7 @@ function MobilePreview({
                     activeBetType === i
                       ? "1px solid var(--p-primary)"
                       : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  color: activeBetType === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
@@ -1516,7 +1523,7 @@ function MobilePreview({
                             style={{
                               background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
                               border: "1px solid var(--p-primary)",
-                              color: sel ? "var(--p-light-text-color)" : "var(--p-primary)",
+                              color: sel ? "var(--p-light-text-color)" : pickContrastText(palette.activeSecondaryGradientColor),
                             }}
                           >
                             {m.odds[j]}
@@ -1558,7 +1565,7 @@ function MobilePreview({
                 </span>
                 <span
                   className="text-[9px] font-bold px-1.5 py-[1px] rounded-full"
-                  style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
+                  style={{ background: "var(--p-active-secondary-gradient-color)", color: pickContrastText(palette.activeSecondaryGradientColor) }}
                 >
                   {s.count}
                 </span>
@@ -1588,7 +1595,7 @@ function MobilePreview({
             >
               <span
                 className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
+                style={{ background: "var(--p-active-secondary-gradient-color)", color: pickContrastText(palette.activeSecondaryGradientColor) }}
               >
                 {p.badge}
               </span>
@@ -1976,7 +1983,7 @@ function MobilePreview({
                     >
                       <div
                         className="text-[9.5px] font-semibold"
-                        style={{ color: "var(--p-primary)" }}
+                        style={{ color: pickContrastText(palette.activeSecondaryGradientColor) }}
                       >
                         {p.bet}
                       </div>
@@ -2005,7 +2012,7 @@ function MobilePreview({
                   >
                     <span
                       className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                      style={{ background: "var(--p-active-secondary-gradient-color)", color: "var(--p-primary)" }}
+                      style={{ background: "var(--p-active-secondary-gradient-color)", color: pickContrastText(palette.activeSecondaryGradientColor) }}
                     >
                       {p.badge}
                     </span>
@@ -2116,7 +2123,7 @@ function SportsView({
   onOpenAllSports: () => void;
   onOpenBetDetail: () => void;
 }) {
-  const { strings } = useStudio();
+  const { strings, palette } = useStudio();
   return (
     <>
       {/* Top bar */}
@@ -2187,7 +2194,7 @@ function SportsView({
             style={{
               background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
-              color: "var(--p-primary)",
+              color: pickContrastText(palette.activeSecondaryGradientColor),
             }}
           >
             <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
@@ -2197,7 +2204,7 @@ function SportsView({
             style={{
               background: "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
-              color: "var(--p-primary)",
+              color: pickContrastText(palette.activeSecondaryGradientColor),
             }}
           >
             <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
@@ -2232,7 +2239,7 @@ function SportsView({
                 background: activeSport === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                 border:
                   activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeSport === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                color: activeSport === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
               }}
             >
               {strings[k]}
@@ -2250,7 +2257,7 @@ function SportsView({
                 background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                 border:
                   activeLeague === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeLeague === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
               }}
             >
               ⚽ {l.split(" - ")[0]}
@@ -2268,7 +2275,7 @@ function SportsView({
                 background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                 border:
                   activeBetType === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeBetType === i ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                color: activeBetType === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
               }}
             >
               {b}
@@ -2328,7 +2335,7 @@ function SportsView({
                       style={{
                         background: "var(--p-active-secondary-gradient-color)",
                         border: "1px solid var(--p-primary)",
-                        color: "var(--p-primary)",
+                        color: pickContrastText(palette.activeSecondaryGradientColor),
                       }}
                     >
                       {o}
