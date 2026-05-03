@@ -1821,19 +1821,9 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                       style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-primary)" }}
                     >
                       <div className="flex items-center justify-between">
-                        <div
-                          className="h-6 w-6 rounded-full grid place-items-center text-[8px] font-black"
-                          style={{ background: "var(--p-dark)", color: "var(--p-light-text-color)" }}
-                        >
-                          {m.home.slice(0, 2).toUpperCase()}
-                        </div>
+                        <TeamDot label={m.home} size={24} />
                         <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>VS</span>
-                        <div
-                          className="h-6 w-6 rounded-full grid place-items-center text-[8px] font-black"
-                          style={{ background: "var(--p-dark)", color: "var(--p-light-text-color)" }}
-                        >
-                          {m.away.slice(0, 2).toUpperCase()}
-                        </div>
+                        <TeamDot label={m.away} size={24} />
                       </div>
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-[8px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>
