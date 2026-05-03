@@ -2280,7 +2280,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       {/* View switcher */}
       {activeNav === 0 && renderFeedView()}
       {activeNav === 1 && renderSportsView()}
-      {activeNav === 2 && renderPlaceholder("Discovery", Compass)}
+      {activeNav === 2 && renderWebDiscoveryView()}
       {activeNav === 3 && (
         <div className="flex-1 min-h-0 flex">
           <CasinoContent variant="web" />
