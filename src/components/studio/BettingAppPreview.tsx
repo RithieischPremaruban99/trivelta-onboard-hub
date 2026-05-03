@@ -1664,11 +1664,25 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   );
 
   const renderP2PView = () => {
-    const sports = [
-      "Football", "Basketball", "Tennis", "Volleyball", "Table Tennis",
-      "Ice Hockey", "American Football", "Cycling", "Rugby", "Golf",
-      "Darts", "Boxing", "Cricket", "Baseball", "Waterpolo",
-      "Alpine Skiing", "ESport Call of Duty", "Specials",
+    const sports: { name: string; Icon: LucideIcon }[] = [
+      { name: "Football", Icon: Trophy },
+      { name: "Basketball", Icon: Dice5 },
+      { name: "Tennis", Icon: CircleDot },
+      { name: "Volleyball", Icon: Volleyball },
+      { name: "Table Tennis", Icon: TableProperties },
+      { name: "Ice Hockey", Icon: Snowflake },
+      { name: "American Football", Icon: Shield },
+      { name: "Cycling", Icon: Bike },
+      { name: "Rugby", Icon: Shield },
+      { name: "Golf", Icon: Target },
+      { name: "Darts", Icon: Target },
+      { name: "Boxing", Icon: Swords },
+      { name: "Cricket", Icon: CircleDot },
+      { name: "Baseball", Icon: CircleDot },
+      { name: "Waterpolo", Icon: CircleDot },
+      { name: "Alpine Skiing", Icon: Mountain },
+      { name: "ESport Call of Duty", Icon: Gamepad2 },
+      { name: "Specials", Icon: Sparkles },
     ];
     const leagues: { name: string; matches: { home: string; away: string; date: string }[] }[] = [
       {
