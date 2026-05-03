@@ -1996,7 +1996,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
     );
   };
 
-
+  const renderP2PView = () => {
     const sports: { name: string; Icon: LucideIcon }[] = [
       { name: "Football", Icon: Trophy },
       { name: "Basketball", Icon: Dice5 },
