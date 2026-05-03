@@ -61,7 +61,6 @@ import {
   TreePine,
   Coins,
   Target,
-  Flame,
   Sparkles,
   Mountain,
   Music2,
