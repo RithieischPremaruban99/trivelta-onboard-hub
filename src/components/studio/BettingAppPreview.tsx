@@ -470,14 +470,67 @@ const PARLAY_LEGS = [
 
 /* ─── Tiny shared atoms ───────────────────────────────────────────────── */
 
-const TeamDot = ({ label }: { label: string }) => (
-  <div
-    className="h-4 w-4 rounded-full grid place-items-center text-[7px] font-bold flex-shrink-0"
-    style={{ background: "var(--p-inactive-button-bg)", color: "var(--p-light-text-color)" }}
-  >
-    {label.slice(0, 1)}
-  </div>
-);
+const TEAM_LOGO_IDS: Record<string, number> = {
+  // Premier League
+  "Manchester City": 50, "Arsenal FC": 42, "Chelsea FC": 49, "Liverpool": 40,
+  "Manchester United": 33, "Tottenham Hotspur": 47, "Brighton & Hove Albion": 51,
+  "Brighton": 51, "Crystal Palace": 52, "West Ham United": 48, "Aston Villa": 66,
+  "Fulham FC": 36, "Wolverhampton Wanderers": 39, "Burnley FC": 44,
+  "AFC Bournemouth": 35, "Leeds United": 63, "Sunderland AFC": 746,
+  "Nottingham Forest": 65, "Everton": 45,
+  // Serie A
+  "AC Milan": 489, "Juventus": 496, "Juventus Turin": 496, "Inter Milano": 505,
+  "AS Roma": 497, "Lazio Rome": 487, "ACF Fiorentina": 502, "Torino FC": 503,
+  "Sassuolo Calcio": 488, "Cagliari Calcio": 490, "Udinese Calcio": 494,
+  "US Cremonese": 520, "Hellas Verona": 504, "Parma Calcio": 521,
+  // LaLiga
+  "Real Madrid": 541, "Atletico Madrid": 530, "Sevilla FC": 536,
+  "Real Sociedad": 548, "Real Betis": 543, "Real Betis Seville": 543,
+  "Espanyol Barcelona": 540, "RC Celta de Vigo": 538, "CA Osasuna": 727,
+  "Levante UD": 539, "Elche CF": 797, "Deportivo Alaves": 542,
+  "Rayo Vallecano": 728, "Real Oviedo": 718,
+  // Bundesliga
+  "Bayern": 157, "Borussia Dortmund": 165, "Dortmund": 165, "RB Leipzig": 173,
+  "Bayer Leverkusen": 168, "Eintracht Frankfurt": 169, "VfB Stuttgart": 172,
+  "FC Augsburg": 170, "Bor. M'gladbach": 163, "TSG Hoffenheim": 167,
+  "Werder Bremen": 162, "FC St. Pauli": 186,
+  // Ligue 1
+  "Olympique Marseille": 81, "Olympique Lyon": 80, "AS Monaco": 91,
+  "Lille OSC": 79, "FC Nantes": 83, "Strasbourg": 95, "Toulouse FC": 96,
+  "Le Havre AC": 111, "SCO Angers": 77, "Racing Club": 116,
+};
+
+const teamLogoUrl = (name: string): string | null => {
+  const id = TEAM_LOGO_IDS[name];
+  return id ? `https://media.api-sports.io/football/teams/${id}.png` : null;
+};
+
+const TeamDot = ({ label, size = 16 }: { label: string; size?: number }) => {
+  const url = teamLogoUrl(label);
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={label}
+        className="rounded-full flex-shrink-0 object-contain"
+        style={{ height: size, width: size, background: "var(--p-inactive-button-bg)" }}
+      />
+    );
+  }
+  return (
+    <div
+      className="rounded-full grid place-items-center font-bold flex-shrink-0"
+      style={{
+        height: size, width: size,
+        background: "var(--p-inactive-button-bg)",
+        color: "var(--p-light-text-color)",
+        fontSize: Math.max(7, Math.floor(size * 0.45)),
+      }}
+    >
+      {label.slice(0, 1)}
+    </div>
+  );
+};
 
 const LiveDot = () => {
   const { strings } = useStudio();
@@ -1768,19 +1821,9 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
                       style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-primary)" }}
                     >
                       <div className="flex items-center justify-between">
-                        <div
-                          className="h-6 w-6 rounded-full grid place-items-center text-[8px] font-black"
-                          style={{ background: "var(--p-dark)", color: "var(--p-light-text-color)" }}
-                        >
-                          {m.home.slice(0, 2).toUpperCase()}
-                        </div>
+                        <TeamDot label={m.home} size={24} />
                         <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>VS</span>
-                        <div
-                          className="h-6 w-6 rounded-full grid place-items-center text-[8px] font-black"
-                          style={{ background: "var(--p-dark)", color: "var(--p-light-text-color)" }}
-                        >
-                          {m.away.slice(0, 2).toUpperCase()}
-                        </div>
+                        <TeamDot label={m.away} size={24} />
                       </div>
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-[8px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>
