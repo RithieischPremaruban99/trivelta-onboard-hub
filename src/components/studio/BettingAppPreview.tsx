@@ -51,21 +51,33 @@ import {
   Ticket,
   MoreHorizontal,
   LayoutGrid,
-  Plane,
-  CircleDollarSign,
-  Cat,
-  Bomb,
-  Crown,
-  Gem,
-  Snowflake,
-  TreePine,
-  Coins,
-  Target,
-  Sparkles,
-  Mountain,
-  Music2,
-  type LucideIcon,
 } from "lucide-react";
+
+import imgAviator from "@/assets/casino/aviator.jpg";
+import imgFortuneSpin from "@/assets/casino/fortune-spin.jpg";
+import imgWildTiger from "@/assets/casino/wild-tiger.jpg";
+import imgAviaMasters from "@/assets/casino/avia-masters.jpg";
+import imgBalloonMania from "@/assets/casino/balloon-mania.jpg";
+import imgDanfoCrash from "@/assets/casino/danfo-crash.jpg";
+import imgDollars from "@/assets/casino/dollars.jpg";
+import imgFortuneMines from "@/assets/casino/fortune-mines.jpg";
+import imgCoinToss from "@/assets/casino/coin-toss.jpg";
+import imgMines from "@/assets/casino/mines.jpg";
+import imgPinkyPlinko from "@/assets/casino/pinky-plinko.jpg";
+import imgPenaltyDuelo from "@/assets/casino/penalty-duelo.jpg";
+import imgMinesweeper from "@/assets/casino/minesweeper.jpg";
+import imgRocketLaunch from "@/assets/casino/rocket-launch.jpg";
+import imgBoomBall from "@/assets/casino/boom-ball.jpg";
+import imgTopEagle from "@/assets/casino/top-eagle.jpg";
+import imgFireCrash from "@/assets/casino/fire-crash.jpg";
+import imgMeteoroid from "@/assets/casino/meteoroid.jpg";
+import imgOlympus from "@/assets/casino/olympus.jpg";
+import imgVegasBonus from "@/assets/casino/vegas-bonus.jpg";
+import imgLayBonus from "@/assets/casino/lay-bonus.jpg";
+import imgJungleQuest from "@/assets/casino/jungle-quest.jpg";
+import imgIceQueen from "@/assets/casino/ice-queen.jpg";
+import imgRoyalRiches from "@/assets/casino/royal-riches.jpg";
+import imgTreasureVault from "@/assets/casino/treasure-vault.jpg";
 
 /* ─── Casino content (shared by web + mobile) ─────────────────────────── */
 
@@ -80,73 +92,56 @@ const CASINO_CATEGORIES = [
   { key: "other", label: "Other", icon: MoreHorizontal },
 ];
 
-/**
- * Each tile maps to a Lucide icon + a tint hint.
- * Tint hints reference brand CSS variables only — no hardcoded brand-foreign colors.
- */
-type GameTile = { name: string; icon: LucideIcon; tint: "primary" | "won" | "lost" | "warning" | "neutral" };
-
-const TINT_GRADIENT: Record<GameTile["tint"], string> = {
-  primary:
-    "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 35%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
-  won:
-    "linear-gradient(135deg, color-mix(in oklab, var(--p-won-color, #16a34a) 35%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
-  lost:
-    "linear-gradient(135deg, color-mix(in oklab, var(--p-lost-color, #ef4444) 35%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
-  warning:
-    "linear-gradient(135deg, color-mix(in oklab, #eab308 30%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
-  neutral:
-    "linear-gradient(135deg, color-mix(in oklab, var(--p-modal-background) 70%, var(--p-light-text-color) 12%) 0%, var(--p-modal-background) 100%)",
-};
+type GameTile = { name: string; image: string };
 
 const CASINO_SECTIONS: { title: string; games: GameTile[] }[] = [
   {
     title: "Top Games",
     games: [
-      { name: "Aviator", icon: Plane, tint: "lost" },
-      { name: "Fortune Spin", icon: Sparkles, tint: "primary" },
-      { name: "Wild Tiger 2", icon: Cat, tint: "warning" },
-      { name: "Avia Masters", icon: Plane, tint: "primary" },
-      { name: "Balloon Mania", icon: Sparkles, tint: "won" },
-      { name: "Danfo Crash", icon: Rocket, tint: "warning" },
-      { name: "Snoop Dogg Dollars", icon: Music2, tint: "won" },
+      { name: "Aviator", image: imgAviator },
+      { name: "Fortune Spin", image: imgFortuneSpin },
+      { name: "Wild Tiger 2", image: imgWildTiger },
+      { name: "Avia Masters", image: imgAviaMasters },
+      { name: "Balloon Mania", image: imgBalloonMania },
+      { name: "Danfo Crash", image: imgDanfoCrash },
+      { name: "Snoop Dogg Dollars", image: imgDollars },
     ],
   },
   {
     title: "Instant Win",
     games: [
-      { name: "Fortune Mines", icon: Bomb, tint: "warning" },
-      { name: "Coin Toss", icon: Coins, tint: "warning" },
-      { name: "Fortune Spin", icon: Sparkles, tint: "primary" },
-      { name: "Mines", icon: Bomb, tint: "lost" },
-      { name: "Pinky Plinko", icon: Target, tint: "primary" },
-      { name: "Penalty Duelo", icon: Target, tint: "won" },
-      { name: "Minesweeper XY", icon: Bomb, tint: "neutral" },
+      { name: "Fortune Mines", image: imgFortuneMines },
+      { name: "Coin Toss", image: imgCoinToss },
+      { name: "Fortune Spin", image: imgFortuneSpin },
+      { name: "Mines", image: imgMines },
+      { name: "Pinky Plinko", image: imgPinkyPlinko },
+      { name: "Penalty Duelo", image: imgPenaltyDuelo },
+      { name: "Minesweeper XY", image: imgMinesweeper },
     ],
   },
   {
     title: "Crash",
     games: [
-      { name: "Aviator", icon: Plane, tint: "lost" },
-      { name: "Rocket Launch", icon: Rocket, tint: "primary" },
-      { name: "Danfo Crash", icon: Rocket, tint: "warning" },
-      { name: "Boom Ball", icon: Bomb, tint: "lost" },
-      { name: "Top Eagle", icon: Plane, tint: "won" },
-      { name: "Avia Masters", icon: Plane, tint: "primary" },
-      { name: "Fire Crash", icon: Flame, tint: "lost" },
-      { name: "Meteoroid Deluxe", icon: Mountain, tint: "warning" },
+      { name: "Aviator", image: imgAviator },
+      { name: "Rocket Launch", image: imgRocketLaunch },
+      { name: "Danfo Crash", image: imgDanfoCrash },
+      { name: "Boom Ball", image: imgBoomBall },
+      { name: "Top Eagle", image: imgTopEagle },
+      { name: "Avia Masters", image: imgAviaMasters },
+      { name: "Fire Crash", image: imgFireCrash },
+      { name: "Meteoroid Deluxe", image: imgMeteoroid },
     ],
   },
   {
     title: "Slots",
     games: [
-      { name: "Secrets of Olympus", icon: Crown, tint: "primary" },
-      { name: "Vegas Bonus", icon: Sparkles, tint: "warning" },
-      { name: "Lay A Bonus", icon: CircleDollarSign, tint: "won" },
-      { name: "Jungle Quest", icon: TreePine, tint: "won" },
-      { name: "Ice Queen", icon: Snowflake, tint: "primary" },
-      { name: "Royal Riches", icon: Crown, tint: "warning" },
-      { name: "Treasure Vault", icon: Gem, tint: "primary" },
+      { name: "Secrets of Olympus", image: imgOlympus },
+      { name: "Vegas Bonus", image: imgVegasBonus },
+      { name: "Lay A Bonus", image: imgLayBonus },
+      { name: "Jungle Quest", image: imgJungleQuest },
+      { name: "Ice Queen", image: imgIceQueen },
+      { name: "Royal Riches", image: imgRoyalRiches },
+      { name: "Treasure Vault", image: imgTreasureVault },
     ],
   },
 ];
