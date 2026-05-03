@@ -51,7 +51,18 @@ import {
   Ticket,
   MoreHorizontal,
   LayoutGrid,
+  Volleyball,
+  TableProperties,
+  Snowflake,
+  Bike,
+  Shield,
+  Target,
+  CircleDot,
+  Mountain,
+  Sparkles,
+  Star,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import imgAviator from "@/assets/casino/aviator.jpg";
 import imgFortuneSpin from "@/assets/casino/fortune-spin.jpg";
@@ -1653,11 +1664,25 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   );
 
   const renderP2PView = () => {
-    const sports = [
-      "Football", "Basketball", "Tennis", "Volleyball", "Table Tennis",
-      "Ice Hockey", "American Football", "Cycling", "Rugby", "Golf",
-      "Darts", "Boxing", "Cricket", "Baseball", "Waterpolo",
-      "Alpine Skiing", "ESport Call of Duty", "Specials",
+    const sports: { name: string; Icon: LucideIcon }[] = [
+      { name: "Football", Icon: Trophy },
+      { name: "Basketball", Icon: Dice5 },
+      { name: "Tennis", Icon: CircleDot },
+      { name: "Volleyball", Icon: Volleyball },
+      { name: "Table Tennis", Icon: TableProperties },
+      { name: "Ice Hockey", Icon: Snowflake },
+      { name: "American Football", Icon: Shield },
+      { name: "Cycling", Icon: Bike },
+      { name: "Rugby", Icon: Shield },
+      { name: "Golf", Icon: Target },
+      { name: "Darts", Icon: Target },
+      { name: "Boxing", Icon: Swords },
+      { name: "Cricket", Icon: CircleDot },
+      { name: "Baseball", Icon: CircleDot },
+      { name: "Waterpolo", Icon: CircleDot },
+      { name: "Alpine Skiing", Icon: Mountain },
+      { name: "ESport Call of Duty", Icon: Gamepad2 },
+      { name: "Specials", Icon: Sparkles },
     ];
     const leagues: { name: string; matches: { home: string; away: string; date: string }[] }[] = [
       {
@@ -1724,20 +1749,20 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             All Sports
           </div>
           <div className="px-2 flex flex-col gap-1.5 pb-3">
-            {sports.map((s) => (
+            {sports.map(({ name, Icon }) => (
               <div
-                key={s}
+                key={name}
                 className="flex items-center justify-between px-2 py-2 rounded-md"
                 style={{ border: "1px solid var(--p-border-color)" }}
               >
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="h-3 w-3 rounded-full grid place-items-center text-[7px] font-black"
-                    style={{ background: "color-mix(in oklab, var(--p-primary) 25%, transparent)", color: "var(--p-primary)" }}
+                    className="h-5 w-5 rounded-full grid place-items-center"
+                    style={{ background: "color-mix(in oklab, var(--p-primary) 20%, transparent)", color: "var(--p-primary)" }}
                   >
-                    ●
+                    <Icon className="h-3 w-3" />
                   </span>
-                  <span className="text-[10px]" style={{ color: "var(--p-light-text-color)" }}>{s}</span>
+                  <span className="text-[10px]" style={{ color: "var(--p-light-text-color)" }}>{name}</span>
                 </div>
                 <ChevronDown className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
               </div>
