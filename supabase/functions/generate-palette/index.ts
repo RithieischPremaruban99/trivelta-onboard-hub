@@ -116,22 +116,31 @@ than to guess.
 
 If user mentions any of these operators, use these EXACT primary colors:
 
+- 888sport: primary #F47B20 (orange), #000000, #FFFFFF
 - Bet365: primary #027B5B (green), accent #F9DC1C (yellow), #FFFFFF
+- Bet9ja: primary #009A3E (green), #FFFFFF, yellow accent
+- BetKing: primary #E30613 (red), #000000, gold accents
+- BetMGM: primary #BFA046 (gold/bronze), #000000
+- Betano: primary #FF6A00 (orange), #000000, #FFFFFF
+- betPawa: primary #1FA84D (green), #FFFFFF — Africa mass-market mobile-first
+- Betika: primary #00A651 (green), #FFFFFF
+- Betway: primary #000000 (black), green #00A826 sparingly
+- Bwin: primary #FFCA05 (yellow), #000000, #FFFFFF
+- Caesars: #000000 primary, #C9A34E gold, #FFFFFF
+- Caliente.mx: primary #E30613 (red), #FFFFFF, #1A1A1A — Mexico market leader
+- Codere: primary #1FA84D (Codere green), #5A5A5A (gray) — post-2019 rebrand, Mexico/Spain
 - DraftKings: primary #61B510 (crown green), #000000, accent #F46C22 (orange)
 - FanDuel: primary #1493FF (Dodger blue), accent #0F8000 (green), #0A0A0A
-- Betway: primary #000000 (black), green #00A826 sparingly
-- Bet9ja: primary #009A3E (green), #FFFFFF, yellow accent
-- SportyBet: primary #E30613 (red - NOT GREEN, common AI mistake), #FFFFFF, silver
-- 1xBet: primary #1A6DC2 (blue), accent #0E8A3C (green), #FFFFFF
-- Betano: primary #FF6A00 (orange), #000000, #FFFFFF
-- BetKing: primary #E30613 (red), #000000, gold accents
-- Premier Bet: primary #FFCC00 (yellow), #000000, red accents
+- Hollywoodbets: primary #5C2D91 (Eminence purple), accent #7F64E5 (medium purple), #FFFFFF
+- LeoVegas: primary #F58220 (orange), #1A1A1A — Sweden/global, casino-focused
 - Odibets: primary #00A651 (green), #FFFFFF, yellow accent
+- Premier Bet: primary #FFCC00 (yellow), #000000, red accents
 - SportPesa: primary #1A2E8E (deep blue), #FFFFFF, red accent
-- Caesars: #000000 primary, #C9A34E gold, #FFFFFF
-- BetMGM: primary #BFA046 (gold/bronze), #000000
-- Betika: primary #00A651 (green), #FFFFFF
-- Hollywoodbets: primary #522D80 (purple), #FFFFFF
+- SportyBet: primary #E30613 (red - NOT GREEN, common AI mistake), #FFFFFF, silver
+- Stake: primary #1C2C54 (deep navy), accent #6454DA (slate purple) — global crypto, dark theme
+- Supabets: primary #FFCC00 (yellow), #000000 — South Africa retail+online
+- 1xBet: primary #1A6DC2 (blue), accent #0E8A3C (green), #FFFFFF
+- Yajuego: primary #1A3A8C (royal blue), accent #FF8C00 (orange), #1A1A1A — Colombia
 
 If user mentions operator NOT in list, respond in reasoning: "I don't have verified brand data for [X]. Using the visual description provided." Then proceed with best interpretation.
 
