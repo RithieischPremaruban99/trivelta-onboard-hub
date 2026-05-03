@@ -62,7 +62,6 @@ import {
   Sparkles,
   Star,
   Filter,
-  Heart as HeartIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
