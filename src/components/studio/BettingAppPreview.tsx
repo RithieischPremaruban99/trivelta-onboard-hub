@@ -1795,29 +1795,7 @@ function MobilePreview({
   const renderCasinoView = () => (
     <>
       {renderTopBar()}
-      <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
-        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-light-text-color)" }}>
-          {strings.CASINO_HEADING}
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {["🎰 Slots", "🃏 Poker", "🎲 Roulette", "🂡 Blackjack", "🎳 Bingo", "🎮 Live"].map(
-            (g) => (
-              <button
-                key={g}
-                className="h-16 rounded-md flex flex-col items-center justify-center gap-1 text-[9px] font-semibold"
-                style={{
-                  background: "var(--p-dark)",
-                  border: "1px solid var(--p-border-and-gradient-bg)",
-                  color: "var(--p-light-text-color)",
-                }}
-              >
-                <span className="text-[20px]">{g.slice(0, 2)}</span>
-                <span style={{ color: "var(--p-text-secondary-color)" }}>{g.slice(3)}</span>
-              </button>
-            ),
-          )}
-        </div>
-      </div>
+      <CasinoContent variant="mobile" />
     </>
   );
 
