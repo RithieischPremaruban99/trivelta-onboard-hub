@@ -773,7 +773,7 @@ export function StudioInner({
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
         <div className="flex w-[35%] shrink-0 items-center">
-          <TriveltaLogo size="xl" withSubtitle product="AI · Studio" poweredBy />
+          <TriveltaLogo size="xl" withSubtitle product="AI · Studio" />
         </div>
         <div className="flex flex-1 items-center justify-center gap-2">
           {welcomeInfo && (
@@ -1765,7 +1765,7 @@ function LandingPageFullPageShell({
         <div className="px-5 sm:px-8 h-[60px] flex items-center justify-between">
 
           {/* Left: Logo + wordmark */}
-          <TriveltaLogo size="xl" product="AI · Studio" poweredBy />
+          <TriveltaLogo size="xl" product="AI · Studio" />
 
           {/* Right: User + sign out */}
           <div className="flex items-center gap-3">

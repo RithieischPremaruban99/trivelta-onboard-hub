@@ -130,7 +130,7 @@ function StudioIntro() {
 
       {/* ── Brand corner (mirrors Suite landing) ───────────────────────── */}
       <div className="fixed left-5 top-4 z-50 sm:left-8">
-        <TriveltaLogo size="xl" withSubtitle product="Studio" brandSuffix="AI" poweredBy />
+        <TriveltaLogo size="xl" withSubtitle product="Studio" brandSuffix="AI" />
       </div>
 
       {/* ── Content ────────────────────────────────────────────────────── */}
