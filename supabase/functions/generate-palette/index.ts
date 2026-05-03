@@ -555,6 +555,79 @@ async function fetchLogoAsBase64(
 }
 
 // ---------------------------------------------------------------------------
+// Country detection — conservative, clear references only
+// ---------------------------------------------------------------------------
+
+function detectCountryFromPrompt(prompt: string): string | null {
+  const countryMap: Array<{ patterns: RegExp[]; iso: string }> = [
+    {
+      patterns: [/\b(nigeria|nigerian|nigerianisch|naija|lagos|abuja|port harcourt)\b/i],
+      iso: "NG",
+    },
+    {
+      patterns: [/\b(mexico|méxico|mexican|mexikan|mexicano|tijuana|monterrey|guadalajara|cdmx|ciudad de mexico)\b/i],
+      iso: "MX",
+    },
+    {
+      patterns: [/\b(brazil|brasil|brazilian|brasilien|brasileiro|são paulo|sao paulo|rio de janeiro|salvador)\b/i],
+      iso: "BR",
+    },
+    {
+      patterns: [/\b(south africa|südafrika|sudafrica|johannesburg|cape town|durban|pretoria)\b/i],
+      iso: "ZA",
+    },
+    {
+      patterns: [/\b(kenya|kenyan|kenia|kenianisch|nairobi|mombasa)\b/i],
+      iso: "KE",
+    },
+  ];
+
+  for (const { patterns, iso } of countryMap) {
+    if (patterns.some((p) => p.test(prompt))) return iso;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Market context blocks for 5 priority markets
+// ---------------------------------------------------------------------------
+
+function buildMarketContext(iso: string): string | null {
+  const contexts: Record<string, string> = {
+    NG: `MARKET CONTEXT — NIGERIA:
+Dominant visual codes in market: green (Bet9ja, mass-market trust signal), red (SportyBet, BetKing — energy/aggression), blue (1xBet — international sportsbook trust).
+Cultural notes: mobile-first is mandatory (>85% of betting traffic). Mass-market positioning skews to bright primary colors. Premium tier is significantly underdeveloped.
+Differentiation cues: deep purple, navy with gold accents, monochrome with single bright accent, or teal/sky-blue read as "modern challenger" against the dominant green-red cluster.
+Constraints: avoid pure green if the user is positioning as premium (reads mass-market). Avoid red+green combinations (SportyBet/Bet9ja overlap).`,
+
+    MX: `MARKET CONTEXT — MEXICO:
+Dominant visual codes in market: red (Caliente — market leader), green (Codere — retail-derived), orange/black (Betano — sports-focused).
+Cultural notes: avoid clichéd "Mexican folkloric" references unless specifically requested. Modern professional aesthetics travel better. Spanish-language UI is mandatory.
+Differentiation cues: most operators cluster around warm reds and oranges. A premium gold/dark identity, deep purple, or sophisticated muted earth tones break visually from the dominant warm cluster.
+Constraints: if user goes for red, push for a distinct shade or composition that doesn't read as Caliente clone.`,
+
+    BR: `MARKET CONTEXT — BRAZIL:
+Dominant visual codes in market post-2024 regulation: orange (Betano), green/pink (Pixbet), yellow/black (KTO, Sportingbet), blue (Galera.bet), dark navy/purple (Stake).
+Cultural notes: yellow+green as flag-color shorthand is overused. Pix payment integration is universal — palette must support clean payment-CTA distinct from confirmation green.
+Differentiation cues: market is saturated with yellow-orange palettes. Cool tones (deep blue, teal, deep purple) visually break through.
+Constraints: avoid copying Betano's orange or KTO's yellow unless user explicitly requests those references.`,
+
+    ZA: `MARKET CONTEXT — SOUTH AFRICA:
+Dominant visual codes in market: purple+gold (Hollywoodbets, premium positioning — market leader), black+green (Betway, traditional sportsbook), yellow+black (Supabets, mass-market).
+Cultural notes: regulated environment with Manufacturing License recently established. Premium positioning is the growth segment, not mass-market.
+Differentiation cues: premium tier dominated by Hollywoodbets purple. Differentiation through deep navy+silver, monochrome+single bright accent, or sophisticated warm earth tones reads as distinct.
+Constraints: if user wants premium, avoid purple unless they accept being read as Hollywoodbets-adjacent.`,
+
+    KE: `MARKET CONTEXT — KENYA:
+Dominant visual codes in market: deep blue (SportPesa, traditional sportsbook), green (Betika, Odibets, mass-market), red (SportyBet, energy).
+Cultural notes: M-Pesa integration affects CTA color choice — payment buttons should be visually distinct from M-Pesa green. Mobile-first is dominant.
+Differentiation cues: warmer tones (orange, gold) or modern dark palettes (charcoal+single bright accent) read as premium against the dominant deep-blue/green cluster.
+Constraints: avoid pure M-Pesa-style green for payment CTAs.`,
+  };
+  return contexts[iso] ?? null;
+}
+
+// ---------------------------------------------------------------------------
 // Build user message text (logo handled separately via vision)
 // ---------------------------------------------------------------------------
 
@@ -562,6 +635,17 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
   const parts: string[] = [];
 
   parts.push(`BRAND DESCRIPTION:\n${req.brandPrompt}`);
+
+  // Country-aware market context — silent injection, no prompt to user
+  const detectedCountry = detectCountryFromPrompt(req.brandPrompt);
+  if (detectedCountry) {
+    const marketContext = buildMarketContext(detectedCountry);
+    if (marketContext) {
+      parts.push(
+        `${marketContext}\n\nUse this market context to inform DIFFERENTIATION in your reasoning. Do NOT push the user toward copying market leaders. Mention what makes their brand distinct from the dominant cluster, briefly and naturally — not as a sales pitch.`
+      );
+    }
+  }
 
   if (req.language) {
     parts.push(`TARGET LANGUAGE: ${req.language}`);
@@ -936,6 +1020,10 @@ Deno.serve(async (req: Request) => {
     `overrides_count=${body.manualOverrides?.length ?? 0}, ` +
     `has_logo=${!!body.logoUrl}`
   );
+  const detectedCountryLog = detectCountryFromPrompt(body.brandPrompt);
+  if (detectedCountryLog) {
+    console.log(`[generate-palette] Country detected: ${detectedCountryLog}`);
+  }
 
   // ── Fetch logo as vision image (best-effort, 5s, 4MB cap) ─────────────────
   let logoData: { base64: string; mediaType: string } | null = null;
