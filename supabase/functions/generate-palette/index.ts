@@ -195,6 +195,73 @@ When in doubt, prefer conversational mode and ask a clarifying question.
 It's better to ask "Sport-focused, casino, or both? Mass-market or premium?"
 than to guess.
 
+═══ WHEN TO REQUEST CLARIFICATION (CHOOSE BETWEEN OPTIONS) ═══
+
+Sometimes a user brief has multiple valid interpretations and you cannot
+pick one without guessing. In these cases, instead of guessing, ask the
+user to choose between concrete options.
+
+Trigger this mode ONLY when:
+  - You see TWO OR MORE serious interpretations of the brief
+  - None of them is clearly dominant from the brief alone
+  - Picking the wrong one would meaningfully change the output
+
+Do NOT trigger for:
+  - Briefs where one interpretation is clearly more likely (just generate)
+  - Greetings, meta-questions, or recommendations (use conversational mode)
+  - Briefs with clear brand reference + clear modifier (just generate)
+
+Output format for clarification mode:
+
+  {"mode": "clarification", "question": "...the question (1-2 sentences)...",
+   "options": [
+     {"label": "Short label A (2-5 words)", "description": "One short sentence explaining what this means"},
+     {"label": "Short label B (2-5 words)", "description": "One short sentence explaining what this means"},
+     {"label": "Short label C (2-5 words)", "description": "One short sentence explaining what this means"}
+   ],
+   "allowSkip": true
+  }
+
+Rules for the options array:
+  - 2-3 options maximum (not 4+)
+  - Each label must be specific and visually distinct from the others
+  - Each description must be one short sentence, peer-to-peer designer voice
+  - DO NOT use marketing adjectives (fiery, vibrant, bold, etc.) in
+    labels or descriptions — same designer-voice rules as palette reasoning
+  - ALWAYS set allowSkip: true so user can say "no preference, decide for me"
+
+Examples of good clarification output:
+
+Brief: "premium casino in mexico"
+{
+  "mode": "clarification",
+  "question": "Premium can go in different directions for a Mexican casino. Which feels closer to your vision?",
+  "options": [
+    {"label": "Vegas glamour", "description": "Gold + black, opulent, classic high-roller energy"},
+    {"label": "Boutique elegance", "description": "Muted palette, sophisticated, less commercial"},
+    {"label": "Modern tech-crossover", "description": "Dark + single bright accent, fintech-adjacent feel"}
+  ],
+  "allowSkip": true
+}
+
+Refinement brief: "dunkler"
+{
+  "mode": "clarification",
+  "question": "Welchen Teil dunkler? Beides würde die Palette unterschiedlich verändern.",
+  "options": [
+    {"label": "Hintergrund dunkler", "description": "Nur die Background-Felder werden dunkler, Brand-Farbe bleibt"},
+    {"label": "Primary dunkler", "description": "Die Hauptfarbe wird gedämpfter, Hintergrund bleibt"}
+  ],
+  "allowSkip": true
+}
+
+Always respond in the user's input language (German, Spanish, etc.)
+for both the question and option descriptions.
+
+After the user selects an option (their next message will reference
+the option label), proceed with normal palette generation using that
+interpretation.
+
 ═══ BRAND FACTS - VERIFIED, NEVER INVENT ═══
 
 If user mentions any of these operators, use these EXACT primary colors:
@@ -1208,6 +1275,22 @@ Deno.serve(async (req: Request) => {
         // Conversational mode — model chose to respond without a palette
         if (parsed.mode === "conversational" && typeof parsed.message === "string") {
           send({ type: "conversational", message: parsed.message });
+          controller.close();
+          return;
+        }
+
+        // Clarification mode — model needs user to choose between interpretations
+        if (
+          parsed.mode === "clarification" &&
+          typeof parsed.question === "string" &&
+          Array.isArray(parsed.options)
+        ) {
+          send({
+            type: "clarification",
+            question: parsed.question,
+            options: parsed.options,
+            allowSkip: parsed.allowSkip !== false,
+          });
           controller.close();
           return;
         }
