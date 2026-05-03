@@ -1599,6 +1599,224 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
     </div>
   );
 
+  const renderP2PView = () => {
+    const sports = [
+      "Football", "Basketball", "Tennis", "Volleyball", "Table Tennis",
+      "Ice Hockey", "American Football", "Cycling", "Rugby", "Golf",
+      "Darts", "Boxing", "Cricket", "Baseball", "Waterpolo",
+      "Alpine Skiing", "ESport Call of Duty", "Specials",
+    ];
+    const leagues: { name: string; matches: { home: string; away: string; date: string }[] }[] = [
+      {
+        name: "Serie A",
+        matches: [
+          { home: "US Cremonese", away: "Lazio Rome", date: "TOMORROW 6:30 PM" },
+          { home: "AS Roma", away: "ACF Fiorentina", date: "TOMORROW 8:45 PM" },
+          { home: "Torino FC", away: "Sassuolo Calcio", date: "8 MAY 8:45 PM" },
+          { home: "Cagliari Calcio", away: "Udinese Calcio", date: "9 MAY 3:00 PM" },
+          { home: "Lazio Rome", away: "Inter Milano", date: "9 MAY 6:00 PM" },
+        ],
+      },
+      {
+        name: "LaLiga",
+        matches: [
+          { home: "Sevilla FC", away: "Real Sociedad", date: "TOMORROW 9:00 PM" },
+          { home: "Levante UD", away: "CA Osasuna", date: "8 MAY 9:00 PM" },
+          { home: "Elche CF", away: "Deportivo Alaves", date: "9 MAY 2:00 PM" },
+          { home: "Sevilla FC", away: "Espanyol Barcelona", date: "9 MAY 4:15 PM" },
+          { home: "Atletico Madrid", away: "RC Celta de Vigo", date: "9 MAY 6:30 PM" },
+        ],
+      },
+      {
+        name: "Bundesliga",
+        matches: [
+          { home: "Borussia Dortmund", away: "Eintracht Frankfurt", date: "8 MAY 8:30 PM" },
+          { home: "FC Augsburg", away: "Bor. M'gladbach", date: "9 MAY 3:30 PM" },
+          { home: "VfB Stuttgart", away: "Bayer Leverkusen", date: "9 MAY 3:30 PM" },
+          { home: "TSG Hoffenheim", away: "Werder Bremen", date: "9 MAY 3:30 PM" },
+          { home: "RB Leipzig", away: "FC St. Pauli", date: "9 MAY 3:30 PM" },
+        ],
+      },
+      {
+        name: "Ligue 1",
+        matches: [
+          { home: "Racing Club", away: "FC Nantes", date: "8 MAY 8:45 PM" },
+          { home: "SCO Angers", away: "Strasbourg", date: "9 MAY 9:00 PM" },
+          { home: "Toulouse FC", away: "Olympique Lyon", date: "10 MAY 9:00 PM" },
+          { home: "AS Monaco", away: "Lille OSC", date: "10 MAY 9:00 PM" },
+          { home: "Le Havre AC", away: "Olympique Marseille", date: "10 MAY 9:00 PM" },
+        ],
+      },
+    ];
+    const primaryText = pickContrastText(palette.primary);
+    const betPills = ["DRAW NO BET", "Over/Under", "Both Team To Score"];
+
+    return (
+      <div className="flex-1 min-h-0 flex">
+        {/* LEFT sidebar */}
+        <aside
+          className="w-[230px] border-r flex flex-col flex-shrink-0 overflow-auto"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+        >
+          <div className="p-2.5">
+            <div
+              className="flex items-center gap-1.5 h-7 px-2 rounded-md"
+              style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-color)" }}
+            >
+              <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+              <span className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>Search</span>
+            </div>
+          </div>
+          <div className="px-2.5 pb-2 text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+            All Sports
+          </div>
+          <div className="px-2 flex flex-col gap-1.5 pb-3">
+            {sports.map((s) => (
+              <div
+                key={s}
+                className="flex items-center justify-between px-2 py-2 rounded-md"
+                style={{ border: "1px solid var(--p-border-color)" }}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="h-3 w-3 rounded-full grid place-items-center text-[7px] font-black"
+                    style={{ background: "color-mix(in oklab, var(--p-primary) 25%, transparent)", color: "var(--p-primary)" }}
+                  >
+                    ●
+                  </span>
+                  <span className="text-[10px]" style={{ color: "var(--p-light-text-color)" }}>{s}</span>
+                </div>
+                <ChevronDown className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* CENTER */}
+        <main className="flex-1 min-w-0 overflow-auto px-3 py-2.5">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+              My peer-to-peer bets
+            </div>
+            <div className="text-[10px] font-semibold" style={{ color: "var(--p-primary)" }}>
+              History ⓘ
+            </div>
+          </div>
+
+          {/* Stat cards */}
+          <div className="grid grid-cols-3 gap-2.5 mb-3">
+            <div
+              className="rounded-lg p-3 flex flex-col items-center justify-center min-h-[80px]"
+              style={{
+                background: "linear-gradient(135deg, var(--p-primary), color-mix(in oklab, var(--p-primary) 60%, white))",
+                color: primaryText,
+              }}
+            >
+              <div className="text-[10px] font-semibold opacity-90">Pending invites</div>
+              <div className="text-[22px] font-black mt-1">0</div>
+            </div>
+            <div
+              className="rounded-lg p-3 flex flex-col items-center justify-center min-h-[80px]"
+              style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-primary)" }}
+            >
+              <div className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>Current bets</div>
+              <div className="text-[22px] font-black mt-1" style={{ color: "var(--p-light-text-color)" }}>0</div>
+            </div>
+            <div
+              className="rounded-lg p-3 flex flex-col items-center justify-center min-h-[80px]"
+              style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-primary)" }}
+            >
+              <div className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>Past bets</div>
+              <div className="text-[22px] font-black mt-1" style={{ color: "var(--p-light-text-color)" }}>15</div>
+            </div>
+          </div>
+
+          {/* Filter chips */}
+          <div className="flex gap-2 overflow-x-auto mb-3">
+            <div
+              className="flex flex-col items-center justify-center px-3 py-1.5 rounded-md flex-shrink-0 min-w-[60px]"
+              style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-primary)" }}
+            >
+              <span className="text-[12px] font-black" style={{ color: "var(--p-primary)" }}>V</span>
+              <span className="text-[9px]" style={{ color: "var(--p-light-text-color)" }}>Virtuals</span>
+            </div>
+          </div>
+
+          {/* Leagues */}
+          <div className="flex flex-col gap-3">
+            {leagues.map((lg) => (
+              <div key={lg.name}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="h-3 w-3 rounded-full grid place-items-center text-[7px] font-black"
+                      style={{ background: "color-mix(in oklab, var(--p-primary) 25%, transparent)", color: "var(--p-primary)" }}
+                    >
+                      ⚽
+                    </span>
+                    <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                      {lg.name}
+                    </span>
+                  </div>
+                  <span className="text-[9px]" style={{ color: "var(--p-primary)" }}>All games &gt;</span>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+                  {lg.matches.map((m, mi) => (
+                    <div
+                      key={mi}
+                      className="rounded-md p-2 flex flex-col gap-1.5"
+                      style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-primary)" }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div
+                          className="h-6 w-6 rounded-full grid place-items-center text-[8px] font-black"
+                          style={{ background: "var(--p-dark)", color: "var(--p-light-text-color)" }}
+                        >
+                          {m.home.slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>VS</span>
+                        <div
+                          className="h-6 w-6 rounded-full grid place-items-center text-[8px] font-black"
+                          style={{ background: "var(--p-dark)", color: "var(--p-light-text-color)" }}
+                        >
+                          {m.away.slice(0, 2).toUpperCase()}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[8px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>
+                          {m.home}
+                        </span>
+                        <span className="text-[7px] text-center flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }}>
+                          {m.date}
+                        </span>
+                        <span className="text-[8px] font-semibold truncate text-right" style={{ color: "var(--p-light-text-color)" }}>
+                          {m.away}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {betPills.map((p) => (
+                          <div
+                            key={p}
+                            className="flex-1 text-center px-1 py-1 rounded-full text-[7px] font-semibold truncate"
+                            style={{ border: "1px solid var(--p-primary)", color: "var(--p-primary)" }}
+                          >
+                            {p}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+
+        {renderRightPanel()}
+      </div>
+    );
+  };
+
   return (
     <div
       className="w-full h-full flex flex-col text-[11px]"
@@ -1668,7 +1886,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           {renderRightPanel()}
         </div>
       )}
-      {activeNav === 4 && renderPlaceholder("Peer-to-Peer", Swords)}
+      {activeNav === 4 && renderP2PView()}
     </div>
   );
 }
