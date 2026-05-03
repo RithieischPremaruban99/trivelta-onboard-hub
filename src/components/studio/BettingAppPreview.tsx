@@ -1886,7 +1886,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
           {renderRightPanel()}
         </div>
       )}
-      {activeNav === 4 && renderPlaceholder("Peer-to-Peer", Swords)}
+      {activeNav === 4 && renderP2PView()}
     </div>
   );
 }
