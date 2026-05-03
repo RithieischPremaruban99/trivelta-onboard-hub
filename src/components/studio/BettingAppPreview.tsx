@@ -51,6 +51,20 @@ import {
   Ticket,
   MoreHorizontal,
   LayoutGrid,
+  Plane,
+  CircleDollarSign,
+  Cat,
+  Bomb,
+  Crown,
+  Gem,
+  Snowflake,
+  TreePine,
+  Coins,
+  Target,
+  Sparkles,
+  Mountain,
+  Music2,
+  type LucideIcon,
 } from "lucide-react";
 
 /* ─── Casino content (shared by web + mobile) ─────────────────────────── */
@@ -66,54 +80,73 @@ const CASINO_CATEGORIES = [
   { key: "other", label: "Other", icon: MoreHorizontal },
 ];
 
-const CASINO_SECTIONS: { title: string; games: string[] }[] = [
+/**
+ * Each tile maps to a Lucide icon + a tint hint.
+ * Tint hints reference brand CSS variables only — no hardcoded brand-foreign colors.
+ */
+type GameTile = { name: string; icon: LucideIcon; tint: "primary" | "won" | "lost" | "warning" | "neutral" };
+
+const TINT_GRADIENT: Record<GameTile["tint"], string> = {
+  primary:
+    "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 35%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
+  won:
+    "linear-gradient(135deg, color-mix(in oklab, var(--p-won-color, #16a34a) 35%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
+  lost:
+    "linear-gradient(135deg, color-mix(in oklab, var(--p-lost-color, #ef4444) 35%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
+  warning:
+    "linear-gradient(135deg, color-mix(in oklab, #eab308 30%, var(--p-modal-background)) 0%, var(--p-modal-background) 100%)",
+  neutral:
+    "linear-gradient(135deg, color-mix(in oklab, var(--p-modal-background) 70%, var(--p-light-text-color) 12%) 0%, var(--p-modal-background) 100%)",
+};
+
+const CASINO_SECTIONS: { title: string; games: GameTile[] }[] = [
   {
     title: "Top Games",
     games: [
-      "Aviator",
-      "Fortune Spin",
-      "Wild Tiger 2",
-      "Avia Masters",
-      "Balloon Mania",
-      "Danfo Crash",
-      "Snoop Dogg Dollars",
+      { name: "Aviator", icon: Plane, tint: "lost" },
+      { name: "Fortune Spin", icon: Sparkles, tint: "primary" },
+      { name: "Wild Tiger 2", icon: Cat, tint: "warning" },
+      { name: "Avia Masters", icon: Plane, tint: "primary" },
+      { name: "Balloon Mania", icon: Sparkles, tint: "won" },
+      { name: "Danfo Crash", icon: Rocket, tint: "warning" },
+      { name: "Snoop Dogg Dollars", icon: Music2, tint: "won" },
     ],
   },
   {
     title: "Instant Win",
     games: [
-      "Fortune Mines",
-      "Coin Toss",
-      "Fortune Spin",
-      "Mines",
-      "Pinky Plinko",
-      "Penalty Duelo",
-      "Minesweeper XY",
+      { name: "Fortune Mines", icon: Bomb, tint: "warning" },
+      { name: "Coin Toss", icon: Coins, tint: "warning" },
+      { name: "Fortune Spin", icon: Sparkles, tint: "primary" },
+      { name: "Mines", icon: Bomb, tint: "lost" },
+      { name: "Pinky Plinko", icon: Target, tint: "primary" },
+      { name: "Penalty Duelo", icon: Target, tint: "won" },
+      { name: "Minesweeper XY", icon: Bomb, tint: "neutral" },
     ],
   },
   {
     title: "Crash",
     games: [
-      "Aviator",
-      "Rocket Launch",
-      "Danfo Crash",
-      "Boom Ball",
-      "Top Eagle",
-      "Avia Masters",
-      "Fire Crash",
-      "Meteoroid Deluxe",
+      { name: "Aviator", icon: Plane, tint: "lost" },
+      { name: "Rocket Launch", icon: Rocket, tint: "primary" },
+      { name: "Danfo Crash", icon: Rocket, tint: "warning" },
+      { name: "Boom Ball", icon: Bomb, tint: "lost" },
+      { name: "Top Eagle", icon: Plane, tint: "won" },
+      { name: "Avia Masters", icon: Plane, tint: "primary" },
+      { name: "Fire Crash", icon: Flame, tint: "lost" },
+      { name: "Meteoroid Deluxe", icon: Mountain, tint: "warning" },
     ],
   },
   {
     title: "Slots",
     games: [
-      "Secrets of Olympus",
-      "Vegas Bonus",
-      "Lay A Bonus",
-      "Jungle Quest",
-      "Ice Queen",
-      "Royal Riches",
-      "Treasure Vault",
+      { name: "Secrets of Olympus", icon: Crown, tint: "primary" },
+      { name: "Vegas Bonus", icon: Sparkles, tint: "warning" },
+      { name: "Lay A Bonus", icon: CircleDollarSign, tint: "won" },
+      { name: "Jungle Quest", icon: TreePine, tint: "won" },
+      { name: "Ice Queen", icon: Snowflake, tint: "primary" },
+      { name: "Royal Riches", icon: Crown, tint: "warning" },
+      { name: "Treasure Vault", icon: Gem, tint: "primary" },
     ],
   },
 ];
@@ -152,9 +185,7 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
                     ? "var(--p-active-secondary-gradient-color, var(--p-primary))"
                     : "var(--p-modal-background)",
                   border: `1px solid ${active ? "var(--p-primary)" : "var(--p-border-color)"}`,
-                  color: active
-                    ? "var(--p-light-text-color)"
-                    : "var(--p-light-text-color)",
+                  color: "var(--p-light-text-color)",
                 }}
               >
                 <Icon className={isMobile ? "h-4 w-4" : "h-5 w-5"} />
@@ -193,20 +224,39 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
               </button>
             </div>
             <div className={gridCols}>
-              {section.games.map((g) => (
-                <div
-                  key={g}
-                  className={`${tileSize} ${isMobile ? "" : "w-[140px] flex-shrink-0"} rounded-xl grid place-items-center text-center px-2 cursor-pointer transition-transform hover:scale-105`}
-                  style={{
-                    background:
-                      "linear-gradient(135deg, var(--p-modal-background) 0%, color-mix(in oklab, var(--p-modal-background) 70%, var(--p-light-text-color) 8%) 100%)",
-                    border: "1px solid var(--p-border-color)",
-                    color: "var(--p-light-text-color)",
-                  }}
-                >
-                  <span className="text-[11px] font-bold leading-tight">{g}</span>
-                </div>
-              ))}
+              {section.games.map((g, idx) => {
+                const GameIcon = g.icon;
+                return (
+                  <div
+                    key={`${g.name}-${idx}`}
+                    className={`${tileSize} ${isMobile ? "" : "w-[140px] flex-shrink-0"} relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-105`}
+                    style={{
+                      background: TINT_GRADIENT[g.tint],
+                      border: "1px solid var(--p-border-color)",
+                      color: "var(--p-light-text-color)",
+                    }}
+                  >
+                    {/* Big background icon */}
+                    <GameIcon
+                      className="absolute -right-3 -top-3 opacity-25"
+                      style={{ width: isMobile ? 70 : 96, height: isMobile ? 70 : 96 }}
+                      strokeWidth={1.25}
+                    />
+                    {/* Foreground icon + label */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-2 text-center">
+                      <GameIcon
+                        className={isMobile ? "h-7 w-7" : "h-9 w-9"}
+                        strokeWidth={1.75}
+                      />
+                      <span
+                        className={`${isMobile ? "text-[9px]" : "text-[10px]"} font-bold leading-tight drop-shadow`}
+                      >
+                        {g.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -214,6 +264,7 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
     </div>
   );
 }
+
 
 function pickContrastText(rgbaStr: string): string {
   const m = rgbaStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
