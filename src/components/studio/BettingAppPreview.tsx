@@ -45,7 +45,175 @@ import {
   Heart,
   Share2,
   Users,
+  Zap,
+  Rocket,
+  Dice5,
+  Ticket,
+  MoreHorizontal,
+  LayoutGrid,
 } from "lucide-react";
+
+/* ─── Casino content (shared by web + mobile) ─────────────────────────── */
+
+const CASINO_CATEGORIES = [
+  { key: "all", label: "All Games", icon: Search },
+  { key: "virtuals", label: "Virtuals", icon: Clapperboard },
+  { key: "live", label: "Live", icon: Radio },
+  { key: "instant", label: "Instant Win", icon: Zap },
+  { key: "crash", label: "Crash", icon: Rocket },
+  { key: "slots", label: "Slots", icon: LayoutGrid },
+  { key: "scratch", label: "Scratch", icon: Ticket },
+  { key: "other", label: "Other", icon: MoreHorizontal },
+];
+
+const CASINO_SECTIONS: { title: string; games: string[] }[] = [
+  {
+    title: "Top Games",
+    games: [
+      "Aviator",
+      "Fortune Spin",
+      "Wild Tiger 2",
+      "Avia Masters",
+      "Balloon Mania",
+      "Danfo Crash",
+      "Snoop Dogg Dollars",
+    ],
+  },
+  {
+    title: "Instant Win",
+    games: [
+      "Fortune Mines",
+      "Coin Toss",
+      "Fortune Spin",
+      "Mines",
+      "Pinky Plinko",
+      "Penalty Duelo",
+      "Minesweeper XY",
+    ],
+  },
+  {
+    title: "Crash",
+    games: [
+      "Aviator",
+      "Rocket Launch",
+      "Danfo Crash",
+      "Boom Ball",
+      "Top Eagle",
+      "Avia Masters",
+      "Fire Crash",
+      "Meteoroid Deluxe",
+    ],
+  },
+  {
+    title: "Slots",
+    games: [
+      "Secrets of Olympus",
+      "Vegas Bonus",
+      "Lay A Bonus",
+      "Jungle Quest",
+      "Ice Queen",
+      "Royal Riches",
+      "Treasure Vault",
+    ],
+  },
+];
+
+function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
+  const [activeCat, setActiveCat] = useState("all");
+  const isMobile = variant === "mobile";
+  const tileSize = isMobile ? "h-[100px]" : "h-[140px]";
+  const gridCols = isMobile ? "grid grid-cols-2 gap-2" : "flex gap-2 overflow-x-auto";
+
+  return (
+    <div
+      className="flex-1 min-h-0 overflow-auto"
+      style={{ background: "var(--p-primary-background-color)" }}
+    >
+      {/* Filter bar */}
+      <div
+        className="flex gap-3 overflow-x-auto px-3 py-3 border-b"
+        style={{ borderColor: "var(--p-border-color)" }}
+      >
+        {CASINO_CATEGORIES.map((c) => {
+          const Icon = c.icon;
+          const active = activeCat === c.key;
+          return (
+            <button
+              key={c.key}
+              onClick={() => setActiveCat(c.key)}
+              className="flex flex-col items-center gap-1 flex-shrink-0 group"
+            >
+              <span
+                className="grid place-items-center rounded-full transition-all"
+                style={{
+                  width: isMobile ? 40 : 48,
+                  height: isMobile ? 40 : 48,
+                  background: active
+                    ? "var(--p-active-secondary-gradient-color, var(--p-primary))"
+                    : "var(--p-modal-background)",
+                  border: `1px solid ${active ? "var(--p-primary)" : "var(--p-border-color)"}`,
+                  color: active
+                    ? "var(--p-light-text-color)"
+                    : "var(--p-light-text-color)",
+                }}
+              >
+                <Icon className={isMobile ? "h-4 w-4" : "h-5 w-5"} />
+              </span>
+              <span
+                className="text-[9px] font-medium whitespace-nowrap"
+                style={{
+                  color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)",
+                  borderBottom: active ? "1.5px solid var(--p-primary)" : "1.5px solid transparent",
+                  paddingBottom: 1,
+                }}
+              >
+                {c.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Sections */}
+      <div className="px-3 py-2 space-y-4">
+        {CASINO_SECTIONS.map((section) => (
+          <div key={section.title} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div
+                className="text-[12px] font-bold"
+                style={{ color: "var(--p-light-text-color)" }}
+              >
+                {section.title}
+              </div>
+              <button
+                className="text-[9px] font-semibold flex items-center gap-0.5"
+                style={{ color: "var(--p-primary)" }}
+              >
+                All games <ChevronRight className="h-2.5 w-2.5" />
+              </button>
+            </div>
+            <div className={gridCols}>
+              {section.games.map((g) => (
+                <div
+                  key={g}
+                  className={`${tileSize} ${isMobile ? "" : "w-[140px] flex-shrink-0"} rounded-xl grid place-items-center text-center px-2 cursor-pointer transition-transform hover:scale-105`}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--p-modal-background) 0%, color-mix(in oklab, var(--p-modal-background) 70%, var(--p-light-text-color) 8%) 100%)",
+                    border: "1px solid var(--p-border-color)",
+                    color: "var(--p-light-text-color)",
+                  }}
+                >
+                  <span className="text-[11px] font-bold leading-tight">{g}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function pickContrastText(rgbaStr: string): string {
   const m = rgbaStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -1063,7 +1231,12 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       {activeNav === 0 && renderFeedView()}
       {activeNav === 1 && renderSportsView()}
       {activeNav === 2 && renderPlaceholder("Discovery", Compass)}
-      {activeNav === 3 && renderPlaceholder("Casino", Gamepad2)}
+      {activeNav === 3 && (
+        <div className="flex-1 min-h-0 flex">
+          <CasinoContent variant="web" />
+          {renderRightPanel()}
+        </div>
+      )}
       {activeNav === 4 && renderPlaceholder("Peer-to-Peer", Swords)}
     </div>
   );
@@ -1622,29 +1795,7 @@ function MobilePreview({
   const renderCasinoView = () => (
     <>
       {renderTopBar()}
-      <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
-        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-light-text-color)" }}>
-          {strings.CASINO_HEADING}
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {["🎰 Slots", "🃏 Poker", "🎲 Roulette", "🂡 Blackjack", "🎳 Bingo", "🎮 Live"].map(
-            (g) => (
-              <button
-                key={g}
-                className="h-16 rounded-md flex flex-col items-center justify-center gap-1 text-[9px] font-semibold"
-                style={{
-                  background: "var(--p-dark)",
-                  border: "1px solid var(--p-border-and-gradient-bg)",
-                  color: "var(--p-light-text-color)",
-                }}
-              >
-                <span className="text-[20px]">{g.slice(0, 2)}</span>
-                <span style={{ color: "var(--p-text-secondary-color)" }}>{g.slice(3)}</span>
-              </button>
-            ),
-          )}
-        </div>
-      </div>
+      <CasinoContent variant="mobile" />
     </>
   );
 
