@@ -1663,7 +1663,340 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
     </div>
   );
 
-  const renderP2PView = () => {
+  const renderWebDiscoveryView = () => {
+    const primaryText = pickContrastText(palette.primary);
+    const leagues = [
+      { code: "MLB", icon: "⚾" },
+      { code: "NHL", icon: "🏒" },
+      { code: "NBA", icon: "🏀" },
+      { code: "MMA", icon: "🥊" },
+      { code: "Soccer", icon: "⚽" },
+      { code: "MLS", icon: "🥅" },
+      { code: "TT Cup", icon: "🏓" },
+    ];
+    const activeLeagueIdx = 0;
+
+    type DiscPost = {
+      user: string;
+      league: string;
+      legCount: number;
+      odds: string;
+      status: "PENDING" | "WON" | "LOST";
+      legs: { type: string; pick: string; odds: string; home: string; away: string }[];
+      stake: string;
+      payout: string;
+      time: string;
+    };
+
+    const posts: DiscPost[] = [
+      {
+        user: "sskit8905",
+        league: "MLB",
+        legCount: 8,
+        odds: "+14954",
+        status: "PENDING",
+        legs: [
+          { type: "Winner (incl. extra innings)", pick: "Los Angeles Angels", odds: "-143", home: "New York Mets", away: "Los Angeles Angels" },
+          { type: "Winner (incl. extra innings)", pick: "Detroit Tigers", odds: "-120", home: "Texas Rangers", away: "Detroit Tigers" },
+          { type: "Handicap (incl. extra innings)", pick: "Philadelphia Phillies (-1)", odds: "+109", home: "Philadelphia Phillies", away: "Miami Marlins" },
+          { type: "Handicap (incl. extra innings)", pick: "New York Yankees (-1.5)", odds: "+100", home: "Baltimore Orioles", away: "New York Yankees" },
+        ],
+        stake: "0.5",
+        payout: "75.27",
+        time: "14 seconds ago",
+      },
+      {
+        user: "ChampagnePogi",
+        league: "NBA",
+        legCount: 2,
+        odds: "+210",
+        status: "PENDING",
+        legs: [
+          { type: "Handicap (incl. overtime)", pick: "Toronto Raptors (+10.5)", odds: "-159", home: "Toronto Raptors", away: "Cleveland Cavaliers" },
+          { type: "Handicap (incl. overtime)", pick: "Boston Celtics (-4.5)", odds: "-110", home: "Boston Celtics", away: "Miami Heat" },
+        ],
+        stake: "5",
+        payout: "15.50",
+        time: "3 minutes ago",
+      },
+      {
+        user: "WillyBet",
+        league: "Soccer",
+        legCount: 4,
+        odds: "+850",
+        status: "WON",
+        legs: [
+          { type: "1x2", pick: "Real Madrid", odds: "+105", home: "Real Madrid", away: "Atletico Madrid" },
+          { type: "Over/Under", pick: "Over 2.5", odds: "-130", home: "Manchester City", away: "Liverpool" },
+          { type: "1x2", pick: "Bayern Munich", odds: "-180", home: "Bayern Munich", away: "Borussia Dortmund" },
+          { type: "GG", pick: "Both teams to score", odds: "+115", home: "PSG", away: "Marseille" },
+        ],
+        stake: "10",
+        payout: "95.00",
+        time: "2 hours ago",
+      },
+    ];
+
+    const statusStyle = (s: "PENDING" | "WON" | "LOST") => {
+      if (s === "WON") return { bg: "color-mix(in oklab, var(--p-won-color) 18%, transparent)", color: "var(--p-won-color)" };
+      if (s === "LOST") return { bg: "color-mix(in oklab, var(--p-lost-color) 18%, transparent)", color: "var(--p-lost-color)" };
+      return { bg: "color-mix(in oklab, var(--p-secondary) 18%, transparent)", color: "var(--p-secondary)" };
+    };
+    const statusLabelText = (s: "PENDING" | "WON" | "LOST") =>
+      s === "WON" ? strings.STATUS_WON : s === "LOST" ? strings.STATUS_LOST : strings.STATUS_PENDING;
+
+    const oddsColor = (o: string) =>
+      o.startsWith("+") ? "var(--p-won-color)" : "var(--p-light-text-color)";
+
+    return (
+      <div className="flex-1 min-h-0 flex">
+        {renderFriendsSidebar()}
+
+        {/* CENTER */}
+        <main className="flex-1 min-w-0 overflow-auto px-4 py-3">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Flame className="h-4 w-4" style={{ color: "var(--p-primary)" }} />
+              <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                For you
+              </span>
+            </div>
+            <Filter className="h-3.5 w-3.5" style={{ color: "var(--p-text-secondary-color)" }} />
+          </div>
+
+          {/* League filter tiles */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
+            {leagues.map((l, i) => {
+              const active = i === activeLeagueIdx;
+              return (
+                <div
+                  key={l.code}
+                  className="flex flex-col items-center justify-center flex-shrink-0 rounded-xl"
+                  style={{
+                    width: 64,
+                    height: 64,
+                    background: "var(--p-modal-background)",
+                    border: `1px solid ${active ? "var(--p-primary)" : "var(--p-border-and-gradient-bg)"}`,
+                  }}
+                >
+                  <span className="text-[18px] leading-none">{l.icon}</span>
+                  <span className="text-[9px] mt-1" style={{ color: "var(--p-text-secondary-color)" }}>
+                    {l.code}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* More filters */}
+          <div
+            className="flex items-center justify-between rounded-lg px-3 py-2.5 mb-3"
+            style={{ background: "var(--p-modal-background)" }}
+          >
+            <div className="flex items-center gap-2">
+              <Filter className="h-3.5 w-3.5" style={{ color: "var(--p-light-text-color)" }} />
+              <span className="text-[11px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>
+                More filters
+              </span>
+            </div>
+            <ChevronDown className="h-3.5 w-3.5" style={{ color: "var(--p-text-secondary-color)" }} />
+          </div>
+
+          {/* Posts */}
+          <div className="space-y-3">
+            {posts.map((p, idx) => {
+              const ss = statusStyle(p.status);
+              return (
+                <div
+                  key={idx}
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    background: "var(--p-modal-background)",
+                    border: "1px solid var(--p-border-and-gradient-bg)",
+                  }}
+                >
+                  {/* User header */}
+                  <div
+                    className="flex items-center justify-between px-3 py-2"
+                    style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-6 w-6 rounded-full grid place-items-center text-[9px] font-bold"
+                        style={{ background: "var(--p-primary)", color: primaryText }}
+                      >
+                        {p.user.slice(0, 1).toUpperCase()}
+                      </div>
+                      <span className="text-[11px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>
+                        {p.user}
+                      </span>
+                    </div>
+                    <span
+                      className="text-[8px] font-bold px-2 py-0.5 rounded italic"
+                      style={{ background: ss.bg, color: ss.color }}
+                    >
+                      {statusLabelText(p.status)}
+                    </span>
+                  </div>
+
+                  {/* League + Parlay title */}
+                  <div className="px-3 pt-2.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Trophy className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+                      <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                        {p.league}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                        {p.legCount} Leg Parlay
+                      </span>
+                      <span className="text-[12px] font-bold" style={{ color: oddsColor(p.odds) }}>
+                        {p.odds}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Legs */}
+                  <div className="px-3 space-y-1.5">
+                    {p.legs.slice(0, 4).map((leg, li) => (
+                      <div
+                        key={li}
+                        className="rounded-md px-2.5 py-2"
+                        style={{
+                          background: "var(--p-dark)",
+                          border: "1px solid var(--p-border-and-gradient-bg)",
+                        }}
+                      >
+                        <div className="flex items-start justify-between mb-1.5">
+                          <div className="min-w-0">
+                            <div
+                              className="text-[8px] font-semibold mb-0.5"
+                              style={{ color: "var(--p-primary)" }}
+                            >
+                              {leg.type}
+                            </div>
+                            <div className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                              {leg.pick}
+                            </div>
+                          </div>
+                          <span
+                            className="text-[10px] font-bold ml-2 flex-shrink-0"
+                            style={{ color: oddsColor(leg.odds) }}
+                          >
+                            {leg.odds}
+                          </span>
+                        </div>
+                        <div
+                          className="flex items-center justify-between text-[8px]"
+                          style={{ color: "var(--p-text-secondary-color)" }}
+                        >
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <TeamDot label={leg.home} />
+                            <span className="truncate">{leg.home}</span>
+                          </div>
+                          <span className="px-2" style={{ color: "var(--p-vs-color)" }}>VS</span>
+                          <div className="flex items-center gap-1 min-w-0 flex-1 justify-end">
+                            <span className="truncate text-right">{leg.away}</span>
+                            <TeamDot label={leg.away} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Show all */}
+                  {p.legCount > 4 && (
+                    <div className="px-3 py-2 text-center">
+                      <span className="text-[10px] font-semibold" style={{ color: "var(--p-primary)" }}>
+                        Show all {p.legCount} legs ›
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Pick amount / payout */}
+                  <div
+                    className="flex items-center justify-between px-3 py-2"
+                    style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div>
+                      <div className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>
+                        PICK AMOUNT
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Flame className="h-2.5 w-2.5" style={{ color: "var(--p-primary)" }} />
+                        <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                          {p.stake}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>
+                        PAYOUT
+                      </div>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Flame className="h-2.5 w-2.5" style={{ color: "var(--p-primary)" }} />
+                        <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                          {p.payout}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div
+                    className="flex items-center justify-between px-3 py-2"
+                    style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div className="flex items-center gap-3" style={{ color: "var(--p-text-secondary-color)" }}>
+                      <Heart className="h-3.5 w-3.5" />
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      <ArrowLeftRight className="h-3.5 w-3.5" />
+                      <span className="text-[9px] ml-1">{p.time}</span>
+                    </div>
+                    <Share2 className="h-3.5 w-3.5" style={{ color: "var(--p-text-secondary-color)" }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </main>
+
+        {/* RIGHT: Pick slip */}
+        <aside
+          className="w-[230px] border-l flex flex-col flex-shrink-0"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+        >
+          <div className="p-4 flex flex-col items-center">
+            <div
+              className="h-9 w-9 rounded-full grid place-items-center mb-2"
+              style={{
+                background: "color-mix(in oklab, var(--p-primary) 15%, transparent)",
+                color: "var(--p-primary)",
+              }}
+            >
+              <Zap className="h-4 w-4" />
+            </div>
+            <div className="text-[11px] font-semibold mb-3" style={{ color: "var(--p-light-text-color)" }}>
+              Pick slip is empty
+            </div>
+            <button
+              className="w-full rounded-lg py-3 text-[11px] font-bold"
+              style={{
+                background: "linear-gradient(135deg, var(--p-primary), var(--p-secondary))",
+                color: primaryText,
+              }}
+            >
+              Make Picks
+            </button>
+          </div>
+        </aside>
+      </div>
+    );
+  };
+
+
     const sports: { name: string; Icon: LucideIcon }[] = [
       { name: "Football", Icon: Trophy },
       { name: "Basketball", Icon: Dice5 },
