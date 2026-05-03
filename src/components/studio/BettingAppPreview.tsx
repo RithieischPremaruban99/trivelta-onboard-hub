@@ -755,20 +755,146 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
   );
 
   /* Feed view (nav index 0) */
-  const renderFeedView = () => {
-    const followers = [
-      { name: "Patecowin", handle: "patecowin" },
-      { name: "NgozikaOguine", handle: "ngozika" },
-      { name: "Zizu", handle: "zizu" },
-      { name: "Efe Benson", handle: "benson" },
-      { name: "AlexTIPS", handle: "alextips" },
-      { name: "Ismail Muhammad", handle: "ismael53b" },
-      { name: "Oscar", handle: "oscar" },
-      { name: "Ebaloghemen", handle: "ebal" },
-      { name: "Adriano", handle: "adriano" },
-      { name: "Akinwale", handle: "akinwale1" },
-    ];
+  const followersList = [
+    { name: "Patecowin", handle: "patecowin" },
+    { name: "NgozikaOguine", handle: "ngozika" },
+    { name: "Zizu", handle: "zizu" },
+    { name: "Efe Benson", handle: "benson" },
+    { name: "AlexTIPS", handle: "alextips" },
+    { name: "Ismail Muhammad", handle: "ismael53b" },
+    { name: "Oscar", handle: "oscar" },
+    { name: "Ebaloghemen", handle: "ebal" },
+    { name: "Adriano", handle: "adriano" },
+    { name: "Akinwale", handle: "akinwale1" },
+  ];
 
+  const renderFriendsSidebar = () => {
+    const primaryText = pickContrastText(palette.primary);
+    return (
+      <aside
+        className="w-[230px] border-r flex flex-col flex-shrink-0 overflow-auto"
+        style={{
+          borderColor: "var(--p-border-and-gradient-bg)",
+          background: "var(--p-dark)",
+        }}
+      >
+        <div className="px-3 py-3 space-y-3">
+          <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+            {strings.TAB_FRIENDS}
+          </div>
+          <div
+            className="flex items-center gap-2 h-7 rounded-md px-2"
+            style={{
+              background: "var(--p-modal-background)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
+            }}
+          >
+            <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+            <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              Search
+            </span>
+          </div>
+          <div
+            className="rounded-lg p-3 text-center"
+            style={{
+              border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
+              background:
+                "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)",
+            }}
+          >
+            <div
+              className="h-8 w-8 mx-auto rounded-full grid place-items-center mb-2"
+              style={{
+                background: "color-mix(in oklab, var(--p-primary) 20%, transparent)",
+                color: "var(--p-primary)",
+              }}
+            >
+              <Users className="h-4 w-4" />
+            </div>
+            <div
+              className="text-[9px] font-semibold leading-tight mb-2"
+              style={{ color: "var(--p-primary)" }}
+            >
+              Refer your friends and build your network
+              <div style={{ color: "var(--p-text-secondary-color)" }}>1 friend at a time!</div>
+            </div>
+            <button
+              className="w-full h-6 rounded text-[9px] font-bold"
+              style={{ background: "var(--p-primary)", color: primaryText }}
+            >
+              {strings.REFER_FRIENDS}
+            </button>
+          </div>
+          <div
+            className="flex border-b text-[9px] font-semibold"
+            style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+          >
+            {[`23 ${strings.FOLLOWING}`, `47 ${strings.FOLLOWERS}`].map((t, i) => {
+              const active = i === 0;
+              return (
+                <button
+                  key={t}
+                  className="flex-1 h-6 relative"
+                  style={{
+                    color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  }}
+                >
+                  {t}
+                  {active && (
+                    <span
+                      className="absolute bottom-0 left-2 right-2 h-[2px]"
+                      style={{ background: "var(--p-primary)" }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="space-y-1.5">
+            {followersList.map((u) => (
+              <div key={u.handle} className="flex items-center gap-2">
+                <div
+                  className="h-7 w-7 rounded-full grid place-items-center text-[9px] font-bold flex-shrink-0"
+                  style={{
+                    background: "var(--p-modal-background)",
+                    color: "var(--p-light-text-color)",
+                  }}
+                >
+                  {u.name.slice(0, 1)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div
+                    className="text-[9px] font-semibold truncate"
+                    style={{ color: "var(--p-light-text-color)" }}
+                  >
+                    {u.name}
+                  </div>
+                  <div
+                    className="text-[8px] truncate"
+                    style={{ color: "var(--p-text-secondary-color)" }}
+                  >
+                    {u.handle}
+                  </div>
+                </div>
+                <button
+                  className="h-5 px-2 rounded text-[8px] font-semibold"
+                  style={{
+                    border: "1px solid var(--p-border-and-gradient-bg)",
+                    color: "var(--p-light-text-color)",
+                    background: "transparent",
+                  }}
+                >
+                  {strings.FOLLOWING}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  };
+
+  const renderFeedView = () => {
     const feedPosts = [
       {
         user: "Geewine",
@@ -845,134 +971,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
 
     return (
       <div className="flex-1 min-h-0 flex">
-        {/* LEFT: Friends sidebar */}
-        <aside
-          className="w-[230px] border-r flex flex-col flex-shrink-0 overflow-auto"
-          style={{
-            borderColor: "var(--p-border-and-gradient-bg)",
-            background: "var(--p-dark)",
-          }}
-        >
-          <div className="px-3 py-3 space-y-3">
-            <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-              {strings.TAB_FRIENDS}
-            </div>
-            {/* Search */}
-            <div
-              className="flex items-center gap-2 h-7 rounded-md px-2"
-              style={{
-                background: "var(--p-modal-background)",
-                border: "1px solid var(--p-border-and-gradient-bg)",
-              }}
-            >
-              <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
-              <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                Search
-              </span>
-            </div>
-
-            {/* Referral card */}
-            <div
-              className="rounded-lg p-3 text-center"
-              style={{
-                border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
-                background:
-                  "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)",
-              }}
-            >
-              <div
-                className="h-8 w-8 mx-auto rounded-full grid place-items-center mb-2"
-                style={{
-                  background: "color-mix(in oklab, var(--p-primary) 20%, transparent)",
-                  color: "var(--p-primary)",
-                }}
-              >
-                <Users className="h-4 w-4" />
-              </div>
-              <div
-                className="text-[9px] font-semibold leading-tight mb-2"
-                style={{ color: "var(--p-primary)" }}
-              >
-                Refer your friends and build your network
-                <div style={{ color: "var(--p-text-secondary-color)" }}>1 friend at a time!</div>
-              </div>
-              <button
-                className="w-full h-6 rounded text-[9px] font-bold"
-                style={{ background: "var(--p-primary)", color: primaryText }}
-              >
-                {strings.REFER_FRIENDS}
-              </button>
-            </div>
-
-            {/* Following / Followers tabs */}
-            <div
-              className="flex border-b text-[9px] font-semibold"
-              style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
-            >
-              {[`23 ${strings.FOLLOWING}`, `47 ${strings.FOLLOWERS}`].map((t, i) => {
-                const active = i === 0;
-                return (
-                  <button
-                    key={t}
-                    className="flex-1 h-6 relative"
-                    style={{
-                      color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
-                    }}
-                  >
-                    {t}
-                    {active && (
-                      <span
-                        className="absolute bottom-0 left-2 right-2 h-[2px]"
-                        style={{ background: "var(--p-primary)" }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Followers list */}
-            <div className="space-y-1.5">
-              {followers.map((u) => (
-                <div key={u.handle} className="flex items-center gap-2">
-                  <div
-                    className="h-7 w-7 rounded-full grid place-items-center text-[9px] font-bold flex-shrink-0"
-                    style={{
-                      background: "var(--p-modal-background)",
-                      color: "var(--p-light-text-color)",
-                    }}
-                  >
-                    {u.name.slice(0, 1)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="text-[9px] font-semibold truncate"
-                      style={{ color: "var(--p-light-text-color)" }}
-                    >
-                      {u.name}
-                    </div>
-                    <div
-                      className="text-[8px] truncate"
-                      style={{ color: "var(--p-text-secondary-color)" }}
-                    >
-                      {u.handle}
-                    </div>
-                  </div>
-                  <button
-                    className="h-5 px-2 rounded text-[8px] font-semibold"
-                    style={{
-                      border: "1px solid var(--p-border-and-gradient-bg)",
-                      color: "var(--p-light-text-color)",
-                      background: "transparent",
-                    }}
-                  >
-                    {strings.FOLLOWING}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
+        {renderFriendsSidebar()}
 
         {/* CENTER: Feed */}
         <main className="flex-1 min-w-0 overflow-auto">
