@@ -219,39 +219,38 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
               </button>
             </div>
             <div className={gridCols}>
-              {section.games.map((g, idx) => {
-                const GameIcon = g.icon;
-                return (
+              {section.games.map((g, idx) => (
+                <div
+                  key={`${g.name}-${idx}`}
+                  className={`${tileSize} ${isMobile ? "" : "w-[140px] flex-shrink-0"} relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-105`}
+                  style={{
+                    border: "1px solid var(--p-border-color)",
+                    color: "var(--p-light-text-color)",
+                  }}
+                >
+                  <img
+                    src={g.image}
+                    alt={g.name}
+                    loading="lazy"
+                    width={512}
+                    height={512}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   <div
-                    key={`${g.name}-${idx}`}
-                    className={`${tileSize} ${isMobile ? "" : "w-[140px] flex-shrink-0"} relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-105`}
+                    className="absolute inset-x-0 bottom-0 px-2 py-1.5"
                     style={{
-                      background: TINT_GRADIENT[g.tint],
-                      border: "1px solid var(--p-border-color)",
-                      color: "var(--p-light-text-color)",
+                      background:
+                        "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)",
                     }}
                   >
-                    {/* Big background icon */}
-                    <GameIcon
-                      className="absolute -right-3 -top-3 opacity-25"
-                      style={{ width: isMobile ? 70 : 96, height: isMobile ? 70 : 96 }}
-                      strokeWidth={1.25}
-                    />
-                    {/* Foreground icon + label */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-2 text-center">
-                      <GameIcon
-                        className={isMobile ? "h-7 w-7" : "h-9 w-9"}
-                        strokeWidth={1.75}
-                      />
-                      <span
-                        className={`${isMobile ? "text-[9px]" : "text-[10px]"} font-bold leading-tight drop-shadow`}
-                      >
-                        {g.name}
-                      </span>
-                    </div>
+                    <span
+                      className={`${isMobile ? "text-[9px]" : "text-[10px]"} font-bold leading-tight text-white drop-shadow`}
+                    >
+                      {g.name}
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         ))}
