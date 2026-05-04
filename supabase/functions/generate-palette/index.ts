@@ -195,113 +195,6 @@ When in doubt, prefer conversational mode and ask a clarifying question.
 It's better to ask "Sport-focused, casino, or both? Mass-market or premium?"
 than to guess.
 
-═══ WHEN TO REQUEST CLARIFICATION (CHOOSE BETWEEN OPTIONS) ═══
-
-Many briefs have multiple valid interpretations. When the user has not
-given you enough information to confidently choose between them, ASK
-rather than guess. The user prefers a 5-second tap on a chip over a
-wrong palette.
-
-TRIGGER clarification when ANY of these are true:
-
-1. AESTHETIC AMBIGUITY: The brief uses style words that map to
-   multiple distinct visual directions:
-     - "premium" → could mean Vegas-glamour, Boutique-elegance,
-       Tech-minimal, or High-roller-flashy
-     - "modern" → could mean tech-fintech, design-system clean,
-       or bold-illustrative
-     - "luxury" → could mean dark-and-gold, all-monochrome,
-       or pastel-refined
-     - "fun" → could mean playful-bright, retro-arcade, or
-       cartoon-illustrated
-     - "trustworthy" → could mean corporate-blue, regulated-dark,
-       or sportsbook-traditional
-
-2. REFINEMENT AMBIGUITY: A modifier could apply to multiple parts of
-   the existing palette:
-     - "darker" → background or primary?
-     - "more red" → hue shift to red, or add red as accent?
-     - "less aggressive" → desaturate, lighten, or replace primary?
-     - "cleaner" → remove gradients, simplify palette, or lighten?
-
-3. CONTRADICTION: User combines references or words that pull in
-   different directions:
-     - "wie Caliente aber premium" (Caliente is mass-market)
-     - "modern but classic"
-     - "bold but minimal"
-
-DO NOT trigger clarification when:
-  - User provides BOTH a style word AND a concrete direction:
-    "premium dark with gold accents" → just generate
-    "modern with deep blue" → just generate
-  - User mentions a verified brand for inspiration:
-    "wie Bet365" → just generate (BRAND FACTS dictate the direction)
-  - User asks meta-questions or greetings → use conversational mode
-  - User says "surprise me" or "you decide" → just generate
-
-When in doubt between asking and generating: ASK. The skip-button
-always lets the user opt out instantly.
-
-Output format for clarification:
-
-  {"mode": "clarification", "question": "...the question (1-2 sentences)...",
-   "options": [
-     {"label": "Short label (2-5 words)", "description": "One short sentence"},
-     {"label": "Short label (2-5 words)", "description": "One short sentence"},
-     {"label": "Short label (2-5 words)", "description": "One short sentence"}
-   ],
-   "allowSkip": true
-  }
-
-Rules for the options array:
-  - 2-3 options maximum
-  - Each label must be specific and visually distinct from others
-  - Each description: one short sentence, designer voice
-  - NO marketing adjectives (fiery, vibrant, bold, passionate, intense)
-  - ALWAYS allowSkip: true
-
-Always respond in the user's input language for question and descriptions.
-
-Examples of good clarification output:
-
-Brief: "premium casino in mexico"
-{
-  "mode": "clarification",
-  "question": "Premium can go in different directions for a Mexican casino. Which feels closer?",
-  "options": [
-    {"label": "Vegas glamour", "description": "Gold + black, opulent, classic high-roller"},
-    {"label": "Boutique elegance", "description": "Muted earth tones, sophisticated, less commercial"},
-    {"label": "Modern tech", "description": "Dark base + single bright accent, fintech-adjacent"}
-  ],
-  "allowSkip": true
-}
-
-Brief (refinement): "dunkler"
-{
-  "mode": "clarification",
-  "question": "Welchen Teil dunkler? Beides verändert die Palette unterschiedlich.",
-  "options": [
-    {"label": "Hintergrund dunkler", "description": "Nur Background-Felder, Brand-Farbe bleibt"},
-    {"label": "Primary dunkler", "description": "Hauptfarbe gedämpfter, Hintergrund bleibt"}
-  ],
-  "allowSkip": true
-}
-
-Brief: "modern sportsbook for nigeria"
-{
-  "mode": "clarification",
-  "question": "Modern can go several ways. Which direction fits?",
-  "options": [
-    {"label": "Fintech minimal", "description": "Clean, single bright accent on dark, very few colors"},
-    {"label": "Bold illustrative", "description": "Strong colors, gradients, expressive type"},
-    {"label": "Premium tech", "description": "Dark + gold or silver accents, refined feel"}
-  ],
-  "allowSkip": true
-}
-
-After user picks an option (their next message will reference the label),
-proceed with normal palette generation using that interpretation.
-
 ═══ BRAND FACTS - VERIFIED, NEVER INVENT ═══
 
 If user mentions any of these operators, use these EXACT primary colors:
@@ -1335,22 +1228,6 @@ Deno.serve(async (req: Request) => {
         // Conversational mode — model chose to respond without a palette
         if (parsed.mode === "conversational" && typeof parsed.message === "string") {
           send({ type: "conversational", message: parsed.message });
-          controller.close();
-          return;
-        }
-
-        // Clarification mode — model needs user to choose between interpretations
-        if (
-          parsed.mode === "clarification" &&
-          typeof parsed.question === "string" &&
-          Array.isArray(parsed.options)
-        ) {
-          send({
-            type: "clarification",
-            question: parsed.question,
-            options: parsed.options,
-            allowSkip: parsed.allowSkip !== false,
-          });
           controller.close();
           return;
         }

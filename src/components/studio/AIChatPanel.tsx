@@ -7,21 +7,12 @@ import { type TCMPalette } from "@/lib/tcm-palette";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-interface ClarificationOption {
-  label: string;
-  description: string;
-}
-
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   isError?: boolean;
   logoVariants?: LogoVariant[];
   isStreaming?: boolean;
-  clarification?: {
-    options: ClarificationOption[];
-    allowSkip: boolean;
-  };
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -350,30 +341,6 @@ export function AIChatPanel() {
               });
               reader.cancel().catch(() => {});
               break outer;
-            } else if (
-              evt.type === "clarification" &&
-              typeof evt.question === "string" &&
-              Array.isArray(evt.options)
-            ) {
-              streamCompleted = true;
-              setLoading(false);
-              setMessages((prev) => {
-                const updated = streamingStarted
-                  ? [...prev]
-                  : [...prev, { role: "assistant" as const, content: "" }];
-                updated[updated.length - 1] = {
-                  role: "assistant",
-                  content: evt.question as string,
-                  isStreaming: false,
-                  clarification: {
-                    options: evt.options as ClarificationOption[],
-                    allowSkip: evt.allowSkip !== false,
-                  },
-                };
-                return updated;
-              });
-              reader.cancel().catch(() => {});
-              break outer;
             } else if (evt.type === "complete" && evt.palette) {
               streamCompleted = true;
               setPalette(evt.palette as TCMPalette);
@@ -449,15 +416,6 @@ export function AIChatPanel() {
       addBrandPrompt,
       handleLogoGeneration,
     ],
-  );
-
-  /* ── Clarification chip handler ────────────────────────────────────────── */
-
-  const handleClarificationSelect = useCallback(
-    (selectedLabel: string) => {
-      void sendMessage(selectedLabel);
-    },
-    [sendMessage],
   );
 
   /* ── Cycling progress hints ─────────────────────────────────────────────── */
@@ -539,35 +497,6 @@ export function AIChatPanel() {
                 </div>
               )}
 
-              {/* Clarification option chips */}
-              {msg.role === "assistant" && msg.clarification && (
-                <div className="mt-3 flex flex-col gap-2">
-                  {msg.clarification.options.map((opt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleClarificationSelect(opt.label)}
-                      disabled={loading || locked}
-                      className="flex flex-col items-start gap-0.5 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <span className="text-[11.5px] font-semibold text-foreground">
-                        {opt.label}
-                      </span>
-                      <span className="text-[10.5px] text-muted-foreground">
-                        {opt.description}
-                      </span>
-                    </button>
-                  ))}
-                  {msg.clarification.allowSkip && (
-                    <button
-                      onClick={() => handleClarificationSelect("No preference — decide for me")}
-                      disabled={loading || locked}
-                      className="self-start mt-0.5 text-[10.5px] text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Skip — no preference, decide for me
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         ))}
