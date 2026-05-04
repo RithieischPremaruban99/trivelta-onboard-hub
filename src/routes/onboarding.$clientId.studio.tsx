@@ -760,6 +760,27 @@ export function StudioInner({
     }
   };
 
+  /* ── Admin direct lock (no submit emails, no modal) ── */
+  const [adminLocking, setAdminLocking] = useState(false);
+  const handleAdminLock = async () => {
+    setAdminLocking(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("onboarding_forms")
+        .update({ studio_locked: true, studio_locked_at: now })
+        .eq("client_id", clientId);
+      if (error) throw error;
+      setLocked(true);
+      setLockedAt(now);
+      toast.success("Design locked by admin.");
+    } catch {
+      toast.error("Failed to lock design - please try again.");
+    } finally {
+      setAdminLocking(false);
+    }
+  };
+
   const lockedDate = lockedAt
     ? new Date(lockedAt).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -850,6 +871,21 @@ export function StudioInner({
               Unlock
             </button>
           )}
+        </div>
+      )}
+
+      {!locked && (isAdmin || isAssignedAM) && (
+        <div className="shrink-0 flex items-center justify-center gap-2 border-b border-amber-500/20 bg-amber-500/8 px-5 py-2 text-[12px] font-semibold text-amber-600 dark:text-amber-400">
+          <Info className="h-3.5 w-3.5 shrink-0" />
+          Design unlocked · Client can edit
+          <button
+            onClick={handleAdminLock}
+            disabled={adminLocking}
+            className="ml-3 flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+          >
+            {adminLocking ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lock className="h-3 w-3" />}
+            Lock
+          </button>
         </div>
       )}
 
