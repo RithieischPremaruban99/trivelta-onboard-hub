@@ -1554,7 +1554,7 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
             </div>
             <div style={{
               background: "var(--p-primary-button)",
-              color: "var(--p-primary-text-color)",
+              color: pickContrastText(palette.primaryButton),
               fontSize: 9,
               fontWeight: 700,
               padding: "4px 8px",
@@ -2678,7 +2678,7 @@ function MobilePreview({
             </div>
             <div style={{
               background: "var(--p-primary-button)",
-              color: "var(--p-primary-text-color)",
+              color: pickContrastText(palette.primaryButton),
               fontSize: 9,
               fontWeight: 700,
               padding: "4px 8px",
@@ -4152,7 +4152,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
         <button
           onClick={() => setShowModal((v) => !v)}
           className="px-3 h-7 rounded text-[10px] font-semibold"
-          style={{ background: "var(--p-primary-button)", color: "var(--p-primary-text-color)" }}
+          style={{ background: "var(--p-primary-button)", color: pickContrastText(palette.primaryButton) }}
         >
           Show Modal
         </button>
