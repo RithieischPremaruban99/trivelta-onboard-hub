@@ -854,40 +854,36 @@ export function StudioInner({
               Design Submitted
             </button>
           )}
-        </div>
-      </header>
-
-      {locked && (
-        <div className="shrink-0 flex items-center justify-center gap-2 border-b border-success/20 bg-success/8 px-5 py-2 text-[12px] font-semibold text-success">
-          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-          Design locked on {lockedDate} · Your Account Manager will be in touch
-          {(isAdmin || isAssignedAM) && (
+          {(isAdmin || isAssignedAM) ? (
             <button
-              onClick={() => setUnlockConfirmOpen(true)}
-              disabled={unlocking}
-              className="ml-3 flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success transition-colors hover:bg-success/20 disabled:opacity-50"
+              onClick={locked ? () => setUnlockConfirmOpen(true) : handleAdminLock}
+              disabled={adminLocking || unlocking}
+              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 ${
+                locked
+                  ? "border-success/40 bg-success/10 text-success hover:bg-success/20"
+                  : "border-amber-500/40 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+              }`}
+              title={locked ? `Locked${lockedDate ? ` on ${lockedDate}` : ""} · click to unlock` : "Click to lock design"}
             >
-              {unlocking ? <Loader2 className="h-3 w-3 animate-spin" /> : <LockOpen className="h-3 w-3" />}
-              Unlock
+              {adminLocking || unlocking ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : locked ? (
+                <LockOpen className="h-3 w-3" />
+              ) : (
+                <Lock className="h-3 w-3" />
+              )}
+              {locked ? "Unlock" : "Lock"}
             </button>
+          ) : (
+            locked && (
+              <div className="flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
+                <CheckCircle2 className="h-3 w-3" />
+                Locked
+              </div>
+            )
           )}
         </div>
-      )}
-
-      {!locked && (isAdmin || isAssignedAM) && (
-        <div className="shrink-0 flex items-center justify-center gap-2 border-b border-amber-500/20 bg-amber-500/8 px-5 py-2 text-[12px] font-semibold text-amber-600 dark:text-amber-400">
-          <Info className="h-3.5 w-3.5 shrink-0" />
-          Design unlocked · Client can edit
-          <button
-            onClick={handleAdminLock}
-            disabled={adminLocking}
-            className="ml-3 flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold transition-colors hover:bg-amber-500/20 disabled:opacity-50"
-          >
-            {adminLocking ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lock className="h-3 w-3" />}
-            Lock
-          </button>
-        </div>
-      )}
+      </header>
 
       {!locked && !canSubmit && (
         <div className="shrink-0 flex items-center justify-center gap-2 border-b border-border bg-muted/40 px-5 py-2 text-[12px] text-muted-foreground">
