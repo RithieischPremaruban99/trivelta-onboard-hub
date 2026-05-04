@@ -874,6 +874,27 @@ export function StudioInner({
               )}
             </div>
           )}
+          {shouldShowPill && (
+            <button
+              onClick={locked ? () => setUnlockConfirmOpen(true) : handleAdminLock}
+              disabled={adminLocking || unlocking}
+              className={`flex items-center gap-2 rounded-lg border-2 px-3.5 py-2 text-[13px] font-bold uppercase tracking-wide shadow-sm ring-2 transition-all disabled:opacity-50 ${
+                locked
+                  ? "border-success/60 bg-success/25 text-success ring-success/30 hover:bg-success/35"
+                  : "border-amber-500/70 bg-amber-500/30 text-amber-700 ring-amber-400/30 hover:bg-amber-500/40 dark:text-amber-300"
+              }`}
+              title={locked ? `Locked${lockedDate ? ` on ${lockedDate}` : ""} · click to unlock` : "Click to lock design"}
+            >
+              {adminLocking || unlocking ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : locked ? (
+                <LockOpen className="h-3.5 w-3.5" />
+              ) : (
+                <Lock className="h-3.5 w-3.5" />
+              )}
+              {locked ? "Unlock" : "Lock"}
+            </button>
+          )}
           {locked && (
             <button
               onClick={() =>
@@ -885,33 +906,11 @@ export function StudioInner({
               Design Submitted
             </button>
           )}
-          {shouldShowPill ? (
-            <button
-              onClick={locked ? () => setUnlockConfirmOpen(true) : handleAdminLock}
-              disabled={adminLocking || unlocking}
-              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 ${
-                locked
-                  ? "border-success/40 bg-success/10 text-success hover:bg-success/20"
-                  : "border-amber-500/40 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
-              }`}
-              title={locked ? `Locked${lockedDate ? ` on ${lockedDate}` : ""} · click to unlock` : "Click to lock design"}
-            >
-              {adminLocking || unlocking ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : locked ? (
-                <LockOpen className="h-3 w-3" />
-              ) : (
-                <Lock className="h-3 w-3" />
-              )}
-              {locked ? "Unlock" : "Lock"}
-            </button>
-          ) : (
-            locked && (
-              <div className="flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
-                <CheckCircle2 className="h-3 w-3" />
-                Locked
-              </div>
-            )
+          {!shouldShowPill && locked && (
+            <div className="flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
+              <CheckCircle2 className="h-3 w-3" />
+              Locked
+            </div>
           )}
         </div>
       </header>
