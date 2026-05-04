@@ -17,7 +17,7 @@
  * Client can still edit these fields in Advanced Mode; they will be stored in
  * studio_config.palette and applied when the TCM runtime renders those features.
  */
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useStudio } from "@/contexts/StudioContext";
 import type { TCMStrings } from "@/lib/tcm-strings";
 import {
@@ -559,7 +559,7 @@ const LiveDot = () => {
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
+const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
   const { strings, palette } = useStudio();
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
@@ -2290,11 +2290,11 @@ function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | 
       {activeNav === 4 && renderP2PView()}
     </div>
   );
-}
+});
 
 /* ─── MOBILE VERSION ──────────────────────────────────────────────────── */
 
-function MobilePreview({
+const MobilePreview = React.memo(function MobilePreview({
   appName,
   currencySymbol,
   logoUrl,
@@ -3296,7 +3296,7 @@ function MobilePreview({
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   );
-}
+});
 
 /* ─── Sub-views ───────────────────────────────────────────────────────── */
 
@@ -4133,6 +4133,11 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
+  const paletteStyle = useMemo(
+    () => paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
+    [palette, headingFont],
+  );
+
   const handleSimulateNotification = () => {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
@@ -4141,7 +4146,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
   return (
     <div
       className="flex flex-col items-center w-full h-full overflow-hidden"
-      style={paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" })}
+      style={paletteStyle}
     >
       {/* Toolbar */}
       {!readOnly && (
