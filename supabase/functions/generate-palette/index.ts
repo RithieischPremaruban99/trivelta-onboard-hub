@@ -856,10 +856,12 @@ function validateAndEnforce(
     aiProvidedCount++;
   }
 
-  // Warn if any required field missing or invalid
+  // Warn only if a required field is missing FROM THE FINAL MERGED PALETTE.
+  // For refinements, fields not in the AI output are correctly filled from
+  // currentPalette and should not trigger false-positive warnings.
   for (const key of MIN_REQUIRED_FIELDS) {
-    const v = raw[key];
-    if (v === undefined || v === null || !isValidRgba(v)) {
+    const finalValue = (palette as unknown as Record<string, string>)[key];
+    if (!finalValue || !isValidRgba(finalValue)) {
       warnings.push(`Required field "${key}" missing or invalid - using default`);
     }
   }
@@ -919,6 +921,14 @@ function validateAndEnforce(
       );
     }
   }
+
+  // DEBUG: verify merged palette has key brand fields populated
+  console.log(
+    `[generate-palette] Final palette check: primary=${(palette as unknown as Record<string, string>).primary}, ` +
+    `primaryButton=${(palette as unknown as Record<string, string>).primaryButton}, ` +
+    `secondary=${(palette as unknown as Record<string, string>).secondary}, ` +
+    `wasRefinement=${!!req.currentPalette}`
+  );
 
   return palette;
 }
