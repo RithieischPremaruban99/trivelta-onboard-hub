@@ -467,8 +467,34 @@ export function StudioInner({
   const { user, role } = useAuth();
   const navigate = useNavigate();
   const isAdmin = role === "admin" || role === "account_executive";
+  const shouldShowPill = isAdmin || isAssignedAM;
+  const [showStudioDebug, setShowStudioDebug] = useState(import.meta.env.DEV);
+
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+    const hostname = window.location.hostname;
+    setShowStudioDebug(
+      hostname.includes("id-preview--") ||
+        hostname.includes("-dev.lovable.app") ||
+        hostname === "localhost",
+    );
+  }, []);
+
+  if (showStudioDebug) {
+    console.log(
+      "[Studio] user role:",
+      role,
+      "isAdmin:",
+      isAdmin,
+      "isAssignedAM:",
+      isAssignedAM,
+      "shouldShowPill:",
+      shouldShowPill,
+    );
+  }
+
   const { hasFeature } = useStudioFeatures(clientId);
-  const canSubmit = clientRole === "client_owner" || isAdmin || isAssignedAM;
+  const canSubmit = clientRole === "client_owner" || shouldShowPill;
   const {
     palette,
     manualOverrides,
