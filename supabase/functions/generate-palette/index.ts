@@ -1286,6 +1286,18 @@ Deno.serve(async (req: Request) => {
           } catch {
             // Last resort: retry with explicit JSON instruction (no thinking on retry)
             console.warn("[generate-palette] JSON parse failed, doing inline retry");
+            console.error(
+              "[generate-palette] JSON parse failed. Raw output (first 4000 chars):",
+              accumulated.substring(0, 4000)
+            );
+            console.error(
+              "[generate-palette] Raw output length:",
+              accumulated.length,
+              "boundaryIdx:",
+              boundaryIdx,
+              "preJsonReasoning length:",
+              preJsonReasoning.length
+            );
             const retryResult = await streamAnthropic(
               client,
               [
@@ -1302,9 +1314,17 @@ Deno.serve(async (req: Request) => {
               0.3,
               effectiveSystemPrompt
             );
+            console.error(
+              "[generate-palette] Retry output (first 4000 chars):",
+              retryResult.text.substring(0, 4000)
+            );
             try {
               parsed = JSON.parse(retryResult.text.trim());
-            } catch {
+            } catch (retryErr) {
+              console.error(
+                "[generate-palette] Retry JSON.parse threw:",
+                retryErr instanceof Error ? retryErr.message : String(retryErr)
+              );
               send({ type: "error", message: "AI response could not be parsed after retry" });
               controller.close();
               return;
