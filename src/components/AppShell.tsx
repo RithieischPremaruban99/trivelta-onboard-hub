@@ -51,6 +51,7 @@ export function AppShell({
           )}
         </nav>
       )}
+      {(role === "admin" || role === "account_executive") && <AdminMenu />}
       {user && (
         <>
           <div className="text-right leading-tight">
