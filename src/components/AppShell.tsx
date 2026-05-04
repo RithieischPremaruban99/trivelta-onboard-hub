@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { TriveltaNav } from "@/components/TriveltaNav";
 import { StageHeader, type Stage } from "@/components/StageHeader";
 import { DEFAULT_ADMIN_FILTERS } from "@/components/admin/AdminFilterBar";
+import { AdminMenu } from "@/components/AdminMenu";
 
 export function AppShell({
   children,
@@ -50,6 +51,7 @@ export function AppShell({
           )}
         </nav>
       )}
+      {(role === "admin" || role === "account_executive") && <AdminMenu />}
       {user && (
         <>
           <div className="text-right leading-tight">
