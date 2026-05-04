@@ -4140,7 +4140,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
 
   return (
     <div
-      className="flex flex-col items-center w-full h-full"
+      className="flex flex-col items-center w-full h-full overflow-hidden"
       style={paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" })}
     >
       {/* Toolbar */}
@@ -4249,10 +4249,12 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
         <div
           className="relative overflow-hidden rounded-[36px] shadow-2xl"
           style={{
-            width: 340,
-            height: 700,
+            width: "min(340px, calc((100vh - 220px) * 340 / 700))",
+            height: "min(700px, calc(100vh - 220px))",
+            aspectRatio: "340 / 700",
             border: "3px solid #1a1a1a",
             background: "var(--p-primary-background-color)",
+            flexShrink: 0,
           }}
         >
           <MobilePreview
