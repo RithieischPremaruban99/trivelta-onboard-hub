@@ -467,6 +467,12 @@ export function AIChatPanel() {
                     : "bg-secondary text-secondary-foreground rounded-tl-sm",
               )}
             >
+              {!msg.content && msg.isStreaming && (
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span className="opacity-60">Thinking through your brand…</span>
+                </div>
+              )}
               {msg.content}
               {msg.isStreaming && (
                 <span className="ml-0.5 inline-block h-[0.85em] w-0.5 animate-pulse bg-current align-middle opacity-70" />

@@ -1054,7 +1054,7 @@ Deno.serve(async (req: Request) => {
   const isRefine = isSimpleRefinement(body.brandPrompt, !!body.currentPalette);
   const model = isRefine ? HAIKU_MODEL : PRIMARY_MODEL;
   const isPrimary = model === PRIMARY_MODEL;
-  const maxTokens = isRefine ? 2000 : 16000;
+  const maxTokens = isRefine ? 2000 : 8000;
   const effectiveSystemPrompt = isRefine ? REFINEMENT_PREFIX + SYSTEM_PROMPT : SYSTEM_PROMPT;
   // Extended thinking requires temperature=1; Haiku uses 0.7
   const temperature = isPrimary ? 1 : 0.7;
@@ -1121,7 +1121,7 @@ Deno.serve(async (req: Request) => {
           system: cachedSystem,
           messages: anthropicMessages,
           ...(isPrimary && {
-            thinking: { type: "enabled", budget_tokens: 4000 },
+            thinking: { type: "enabled", budget_tokens: 2000 },
           }),
         };
 
