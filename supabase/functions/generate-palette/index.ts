@@ -1156,7 +1156,8 @@ Deno.serve(async (req: Request) => {
         }
 
         // ── Parse accumulated response ───────────────────────────────────────
-        const trimmed = accumulated.trim();
+        // Strip markdown code fences the AI occasionally wraps around JSON
+        const trimmed = accumulated.trim().replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
         const boundaryIdx = trimmed.indexOf("\n{");
 
         let preJsonReasoning = "";
@@ -1200,7 +1201,7 @@ Deno.serve(async (req: Request) => {
                 {
                   role: "user",
                   content:
-                    "Your last response was not valid JSON. Return ONLY valid JSON starting with { and ending with }. No prose, no markdown.",
+                    "Your last response was not valid JSON because it contained markdown code fences (```). Output the JSON directly, starting with { and ending with }. NO ``` blocks anywhere in your response. NO prose before or after. Just raw JSON.",
                 },
               ],
               model,
@@ -1212,7 +1213,7 @@ Deno.serve(async (req: Request) => {
               retryResult.text.substring(0, 4000)
             );
             try {
-              parsed = JSON.parse(retryResult.text.trim());
+              parsed = JSON.parse(retryResult.text.trim().replace(/```json\s*/g, "").replace(/```\s*/g, "").trim());
             } catch (retryErr) {
               console.error(
                 "[generate-palette] Retry JSON.parse threw:",
