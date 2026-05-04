@@ -1112,6 +1112,12 @@ Deno.serve(async (req: Request) => {
         let accumulated = "";
         let reasoningDone = false;
         let reasoningSentUpTo = 0;
+        let partialEmitted = false;
+        const PARTIAL_FIELDS = [
+          "primary", "secondary", "primaryBackgroundColor",
+          "primaryButton", "lightTextColor", "wonColor", "lostColor",
+          "modalBackground", "darkContainerBackground", "inputBackgroundColor",
+        ];
 
         // Build stream params - extended thinking only for primary model
         const streamParams: Parameters<typeof client.messages.stream>[0] = {
@@ -1159,6 +1165,20 @@ Deno.serve(async (req: Request) => {
                     if (chunk) send({ type: "reasoning_chunk", text: chunk });
                     reasoningSentUpTo = safeEnd;
                   }
+                }
+              }
+
+              // Optimistic partial palette — emit brand-critical fields as soon as they appear in the stream
+              if (reasoningDone && !partialEmitted && accumulated.length > 500) {
+                const partial: Record<string, string> = {};
+                for (const field of PARTIAL_FIELDS) {
+                  const regex = new RegExp(`"${field}"\\s*:\\s*"(rgba?\\([^"]+\\))"`, "i");
+                  const match = accumulated.match(regex);
+                  if (match) partial[field] = match[1];
+                }
+                if (partial.primary && partial.primaryBackgroundColor) {
+                  send({ type: "palette_partial", palette: partial });
+                  partialEmitted = true;
                 }
               }
             }

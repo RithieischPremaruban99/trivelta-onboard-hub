@@ -341,6 +341,9 @@ export function AIChatPanel() {
               });
               reader.cancel().catch(() => {});
               break outer;
+            } else if (evt.type === "palette_partial" && evt.palette) {
+              // Optimistic update — apply brand-critical fields immediately; complete event overrides later
+              setPalette({ ...palette, ...(evt.palette as Partial<TCMPalette>) } as TCMPalette);
             } else if (evt.type === "complete" && evt.palette) {
               streamCompleted = true;
               setPalette(evt.palette as TCMPalette);
