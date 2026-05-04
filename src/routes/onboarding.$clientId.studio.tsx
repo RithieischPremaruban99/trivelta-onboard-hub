@@ -836,6 +836,11 @@ export function StudioInner({
           </span>
         </div>
         <div className="flex w-[35%] shrink-0 items-center justify-end gap-3">
+          {showStudioDebug && (
+            <span className="hidden max-w-[260px] truncate rounded-md border border-border bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground lg:inline-flex">
+              [DEBUG: role={role ?? "null"}, canShowPill={String(shouldShowPill)}]
+            </span>
+          )}
           {/* Save indicator - only when not locked */}
           {!locked && (
             <div className="flex items-center gap-1.5 text-[11px]">
@@ -880,7 +885,7 @@ export function StudioInner({
               Design Submitted
             </button>
           )}
-          {(isAdmin || isAssignedAM) ? (
+          {shouldShowPill ? (
             <button
               onClick={locked ? () => setUnlockConfirmOpen(true) : handleAdminLock}
               disabled={adminLocking || unlocking}
