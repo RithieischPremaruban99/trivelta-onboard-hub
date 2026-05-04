@@ -1125,9 +1125,14 @@ export function StudioInner({
               </div>
             ) : (
               <div>
-                {!canLock && (
+                {!canLock && !isAdmin && (
                   <p className="mb-1.5 text-center text-[11px] text-muted-foreground">
                     Upload or generate a logo to enable
+                  </p>
+                )}
+                {!canLock && isAdmin && (
+                  <p className="mb-1.5 text-center text-[11px] text-muted-foreground">
+                    Admin override: submitting without logo is permitted
                   </p>
                 )}
                 {canLock && !canSubmit && (
@@ -1137,7 +1142,7 @@ export function StudioInner({
                 )}
                 <button
                   onClick={() => canSubmit && setLockModalOpen(true)}
-                  disabled={!canLock || !canSubmit}
+                  disabled={(!canLock && !isAdmin) || !canSubmit}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-success py-3 text-[13px] font-bold text-white shadow-md transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   <Lock className="h-4 w-4" />
