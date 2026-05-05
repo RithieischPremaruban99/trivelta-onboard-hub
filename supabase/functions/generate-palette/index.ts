@@ -55,7 +55,19 @@ const SYSTEM_PROMPT = `You are the Trivelta Assistant, a senior iGaming brand de
 
 ═══ OUTPUT FORMAT - STRICT ═══
 
-STREAMING FORMAT: Write 1-2 sentences of brand reasoning as plain text on the FIRST line. Then on a new line, output ONLY the raw JSON object starting with {. No markdown fences. No other prose.
+STREAMING FORMAT: Write 1-2 sentences of brand reasoning as plain text on the FIRST line. Then on a new line, output ONLY the raw JSON object starting with {.
+
+CRITICAL: NEVER wrap the JSON in markdown code fences. The string \`\`\`json must NEVER appear in your output. The string \`\`\` must NEVER appear in your output. Output the raw { directly after your reasoning. This rule is ABSOLUTE — if you wrap JSON in fences, the response will fail to parse and the user will see an error.
+
+CORRECT format:
+This is my reasoning sentence.
+{"primary": "rgba(255,0,0,1)", ...}
+
+WRONG format (DO NOT DO THIS):
+This is my reasoning sentence.
+\`\`\`json
+{"primary": "rgba(255,0,0,1)", ...}
+\`\`\`
 
 JSON schema (starts on line 2):
 {
@@ -452,6 +464,10 @@ const RGBA_RE = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/;
 
 function isValidRgba(value: unknown): value is string {
   return typeof value === "string" && RGBA_RE.test(value.trim());
+}
+
+function stripFences(text: string): string {
+  return text.replace(/```json\s*/g, "").replace(/```\s*/g, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -1074,10 +1090,30 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // ── Build messages array - prepend conversation history (last ≤10 turns) ──
+  // ── Build messages array - prepend conversation history (last ≤6 turns) ──
+  // Trim assistant responses to reasoning-only — the full 344-field palette JSON
+  // in history causes context bloat after multiple refinements, which causes
+  // Haiku to fail. The current palette is passed separately via currentPalette.
   const historyMessages: Anthropic.MessageParam[] = (body.conversationHistory ?? [])
-    .slice(-10)
-    .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+    .slice(-6)
+    .map((m) => {
+      if (m.role === "assistant" && typeof m.content === "string") {
+        const jsonStart = m.content.indexOf("\n{");
+        const reasoningOnly = jsonStart !== -1
+          ? m.content.slice(0, jsonStart).trim()
+          : m.content.trim();
+        return {
+          role: "assistant" as const,
+          content: reasoningOnly || "[Previous palette applied]",
+        };
+      }
+      return { role: m.role as "user" | "assistant", content: m.content };
+    });
+
+  console.log(
+    `[generate-palette] History trimmed: ${historyMessages.length} messages, ` +
+    `total chars: ${historyMessages.reduce((acc, m) => acc + (typeof m.content === "string" ? m.content.length : 0), 0)}`
+  );
   const anthropicMessages: Anthropic.MessageParam[] = [
     ...historyMessages,
     { role: "user", content: userContent },
@@ -1136,11 +1172,16 @@ Deno.serve(async (req: Request) => {
                 reasoningDone = true;
               }
               if (!reasoningDone) {
-                const boundary = accumulated.indexOf("\n{");
+                // Find JSON boundary accounting for possible markdown fences before {
+                const accumulatedClean = stripFences(accumulated);
+                const fenceOffset = accumulated.length - accumulatedClean.length;
+                const boundaryClean = accumulatedClean.indexOf("\n{");
+                const boundary = boundaryClean === -1 ? -1 : boundaryClean + fenceOffset;
+
                 if (boundary !== -1) {
-                  // Found JSON boundary - stream anything unsent before it
+                  // Found JSON boundary - stream anything unsent before it, stripped of fences
                   const unsent = accumulated.slice(reasoningSentUpTo, boundary);
-                  if (unsent.trim()) send({ type: "reasoning_chunk", text: unsent });
+                  if (unsent.trim()) send({ type: "reasoning_chunk", text: stripFences(unsent) });
                   reasoningDone = true;
                   reasoningSentUpTo = boundary;
                 } else {
@@ -1148,7 +1189,7 @@ Deno.serve(async (req: Request) => {
                   const safeEnd = Math.max(reasoningSentUpTo, accumulated.length - 2);
                   if (safeEnd > reasoningSentUpTo) {
                     const chunk = accumulated.slice(reasoningSentUpTo, safeEnd);
-                    if (chunk) send({ type: "reasoning_chunk", text: chunk });
+                    if (chunk) send({ type: "reasoning_chunk", text: stripFences(chunk) });
                     reasoningSentUpTo = safeEnd;
                   }
                 }
