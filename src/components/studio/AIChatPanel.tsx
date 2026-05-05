@@ -3,7 +3,7 @@ import { Loader2, Send } from "lucide-react";
 import { TriveltaIcon } from "@/components/TriveltaIcon";
 import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
-import { type TCMPalette } from "@/lib/tcm-palette";
+import { type TCMPalette, DEFAULT_TCM_PALETTE } from "@/lib/tcm-palette";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,19 @@ function buildWelcomeMessage(hasLogo: boolean): string {
     return "Hi! I'm your Trivelta Assistant. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it. Want me to generate alternative logos too? Just ask.";
   }
   return "Hi! I'm your Trivelta Assistant - your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos - just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
+}
+
+function isRefinementPrompt(text: string, hasExistingPalette: boolean): boolean {
+  if (!hasExistingPalette) return false;
+  const lower = text.toLowerCase().trim();
+  if (lower.length > 80) return false;
+  const patterns = [
+    /\b(darker|lighter|brighter|softer|bolder|warmer|cooler)\b/,
+    /\b(more|less|too)\s+\w+/,
+    /\b(make|keep|adjust|tweak|change|set|update)\b.*\b(it|the)\b/,
+    /^(a bit|slightly|just|only)\b/,
+  ];
+  return patterns.some((p) => p.test(lower));
 }
 
 /* ── Component ────────────────────────────────────────────────────────────── */
@@ -234,6 +247,13 @@ export function AIChatPanel() {
           ...(conversationHistory.length > 0 && { conversationHistory }),
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
+
+        // Reset to defaults before fresh generations so palette_partial doesn't
+        // mix new brand fields with the previous brand's remaining 334 fields
+        const isFresh = !isRefinementPrompt(trimmed, brandPromptHistory.length > 0);
+        if (isFresh) {
+          setPalette(DEFAULT_TCM_PALETTE);
+        }
 
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) throw new Error("No active session — please sign in again");
