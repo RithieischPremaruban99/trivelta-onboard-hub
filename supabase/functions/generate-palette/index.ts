@@ -960,26 +960,6 @@ const REFINEMENT_PREFIX =
 //   - Long brief (>= 100 chars suggests multi-constraint)
 //   - Verified brand name mentioned (triggers BRAND FACTS lookup)
 //   - Multiple constraint connectors in brief
-function isComplexBrief(brandPrompt: string, hasLogo: boolean): boolean {
-  if (hasLogo) return true;
-  if (brandPrompt.length >= 100) return true;
-
-  const lower = brandPrompt.toLowerCase();
-
-  const verifiedBrands = [
-    "bet365", "betway", "draftkings", "fanduel", "flutter", "william hill",
-    "ladbrokes", "betfair", "pinnacle", "unibet", "888sport", "betpawa",
-    "bwin", "caliente", "codere", "leovegas", "stake", "supabets", "yajuego",
-    "sportybet", "bet9ja", "betking", "1xbet", "hollywoodbets", "betano",
-  ];
-  if (verifiedBrands.some((b) => lower.includes(b))) return true;
-
-  const connectors = (lower.match(/\b(and|with|but|plus|also|including)\b/g) ?? []).length;
-  if (connectors >= 2) return true;
-
-  return false;
-}
-
 // ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
@@ -1138,24 +1118,8 @@ Deno.serve(async (req: Request) => {
         let accumulated = "";
         let reasoningDone = false;
         let reasoningSentUpTo = 0;
-        let partialEmitted = false;
-        const PARTIAL_FIELDS = [
-          "primary", "secondary", "primaryBackgroundColor",
-          "primaryButton", "lightTextColor", "wonColor", "lostColor",
-          "modalBackground", "darkContainerBackground", "inputBackgroundColor",
-        ];
 
-        // Conditional thinking budget — simple briefs use 2000, complex use 4000
-        const thinkingBudget = isPrimary
-          ? (isComplexBrief(body.brandPrompt, !!body.logoUrl) ? 4000 : 2000)
-          : 0;
-
-        console.log(
-          `[generate-palette] Thinking budget: ${thinkingBudget} ` +
-          `(model=${model}, hasLogo=${!!body.logoUrl}, briefLen=${body.brandPrompt.length}, ` +
-          `complex=${isComplexBrief(body.brandPrompt, !!body.logoUrl)})`
-        );
-
+        // Build stream params - extended thinking only for primary model
         const streamParams: Parameters<typeof client.messages.stream>[0] = {
           model,
           max_tokens: maxTokens,
@@ -1163,7 +1127,7 @@ Deno.serve(async (req: Request) => {
           system: cachedSystem,
           messages: anthropicMessages,
           ...(isPrimary && {
-            thinking: { type: "enabled", budget_tokens: thinkingBudget },
+            thinking: { type: "enabled", budget_tokens: 4000 },
           }),
         };
 
@@ -1204,19 +1168,6 @@ Deno.serve(async (req: Request) => {
                 }
               }
 
-              // Optimistic partial palette — emit brand-critical fields as soon as they appear in the stream
-              if (reasoningDone && !partialEmitted && accumulated.length > 500) {
-                const partial: Record<string, string> = {};
-                for (const field of PARTIAL_FIELDS) {
-                  const regex = new RegExp(`"${field}"\\s*:\\s*"(rgba?\\([^"]+\\))"`, "i");
-                  const match = accumulated.match(regex);
-                  if (match) partial[field] = match[1];
-                }
-                if (partial.primary && partial.primaryBackgroundColor) {
-                  send({ type: "palette_partial", palette: partial });
-                  partialEmitted = true;
-                }
-              }
             }
           }
         }
