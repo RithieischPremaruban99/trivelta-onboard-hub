@@ -809,9 +809,17 @@ function validateAndEnforce(
   req: GeneratePaletteRequest,
   warnings: string[]
 ): TCMPalette {
-  // Use currentPalette as base for refinements so Haiku partial responses
-  // don't wipe user's existing custom palette with DEFAULT values.
-  const palette = { ...(req.currentPalette ?? DEFAULT_TCM_PALETTE) } as TCMPalette;
+  // For fresh generations, start from defaults so unfilled fields don't bleed
+  // from previous brand. For refinements, start from currentPalette so
+  // unchanged fields persist (Haiku returns a partial response by design).
+  const isRefinement = isSimpleRefinement(req.brandPrompt, !!req.currentPalette);
+  const palette = isRefinement
+    ? ({ ...(req.currentPalette ?? DEFAULT_TCM_PALETTE) } as TCMPalette)
+    : ({ ...DEFAULT_TCM_PALETTE } as TCMPalette);
+
+  console.log(
+    `[generate-palette] Palette base: ${isRefinement ? "currentPalette (refinement)" : "DEFAULT_TCM_PALETTE (fresh)"}`
+  );
   const allKeys = Object.keys(DEFAULT_TCM_PALETTE) as (keyof TCMPalette)[];
 
   let aiProvidedCount = 0;
