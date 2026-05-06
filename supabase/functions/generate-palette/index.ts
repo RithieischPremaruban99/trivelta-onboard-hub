@@ -1364,6 +1364,9 @@ Deno.serve(async (req: Request) => {
 
         const requestDurationMs = Date.now() - requestStartTime;
         console.log(`[generate-palette] REQUEST_DURATION: ${requestDurationMs}ms`);
+        const tEnd = Date.now();
+        console.log(`[generate-palette] T_TOTAL: ${tEnd - requestStartTime}ms (total)`);
+        console.log(`[generate-palette] T_STREAM_DURATION: ${tEnd - tBeforeStream}ms (full stream from request to last token)`);
 
         send({
           type: "complete",
