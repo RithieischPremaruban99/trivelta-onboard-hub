@@ -1281,6 +1281,9 @@ Deno.serve(async (req: Request) => {
           `[generate-palette] Complete: model=${model}, isRefine=${isRefine}, duration=${Date.now() - startMs}ms, warnings=${warnings.length}`
         );
 
+        const requestDurationMs = Date.now() - requestStartTime;
+        console.log(`[generate-palette] REQUEST_DURATION: ${requestDurationMs}ms`);
+
         send({
           type: "complete",
           palette,
