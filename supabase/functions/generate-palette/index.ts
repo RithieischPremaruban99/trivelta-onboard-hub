@@ -1748,8 +1748,12 @@ Deno.serve(async (req: Request) => {
         controller.close();
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
+        const isOverloaded = msg.includes("overloaded_error") || msg.includes("Overloaded");
+        const userMessage = isOverloaded
+          ? "Anthropic is experiencing high demand. Please try again in 30 seconds."
+          : "Something went wrong generating your palette. Please try again.";
         console.error("[generate-palette] Stream error:", msg);
-        send({ type: "error", message: msg });
+        send({ type: "error", message: userMessage, isOverload: isOverloaded });
         controller.close();
       }
     },
