@@ -1518,9 +1518,9 @@ Deno.serve(async (req: Request) => {
 
         // Refinements need less thinking — they only adjust a few atomic
         // fields, not generate a full brand identity
-        const thinkingBudget = isRefinement ? 1000 : 2000;
+        const thinkingBudget = isRefine ? 1000 : 2000;
         console.log(
-          `[generate-palette] Thinking budget: ${thinkingBudget} (${isRefinement ? 'refinement' : 'fresh'})`
+          `[generate-palette] Thinking budget: ${thinkingBudget} (${isRefine ? 'refinement' : 'fresh'})`
         );
 
         // Build stream params - extended thinking only for primary model
