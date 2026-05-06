@@ -1080,6 +1080,26 @@ Deno.serve(async (req: Request) => {
   const historyMessages: Anthropic.MessageParam[] = (body.conversationHistory ?? [])
     .slice(-10)
     .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+  // Diagnostic: measure history size
+  const historyCharCount = historyMessages.reduce((acc, m) =>
+    acc + (typeof m.content === "string" ? m.content.length : 0), 0
+  );
+  const historyTokenEstimate = Math.ceil(historyCharCount / 4);
+
+  console.log(`[generate-palette] HISTORY_DIAGNOSTIC:`, JSON.stringify({
+    turn_count: historyMessages.length,
+    total_chars: historyCharCount,
+    estimated_tokens: historyTokenEstimate,
+    per_message_chars: historyMessages.map((m, i) => ({
+      idx: i,
+      role: m.role,
+      chars: typeof m.content === "string" ? m.content.length : 0,
+    })),
+    has_currentPalette: !!body.currentPalette,
+    brandPrompt_length: body.brandPrompt.length,
+    brandPrompt_preview: body.brandPrompt.slice(0, 80),
+  }));
   const anthropicMessages: Anthropic.MessageParam[] = [
     ...historyMessages,
     { role: "user", content: userContent },
