@@ -1516,6 +1516,13 @@ Deno.serve(async (req: Request) => {
         const tBeforeStream = Date.now();
         console.log(`[generate-palette] T_PRE_STREAM: ${tBeforeStream - requestStartTime}ms (handler setup)`);
 
+        // Refinements need less thinking — they only adjust a few atomic
+        // fields, not generate a full brand identity
+        const thinkingBudget = isRefinement ? 1000 : 2000;
+        console.log(
+          `[generate-palette] Thinking budget: ${thinkingBudget} (${isRefinement ? 'refinement' : 'fresh'})`
+        );
+
         // Build stream params - extended thinking only for primary model
         const streamParams: Parameters<typeof client.messages.stream>[0] = {
           model,
@@ -1524,7 +1531,7 @@ Deno.serve(async (req: Request) => {
           system: cachedSystem,
           messages: anthropicMessages,
           ...(isPrimary && {
-            thinking: { type: "enabled", budget_tokens: 2000 },
+            thinking: { type: "enabled", budget_tokens: thinkingBudget },
           }),
         };
 
