@@ -3608,7 +3608,7 @@ const FRIENDS_POSTS: SocialPost[] = [
 ];
 
 function AllSportsView() {
-  const { strings } = useStudio();
+  const { strings, palette } = useStudio();
   const ALL_SPORTS_LIST = getSportsSidebar(strings).map((s) => ({ ...s, icon: s.flag }));
   return (
     <div className="flex-1 min-h-0 overflow-auto">
@@ -3662,7 +3662,7 @@ function AllSportsView() {
                 className="h-6 w-6 rounded-full grid place-items-center text-[12px]"
                 style={{ background: "var(--p-active-secondary-gradient-color)", border: "1px solid var(--p-primary)" }}
               >
-                <span style={{ color: "var(--p-primary)" }}>{s.icon}</span>
+                <span style={{ color: pickContrastText(palette.activeSecondaryGradientColor) }}>{s.icon}</span>
               </div>
               <span
                 className="flex-1 text-[11.5px] font-semibold"
