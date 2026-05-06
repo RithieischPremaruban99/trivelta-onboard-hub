@@ -486,7 +486,7 @@ function AdminPage() {
         if (studioFilter.includes("any")) {
           return c.studio_access || Object.values(features).some(Boolean);
         }
-        return studioFilter.some((f) => features[f] === true || (f === "any" && c.studio_access));
+        return studioFilter.some((f: string) => features[f] === true || (f === "any" && c.studio_access));
       });
     }
 
