@@ -275,8 +275,27 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
 function pickContrastText(rgbaStr: string): string {
   const m = rgbaStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (!m) return "var(--p-light-text-color)";
-  const lum = (0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]) / 255;
-  return lum > 0.4 ? "rgba(0,0,0,0.85)" : "var(--p-light-text-color)";
+
+  const r = +m[1], g = +m[2], b = +m[3];
+
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+  // Saturation check: saturated mid-luminance colors (orange, red, lime, cyan)
+  // look better with white even if technically bright enough for black
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const saturation = max === 0 ? 0 : (max - min) / max;
+
+  // Only use black on light AND desaturated backgrounds (white/cream/pastel)
+  if (lum > 0.65 && saturation < 0.4) {
+    return "rgba(0,0,0,1)";
+  }
+
+  if (lum > 0.78) {
+    return "rgba(0,0,0,1)";
+  }
+
+  return "var(--p-light-text-color)";
 }
 
 /* ─── Static placeholder data ─────────────────────────────────────────── */
