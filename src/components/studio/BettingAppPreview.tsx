@@ -1384,11 +1384,11 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
           >
             <div
               className="text-[9px] font-bold tracking-wider opacity-90"
-              style={{ color: "var(--p-light-text-color)" }}
+              style={{ color: pickContrastText(palette.primaryButton) }}
             >
               {strings.WELCOME_BONUS_PROMO}
             </div>
-            <div className="text-[9px] mt-1 opacity-80" style={{ color: "var(--p-light-text-color)" }}>
+            <div className="text-[9px] mt-1 opacity-80" style={{ color: pickContrastText(palette.primaryButton) }}>
               {strings.WELCOME_BONUS_BODY_WEB}
             </div>
           </div>
@@ -2447,17 +2447,17 @@ const MobilePreview = React.memo(function MobilePreview({
             border: "1px solid var(--p-primary)",
           }}
         >
-          <div className="text-[12px] font-black" style={{ color: "var(--p-light-text-color)" }}>
+          <div className="text-[12px] font-black" style={{ color: pickContrastText(palette.primaryButton) }}>
             {strings.WELCOME_BONUS_PROMO}
           </div>
-          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-light-text-color)" }}>
+          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: pickContrastText(palette.primaryButton) }}>
             {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
           <div
             className="mt-2 h-5 w-5 rounded-full grid place-items-center"
             style={{ background: "rgba(0,0,0,0.3)" }}
           >
-            <ChevronDown className="h-3 w-3" style={{ color: "var(--p-light-text-color)" }} />
+            <ChevronDown className="h-3 w-3" style={{ color: pickContrastText(palette.primaryButton) }} />
           </div>
         </div>
         {/* Featured matches */}
@@ -3419,10 +3419,10 @@ function SportsView({
             border: "1px solid var(--p-primary)",
           }}
         >
-          <div className="text-[12px] font-black" style={{ color: "var(--p-light-text-color)" }}>
+          <div className="text-[12px] font-black" style={{ color: pickContrastText(palette.primaryButton) }}>
             {strings.WELCOME_BONUS_PROMO}
           </div>
-          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: "var(--p-light-text-color)" }}>
+          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: pickContrastText(palette.primaryButton) }}>
             {strings.WELCOME_BONUS_BODY_MOBILE}
           </div>
         </div>
