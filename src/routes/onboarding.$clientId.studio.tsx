@@ -497,6 +497,7 @@ export function StudioInner({
   const canSubmit = clientRole === "client_owner" || shouldShowPill;
   const {
     palette,
+    setPalette,
     manualOverrides,
     brandPromptHistory,
     appIcons,
@@ -688,6 +689,72 @@ export function StudioInner({
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
   }, [palette, manualOverrides, brandPromptHistory, appIcons, scheduleAutoSave]);
+
+  /* ── Atomic palette POC test mode (?test_atomic=purple|cyan|green) ── */
+  const TEST_ATOMIC_THEMES: Record<string, Partial<TCMPalette>> = {
+    purple: {
+      primary: "rgba(124, 58, 237, 1)",
+      secondary: "rgba(212, 175, 55, 1)",
+      primaryBackgroundColor: "rgba(10, 8, 20, 1)",
+      dark: "rgba(15, 12, 25, 1)",
+      modalBackground: "rgba(20, 16, 32, 1)",
+      primaryButton: "rgba(124, 58, 237, 1)",
+      lightTextColor: "rgba(255, 255, 255, 1)",
+      primaryTextColor: "rgba(255, 255, 255, 1)",
+      freeBetBackground: "rgba(124, 58, 237, 0.15)",
+      boxGradientColorStart: "rgba(91, 33, 182, 1)",
+      boxGradientColorEnd: "rgba(124, 58, 237, 1)",
+      borderAndGradientBg: "rgba(124, 58, 237, 0.3)",
+      activeSecondaryGradientColor: "rgba(212, 175, 55, 1)",
+      wonColor: "rgba(34, 197, 94, 1)",
+      lostColor: "rgba(239, 68, 68, 1)",
+    },
+    cyan: {
+      primary: "rgba(0, 200, 240, 1)",
+      secondary: "rgba(212, 175, 55, 1)",
+      primaryBackgroundColor: "rgba(6, 8, 18, 1)",
+      dark: "rgba(10, 14, 24, 1)",
+      modalBackground: "rgba(14, 18, 30, 1)",
+      primaryButton: "rgba(0, 200, 240, 1)",
+      lightTextColor: "rgba(255, 255, 255, 1)",
+      primaryTextColor: "rgba(0, 30, 50, 1)",
+      freeBetBackground: "rgba(0, 200, 240, 0.15)",
+      boxGradientColorStart: "rgba(0, 150, 200, 1)",
+      boxGradientColorEnd: "rgba(0, 200, 240, 1)",
+      borderAndGradientBg: "rgba(0, 200, 240, 0.3)",
+      activeSecondaryGradientColor: "rgba(212, 175, 55, 1)",
+      wonColor: "rgba(34, 197, 94, 1)",
+      lostColor: "rgba(239, 68, 68, 1)",
+    },
+    green: {
+      primary: "rgba(0, 166, 81, 1)",
+      secondary: "rgba(255, 215, 0, 1)",
+      primaryBackgroundColor: "rgba(8, 12, 8, 1)",
+      dark: "rgba(12, 18, 12, 1)",
+      modalBackground: "rgba(16, 24, 16, 1)",
+      primaryButton: "rgba(0, 166, 81, 1)",
+      lightTextColor: "rgba(255, 255, 255, 1)",
+      primaryTextColor: "rgba(255, 255, 255, 1)",
+      freeBetBackground: "rgba(0, 166, 81, 0.15)",
+      boxGradientColorStart: "rgba(0, 130, 60, 1)",
+      boxGradientColorEnd: "rgba(0, 166, 81, 1)",
+      borderAndGradientBg: "rgba(0, 166, 81, 0.3)",
+      activeSecondaryGradientColor: "rgba(255, 215, 0, 1)",
+      wonColor: "rgba(34, 197, 94, 1)",
+      lostColor: "rgba(239, 68, 68, 1)",
+    },
+  };
+
+  const testAtomic = new URLSearchParams(window.location.search).get("test_atomic");
+
+  useEffect(() => {
+    if (testAtomic && TEST_ATOMIC_THEMES[testAtomic]) {
+      const merged: TCMPalette = { ...DEFAULT_TCM_PALETTE, ...TEST_ATOMIC_THEMES[testAtomic] };
+      setPalette(merged);
+      console.log(`[StudioTest] Applied atomic theme: ${testAtomic}`, merged);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testAtomic]);
 
   /* ── Call design-locked edge function; returns true on success ── */
   const callDesignLocked = useCallback(async (): Promise<boolean> => {
