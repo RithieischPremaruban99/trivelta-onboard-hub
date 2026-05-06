@@ -1206,6 +1206,11 @@ Deno.serve(async (req: Request) => {
         const stream = client.messages.stream(streamParams);
 
         for await (const event of stream) {
+          if (!firstTokenLogged) {
+            const tFirstToken = Date.now();
+            console.log(`[generate-palette] T_FIRST_TOKEN: ${tFirstToken - tBeforeStream}ms (TTFT - thinking + setup)`);
+            firstTokenLogged = true;
+          }
           if (event.type === "content_block_delta") {
             // Extended thinking delta - emit as thinking_chunk
             if ((event.delta as { type: string }).type === "thinking_delta") {
