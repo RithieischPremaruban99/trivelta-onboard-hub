@@ -1245,9 +1245,21 @@ Deno.serve(async (req: Request) => {
                 }
               }
 
+              if (reasoningDone && !reasoningDoneLogged) {
+                reasoningDoneLogged = true;
+                console.log(`[generate-palette] T_REASONING_DONE: ${Date.now() - tBeforeStream}ms (reasoning text complete)`);
+              }
             }
           }
         }
+
+        const finalMessage = await stream.finalMessage();
+        console.log(`[generate-palette] CACHE_STATUS:`, JSON.stringify({
+          cache_creation: finalMessage.usage?.cache_creation_input_tokens,
+          cache_read: finalMessage.usage?.cache_read_input_tokens,
+          input: finalMessage.usage?.input_tokens,
+          output: finalMessage.usage?.output_tokens,
+        }));
 
         // ── Parse accumulated response ───────────────────────────────────────
         // Strip markdown code fences the AI occasionally wraps around JSON
