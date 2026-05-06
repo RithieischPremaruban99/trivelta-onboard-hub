@@ -210,15 +210,16 @@ export function AIChatPanel() {
       try {
         const isRefinement = brandPromptHistory.length > 0;
 
-        // Collect last 10 messages as conversation history (skip welcome msg at index 0)
-        // Use messagesRef to avoid stale closure — messages grows with conversational replies
-        // that don't trigger a sendMessage deps change via addBrandPrompt
+        // Send only user turns (assistant reasoning is heavy and not needed —
+        // model has currentPalette for state). Keep last 6 user turns,
+        // truncated to 200 chars each, to bound request size and latency.
         const conversationHistory = messagesRef.current
           .slice(1)
-          .slice(-10)
+          .filter((m) => m.role === "user")
+          .slice(-6)
           .map((m) => ({
             role: m.role,
-            content: m.content.slice(0, 500),
+            content: m.content.slice(0, 200),
           }));
 
         const refinementVerbs = /\b(more|less|darker|lighter|brighter|adjust|change|make it|tweak|refine|shift|deeper|softer|punchier)\b/i;
