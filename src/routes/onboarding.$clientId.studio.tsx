@@ -691,7 +691,7 @@ export function StudioInner({
   }, [palette, manualOverrides, brandPromptHistory, appIcons, scheduleAutoSave]);
 
   /* ── Atomic palette POC test mode (?test_atomic=purple|cyan|green) ── */
-  const TEST_ATOMIC_THEMES: Record<string, Partial<TCMPalette>> = {
+  const TEST_ATOMIC_THEMES: Record<string, AtomicPalette> = {
     purple: {
       primary: "rgba(124, 58, 237, 1)",
       secondary: "rgba(212, 175, 55, 1)",
@@ -706,6 +706,10 @@ export function StudioInner({
       boxGradientColorEnd: "rgba(124, 58, 237, 1)",
       borderAndGradientBg: "rgba(124, 58, 237, 0.3)",
       activeSecondaryGradientColor: "rgba(124, 58, 237, 1)",
+      wonColor: "rgba(34, 197, 94, 1)",
+      lostColor: "rgba(239, 68, 68, 1)",
+    },
+    cyan: {
       primary: "rgba(0, 200, 240, 1)",
       secondary: "rgba(212, 175, 55, 1)",
       primaryBackgroundColor: "rgba(6, 8, 18, 1)",
@@ -718,7 +722,7 @@ export function StudioInner({
       boxGradientColorStart: "rgba(0, 150, 200, 1)",
       boxGradientColorEnd: "rgba(0, 200, 240, 1)",
       borderAndGradientBg: "rgba(0, 200, 240, 0.3)",
-      activeSecondaryGradientColor: "rgba(212, 175, 55, 1)",
+      activeSecondaryGradientColor: "rgba(0, 200, 240, 1)",
       wonColor: "rgba(34, 197, 94, 1)",
       lostColor: "rgba(239, 68, 68, 1)",
     },
@@ -735,7 +739,7 @@ export function StudioInner({
       boxGradientColorStart: "rgba(0, 130, 60, 1)",
       boxGradientColorEnd: "rgba(0, 166, 81, 1)",
       borderAndGradientBg: "rgba(0, 166, 81, 0.3)",
-      activeSecondaryGradientColor: "rgba(255, 215, 0, 1)",
+      activeSecondaryGradientColor: "rgba(0, 166, 81, 1)",
       wonColor: "rgba(34, 197, 94, 1)",
       lostColor: "rgba(239, 68, 68, 1)",
     },
@@ -745,7 +749,8 @@ export function StudioInner({
 
   useEffect(() => {
     if (testAtomic && TEST_ATOMIC_THEMES[testAtomic]) {
-      const merged: TCMPalette = { ...DEFAULT_TCM_PALETTE, ...TEST_ATOMIC_THEMES[testAtomic] };
+      const atomic = TEST_ATOMIC_THEMES[testAtomic];
+      const merged = derivePalette(atomic);
       setPalette(merged);
       console.log(`[StudioTest] Applied atomic theme: ${testAtomic}`, merged);
     }
