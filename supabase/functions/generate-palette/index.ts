@@ -1535,7 +1535,43 @@ Deno.serve(async (req: Request) => {
           }),
         };
 
-        const stream = client.messages.stream(streamParams);
+        const MAX_RETRIES = 3;
+        const BASE_DELAY_MS = 2000;
+
+        let stream: ReturnType<typeof client.messages.stream> | null = null;
+        let attemptCount = 0;
+        let lastError: unknown = null;
+
+        while (attemptCount < MAX_RETRIES && !stream) {
+          try {
+            stream = client.messages.stream(streamParams);
+            console.log(`[generate-palette] Stream started on attempt ${attemptCount + 1}`);
+            break;
+          } catch (err) {
+            lastError = err;
+            const e = err as { message?: string; status?: number };
+            const errorMessage = String(e?.message || err);
+            const isOverloaded =
+              errorMessage.includes("overloaded_error") ||
+              errorMessage.includes("Overloaded") ||
+              e?.status === 529;
+
+            if (!isOverloaded || attemptCount >= MAX_RETRIES - 1) {
+              throw err;
+            }
+
+            const delayMs = BASE_DELAY_MS * Math.pow(2, attemptCount);
+            console.log(
+              `[generate-palette] Anthropic overloaded, retrying in ${delayMs}ms (attempt ${attemptCount + 1}/${MAX_RETRIES})`
+            );
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            attemptCount++;
+          }
+        }
+
+        if (!stream) {
+          throw lastError ?? new Error("Failed to start stream after retries");
+        }
 
         for await (const event of stream) {
           if (!firstTokenLogged) {
