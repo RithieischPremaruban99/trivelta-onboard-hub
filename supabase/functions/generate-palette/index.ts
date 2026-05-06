@@ -976,6 +976,8 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  const requestStartTime = Date.now();
+
   // ── Parse body ─────────────────────────────────────────────────────────────
   let body: GeneratePaletteRequest;
   try {
