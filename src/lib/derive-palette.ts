@@ -123,8 +123,5 @@ export function derivePalette(atomic: AtomicPalette): TCMPalette {
   // VS color
   palette.vsColor = withAlpha(atomic.lightTextColor, 0.4);
 
-  // Border color
-  palette.borderColor = atomic.borderAndGradientBg;
-
   return palette;
 }
