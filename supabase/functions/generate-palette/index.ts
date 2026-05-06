@@ -1,8 +1,8 @@
 /**
  * Edge Function: generate-palette
  *
- * Translates a natural-language brand description into a complete TCMPalette
- * (344 fields) via Claude Sonnet 4.6 with extended thinking + vision logo input.
+ * AI generates 15 atomic color tokens. derivePalette() expands them into the
+ * full 344-field TCMPalette. Extended thinking + vision logo input via Sonnet 4.6.
  *
  * POST /functions/v1/generate-palette
  * Body: { brandPrompt, language?, logoUrl?, currentPalette?, manualOverrides?, regenerationFeedback? }
@@ -48,42 +48,98 @@ const GAMEPASS_GOLD_FIXED_FIELDS: (keyof TCMPalette)[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Atomic palette - 15 brand-defining fields the AI generates
+// ---------------------------------------------------------------------------
+
+interface AtomicPalette {
+  primary: string;
+  secondary: string;
+  primaryBackgroundColor: string;
+  dark: string;
+  modalBackground: string;
+  primaryButton: string;
+  lightTextColor: string;
+  primaryTextColor: string;
+  freeBetBackground: string;
+  boxGradientColorStart: string;
+  boxGradientColorEnd: string;
+  borderAndGradientBg: string;
+  activeSecondaryGradientColor: string;
+  wonColor: string;
+  lostColor: string;
+}
+
+const ATOMIC_FIELDS: (keyof TCMPalette)[] = [
+  "primary",
+  "secondary",
+  "primaryBackgroundColor",
+  "dark",
+  "modalBackground",
+  "primaryButton",
+  "lightTextColor",
+  "primaryTextColor",
+  "freeBetBackground",
+  "boxGradientColorStart",
+  "boxGradientColorEnd",
+  "borderAndGradientBg",
+  "activeSecondaryGradientColor",
+  "wonColor",
+  "lostColor",
+];
+
+// ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are the Trivelta Assistant, a senior iGaming brand designer with 10 years of experience across African, European, LATAM, and MENA markets. Your specialty: translating brand descriptions into complete color palettes for sports betting and casino platforms.
+const SYSTEM_PROMPT = `You are the Trivelta Assistant, a senior iGaming brand designer. Your role: translate brand descriptions into 15 core atomic color tokens. A derivation engine automatically expands these into the full 344-field palette.
 
-═══ OUTPUT FORMAT - STRICT ═══
+═══ OUTPUT FORMAT ═══
 
-STREAMING FORMAT: Write 1-2 sentences of brand reasoning as plain text on the FIRST line. Then on a new line, output ONLY the raw JSON object starting with {. No markdown fences. No other prose.
+Write 1-2 sentences of brand reasoning as plain text on line 1. Then on a new line, output ONLY the raw JSON starting with {. No markdown fences.
 
-JSON schema (starts on line 2):
+JSON schema:
 {
-  "palette": { ...only fields that deviate from default... },
-  "reasoning": "same 2-3 sentences (also inside JSON for compatibility)",
-  "keyColorsSummary": "1-2 short punchy sentences naming the key colors applied (e.g. 'Applied SportyBet signature red on a dark charcoal base, with green win indicators and red loss states.')"
+  "palette": {
+    "primary": "rgba(...)",
+    "secondary": "rgba(...)",
+    "primaryBackgroundColor": "rgba(...)",
+    "dark": "rgba(...)",
+    "modalBackground": "rgba(...)",
+    "primaryButton": "rgba(...)",
+    "lightTextColor": "rgba(...)",
+    "primaryTextColor": "rgba(...)",
+    "freeBetBackground": "rgba(...)",
+    "boxGradientColorStart": "rgba(...)",
+    "boxGradientColorEnd": "rgba(...)",
+    "borderAndGradientBg": "rgba(...)",
+    "activeSecondaryGradientColor": "rgba(...)",
+    "wonColor": "rgba(...)",
+    "lostColor": "rgba(...)"
+  },
+  "reasoning": "same 2-3 sentences",
+  "keyColorsSummary": "1-2 punchy sentences naming key colors"
 }
 
-Output ONLY the fields that should deviate from the default palette for this brand. Return a JSON object containing just the changed fields. Do not include fields that match the default. The system will automatically fill unchanged fields from the default palette.
+OUTPUT EXACTLY THESE 15 FIELDS — NO MORE, NO FEWER. The derivation engine handles the other 329 fields automatically. Do NOT add extra palette fields.
 
-Minimum required fields you MUST always include:
-- primary
-- primaryBackgroundColor
-- secondary
-- lightTextColor
-- textSecondaryColor
-- wonColor (must be green family)
-- lostColor (must be red family)
-- wonGradient1, wonGradient2
-- primaryButton, primaryButtonGradient
-- dark, darkContainerBackground
-- headerBorderGradient1, headerBorderGradient2
-- activeSecondaryGradientColor
-- inactiveButtonBg
+Field guide:
+- primary: dominant brand color — all CTAs, banners, navigation highlights
+- secondary: accent — VIP badges, status pills (1-2 elements only)
+- primaryBackgroundColor: main screen background (near-black for dark themes)
+- dark: deepest dark surface — app bar, tab bar
+- modalBackground: dialog/sheet background (slightly lighter than dark)
+- primaryButton: CTA button fill color
+- lightTextColor: primary text on dark bg (white or near-white for dark themes)
+- primaryTextColor: text ON buttons (dark if button is bright, light if button is dark)
+- freeBetBackground: bonus/promo card bg (primary at 12% alpha over dark, or dark with primary tint)
+- boxGradientColorStart: feature box gradient start
+- boxGradientColorEnd: feature box gradient end (accent or complementary)
+- borderAndGradientBg: default border/divider color (primary-tinted dark, high alpha)
+- activeSecondaryGradientColor: live/active indicator (bright accent — yellow, cyan)
+- wonColor: win status MUST be green family (hue 90°–160°)
+- lostColor: loss status MUST be red/pink family (hue 340°–20°)
 
-All other fields: include only if you have a specific brand-driven reason to change them from default. Expect to output 60-150 fields total, not 344.
-
-Every rgba() string: valid format, alpha between 0 and 1.
+All values MUST be valid rgba() format.
 
 ═══ LANGUAGE MATCHING ═══
 
@@ -502,7 +558,7 @@ storytelling adjectives, designer-to-designer tone.
 
 ═══ GENERATE NOW ═══
 
-User will now describe their brand. Generate a complete 344-field palette.`;
+User will now describe their brand. Output exactly the 15 atomic palette fields.`;
 
 // ---------------------------------------------------------------------------
 // RGBA validator
@@ -695,9 +751,13 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
   }
 
   if (req.currentPalette) {
-    parts.push(
-      `CURRENT PALETTE (for iteration):\n${JSON.stringify(req.currentPalette, null, 2)}`
-    );
+    // Send only the 15 atomic fields as context — massively reduces token count
+    const atomicSnapshot: Record<string, string> = {};
+    for (const key of ATOMIC_FIELDS) {
+      const v = (req.currentPalette as unknown as Record<string, string>)[key as string];
+      if (v) atomicSnapshot[key as string] = v;
+    }
+    parts.push(`CURRENT ATOMIC PALETTE (15 brand fields):\n${JSON.stringify(atomicSnapshot, null, 2)}`);
   }
 
   if (req.manualOverrides && req.manualOverrides.length > 0 && req.currentPalette) {
@@ -766,28 +826,318 @@ async function streamAnthropic(
 }
 
 // ---------------------------------------------------------------------------
-// Validate + enforce palette
+// HSL color utilities
 // ---------------------------------------------------------------------------
 
-const MIN_REQUIRED_FIELDS: (keyof TCMPalette)[] = [
-  "primary",
-  "primaryBackgroundColor",
-  "secondary",
-  "lightTextColor",
-  "textSecondaryColor",
-  "wonColor",
-  "lostColor",
-  "wonGradient1",
-  "wonGradient2",
-  "primaryButton",
-  "primaryButtonGradient",
-  "dark",
-  "darkContainerBackground",
-  "headerBorderGradient1",
-  "headerBorderGradient2",
-  "activeSecondaryGradientColor",
-  "inactiveButtonBg",
-];
+function rgbaToHsl(rgba: string): [number, number, number, number] | null {
+  const c = parseRgba(rgba);
+  if (!c) return null;
+  const r = c.r / 255, g = c.g / 255, b = c.b / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0;
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l * 100, c.a];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  switch (max) {
+    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+    case g: h = ((b - r) / d + 2) / 6; break;
+    case b: h = ((r - g) / d + 4) / 6; break;
+  }
+  return [h * 360, s * 100, l * 100, c.a];
+}
+
+function hslToRgba(h: number, s: number, l: number, a: number): string {
+  h = ((h % 360) + 360) % 360;
+  s = Math.max(0, Math.min(100, s)) / 100;
+  l = Math.max(0, Math.min(100, l)) / 100;
+  a = Math.max(0, Math.min(1, a));
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  return `rgba(${Math.round((r + m) * 255)}, ${Math.round((g + m) * 255)}, ${Math.round((b + m) * 255)}, ${a})`;
+}
+
+// Adjust a color's HSL components by deltas, optionally override alpha
+function adj(rgba: string, dh: number, ds: number, dl: number, a?: number): string {
+  const hsl = rgbaToHsl(rgba);
+  if (!hsl) return rgba;
+  return hslToRgba(hsl[0] + dh, hsl[1] + ds, hsl[2] + dl, a ?? hsl[3]);
+}
+
+// ---------------------------------------------------------------------------
+// derivePalette - expand 15 atomic fields into full 344-field TCMPalette
+// ---------------------------------------------------------------------------
+
+function derivePalette(a: AtomicPalette): TCMPalette {
+  // Start from DEFAULT — gives valid values for all 344 fields
+  const p = { ...DEFAULT_TCM_PALETTE } as TCMPalette;
+  const set = (k: keyof TCMPalette, v: string) => { (p as unknown as Record<string, string>)[k as string] = v; };
+
+  // ── Apply all 15 atomic fields directly ──────────────────────────────────
+  for (const key of ATOMIC_FIELDS) {
+    set(key, (a as unknown as Record<string, string>)[key as string]);
+  }
+
+  // ── primaryButtonGradient from primaryButton ─────────────────────────────
+  set("primaryButtonGradient", adj(a.primaryButton, +15, -5, +12, 1));
+
+  // ── Text derivatives ─────────────────────────────────────────────────────
+  set("chatMessageTextColor", adj(a.primary, 3, -10, 10, 1));
+
+  // ── Background ladder ────────────────────────────────────────────────────
+  set("darkContainerBackground",  adj(a.dark, 0, 0, 5, 1));
+  set("inputBackgroundColor",     adj(a.dark, 0, 0, 9, 1));
+  set("bgColor",                  "rgba(0, 0, 0, 1)");
+  set("notificationSectionBg",    adj(a.primaryBackgroundColor, 0, 0, 2, 1));
+  set("betcardHeaderBg",          adj(a.dark, 0, 5, 12, 1));
+  set("flexBetHeaderBg",          adj(a.dark, 0, 0, 5, 1));
+  set("flexBetFooterBg",          adj(a.primary, 0, -50, -28, 1));
+  set("layerBg1",                 adj(a.primaryBackgroundColor, 0, 0, 0, 0.17));
+  set("layerBg2",                 adj(a.primary, 0, 0, 0, 0.17));
+  set("popoverBorder",            a.modalBackground);
+  set("propCityBackground",       adj(a.primary, 0, -90, -47, 1));
+  set("eventSectionSgpBgColor",   adj(a.primaryBackgroundColor, 0, 0, -1, 1));
+
+  // ── Buttons ──────────────────────────────────────────────────────────────
+  set("inactiveButtonBg",              adj(a.primary, 0, -75, -35, 1));
+  set("inactiveButtonTextPrimary",     adj(a.primary, 0, -46, -15, 1));
+  set("inactiveButtonTextSecondary",   adj(a.primary, 0, -55, -25, 1));
+  set("inactiveBackgroundGradient1",   adj(a.primary, 0, -75, -35, 1));
+  set("inactiveBackgroundGradient2",   adj(a.primary, 0, -75, -35, 1));
+  set("inactiveButtonGradient1",       adj(a.dark, 0, 5, 15, 1));
+  set("inactiveButtonGradient2",       adj(a.dark, 0, 5, 15, 1));
+  set("swipeableBtnBg",               adj(a.secondary, 0, -88, -43, 1));
+  set("purchasePrimaryCircleColor",    adj(a.secondary, 0, -55, -30, 1));
+  set("slideButtonGrad1",             adj(a.primary, 0, -50, -25, 1));
+
+  // ── Headers & gradients ──────────────────────────────────────────────────
+  set("headerBorderGradient1",  adj(a.dark, 0, 5, 10, 1));
+  set("headerBorderGradient2",  a.modalBackground);
+  set("defaultBorderGradient1", adj(a.dark, 0, 8, 12, 1));
+  set("defaultBorderGradient2", adj(a.dark, 0, 12, 20, 1));
+  set("defaultBorderGradient3", adj(a.dark, 0, 8, 12, 1));
+  set("sidebarDefaultBorderColor", adj(a.dark, 0, 0, 5, 1));
+  set("marketDataBg1",          adj(a.dark, 0, 10, 15, 0.48));
+  set("marketDataBg2",          adj(a.primary, 0, 0, 0, 0.08));
+
+  // ── Primary-tinted elements ──────────────────────────────────────────────
+  set("marketSelectBorderGradColor1", adj(a.primary, 0, -10, 20, 1));
+  set("marketSelectBorderGradColor2", adj(a.dark, 0, 5, 8, 1));
+  set("chatHighlightBorder1",   adj(a.primary, 0, -20, -30, 0.2));
+  set("chatHighlightBorder2",   adj(a.primary, 3, -10, 10, 1));
+  set("chatHighlightBorder3",   adj(a.primary, 0, -20, -30, 0.2));
+  set("onboardingBorderDiagonal1", adj(a.dark, 0, 5, 10, 1));
+  set("onboardingBorderDiagonal2", adj(a.primary, 0, 0, 0, 0.45));
+  set("onboardingBorderDiagonal3", adj(a.wonColor, 0, -20, -15, 1));
+  set("tabBorderActive1",       a.secondary);
+  set("tabBorderActive2",       a.activeSecondaryGradientColor);
+  set("socialContentBorder1",   adj(a.secondary, 0, -55, -33, 1));
+  set("socialContentBorder2",   adj(a.activeSecondaryGradientColor, 0, 20, 15, 1));
+  set("socialContentBorder3",   adj(a.secondary, 0, -55, -33, 1));
+  set("commentPinnedBg",        adj(a.primary, 0, -50, -30, 1));
+  set("vsColor",                adj(a.primary, 0, -60, -32, 1));
+  set("earthyBrown",            adj(a.primary, 0, -60, -33, 1));
+  set("bronzeColor",            adj(a.primary, 0, -20, -30, 0.1));
+  set("gamepassDividerGradEndColor", adj(a.primary, 0, -45, -30, 1));
+  set("pokerNotificationBgGradient1", adj(a.primary, 0, -45, -30, 0.4));
+  set("casinoGameBorderGrad1",  adj(a.primary, 0, -40, -20, 0));
+  set("casinoGameBorderGrad2",  adj(a.primary, 0, -40, -20, 1));
+  set("supportPopupGradientColor1", adj(a.secondary, 0, 0, 0, 0.11));
+  set("supportPopupGradientColor2", adj(a.primaryButton, 0, 0, 10, 0.11));
+  set("roulettWheelShadow1",    adj(a.primary, 0, -5, 0, 0.2));
+  set("roulettWheelShadow2",    adj(a.primary, 0, -5, 0, 0.1));
+  set("ncaaAthleteCardGradient1", adj(a.primary, 0, 0, 10, 0.11));
+  set("shadowCardBlurLayerGradEnd", adj(a.primary, 0, 0, 15, 0.7));
+  set("muiSliderMarkcolor",     adj(a.primary, 0, -5, 10, 1));
+  set("muiSliderMarkcolor2",    adj(a.primary, 0, 0, 0, 0.2));
+  set("messageBubbleGradient1", adj(a.primary, 0, 0, 20, 1));
+  set("messageBubbleGradient2", adj(a.primary, 0, -5, 0, 1));
+  set("spinWheelShadow",        a.primary);
+  set("spinButtonShadow",       adj(a.primary, 0, 0, 0, 0.5));
+  set("activeMarketListGradBg", adj(a.primary, 0, -55, -30, 1));
+  set("purchaseBonusCardActiveBg", adj(a.primary, 0, -75, -42, 1));
+  set("onboardingTopBgGrad1",   adj(a.primary, 0, 0, 0, 0.2));
+  set("onboardingTopBgGrad2",   adj(a.primaryButton, 0, 0, 15, 0.2));
+  set("betpostCardBorderGradPrimary", adj(a.activeSecondaryGradientColor, 0, 0, 0, 0.2));
+  set("gamepassProgressColor",  adj(a.primaryButton, 0, 0, 0, 0.5));
+  set("animationCardBorderGrad1", a.primaryBackgroundColor);
+  set("animationCardBorderGrad2", adj(a.activeSecondaryGradientColor, 0, 15, 10, 1));
+  set("animationCardBorderGrad3", a.secondary);
+  set("animationCardBorderGrad4", adj(a.secondary, 0, -10, 30, 0.32));
+
+  // ── Dark/modal-derived ───────────────────────────────────────────────────
+  set("leagueOrderBg",          adj(a.dark, 0, 5, 10, 1));
+  set("spinGradColor1",         adj(a.dark, 0, 0, 9, 1));
+  set("spinGradColor2",         adj(a.dark, 0, 5, 7, 1));
+  set("pokerSelectCustomStyleBgColor", adj(a.dark, 0, 0, 7, 1));
+  set("playerOutContainerGradient1",   adj(a.dark, 0, 5, 5, 1));
+  set("playerOutContainerGradient2",   adj(a.dark, 0, 5, 3, 1));
+  set("p2pBlurEffectGradColor",  adj(a.dark, 0, 0, 4, 1));
+  set("p2pSidebarGrad1",         adj(a.dark, 0, 0, -1, 1));
+  set("p2pSidebarGrad2",         adj(a.dark, 0, 0, -1, 0.01));
+  set("p2pChallengeBoxGrad1",    adj(a.dark, 0, 8, 10, 1));
+  set("p2pChallengeBoxGrad2",    adj(a.dark, 0, 8, 14, 1));
+  set("gamepassDarkGradient1",   adj(a.dark, 0, 0, -1, 1));
+  set("gamepassDarkGradient2",   adj(a.primary, 0, -45, -30, 1));
+  set("gamepassSliderGradColor1", adj(a.dark, 0, 5, 13, 1));
+  set("gamepassSliderGradColor2", adj(a.dark, 0, 5, 13, 1));
+  set("gamepassSliderGradColor3", adj(a.dark, 0, 5, 10, 1));
+  set("sportsbookDarkContainerGradient1", a.modalBackground);
+  set("sportsbookDarkContainerGradient2", a.modalBackground);
+  set("winStatusP2pGradient2",   adj(a.modalBackground, 0, 0, 0, 0));
+  set("loseStatusP2pGradient2",  adj(a.modalBackground, 0, 0, 0, 0));
+  set("gamepassSpinGradient1",   a.modalBackground);
+  set("playerWithSeatContainerGradient1", adj(a.modalBackground, 0, 0, 0, 0.88));
+  set("playerWithSeatContainerGradient2", adj(a.modalBackground, 0, 0, 0, 0.4));
+  set("listGradColorPrimary",    adj(a.dark, 0, 8, 18, 1));
+
+  // ── Gamepass / spin ──────────────────────────────────────────────────────
+  set("gamepassActiveColor",     a.activeSecondaryGradientColor);
+  set("gamePassProgressGradient1", a.activeSecondaryGradientColor);
+  set("gamePassProgressGradient2", a.primary);
+  set("gamePassProgressGradient3", a.secondary);
+  set("pokerTableRowGradientColor1", adj(a.activeSecondaryGradientColor, 0, 10, 20, 0.4));
+  set("pokerTableRowGradientColor2", adj(a.activeSecondaryGradientColor, 0, 10, 20, 0));
+  set("gamepassSpinGradient2",   adj(a.wonColor, 0, -20, -25, 1));
+  set("gamepassSpinGradient3",   a.primary);
+  set("gameLeagueOrderGradient1", adj(a.primary, 0, -5, 20, 1));
+  set("gameLeagueOrderGradient3", adj(a.secondary, 0, -10, -10, 1));
+
+  // ── Poker ────────────────────────────────────────────────────────────────
+  set("pokerChatGradient1",      adj(a.primary, 0, 0, 15, 1));
+  set("pokerChatGradient2",      a.secondary);
+
+  // ── Won / green family (derived from wonColor) ───────────────────────────
+  const wHsl = rgbaToHsl(a.wonColor) ?? [135, 66, 57, 1];
+  const [wH, wS, wL] = wHsl;
+  const wonG1 = hslToRgba(wH + 15, wS - 15, wL - 7, 1);   // muted, slightly teal
+  const wonDark = hslToRgba(wH + 18, wS - 18, wL - 38, 1); // dark green bg
+  const wonVdark = hslToRgba(wH + 18, wS - 18, wL - 40, 1);
+  set("wonGradient1",                 wonG1);
+  set("wonGradient2",                 hslToRgba(wH, wS - 10, wL - 10, 0.42));
+  set("payoutWonColor",               wonG1);
+  set("wonGradiantP2p",               hslToRgba(wH + 18, wS - 15, wL - 36, 1));
+  set("slantingLinesWon",             hslToRgba(wH + 10, wS - 10, wL - 35, 1));
+  set("winStatusGradient1",           wonDark);
+  set("winStatusGradient2",           wonG1);
+  set("winStatusGradient3",           wonDark);
+  set("winStatusBorderGradient1",     hslToRgba(wH + 18, wS - 18, wL - 38, 0.2));
+  set("winStatusBorderGradient2",     wonG1);
+  set("winStatusBorderGradient3",     hslToRgba(wH + 18, wS - 18, wL - 38, 0.2));
+  set("winStatusP2pGradient1",        hslToRgba(wH + 18, wS - 10, wL - 40, 1));
+  set("successIconP2p",               hslToRgba(wH - 14, wS + 20, wL - 23, 1));
+  set("validGradient",                hslToRgba(wH + 17, wS - 10, wL - 37, 1));
+  set("successBlurLayer",             hslToRgba(wH + 15, wS - 10, wL - 38, 1));
+  set("successInputGrad1",            hslToRgba(wH + 17, wS - 10, wL - 37, 1));
+  set("successInputGrad2",            wonG1);
+  set("cashoutSuccessBgGrad1",        hslToRgba(wH + 10, wS - 10, wL - 35, 0.2));
+  set("cashoutSuccessBgGrad2",        hslToRgba(wH + 18, wS - 10, wL - 45, 0.16));
+  set("profitLineColor",              hslToRgba(wH + 10, wS - 5, wL - 25, 1));
+  set("profitLineGradColor",          hslToRgba(wH - 5, wS - 15, wL + 10, 1));
+  set("passwordStrongColor",          hslToRgba(wH + 10, wS - 10, wL - 28, 1));
+  set("completeChallengeBtnShadow",   hslToRgba(wH + 5, wS - 5, wL - 25, 0.8));
+  set("completeChallengeBtnBorderGrad1", hslToRgba(wH + 18, wS + 34, wL - 6, 1));
+  set("completeChallengeBtnBorderGrad2", hslToRgba(wH, wS, wL - 10, 1));
+  set("completeChallengeBtnBorderGrad3", hslToRgba(wH + 18, wS - 20, wL - 50, 0));
+  set("completeChallengeBtnBorderGrad4", hslToRgba(wH + 18, wS - 20, wL - 50, 0.1));
+  set("monthlyChallengeGrad1",        hslToRgba(wH + 10, wS - 10, wL - 35, 1));
+  set("monthlyChallengeGrad2",        wonG1);
+  set("purchaseSuccessBorder",        hslToRgba(wH + 5, wS - 5, wL - 15, 1));
+  set("purchaseSuccessCardBoxStyle1", hslToRgba(wH - 5, wS - 15, wL - 8, 0.1));
+  set("purchaseSuccessCardBoxStyle2", hslToRgba(wH - 5, wS - 15, wL - 8, 0.4));
+  set("accentGreenSecondary",         hslToRgba(wH, wS - 20, wL - 15, 1));
+  set("oddsLiveButtonBorderGrad1",    wonVdark);
+  set("oddsLiveButtonBorderGrad2",    hslToRgba(wH + 1, wS + 34, wL + 36, 1));
+  set("liveIncreaseOddsButtonShadows1", hslToRgba(wH + 5, wS - 5, wL - 10, 0.32));
+  set("liveIncreaseOddsButtonShadows2", hslToRgba(wH + 5, wS - 5, wL - 10, 0.64));
+  set("liveIncreaseOddsButtonShadows3", hslToRgba(wH + 5, wS - 5, wL - 10, 0.239));
+  set("liveEventIncreaseColorPalette1", wonVdark);
+  set("actionIconBoxBg",              hslToRgba(wH + 18, wS - 10, wL - 48, 1));
+  set("betStatusWinGradient1",        wonG1);
+  set("betStatusWinGradient2",        adj(wonG1, 0, 0, 0, 0));
+  set("betFeedWonGradient1",          wonG1);
+  set("wonBorderGradColors1",         hslToRgba(wH + 15, wS - 15, wL - 40, 0.2));
+  set("wonBorderGradColors2",         a.wonColor);
+  set("pikkemWonColor",               hslToRgba(wH - 4, wS + 34, wL + 5, 1));
+  set("pikkemSuccessBg",              hslToRgba(wH, wS - 10, wL - 55, 1));
+  set("pikkemSuccessBorderColor",     hslToRgba(wH, wS - 10, wL - 30, 1));
+  set("gamepassCompletedTaskBgGrad1", hslToRgba(wH + 18, wS + 34, wL - 6, 1));
+  set("gamepassCompletedTaskBgGrad2", hslToRgba(wH + 15, wS - 10, wL - 38, 1));
+  set("gamePassThumbColor",           hslToRgba(wH + 18, wS + 34, wL - 6, 1));
+  set("gamePassThumbColor2",          hslToRgba(wH, wS, wL - 12, 1));
+  set("pokerMicIconActiveGradient1",  hslToRgba(wH + 5, wS, wL - 15, 1));
+  set("pokerMicIconActiveGradient2",  hslToRgba(wH - 5, wS - 5, wL + 5, 1));
+  set("pokerMicIconActiveGradient3",  hslToRgba(wH + 5, wS - 5, wL - 35, 1));
+  set("pokerMicIconActiveGradient4",  hslToRgba(wH - 5, wS - 10, wL + 15, 1));
+  set("pokerSuccessGradient1",        hslToRgba(wH + 5, wS, wL - 15, 1));
+  set("pokerSuccessGradient2",        hslToRgba(wH - 5, wS - 5, wL + 5, 1));
+  set("pokerActionButtonShadow",      hslToRgba(wH + 5, wS - 5, wL - 20, 0.88));
+
+  // ── Lost / red family (derived from lostColor) ───────────────────────────
+  const lHsl = rgbaToHsl(a.lostColor) ?? [346, 65, 57, 1];
+  const [lH, lS, lL] = lHsl;
+  const loseDark = hslToRgba(lH - 7, lS - 46, lL - 34, 1); // very dark red bg
+  set("lostStatusColor",              a.lostColor);
+  set("lossAmountText",               hslToRgba(lH, lS, lL + 5, 1));
+  set("loseStatusGradient1",          loseDark);
+  set("loseStatusGradient2",          a.lostColor);
+  set("loseStatusGradient3",          loseDark);
+  set("loseStatusBorderGradient1",    hslToRgba(lH - 7, lS - 46, lL - 34, 0.2));
+  set("loseStatusBorderGradient2",    a.lostColor);
+  set("loseStatusBorderGradient3",    hslToRgba(lH - 7, lS - 46, lL - 34, 0.2));
+  set("loseStatusP2pGradient1",       hslToRgba(lH - 7, lS - 46, lL - 34, 1));
+  set("lostBorderGrad1",              hslToRgba(lH - 7, lS - 46, lL - 34, 0.2));
+  set("lostBorderGrad2",              a.lostColor);
+  set("errorBlurLayer",               hslToRgba(lH - 5, lS - 5, lL - 38, 1));
+  set("weakPassword",                 hslToRgba(lH, lS - 10, lL - 15, 1));
+  set("captionAndErrorTxt",           hslToRgba(lH, lS + 5, lL + 5, 1));
+  set("slantingLinesLost",            hslToRgba(lH - 5, lS - 5, lL - 25, 1));
+  set("iconBorderShadow",             adj(a.lostColor, 0, 0, 0, 0.2));
+  set("commentSectionBorder",         hslToRgba(lH - 5, lS - 8, lL - 19, 1));
+  set("errorGradient1",               hslToRgba(lH - 5, lS - 15, lL - 25, 1));
+  set("errorGradient2",               a.lostColor);
+  set("purchaseErrorCardShadow1",     adj(a.lostColor, 0, 0, 0, 0.1));
+  set("purchaseErrorCardShadow2",     adj(a.lostColor, 0, 0, 0, 0.4));
+  set("responseModalBgLayerGradEnd",  hslToRgba(lH, lS, lL + 5, 0.2));
+  set("referralCloseIconColor",       hslToRgba(lH - 5, lS + 5, lL + 5, 1));
+  set("liveEventDecreaseColorPalette1", hslToRgba(lH - 5, lS - 15, lL - 35, 1));
+  set("liveEventDecreaseBorderColorPalette1", hslToRgba(lH - 5, lS - 15, lL - 35, 1));
+  set("liveEventDecreaseBorderColorPalette2", hslToRgba(lH - 15, lS - 30, lL + 30, 1));
+  set("liveEventDecreaseBorderColorPalette3", hslToRgba(lH - 5, lS - 15, lL - 35, 1));
+  set("cancelBorderGradient1",        hslToRgba(lH, lS - 15, lL - 20, 0.5));
+  set("cancelBorderGradient2",        hslToRgba(lH - 5, lS - 10, lL + 25, 1));
+  set("cancelBorderGradient3",        hslToRgba(lH, lS - 15, lL - 20, 0.5));
+  set("iconBackgroundGrad1",          hslToRgba(lH - 5, lS - 10, lL + 25, 1));
+  set("iconBackgroundGrad2",          hslToRgba(lH - 5, lS - 10, lL + 25, 1));
+  set("betStatusLoseGradient1",       a.lostColor);
+  set("betStatusLoseGradient2",       adj(a.lostColor, 0, 0, 0, 0));
+  set("reportModalGradient1",         hslToRgba(lH - 5, lS - 8, lL - 19, 1));
+  set("reportModalGradient2",         hslToRgba(lH - 5, lS - 8, lL - 19, 1));
+  set("pokerLiveChatCountBorderColor", hslToRgba(lH, lS + 5, lL - 10, 1));
+  set("pokerFoldButtonGradient1",     hslToRgba(lH + 5, lS + 5, lL, 1));
+  set("pokerFoldButtonGradient2",     hslToRgba(lH + 10, lS, lL + 15, 1));
+  set("pokerFoldButtonGradient3",     hslToRgba(lH, lS - 15, lL - 40, 0.2));
+  set("pokerFoldButtonGradient4",     hslToRgba(lH + 10, lS - 10, lL + 25, 1));
+  set("pokerFoldButtonGradient5",     hslToRgba(lH, lS - 15, lL - 40, 0.086));
+  set("pikkemLostColor",              hslToRgba(lH, lS + 14, lL - 12, 1));
+  set("pikkemErrorBg",                hslToRgba(lH, lS - 10, lL - 55, 1));
+  set("pikkemErrorBorderColor",       hslToRgba(lH, lS - 15, lL - 30, 1));
+  set("pokerCreateButtonShadow",      hslToRgba(lH, lS - 10, lL - 40, 0.88));
+
+  return p;
+}
+
+// ---------------------------------------------------------------------------
+// Validate + enforce palette (atomic)
+// ---------------------------------------------------------------------------
 
 function parseRgba(rgba: string): { r: number; g: number; b: number; a: number } | null {
   const match = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/);
@@ -869,111 +1219,86 @@ function validateAndEnforce(
   req: GeneratePaletteRequest,
   warnings: string[]
 ): TCMPalette {
-  // For fresh generations, start from defaults so unfilled fields don't bleed
-  // from previous brand. For refinements, start from currentPalette so
-  // unchanged fields persist (Haiku returns a partial response by design).
   const isRefinement = isSimpleRefinement(req.brandPrompt, !!req.currentPalette);
-  const palette = isRefinement
-    ? ({ ...(req.currentPalette ?? DEFAULT_TCM_PALETTE) } as TCMPalette)
-    : ({ ...DEFAULT_TCM_PALETTE } as TCMPalette);
 
-  console.log(
-    `[generate-palette] Palette base: ${isRefinement ? "currentPalette (refinement)" : "DEFAULT_TCM_PALETTE (fresh)"}`
-  );
-  const allKeys = Object.keys(DEFAULT_TCM_PALETTE) as (keyof TCMPalette)[];
+  // Build atomic base: for refinements inherit current atomics, else use defaults
+  const atomicBase: Record<string, string> = {};
+  for (const key of ATOMIC_FIELDS) {
+    const k = key as string;
+    if (isRefinement && req.currentPalette) {
+      atomicBase[k] = (req.currentPalette as unknown as Record<string, string>)[k]
+        ?? (DEFAULT_TCM_PALETTE as unknown as Record<string, string>)[k];
+    } else {
+      atomicBase[k] = (DEFAULT_TCM_PALETTE as unknown as Record<string, string>)[k];
+    }
+  }
 
   let aiProvidedCount = 0;
   let invalidCount = 0;
 
-  for (const key of allKeys) {
-    const aiValue = raw[key];
-    if (aiValue === undefined || aiValue === null) {
-      // Missing - silently fill from default (expected normal path)
-      continue;
-    }
+  // Validate and apply the 15 AI-provided atomic fields
+  for (const key of ATOMIC_FIELDS) {
+    const aiValue = raw[key as string];
+    if (aiValue === undefined || aiValue === null) continue;
     if (!isValidRgba(aiValue)) {
       invalidCount++;
-      warnings.push(
-        `Field "${key}" has invalid value "${String(aiValue).slice(0, 40)}", replaced with default`
-      );
+      warnings.push(`Atomic field "${key as string}" has invalid value "${String(aiValue).slice(0, 40)}", using base`);
       continue;
     }
-    (palette as unknown as Record<string, string>)[key] = aiValue as string;
+    atomicBase[key as string] = aiValue as string;
     aiProvidedCount++;
   }
 
-  // Warn only if a required field is missing FROM THE FINAL MERGED PALETTE.
-  // For refinements, fields not in the AI output are correctly filled from
-  // currentPalette and should not trigger false-positive warnings.
-  for (const key of MIN_REQUIRED_FIELDS) {
-    const finalValue = (palette as unknown as Record<string, string>)[key];
-    if (!finalValue || !isValidRgba(finalValue)) {
-      warnings.push(`Required field "${key}" missing or invalid - using default`);
+  // Warn if key atomics are missing
+  for (const key of ATOMIC_FIELDS) {
+    if (!atomicBase[key as string] || !isValidRgba(atomicBase[key as string])) {
+      warnings.push(`Atomic field "${key as string}" missing or invalid - using default`);
     }
   }
 
   console.log(
-    `[generate-palette] AI provided ${aiProvidedCount} valid fields, ${invalidCount} invalid, ${344 - aiProvidedCount} filled from defaults`
+    `[generate-palette] Atomic: ${aiProvidedCount} provided, ${invalidCount} invalid, ` +
+    `mode=${isRefinement ? "refinement" : "fresh"}`
   );
 
-  // PAM enforcement
-  let pamResets = 0;
+  // Derive full 344-field palette from validated atomic fields
+  const palette = derivePalette(atomicBase as unknown as AtomicPalette);
+
+  // PAM enforcement — these must never change
   for (const key of PAM_FIXED_FIELDS) {
-    const defaultVal = DEFAULT_TCM_PALETTE[key];
-    if ((palette as unknown as Record<string, string>)[key] !== defaultVal) {
-      (palette as unknown as Record<string, string>)[key] = defaultVal;
-      pamResets++;
-    }
-  }
-  if (pamResets > 0) {
-    console.log(`[generate-palette] Enforced ${pamResets} PAM admin panel fields to defaults`);
+    (palette as unknown as Record<string, string>)[key as string] = DEFAULT_TCM_PALETTE[key] as string;
   }
 
   // Gamepass Gold enforcement
-  let gpResets = 0;
   for (const key of GAMEPASS_GOLD_FIXED_FIELDS) {
-    const defaultVal = DEFAULT_TCM_PALETTE[key];
-    if ((palette as unknown as Record<string, string>)[key] !== defaultVal) {
-      (palette as unknown as Record<string, string>)[key] = defaultVal;
-      gpResets++;
-    }
-  }
-  if (gpResets > 0) {
-    console.log(`[generate-palette] Enforced ${gpResets} Gamepass Gold fields to defaults`);
+    (palette as unknown as Record<string, string>)[key as string] = DEFAULT_TCM_PALETTE[key] as string;
   }
 
-  // Auto-contrast safety net - runs before manual override restoration so user overrides win
+  // Auto-contrast safety net
   const contrastPalette = enforceContrast(palette);
-  (Object.keys(contrastPalette) as (keyof TCMPalette)[]).forEach((k) => {
-    (palette as unknown as Record<string, string>)[k] = (contrastPalette as unknown as Record<string, string>)[k];
-  });
+  Object.assign(palette, contrastPalette);
 
-  // Manual overrides enforcement
+  // Manual overrides — restore any user-locked field values
   if (req.manualOverrides && req.manualOverrides.length > 0 && req.currentPalette) {
     let overrideResets = 0;
     for (const field of req.manualOverrides) {
       const key = field as keyof TCMPalette;
       if (key in DEFAULT_TCM_PALETTE) {
         const requiredVal = (req.currentPalette as unknown as Record<string, string>)[field];
-        if (requiredVal && (palette as unknown as Record<string, string>)[key] !== requiredVal) {
-          (palette as unknown as Record<string, string>)[key] = requiredVal;
+        if (requiredVal) {
+          (palette as unknown as Record<string, string>)[key as string] = requiredVal;
           overrideResets++;
         }
       }
     }
     if (overrideResets > 0) {
-      warnings.push(
-        `${overrideResets} manual override field(s) restored to locked values`
-      );
+      warnings.push(`${overrideResets} manual override field(s) restored to locked values`);
     }
   }
 
-  // DEBUG: verify merged palette has key brand fields populated
   console.log(
-    `[generate-palette] Final palette check: primary=${(palette as unknown as Record<string, string>).primary}, ` +
-    `primaryButton=${(palette as unknown as Record<string, string>).primaryButton}, ` +
-    `secondary=${(palette as unknown as Record<string, string>).secondary}, ` +
-    `wasRefinement=${!!req.currentPalette}`
+    `[generate-palette] Final: primary=${(palette as unknown as Record<string, string>).primary}, ` +
+    `primaryButton=${(palette as unknown as Record<string, string>).primaryButton}`
   );
 
   return palette;
@@ -1199,7 +1524,7 @@ Deno.serve(async (req: Request) => {
           system: cachedSystem,
           messages: anthropicMessages,
           ...(isPrimary && {
-            thinking: { type: "enabled", budget_tokens: 4000 },
+            thinking: { type: "enabled", budget_tokens: 2000 },
           }),
         };
 
