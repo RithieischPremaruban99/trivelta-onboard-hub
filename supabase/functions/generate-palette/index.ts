@@ -269,6 +269,66 @@ LOSS FAMILY (must be red, hue 340°-20°):
 | VIP/Luxury | rgba(8,8,15,1) | rgba(212,175,55,1) | Gold |
 | Aggressive | rgba(10,5,5,1) | rgba(220,38,38,1) | Red Energy |
 
+═══ VISUAL HIERARCHY — BRAND COMPOSITION ═══
+
+A brand has ONE primary color. Not two, not three. One that defines the brand identity.
+
+PRIMARY FAMILY (dominant — should appear in all CTAs and major banners):
+- primary, primaryButton, primaryButtonGradient
+- All call-to-action buttons (Claim, Bet, Sign in, etc.)
+- All major banners: freeBetBackground, welcomeBonusBg, bonusBackground
+- Active tab indicators, selected states
+- Notification highlights
+
+SECONDARY/ACCENT FAMILY (supporting — only 1-2 small UI elements):
+- secondary, activeSecondaryGradientColor
+- Premium badges, VIP indicators
+- Special status pills (e.g., "LIVE", "Hot")
+
+NEUTRAL/BACKGROUND (60-70% of visual surface):
+- primaryBackgroundColor, dark, modalBackground, darkContainerBackground
+- All container/list/card backgrounds
+
+CRITICAL HIERARCHY RULES:
+
+1. ONE PRIMARY DOMINANT: All call-to-action buttons, all bonus banners, all welcome offer backgrounds use the primary color or gradients derived from primary. Do NOT use secondary/accent color for major banners — that breaks brand hierarchy.
+
+2. ACCENT IS RARE: Secondary/accent appears in 1-2 small UI elements only. Should NEVER dominate freeBetBackground, welcomeBonusBg, or any major surface.
+
+3. WHEN USER SAYS "X primary with Y accent":
+   - X = primary → all CTAs, banners, dominant surfaces use X
+   - Y = accent → only in small targeted elements (badges, win states if Y is gold/green)
+
+   Example: "purple-black with gold accent"
+   ✓ Buttons purple, free-bet banner purple gradient, welcome banner purple, gold only in VIP badge
+   ✗ Buttons purple BUT free-bet banner gold AND welcome banner gold AND CTAs gold — this elevates gold to co-primary, breaking hierarchy
+
+4. BANNER FAMILY DERIVATION:
+   - freeBetBackground: primary with 12% alpha over dark, OR primary-to-darker-primary gradient
+   - welcomeBonusBg: primary at 70% saturation as solid OR primary gradient
+   - bonusBackground (if exists): primary-derived
+   - These banners are HEROES of the page — they MUST reinforce the primary brand color, not introduce a competing color
+
+5. SELF-CHECK BEFORE SUBMITTING:
+   Look at your generated palette. Identify which 3-5 fields will be most visually prominent on the page (buttons, free-bet banner, welcome bonus banner, navigation highlight). Are they ALL in the primary family? If any of them is in a different color family, you've broken hierarchy — fix it before output.
+
+EXAMPLES:
+
+User: "Nigeria casino, premium positioning, deep purple with gold"
+
+Bad output:
+- primary: #7C3AED (purple) ✓
+- primaryButton: #7C3AED (purple) ✓
+- freeBetBackground: #D4AF37 (gold) ✗ — banner is gold, not purple
+- welcomeBonusBg: #FFD700 (gold) ✗ — second banner also gold
+
+Good output:
+- primary: #7C3AED (purple)
+- primaryButton: #7C3AED
+- freeBetBackground: rgba(124,58,237,0.15) — purple at 15% alpha over dark
+- welcomeBonusBg: linear gradient #5B21B6 → #7C3AED — purple gradient
+- secondary: #D4AF37 (gold) — used ONLY in VIP badge or win state
+
 ═══ COLOR DERIVATION RULES ═══
 
 When generating 344 fields from a brand description, apply these heuristics to maintain internal consistency:
