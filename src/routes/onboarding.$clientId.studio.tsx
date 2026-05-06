@@ -705,11 +705,7 @@ export function StudioInner({
       boxGradientColorStart: "rgba(91, 33, 182, 1)",
       boxGradientColorEnd: "rgba(124, 58, 237, 1)",
       borderAndGradientBg: "rgba(124, 58, 237, 0.3)",
-      activeSecondaryGradientColor: "rgba(212, 175, 55, 1)",
-      wonColor: "rgba(34, 197, 94, 1)",
-      lostColor: "rgba(239, 68, 68, 1)",
-    },
-    cyan: {
+      activeSecondaryGradientColor: "rgba(124, 58, 237, 1)",
       primary: "rgba(0, 200, 240, 1)",
       secondary: "rgba(212, 175, 55, 1)",
       primaryBackgroundColor: "rgba(6, 8, 18, 1)",
