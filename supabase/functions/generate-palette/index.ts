@@ -1186,6 +1186,10 @@ Deno.serve(async (req: Request) => {
         let accumulated = "";
         let reasoningDone = false;
         let reasoningSentUpTo = 0;
+        let firstTokenLogged = false;
+        let reasoningDoneLogged = false;
+        const tBeforeStream = Date.now();
+        console.log(`[generate-palette] T_PRE_STREAM: ${tBeforeStream - requestStartTime}ms (handler setup)`);
 
         // Build stream params - extended thinking only for primary model
         const streamParams: Parameters<typeof client.messages.stream>[0] = {
