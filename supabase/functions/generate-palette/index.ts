@@ -1186,6 +1186,10 @@ Deno.serve(async (req: Request) => {
         let accumulated = "";
         let reasoningDone = false;
         let reasoningSentUpTo = 0;
+        let firstTokenLogged = false;
+        let reasoningDoneLogged = false;
+        const tBeforeStream = Date.now();
+        console.log(`[generate-palette] T_PRE_STREAM: ${tBeforeStream - requestStartTime}ms (handler setup)`);
 
         // Build stream params - extended thinking only for primary model
         const streamParams: Parameters<typeof client.messages.stream>[0] = {
@@ -1202,6 +1206,11 @@ Deno.serve(async (req: Request) => {
         const stream = client.messages.stream(streamParams);
 
         for await (const event of stream) {
+          if (!firstTokenLogged) {
+            const tFirstToken = Date.now();
+            console.log(`[generate-palette] T_FIRST_TOKEN: ${tFirstToken - tBeforeStream}ms (TTFT - thinking + setup)`);
+            firstTokenLogged = true;
+          }
           if (event.type === "content_block_delta") {
             // Extended thinking delta - emit as thinking_chunk
             if ((event.delta as { type: string }).type === "thinking_delta") {
@@ -1236,9 +1245,21 @@ Deno.serve(async (req: Request) => {
                 }
               }
 
+              if (reasoningDone && !reasoningDoneLogged) {
+                reasoningDoneLogged = true;
+                console.log(`[generate-palette] T_REASONING_DONE: ${Date.now() - tBeforeStream}ms (reasoning text complete)`);
+              }
             }
           }
         }
+
+        const finalMessage = await stream.finalMessage();
+        console.log(`[generate-palette] CACHE_STATUS:`, JSON.stringify({
+          cache_creation: finalMessage.usage?.cache_creation_input_tokens,
+          cache_read: finalMessage.usage?.cache_read_input_tokens,
+          input: finalMessage.usage?.input_tokens,
+          output: finalMessage.usage?.output_tokens,
+        }));
 
         // ── Parse accumulated response ───────────────────────────────────────
         // Strip markdown code fences the AI occasionally wraps around JSON
@@ -1343,6 +1364,9 @@ Deno.serve(async (req: Request) => {
 
         const requestDurationMs = Date.now() - requestStartTime;
         console.log(`[generate-palette] REQUEST_DURATION: ${requestDurationMs}ms`);
+        const tEnd = Date.now();
+        console.log(`[generate-palette] T_TOTAL: ${tEnd - requestStartTime}ms (total)`);
+        console.log(`[generate-palette] T_STREAM_DURATION: ${tEnd - tBeforeStream}ms (full stream from request to last token)`);
 
         send({
           type: "complete",
