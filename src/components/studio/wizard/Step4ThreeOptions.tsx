@@ -36,16 +36,16 @@ const OPTION_LABELS = ["Option A", "Option B", "Option C"] as const;
 
 const BRIEF_VARIATIONS = [
   {
-    label: "Closest to your brief",
-    modifier: "",
+    label: "Bold & energetic",
+    modifier: " — render this with bold, saturated color treatment. High-energy, mass-market athletic feel. Vibrant primaries with strong contrast. Keep the same brand color family throughout — this version differs only in saturation and energy, not hue.",
   },
   {
-    label: "More distinctive",
-    modifier: " — give this version a more distinctive, unconventional twist that stands out from common market patterns. Surprise the user with an unexpected but commercially viable direction.",
+    label: "Deep & sophisticated",
+    modifier: " — render this with deeper, more refined color treatment. Sophisticated, hospitality-grade feel. Muted primaries with elegant restraint. Keep the same brand color family throughout — this version differs only in depth and refinement, not hue.",
   },
   {
-    label: "Premium positioning",
-    modifier: " — elevate this version with a more sophisticated, premium-tier feel. Refined color choices, hospitality-grade aesthetic, suitable for high-end positioning.",
+    label: "Light & modern",
+    modifier: " — render this with lighter, cleaner color treatment. Modern, tech-forward feel. Crisp primaries with airy negative space. Keep the same brand color family throughout — this version differs only in lightness and modernity, not hue.",
   },
 ] as const;
 
