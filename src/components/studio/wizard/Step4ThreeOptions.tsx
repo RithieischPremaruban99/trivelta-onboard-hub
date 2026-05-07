@@ -352,17 +352,15 @@ interface PaletteCardPreviewProps {
 function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
   return (
     <div className="flex flex-col gap-3 flex-1">
-      {/* 4 large color swatches */}
+      {/* 2 key brand color swatches */}
       <div className="flex gap-2">
         {[
           palette.primary,
-          palette.primaryButton,
-          palette.activeSecondaryGradientColor,
-          palette.primaryBackgroundColor,
+          palette.secondary,
         ].filter(Boolean).map((color, i) => (
           <div
             key={i}
-            className="h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md flex-shrink-0"
+            className="h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md"
             style={{ backgroundColor: color }}
           />
         ))}
