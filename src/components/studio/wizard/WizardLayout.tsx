@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, X } from "lucide-react";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
-import { Button } from "@/components/ui/button";
 import { loadWizardState, saveWizardState } from "@/lib/wizard-state";
 import { Step1CountryPicker } from "./Step1CountryPicker";
 import { Step2PersonalityPicker } from "./Step2PersonalityPicker";
 import { Step3BriefInput } from "./Step3BriefInput";
+import { Step4ThreeOptions } from "./Step4ThreeOptions";
 import type { WizardState, WizardStep } from "./wizard-types";
 
 interface Props {
@@ -108,10 +108,22 @@ export function WizardLayout({ clientId }: Props) {
           />
         );
       case 4:
+        if (!state.targetPersonality) {
+          return (
+            <div className="text-center text-zinc-400 text-sm py-10">
+              Please go back and select a brand personality.
+            </div>
+          );
+        }
         return (
-          <PlaceholderStep
-            label="3-Option Generation"
-            increment={4}
+          <Step4ThreeOptions
+            clientId={clientId}
+            brandPrompt={state.brandPrompt ?? ""}
+            logoUrl={state.logoUrl}
+            selectedCountry={state.targetCountry}
+            isMultiMarket={state.isMultiMarket ?? false}
+            selectedPlatformType={state.targetPlatformType}
+            selectedPersonality={state.targetPersonality}
             onBack={handleBack}
             onNext={handleNext}
           />
@@ -170,37 +182,3 @@ export function WizardLayout({ clientId }: Props) {
   );
 }
 
-interface PlaceholderStepProps {
-  label: string;
-  increment: number;
-  onBack: () => void;
-  onNext: () => void;
-}
-
-function PlaceholderStep({ label, increment, onBack, onNext }: PlaceholderStepProps) {
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/50 p-10 text-center">
-        <p className="text-zinc-400 text-sm">
-          <span className="text-zinc-200 font-medium">{label}</span>
-          {" "}— coming in Increment {increment}
-        </p>
-      </div>
-      <div className="flex justify-between">
-        <Button
-          variant="ghost"
-          onClick={onBack}
-          className="text-zinc-400 hover:text-zinc-200"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
-        </Button>
-        <Button
-          onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-500 text-white min-w-[120px]"
-        >
-          Next →
-        </Button>
-      </div>
-    </div>
-  );
-}
