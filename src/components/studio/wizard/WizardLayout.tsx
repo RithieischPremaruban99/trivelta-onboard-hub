@@ -24,13 +24,19 @@ const TOTAL_STEPS = 4;
 
 export function WizardLayout({ clientId }: Props) {
   const navigate = useNavigate();
-  const [state, setState] = useState<WizardState>(
-    () => loadWizardState(clientId) ?? { step: 1 }
-  );
+  const [state, setState] = useState<WizardState>({ step: 1 });
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    const stored = loadWizardState(clientId);
+    if (stored) setState(stored);
+    setHydrated(true);
+  }, [clientId]);
+
+  useEffect(() => {
+    if (!hydrated) return;
     saveWizardState(clientId, state);
-  }, [clientId, state]);
+  }, [clientId, state, hydrated]);
 
   const stepNumber = state.step === "complete" ? TOTAL_STEPS : (state.step as number);
   const progressPct = (stepNumber / TOTAL_STEPS) * 100;
