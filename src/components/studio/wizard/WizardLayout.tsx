@@ -72,8 +72,12 @@ export function WizardLayout({ clientId }: Props) {
         return (
           <Step2PersonalityPicker
             selectedPersonality={state.targetPersonality}
-            onSelect={(personality) =>
+            selectedPlatformType={state.targetPlatformType}
+            onSelectPersonality={(personality) =>
               setState((s) => ({ ...s, targetPersonality: personality }))
+            }
+            onSelectPlatformType={(type) =>
+              setState((s) => ({ ...s, targetPlatformType: type }))
             }
             onBack={handleBack}
             onNext={handleNext}

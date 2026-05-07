@@ -245,6 +245,22 @@ function getPersonalityContext(personality: string | undefined): string | null {
   return BRAND_PERSONALITIES[personality] ?? null;
 }
 
+const PLATFORM_TYPE_HINTS: Record<string, string> = {
+  "sportsbook": `PLATFORM TYPE HINT: Sportsbook only.
+This brand is a sports-betting platform — no casino games. Visual associations: athletic energy, action-oriented, data/odds-heavy interfaces, trust signals for live bets. Reference brands: DraftKings, Bet365 sportsbook, Pinnacle, Betano sports vertical. Colors that read as sports: bold blues, energetic reds, sharp greens, action-oriented contrasts. Avoid: casino-glamour aesthetics (gold-heavy luxury, velvet/jewel-tone palettes), poker-felt greens, slot-machine reds. Note: this is a HINT — if the brief explicitly modernizes or goes minimal, weight the brief higher.`,
+
+  "casino": `PLATFORM TYPE HINT: Casino only.
+This brand is a casino games platform — no sports betting. Visual associations: entertainment, lifestyle, glamour, immersive experience, slots/table games. Reference brands: Stake casino, Caesars Casino, MGM Resorts, Hollywoodcasino. Colors that read as casino: gold tones, deep purples, midnight blacks, jewel tones, neon accents for crypto-casinos. Avoid: sportsbook-action palettes (bold sport-team-style colors), athletic energy aesthetics, stats-heavy interface signals. Note: this is a HINT — if the brief explicitly emphasizes utility or simplicity, weight the brief higher.`,
+
+  "both": `PLATFORM TYPE HINT: Sportsbook + Casino combined.
+This brand offers both sports betting AND casino games — needs visual flexibility. Reference brands: Bet9ja, SportyBet, Hollywoodbets, Betway. Strategy: pick a palette that works for BOTH verticals — neither too casino-glamorous nor too sports-action. Balanced sophistication that scales between live-bet UI and slot reels. Avoid: extreme niching (don't go pure-poker-felt-green or pure-stadium-blue). Note: this is a HINT — weight the brief content for direction.`,
+};
+
+function getPlatformTypeContext(platformType: string | undefined): string | null {
+  if (!platformType) return null;
+  return PLATFORM_TYPE_HINTS[platformType] ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // Atomic palette - 15 brand-defining fields the AI generates
 // ---------------------------------------------------------------------------
@@ -812,6 +828,7 @@ interface GeneratePaletteRequest {
   conversationHistory?: ConversationMessage[];
   targetCountry?: string;       // ISO country code — STRICT, overrides text detection
   targetPersonality?: string;   // "modern-crypto" | "classic-casino" | "challenger" | "luxury-premium" — HINT
+  targetPlatformType?: "sportsbook" | "casino" | "both";  // HINT
 }
 
 // ---------------------------------------------------------------------------
@@ -1018,6 +1035,12 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
   if (req.targetPersonality) {
     const persCtx = getPersonalityContext(req.targetPersonality);
     if (persCtx) parts.push(persCtx);
+  }
+
+  // Platform Type: HINT
+  if (req.targetPlatformType) {
+    const platCtx = getPlatformTypeContext(req.targetPlatformType);
+    if (platCtx) parts.push(platCtx);
   }
 
   if (req.language) {
@@ -1692,10 +1715,12 @@ Deno.serve(async (req: Request) => {
   const detectedCountry = detectCountryFromPrompt(body.brandPrompt);
   const effectiveCountry = explicitCountry ?? detectedCountry;
   const personality = body.targetPersonality;
-  if (effectiveCountry || personality) {
+  const platformType = body.targetPlatformType;
+  if (effectiveCountry || personality || platformType) {
     const logParts: string[] = [];
     if (effectiveCountry) logParts.push(`Country: ${effectiveCountry} (${explicitCountry ? "explicit" : "detected"})`);
     if (personality) logParts.push(`Personality: ${personality}`);
+    if (platformType) logParts.push(`Platform: ${platformType}`);
     console.log(`[generate-palette] Context: ${logParts.join(" | ")}`);
   }
 

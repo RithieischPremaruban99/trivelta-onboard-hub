@@ -6,11 +6,14 @@ export type BrandPersonality =
   | "challenger"
   | "luxury-premium";
 
+export type PlatformType = "sportsbook" | "casino" | "both";
+
 export interface WizardState {
   step: WizardStep;
   targetCountry?: string;
   isMultiMarket?: boolean;        // distinguishes "Multi-Market chosen" from "nothing chosen yet"
   targetPersonality?: BrandPersonality;
+  targetPlatformType?: PlatformType;
   brandPrompt?: string;
 }
 
