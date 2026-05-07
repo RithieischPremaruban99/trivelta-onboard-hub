@@ -135,7 +135,7 @@ Field guide:
 - boxGradientColorStart: feature box gradient start
 - boxGradientColorEnd: feature box gradient end (accent or complementary)
 - borderAndGradientBg: default border/divider color (primary-tinted dark, high alpha)
-- activeSecondaryGradientColor: live/active indicator (bright accent — yellow, cyan)
+- activeSecondaryGradientColor: PRIMARY CTA button background (BetBuilder, Peer-to-Peer buttons). MUST be in same brand family as primary — typically primary itself, primary +10% lightness, or a brand-aligned variation. NEVER a competing color (don't use yellow when primary is teal — buttons must reinforce the brand, not introduce a new color)
 - wonColor: win status MUST be green family (hue 90°–160°)
 - lostColor: loss status MUST be red/pink family (hue 340°–20°)
 
@@ -337,9 +337,12 @@ PRIMARY FAMILY (dominant — should appear in all CTAs and major banners):
 - Notification highlights
 
 SECONDARY/ACCENT FAMILY (supporting — only 1-2 small UI elements):
-- secondary, activeSecondaryGradientColor
+- secondary
 - Premium badges, VIP indicators
 - Special status pills (e.g., "LIVE", "Hot")
+
+PRIMARY CTA REINFORCEMENT (must stay in primary family):
+- activeSecondaryGradientColor — used as CTA button background (BetBuilder, Peer-to-Peer). Must align with primary, not contrast it.
 
 NEUTRAL/BACKGROUND (60-70% of visual surface):
 - primaryBackgroundColor, dark, modalBackground, darkContainerBackground
@@ -442,7 +445,7 @@ When generating 344 fields from a brand description, apply these heuristics to m
    - inactiveButtonTextPrimary: desaturated primary, 70% lightness
    - inactiveButtonTextSecondary: inactiveButtonTextPrimary at 40% alpha
    - inactiveTabUnderline: neutral gray rgba(128,128,128,1) OR neutralized brand
-   - activeSecondaryGradientColor: bright accent (yellow if warm brand, cyan if cool)
+   - activeSecondaryGradientColor: brand-aligned CTA color, in same family as primary. If primary is teal, this is teal (not yellow). If primary is amber, this is amber-shifted (not contrasting cyan).
 
 5. FEATURE-SPECIFIC DERIVATIONS:
    - Poker Fold buttons: red family derived from lostColor
