@@ -122,21 +122,6 @@ JSON schema:
 
 OUTPUT EXACTLY THESE 15 FIELDS — NO MORE, NO FEWER. The derivation engine handles the other 329 fields automatically. Do NOT add extra palette fields.
 
-CRITICAL — AVOID REFLEX DEFAULTS:
-
-When generating palettes for "premium" or "luxury" briefs, do NOT default to gold + near-black. That combination is overused and produces indistinguishable brands. Instead, consider these distinct premium directions and pick whichever fits the brief's specific context:
-
-- Deep emerald + bronze (sophisticated, financial-feel)
-- Charcoal + amber (warm premium, approachable)
-- Navy + silver (corporate, established)
-- Wine/burgundy + cream (luxury hospitality)
-- Deep teal + copper (modern, distinctive)
-- Midnight + electric accent (contemporary tech)
-- Monochrome + single bright accent (minimalist premium)
-- Forest green + gold (heritage premium)
-
-Pick ONE direction per brief. If you used a similar palette for a recent generation, deliberately choose differently this time. Variety across briefs is critical — each brand must visually differentiate from the previous.
-
 Field guide:
 - primary: dominant brand color — all CTAs, banners, navigation highlights
 - secondary: accent — VIP badges, status pills (1-2 elements only)
@@ -385,31 +370,40 @@ CRITICAL HIERARCHY RULES:
 
 EXAMPLES (abstract, to teach hierarchy without anchoring colors):
 
-Example 1 — Green-family brand (e.g., "Nigeria premium sports book"):
-  primary: deep emerald, primaryButton: deep emerald
-  freeBetBackground: emerald at 15% alpha over near-black
-  welcomeBonusBg: darker-emerald → emerald gradient
-  secondary: copper/bronze — VIP badge only
+Example 1 — Single-family brand (e.g., "Nigeria casino, premium green"):
+  Bad output:
+  - primary: green ✓
+  - primaryButton: green ✓
+  - freeBetBackground: gold ✗ — banner is gold, not green
+  - welcomeBonusBg: gold ✗ — second banner also gold
 
-Example 2 — Red-family brand (e.g., "African sports book, vibrant red"):
-  primary: crimson, primaryButton: crimson
-  freeBetBackground: crimson at 15% alpha over near-black
-  secondary: amber — small win-state accent only
+  Good output:
+  - primary: green
+  - primaryButton: green
+  - freeBetBackground: green at 15% alpha over dark
+  - welcomeBonusBg: linear gradient darker-green → green
+  - secondary: gold — used ONLY in VIP badge or win state
 
-Example 3 — Blue-family brand (e.g., "Kenya sportsbook, trust/corporate"):
-  primary: deep ocean blue, primaryButton: deep ocean blue
-  freeBetBackground: deep-blue at 15% alpha
-  secondary: silver — subtle, premium indicator only
+Example 2 — Different brand-family ("Mexico crypto, luxury navy with gold"):
+  Bad output:
+  - primary: navy ✓
+  - freeBetBackground: bright gold ✗ — competing surface
 
-Example 4 — Purple-family brand (e.g., explicit "purple-black with gold"):
-  primary: deep violet, primaryButton: deep violet
-  freeBetBackground: violet at 15% alpha over dark
-  secondary: gold — VIP badge only. Gold does NOT appear in banners.
+  Good output:
+  - primary: navy
+  - primaryButton: navy
+  - freeBetBackground: navy at 15% alpha
+  - secondary: gold — VIP badge only
 
-Example 5 — Copper/amber-family brand (e.g., "warm luxury, African heritage"):
-  primary: deep amber/burnt-copper, primaryButton: amber
-  freeBetBackground: amber at 15% alpha
-  secondary: cream — small text accent only
+Example 3 — Bright accent brand ("African sports book, vibrant red"):
+  Bad output:
+  - primary: red ✓
+  - freeBetBackground: yellow ✗ — clashes with red CTAs
+
+  Good output:
+  - primary: red
+  - primaryButton: red
+  - freeBetBackground: red at 15% alpha over near-black
 
 KEY PRINCIPLE: ALL HERO SURFACES (buttons, banners, active states) must be derived from the primary color family. Never introduce a secondary color as a hero surface — secondary colors only appear in small accents (badges, win states, dividers).
 
