@@ -34,6 +34,21 @@ interface OptionState {
 
 const OPTION_LABELS = ["Option A", "Option B", "Option C"] as const;
 
+const BRIEF_VARIATIONS = [
+  {
+    label: "Closest to your brief",
+    modifier: "",
+  },
+  {
+    label: "More distinctive",
+    modifier: " — give this version a more distinctive, unconventional twist that stands out from common market patterns. Surprise the user with an unexpected but commercially viable direction.",
+  },
+  {
+    label: "Premium positioning",
+    modifier: " — elevate this version with a more sophisticated, premium-tier feel. Refined color choices, hospitality-grade aesthetic, suitable for high-end positioning.",
+  },
+] as const;
+
 export function Step4ThreeOptions({
   clientId,
   brandPrompt,
@@ -54,6 +69,9 @@ export function Step4ThreeOptions({
   }
 
   function optionLabel(index: 0 | 1 | 2): string {
+    if (logoUrl) {
+      return BRIEF_VARIATIONS[index].label;
+    }
     return index === 0
       ? `${PERSONALITY_TITLES[selectedPersonality]} (your pick)`
       : PERSONALITY_TITLES[variations[index - 1]];
@@ -86,11 +104,16 @@ export function Step4ThreeOptions({
         } = await supabase.auth.getSession();
         if (!session?.access_token) throw new Error("Not authenticated");
 
+        const isLogoMode = Boolean(logoUrl);
+        const optionBrief = isLogoMode
+          ? brandPrompt + BRIEF_VARIATIONS[index].modifier
+          : brandPrompt;
+
         const payload = {
-          brandPrompt,
+          brandPrompt: optionBrief,
           ...(logoUrl && { logoUrl }),
           ...(!isMultiMarket && selectedCountry && { targetCountry: selectedCountry }),
-          targetPersonality: optionPersonality(index),
+          ...(!isLogoMode && { targetPersonality: optionPersonality(index) }),
           ...(selectedPlatformType && { targetPlatformType: selectedPlatformType }),
         };
 
