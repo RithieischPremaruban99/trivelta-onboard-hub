@@ -62,7 +62,7 @@ function LoginPage() {
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="flex h-[60px] w-full items-center px-5 sm:px-8">
           <Link to="/login" className="flex items-center">
-            <TriveltaLogo size="md" withSubtitle product="Suite" />
+            <TriveltaLogo size="xl" withSubtitle product="Suite" />
           </Link>
         </div>
       </header>
