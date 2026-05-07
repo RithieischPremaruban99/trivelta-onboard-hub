@@ -116,7 +116,7 @@ export function WizardLayout({ clientId }: Props) {
       case 4:
         if (!state.targetPersonality) {
           return (
-            <div className="text-center text-zinc-400 text-sm py-10">
+            <div className="text-center text-muted-foreground text-sm py-10">
               Please go back and select a brand personality.
             </div>
           );
@@ -143,28 +143,27 @@ export function WizardLayout({ clientId }: Props) {
   const stepLabel = STEP_LABELS[currentStepNum] ?? "";
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
-        <TriveltaLogo size="md" withSubtitle={false} />
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <TriveltaLogo size="md" brandSuffix="AI" product="Studio" />
 
         <div className="flex flex-col items-center gap-1.5 flex-1 mx-8">
-          <span className="text-xs text-zinc-400 font-medium tracking-wide uppercase">
+          <span className="micro-label">
             Step {currentStepNum} of {TOTAL_STEPS}: {stepLabel}
           </span>
-          <div className="w-full max-w-xs h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="w-full max-w-xs h-1.5 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+              className="h-full bg-primary rounded-full transition-all duration-300"
               style={{ width: `${progressPct}%` }}
             />
           </div>
         </div>
 
-        {/* Back / Cancel control */}
         {state.step === 1 ? (
           <button
             onClick={() => navigate({ to: "/dashboard" })}
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="h-4 w-4" />
             Cancel
@@ -172,7 +171,7 @@ export function WizardLayout({ clientId }: Props) {
         ) : (
           <button
             onClick={handleBack}
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -187,4 +186,3 @@ export function WizardLayout({ clientId }: Props) {
     </div>
   );
 }
-

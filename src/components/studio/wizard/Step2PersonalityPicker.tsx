@@ -26,9 +26,9 @@ interface PlatformOption {
 }
 
 const PLATFORM_TYPES: PlatformOption[] = [
-  { key: "sportsbook",  label: "Sportsbook",          icon: "🏈", description: "Sports betting only" },
-  { key: "casino",      label: "Casino",               icon: "🎰", description: "Casino games only" },
-  { key: "both",        label: "Sportsbook + Casino",  icon: "🎯", description: "Combined platform" },
+  { key: "sportsbook", label: "Sportsbook", icon: "🏈", description: "Sports betting only" },
+  { key: "casino", label: "Casino", icon: "🎰", description: "Casino games only" },
+  { key: "both", label: "Sportsbook + Casino", icon: "🎯", description: "Combined platform" },
 ];
 
 const PERSONALITIES: PersonalityOption[] = [
@@ -77,19 +77,17 @@ export function Step2PersonalityPicker({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-100 mb-1">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">
           What's your platform and personality?
         </h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           First pick what you're building, then your brand style. Both shape the palette as hints — the AI weighs them with your brief.
         </p>
       </div>
 
       {/* Platform Type Toggle */}
       <div>
-        <h3 className="text-xs uppercase tracking-wider text-zinc-500 font-medium mb-2">
-          Platform type
-        </h3>
+        <h3 className="micro-label mb-2">Platform type</h3>
         <div className="grid grid-cols-3 gap-2">
           {PLATFORM_TYPES.map((p) => {
             const selected = selectedPlatformType === p.key;
@@ -98,14 +96,18 @@ export function Step2PersonalityPicker({
                 key={p.key}
                 onClick={() => onSelectPlatformType(p.key)}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-lg border px-3 py-3 transition-all cursor-pointer",
-                  "bg-zinc-900 border-zinc-700 hover:border-blue-500/50 hover:bg-zinc-800",
-                  selected && "ring-2 ring-blue-500 bg-blue-500/10 border-blue-500"
+                  "flex flex-col items-center gap-1 rounded-xl border px-3 py-4 transition-all duration-200 cursor-pointer",
+                  "bg-card border-border hover:border-primary/40 hover:bg-muted",
+                  selected
+                    ? "ring-2 ring-primary bg-primary/10 border-primary text-foreground"
+                    : "text-muted-foreground"
                 )}
               >
                 <span className="text-xl leading-none">{p.icon}</span>
-                <span className="text-sm font-medium text-zinc-100">{p.label}</span>
-                <span className="text-xs text-zinc-500">{p.description}</span>
+                <span className={cn("text-sm font-medium", selected ? "text-foreground" : "text-foreground")}>
+                  {p.label}
+                </span>
+                <span className="text-xs text-muted-foreground">{p.description}</span>
               </button>
             );
           })}
@@ -114,9 +116,7 @@ export function Step2PersonalityPicker({
 
       {/* Personality Cards */}
       <div>
-        <h3 className="text-xs uppercase tracking-wider text-zinc-500 font-medium mb-2">
-          Brand personality
-        </h3>
+        <h3 className="micro-label mb-2">Brand personality</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {PERSONALITIES.map((p) => {
             const selected = selectedPersonality === p.key;
@@ -125,15 +125,15 @@ export function Step2PersonalityPicker({
                 key={p.key}
                 onClick={() => onSelectPersonality(p.key)}
                 className={cn(
-                  "flex flex-col gap-3 rounded-xl border p-5 transition-all cursor-pointer text-left",
-                  "bg-zinc-900 border-zinc-700 hover:border-blue-500/50 hover:bg-zinc-800",
-                  selected && "ring-2 ring-blue-500 bg-blue-500/10 border-blue-500"
+                  "flex flex-col gap-3 rounded-xl border p-5 transition-all duration-200 cursor-pointer text-left",
+                  "bg-card border-border hover:border-primary/40 hover:bg-muted",
+                  selected && "ring-2 ring-primary border-primary bg-primary/5"
                 )}
               >
                 <div>
-                  <h3 className="text-base font-semibold text-zinc-100 mb-1">{p.title}</h3>
-                  <p className="text-xs text-zinc-400 mb-2 leading-snug">{p.description}</p>
-                  <p className="text-xs text-zinc-500 italic">{p.references}</p>
+                  <h3 className="text-base font-semibold text-foreground mb-1">{p.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2 leading-snug">{p.description}</p>
+                  <p className="text-xs text-muted-foreground/70 italic">{p.references}</p>
                 </div>
               </button>
             );
@@ -146,14 +146,14 @@ export function Step2PersonalityPicker({
         <Button
           variant="outline"
           onClick={onBack}
-          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+          className="h-11 px-6 bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           ← Back
         </Button>
         <Button
           onClick={onNext}
           disabled={!canProceed}
-          className="min-w-[120px] bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-40"
+          className="btn-premium h-11 px-6 min-w-[120px] disabled:opacity-40"
         >
           Next →
         </Button>

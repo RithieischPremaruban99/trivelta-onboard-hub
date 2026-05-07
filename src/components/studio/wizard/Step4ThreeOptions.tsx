@@ -238,10 +238,10 @@ export function Step4ThreeOptions({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-100 mb-1">Choose your brand palette</h2>
-        <p className="text-sm text-zinc-400">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">Choose your brand palette</h2>
+        <p className="text-sm text-muted-foreground">
           Three AI-generated options for your{" "}
-          <span className="text-zinc-300">{PERSONALITY_TITLES[selectedPersonality]}</span> brand.
+          <span className="text-foreground">{PERSONALITY_TITLES[selectedPersonality]}</span> brand.
           Select the one that resonates most.
         </p>
       </div>
@@ -256,71 +256,70 @@ export function Step4ThreeOptions({
             <div
               key={i}
               className={cn(
-                "flex flex-col rounded-xl border p-4 gap-3 transition-all min-h-[420px]",
-                "bg-zinc-900 border-zinc-700",
-                isSelected && "ring-2 ring-blue-500 border-blue-500",
-                isDone && !isSelected && "hover:border-zinc-500",
+                "flex flex-col rounded-xl border gap-0 transition-all duration-200 min-h-[420px] overflow-hidden",
+                "bg-card border-border",
+                isSelected && "ring-2 ring-primary border-primary",
+                isDone && !isSelected && "hover:border-primary/40",
               )}
             >
-              {/* Header */}
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
-                  {OPTION_LABELS[i]}
-                </span>
-                <span className="text-xs text-zinc-500 truncate">{optionLabel(i as 0 | 1 | 2)}</span>
+              {/* Header — subtle distinction */}
+              <div className="flex flex-col gap-0.5 bg-muted/30 border-b border-border px-5 py-3">
+                <span className="micro-label">{OPTION_LABELS[i]}</span>
+                <span className="text-sm font-semibold text-foreground truncate">{optionLabel(i as 0 | 1 | 2)}</span>
               </div>
 
-              {/* Preview — mockup + reasoning when done; skeleton while loading */}
-              {isDone && opt.palette ? (
-                <PaletteCardPreview palette={opt.palette} reasoning={opt.summaryText} />
-              ) : isError ? (
-                <div className="flex-1 rounded-lg bg-zinc-800 flex flex-col items-center justify-center gap-2 border border-dashed border-zinc-600">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  <span className="text-xs text-zinc-500">Generation failed</span>
-                  <button
-                    onClick={() => generateOption(i as 0 | 1 | 2)}
-                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5"
-                  >
-                    <RefreshCw className="h-3 w-3" /> Retry
-                  </button>
-                </div>
-              ) : (
-                <div className="flex-1 rounded-lg bg-zinc-800 flex flex-col items-center justify-center gap-2">
-                  <Loader2 className="h-5 w-5 text-zinc-400 animate-spin" />
-                  <span className="text-xs text-zinc-500">
-                    {opt.status === "loading" ? "Starting…" : "Generating palette…"}
-                  </span>
-                </div>
-              )}
-
-              {/* Streaming text shown while palette not yet ready */}
-              {opt.status === "streaming" && opt.streamingText && (
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  {opt.streamingText}
-                </p>
-              )}
-
-              {/* Select button */}
-              <Button
-                onClick={() => handleSelect(i)}
-                disabled={!isDone || saving || selectedIndex !== null}
-                className={cn(
-                  "w-full text-sm mt-auto",
-                  isSelected
-                    ? "bg-blue-600 hover:bg-blue-600 text-white"
-                    : "bg-zinc-800 border border-zinc-600 text-zinc-200 hover:bg-zinc-700 hover:border-zinc-500",
-                )}
-                variant="ghost"
-              >
-                {isSelected ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-1.5" />
-                    Selected
-                  </>
+              <div className="flex flex-col gap-3 p-5 flex-1">
+                {/* Preview */}
+                {isDone && opt.palette ? (
+                  <PaletteCardPreview palette={opt.palette} reasoning={opt.summaryText} />
+                ) : isError ? (
+                  <div className="flex-1 rounded-lg bg-muted flex flex-col items-center justify-center gap-2 border border-dashed border-border">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <span className="text-xs text-muted-foreground">Generation failed</span>
+                    <button
+                      onClick={() => generateOption(i as 0 | 1 | 2)}
+                      className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 mt-0.5"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Retry
+                    </button>
+                  </div>
                 ) : (
-                  "Select this palette →"
+                  <div className="flex-1 rounded-lg bg-muted flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                    <span className="text-xs text-muted-foreground">
+                      {opt.status === "loading" ? "Starting…" : "Generating palette…"}
+                    </span>
+                  </div>
                 )}
-              </Button>
+
+                {opt.status === "streaming" && opt.streamingText && (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {opt.streamingText}
+                  </p>
+                )}
+
+                {/* Select button */}
+                <Button
+                  onClick={() => handleSelect(i)}
+                  disabled={!isDone || saving || selectedIndex !== null}
+                  className={cn(
+                    "w-full text-sm mt-auto h-11",
+                    isSelected
+                      ? "btn-premium"
+                      : "bg-muted hover:bg-muted/70 border border-border text-foreground",
+                  )}
+                  variant="ghost"
+                >
+                  {isSelected ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-1.5" />
+                      Selected
+                    </>
+                  ) : (
+                    "Select this palette →"
+                  )}
+                </Button>
+              </div>
             </div>
           );
         })}
@@ -332,12 +331,12 @@ export function Step4ThreeOptions({
           variant="outline"
           onClick={onBack}
           disabled={saving}
-          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+          className="h-11 px-6 bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           ← Back
         </Button>
         {allSettled && selectedIndex === null && (
-          <p className="text-xs text-zinc-500">Select a palette to continue to Studio</p>
+          <p className="text-xs text-muted-foreground">Select a palette to continue to Studio</p>
         )}
       </div>
     </div>
@@ -453,7 +452,7 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
 
       {/* Reasoning — full text, no truncation */}
       {reasoning && (
-        <p className="text-xs text-zinc-300 leading-relaxed">{reasoning}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{reasoning}</p>
       )}
     </div>
   );
