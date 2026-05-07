@@ -352,18 +352,20 @@ interface PaletteCardPreviewProps {
 function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
   return (
     <div className="flex flex-col gap-3 flex-1">
-      {/* 2 key brand color swatches */}
-      <div className="flex gap-2">
-        {[
-          palette.primary,
-          palette.secondary,
-        ].filter(Boolean).map((color, i) => (
+      {/* Brand colors — primary dominant, secondary as smaller accent */}
+      <div className="flex items-center gap-2">
+        <div
+          className="h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md"
+          style={{ backgroundColor: palette.primary }}
+          title="Primary brand color"
+        />
+        {palette.secondary && (
           <div
-            key={i}
-            className="h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md"
-            style={{ backgroundColor: color }}
+            className="h-6 w-6 rounded-full border-2 border-zinc-700/50 shadow-md"
+            style={{ backgroundColor: palette.secondary }}
+            title="Accent color (used sparingly)"
           />
-        ))}
+        )}
       </div>
 
       {/* Mini Sportsbook Mockup */}
@@ -392,11 +394,11 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
           </div>
         </div>
 
-        {/* Bonus banner */}
+        {/* Bonus banner — uses primaryButton like Studio's actual rendering */}
         <div
           className="px-2 py-1.5 text-center font-semibold"
           style={{
-            background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary ?? palette.primary})`,
+            background: palette.primaryButton,
             color: palette.darkTextColor,
           }}
         >
