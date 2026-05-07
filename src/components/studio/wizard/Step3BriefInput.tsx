@@ -20,23 +20,23 @@ interface Props {
 }
 
 const PERSONALITY_LABELS: Record<BrandPersonality, string> = {
-  "modern-crypto":   "Modern Crypto",
-  "classic-casino":  "Classic Casino",
-  "challenger":      "Challenger",
-  "luxury-premium":  "Luxury Premium",
-  "mass-market":     "Mass Market",
+  "modern-crypto": "Modern Crypto",
+  "classic-casino": "Classic Casino",
+  "challenger": "Challenger",
+  "luxury-premium": "Luxury Premium",
+  "mass-market": "Mass Market",
 };
 
 const PLATFORM_LABELS: Record<PlatformType, string> = {
   "sportsbook": "Sportsbook",
-  "casino":     "Casino",
-  "both":       "Sportsbook + Casino",
+  "casino": "Casino",
+  "both": "Sportsbook + Casino",
 };
 
 const PLATFORM_ICONS: Record<PlatformType, string> = {
   "sportsbook": "🏈",
-  "casino":     "🎰",
-  "both":       "🎯",
+  "casino": "🎰",
+  "both": "🎯",
 };
 
 const MIN_BRIEF_LENGTH = 5;
@@ -70,27 +70,25 @@ export function Step3BriefInput({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-100 mb-1">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">
           Tell us about your brand
         </h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           A 1–2 sentence description. This is the main signal for the palette generator.
         </p>
       </div>
 
       {/* Brief Textarea */}
       <div className="flex flex-col gap-2">
-        <label className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
-          Brand brief
-        </label>
+        <label className="micro-label">Brand brief</label>
         <Textarea
           value={brandPrompt}
           onChange={(e) => onChangeBrief(e.target.value)}
           placeholder="E.g. Premium crypto casino targeting savvy young professionals — modern, sophisticated, with a sleek dark aesthetic."
           rows={4}
-          className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 resize-none focus-visible:ring-blue-500"
+          className="bg-card border-border text-foreground placeholder:text-muted-foreground/60 resize-none focus:border-primary focus-visible:ring-primary"
         />
-        <div className="text-xs text-zinc-500">
+        <div className="text-xs text-muted-foreground">
           {briefLength < MIN_BRIEF_LENGTH
             ? `Minimum ${MIN_BRIEF_LENGTH} characters`
             : `${briefLength} characters`}
@@ -99,38 +97,36 @@ export function Step3BriefInput({
 
       {/* Logo Upload */}
       <div className="flex flex-col gap-2">
-        <label className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
-          Brand logo (optional)
-        </label>
-        <LogoUploadField
-          clientId={clientId}
-          currentLogoUrl={logoUrl ?? null}
-          onUploadComplete={onLogoUploaded}
-          onRemove={onLogoRemoved}
-        />
+        <label className="micro-label">Brand logo (optional)</label>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <LogoUploadField
+            clientId={clientId}
+            currentLogoUrl={logoUrl ?? null}
+            onUploadComplete={onLogoUploaded}
+            onRemove={onLogoRemoved}
+          />
+        </div>
       </div>
 
       {/* Context Summary */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
-        <h3 className="text-xs uppercase tracking-wider text-zinc-500 font-medium mb-3">
-          Your context so far
-        </h3>
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="micro-label mb-3">Your context so far</h3>
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div>
-            <div className="text-xs text-zinc-500 mb-1">Market</div>
-            <div className="text-zinc-200 font-medium">{countryLabel}</div>
+            <div className="micro-label mb-1">Market</div>
+            <div className="text-foreground font-medium">{countryLabel}</div>
           </div>
           <div>
-            <div className="text-xs text-zinc-500 mb-1">Platform</div>
-            <div className="text-zinc-200 font-medium">
+            <div className="micro-label mb-1">Platform</div>
+            <div className="text-foreground font-medium">
               {selectedPlatformType
                 ? `${PLATFORM_ICONS[selectedPlatformType]} ${PLATFORM_LABELS[selectedPlatformType]}`
                 : "—"}
             </div>
           </div>
           <div>
-            <div className="text-xs text-zinc-500 mb-1">Personality</div>
-            <div className="text-zinc-200 font-medium">
+            <div className="micro-label mb-1">Personality</div>
+            <div className="text-foreground font-medium">
               {selectedPersonality ? PERSONALITY_LABELS[selectedPersonality] : "—"}
             </div>
           </div>
@@ -142,14 +138,14 @@ export function Step3BriefInput({
         <Button
           variant="outline"
           onClick={onBack}
-          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+          className="h-11 px-6 bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           ← Back
         </Button>
         <Button
           onClick={onNext}
           disabled={!canProceed}
-          className="min-w-[180px] bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-40"
+          className="btn-premium h-11 px-6 min-w-[180px] disabled:opacity-40"
         >
           Generate 3 Options →
         </Button>
