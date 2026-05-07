@@ -146,7 +146,7 @@ export function WizardLayout({ clientId }: Props) {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <TriveltaLogo size="md" brandSuffix="AI" product="Studio" />
+        <TriveltaLogo size="xl" brandSuffix="AI" product="Studio" />
 
         <div className="flex flex-col items-center gap-1.5 flex-1 mx-8">
           <span className="micro-label">
