@@ -208,7 +208,11 @@ export function AIChatPanel() {
       setLoading(true);
 
       try {
-        const isRefinement = brandPromptHistory.length > 0;
+        // Refinement = there's history AND the prompt explicitly looks like a tweak.
+        // New brand directions ("luxury crypto for mexico" after "casino in nigeria")
+        // are NOT refinements — they should generate fresh palettes.
+        const refinementVerbs = /\b(more|less|darker|lighter|brighter|adjust|change|make it|tweak|refine|shift|deeper|softer|punchier|warmer|cooler|bolder|saturate|desaturate)\b/i;
+        const isRefinement = brandPromptHistory.length > 0 && refinementVerbs.test(trimmed);
 
         // Send only user turns (assistant reasoning is heavy and not needed —
         // model has currentPalette for state). Keep last 6 user turns,
@@ -222,16 +226,13 @@ export function AIChatPanel() {
             content: m.content.slice(0, 200),
           }));
 
-        const refinementVerbs = /\b(more|less|darker|lighter|brighter|adjust|change|make it|tweak|refine|shift|deeper|softer|punchier)\b/i;
-        const looksLikeRefinement = isRefinement && refinementVerbs.test(trimmed);
-
         const palettePayload = {
           brandPrompt: trimmed,
           language,
           logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
           currentPalette: isRefinement ? palette : undefined,
           manualOverrides: Array.from(manualOverrides),
-          ...(looksLikeRefinement && { regenerationFeedback: trimmed }),
+          ...(isRefinement && { regenerationFeedback: trimmed }),
           ...(conversationHistory.length > 0 && { conversationHistory }),
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
