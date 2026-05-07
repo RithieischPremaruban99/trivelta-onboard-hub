@@ -4,7 +4,8 @@ export type BrandPersonality =
   | "modern-crypto"
   | "classic-casino"
   | "challenger"
-  | "luxury-premium";
+  | "luxury-premium"
+  | "mass-market";
 
 export type PlatformType = "sportsbook" | "casino" | "both";
 
@@ -56,36 +57,18 @@ export const PERSONALITY_TITLES: Record<BrandPersonality, string> = {
   "classic-casino": "Classic Casino",
   "challenger":     "Challenger",
   "luxury-premium": "Luxury Premium",
+  "mass-market":    "Mass Market",
 };
 
 export const PERSONALITY_VARIATIONS: Record<
   BrandPersonality,
-  [
-    { label: string; hint: string },
-    { label: string; hint: string },
-    { label: string; hint: string },
-  ]
+  [BrandPersonality, BrandPersonality]
 > = {
-  "modern-crypto": [
-    { label: "Dark & Minimal",  hint: "" },
-    { label: "Electric Neon",   hint: "Lean into high-energy neon accents — teal, electric blue, or vivid cyan against a near-black background. Maximum vibrancy." },
-    { label: "Deep Ocean",      hint: "Use deep ocean blues and dark teals with metallic or copper secondary accents. Premium, sophisticated, cooler palette." },
-  ],
-  "classic-casino": [
-    { label: "Gold & Crimson",  hint: "" },
-    { label: "Dark Velvet",     hint: "Deep navy or dark purple base with rich gold accents and jewel-toned details. Velvet-rich casino heritage feel." },
-    { label: "Emerald Felt",    hint: "Classic dark green — rich emerald or forest green — with warm gold accents. Traditional casino table aesthetic." },
-  ],
-  "challenger": [
-    { label: "Monochrome Pop",  hint: "" },
-    { label: "Inverse Bold",    hint: "Flip the script: a pale or warm light base with bold dark typography and one unexpected accent. Anti-mainstream, high contrast." },
-    { label: "Industrial Edge", hint: "Muted industrial tones — concrete greys, rust, or deep amber — with one sharp contrasting pop. Raw confidence." },
-  ],
-  "luxury-premium": [
-    { label: "Champagne & Noir", hint: "" },
-    { label: "Midnight Jewel",   hint: "Deep midnight blue or indigo base with sapphire, ruby, or amethyst accents. VIP private club atmosphere." },
-    { label: "Forest Prestige",  hint: "Deep forest green or hunter green with warm gold accents. Exclusive members-only club, old money aesthetic." },
-  ],
+  "modern-crypto":  ["challenger",     "luxury-premium"],
+  "classic-casino": ["luxury-premium", "modern-crypto" ],
+  "challenger":     ["mass-market",    "modern-crypto" ],
+  "luxury-premium": ["classic-casino", "modern-crypto" ],
+  "mass-market":    ["challenger",     "modern-crypto" ],
 };
 
 export const ALL_COUNTRIES: CountryEntry[] = [

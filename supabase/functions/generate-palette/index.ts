@@ -238,7 +238,24 @@ Reference: Pinnacle, Smarkets aesthetic. Bold accent + monochrome base, unexpect
 
   "luxury-premium": `BRAND PERSONALITY HINT: Luxury Premium.
 Reference: Hollywoodbets premium tier, Tsogo Sun aesthetic. Sophisticated dark base + jewel tones, VIP-feel, gold/silver accents, hospitality-grade refinement. Avoid: mass-market bright primaries, casual aesthetics. Note: this is a HINT — if the brief explicitly modernizes or goes minimal, weight the brief higher.`,
+
+  "mass-market": `BRAND PERSONALITY HINT: Mass Market.
+Reference: Bet9ja (Nigeria green), SportyBet (red), GwalaBet (bold green), Caliente (red), Premier Bet (red). Bold primary colors (saturated greens, reds, oranges), high-contrast accessible UI, energetic athletic feel, mobile-first mass-appeal. The trust-and-energy aesthetic that dominates emerging markets. Avoid: muted/sophisticated palettes, jewel tones, crypto-cool minimalism, gold-dominant luxury. Embrace: bright primaries that signal trust and excitement at mobile-first scale. Note: this is a HINT — if the brief explicitly asks for premium positioning, weight the brief higher.`,
 };
+
+const LOGO_DOMINANT_HINT = `LOGO-DOMINANT MODE:
+A logo has been provided. The logo's primary brand color is the SINGLE MOST IMPORTANT signal for this palette. Other hints (personality, market context) are secondary.
+
+Strict rules when logo is present:
+1. The palette's "primary" color MUST be in the same hue family as the logo's dominant color (within ±20° hue distance).
+2. The "primaryButton" color MUST also derive from the logo's color family — do NOT use a contrasting accent color from a different family.
+3. Personality and market context cues become tiebreakers for SATURATION and LIGHTNESS, not for HUE selection.
+4. Examples:
+   - Logo is bright green (hue ~120°) → primary MUST be green-family (hue 90°-150°), NOT teal/blue/red
+   - Logo is bright red (hue ~0°) → primary MUST be red/burgundy/coral, NOT purple/orange
+   - Logo is gold (hue ~45°) → primary MUST be gold/amber/bronze, NOT yellow/orange-red
+
+If the logo's color appears to clash with the user's stated personality (e.g., bright green logo + Modern Crypto personality), trust the logo. The user's brand identity is anchored in the logo; personality is an aesthetic preference that adapts to the logo's color family.`;
 
 function getPersonalityContext(personality: string | undefined): string | null {
   if (!personality) return null;
@@ -1050,6 +1067,11 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
   // Only include logo URL as text if we failed to attach it as a vision image
   if (req.logoUrl && !logoFetchedViaVision) {
     parts.push(`LOGO URL FOR REFERENCE: ${req.logoUrl}`);
+  }
+
+  // Logo-dominant mode: hue must follow the logo when one is provided
+  if (req.logoUrl) {
+    parts.push(LOGO_DOMINANT_HINT);
   }
 
   if (req.currentPalette) {

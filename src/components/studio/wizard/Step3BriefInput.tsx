@@ -24,6 +24,7 @@ const PERSONALITY_LABELS: Record<BrandPersonality, string> = {
   "classic-casino":  "Classic Casino",
   "challenger":      "Challenger",
   "luxury-premium":  "Luxury Premium",
+  "mass-market":     "Mass Market",
 };
 
 const PLATFORM_LABELS: Record<PlatformType, string> = {

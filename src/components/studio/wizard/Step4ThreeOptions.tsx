@@ -45,7 +45,19 @@ export function Step4ThreeOptions({
   onBack,
   onNext,
 }: Props) {
+  // variations[0] and [1] are the alternate personalities for options B and C
   const variations = PERSONALITY_VARIATIONS[selectedPersonality];
+
+  // Personality used per option index: A = user's choice, B/C = neighboring personalities
+  function optionPersonality(index: 0 | 1 | 2): BrandPersonality {
+    return index === 0 ? selectedPersonality : variations[index - 1];
+  }
+
+  function optionLabel(index: 0 | 1 | 2): string {
+    return index === 0
+      ? `${PERSONALITY_TITLES[selectedPersonality]} (your pick)`
+      : PERSONALITY_TITLES[variations[index - 1]];
+  }
 
   const [options, setOptions] = useState<OptionState[]>([
     { status: "idle", palette: null, summaryText: "", streamingText: "" },
@@ -66,12 +78,6 @@ export function Step4ThreeOptions({
 
   const generateOption = useCallback(
     async (index: 0 | 1 | 2) => {
-      const variation = variations[index];
-      const variantPrompt =
-        index === 0 || !variation.hint
-          ? brandPrompt
-          : `${brandPrompt}\n\n[Creative direction: ${variation.hint}]`;
-
       updateOption(index, { status: "loading", streamingText: "", summaryText: "", palette: null });
 
       try {
@@ -81,10 +87,10 @@ export function Step4ThreeOptions({
         if (!session?.access_token) throw new Error("Not authenticated");
 
         const payload = {
-          brandPrompt: variantPrompt,
+          brandPrompt,
           ...(logoUrl && { logoUrl }),
           ...(!isMultiMarket && selectedCountry && { targetCountry: selectedCountry }),
-          targetPersonality: selectedPersonality,
+          targetPersonality: optionPersonality(index),
           ...(selectedPlatformType && { targetPlatformType: selectedPlatformType }),
         };
 
@@ -219,7 +225,6 @@ export function Step4ThreeOptions({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {options.map((opt, i) => {
-          const variation = variations[i];
           const isSelected = selectedIndex === i;
           const isDone = opt.status === "done";
           const isError = opt.status === "error";
@@ -235,11 +240,11 @@ export function Step4ThreeOptions({
               )}
             >
               {/* Header */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
                   {OPTION_LABELS[i]}
                 </span>
-                <span className="text-xs text-zinc-500 truncate ml-2">{variation.label}</span>
+                <span className="text-xs text-zinc-500 truncate">{optionLabel(i as 0 | 1 | 2)}</span>
               </div>
 
               {/* Preview */}

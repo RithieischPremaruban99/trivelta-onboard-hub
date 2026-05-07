@@ -61,6 +61,13 @@ const PERSONALITIES: PersonalityOption[] = [
     references: "Like Hollywoodbets premium, Tsogo",
     colors: ["#D4AF37", "#0F4C3A", "#1A1A2E"],
   },
+  {
+    key: "mass-market",
+    title: "Mass Market",
+    description: "Bold primaries, energetic, accessible",
+    references: "Like Bet9ja, SportyBet, GwalaBet, Caliente",
+    colors: ["#00A651", "#E30613", "#FFFFFF"],
+  },
 ];
 
 export function Step2PersonalityPicker({
@@ -116,7 +123,7 @@ export function Step2PersonalityPicker({
         <h3 className="text-xs uppercase tracking-wider text-zinc-500 font-medium mb-2">
           Brand personality
         </h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {PERSONALITIES.map((p) => {
             const selected = selectedPersonality === p.key;
             return (
