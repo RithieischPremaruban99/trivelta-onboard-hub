@@ -233,7 +233,7 @@ export function Step4ThreeOptions({
             <div
               key={i}
               className={cn(
-                "flex flex-col rounded-xl border p-4 gap-3 transition-all",
+                "flex flex-col rounded-xl border p-4 gap-3 transition-all min-h-[420px]",
                 "bg-zinc-900 border-zinc-700",
                 isSelected && "ring-2 ring-blue-500 border-blue-500",
                 isDone && !isSelected && "hover:border-zinc-500",
@@ -247,11 +247,11 @@ export function Step4ThreeOptions({
                 <span className="text-xs text-zinc-500 truncate">{optionLabel(i as 0 | 1 | 2)}</span>
               </div>
 
-              {/* Preview */}
+              {/* Preview — mockup + reasoning when done; skeleton while loading */}
               {isDone && opt.palette ? (
-                <PaletteCardPreview palette={opt.palette} />
+                <PaletteCardPreview palette={opt.palette} reasoning={opt.summaryText} />
               ) : isError ? (
-                <div className="h-28 rounded-lg bg-zinc-800 flex flex-col items-center justify-center gap-2 border border-dashed border-zinc-600">
+                <div className="flex-1 rounded-lg bg-zinc-800 flex flex-col items-center justify-center gap-2 border border-dashed border-zinc-600">
                   <AlertTriangle className="h-5 w-5 text-amber-500" />
                   <span className="text-xs text-zinc-500">Generation failed</span>
                   <button
@@ -262,7 +262,7 @@ export function Step4ThreeOptions({
                   </button>
                 </div>
               ) : (
-                <div className="h-28 rounded-lg bg-zinc-800 flex flex-col items-center justify-center gap-2">
+                <div className="flex-1 rounded-lg bg-zinc-800 flex flex-col items-center justify-center gap-2">
                   <Loader2 className="h-5 w-5 text-zinc-400 animate-spin" />
                   <span className="text-xs text-zinc-500">
                     {opt.status === "loading" ? "Starting…" : "Generating palette…"}
@@ -270,9 +270,9 @@ export function Step4ThreeOptions({
                 </div>
               )}
 
-              {/* Summary */}
-              {(opt.status === "streaming" || opt.status === "done") && opt.streamingText && (
-                <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">
+              {/* Streaming text shown while palette not yet ready */}
+              {opt.status === "streaming" && opt.streamingText && (
+                <p className="text-xs text-zinc-400 leading-relaxed">
                   {opt.streamingText}
                 </p>
               )}
@@ -321,54 +321,117 @@ export function Step4ThreeOptions({
   );
 }
 
-function PaletteCardPreview({ palette }: { palette: TCMPalette }) {
+interface PaletteCardPreviewProps {
+  palette: TCMPalette;
+  reasoning: string;
+}
+
+function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
   return (
-    <div
-      className="rounded-lg overflow-hidden h-28 w-full"
-      style={{ backgroundColor: palette.primaryBackgroundColor, border: "1px solid rgba(255,255,255,0.06)" }}
-    >
-      {/* Primary color bar */}
-      <div className="h-1" style={{ backgroundColor: palette.primary }} />
+    <div className="flex flex-col gap-3 flex-1">
+      {/* 4 large color swatches */}
+      <div className="flex gap-2">
+        {[
+          palette.primary,
+          palette.primaryButton,
+          palette.activeSecondaryGradientColor,
+          palette.primaryBackgroundColor,
+        ].filter(Boolean).map((color, i) => (
+          <div
+            key={i}
+            className="h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md flex-shrink-0"
+            style={{ backgroundColor: color }}
+          />
+        ))}
+      </div>
 
-      <div className="p-3 flex flex-col gap-2 h-full">
-        {/* Label */}
-        <span
-          className="text-xs font-semibold leading-none"
-          style={{ color: palette.lightTextColor }}
+      {/* Mini Sportsbook Mockup */}
+      <div
+        className="rounded-lg overflow-hidden border flex flex-col text-[9px] leading-tight"
+        style={{
+          backgroundColor: palette.primaryBackgroundColor,
+          color: palette.lightTextColor,
+          borderColor: palette.borderAndGradientBg,
+        }}
+      >
+        {/* Top bar */}
+        <div
+          className="px-2 py-1.5 flex items-center justify-between border-b"
+          style={{ borderColor: palette.borderAndGradientBg }}
         >
-          Brand Preview
-        </span>
+          <div className="flex items-center gap-1">
+            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: palette.primary }} />
+            <span className="font-semibold" style={{ color: palette.lightTextColor }}>
+              YourBrand
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: palette.lightTextColor, opacity: 0.4 }} />
+            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: palette.lightTextColor, opacity: 0.4 }} />
+          </div>
+        </div>
 
-        {/* Color swatches */}
-        <div className="flex gap-1.5">
-          {[
-            palette.primary,
-            palette.secondary,
-            palette.primaryButton,
-            palette.activeSecondaryGradientColor,
-          ].map((c, i) => (
+        {/* Bonus banner */}
+        <div
+          className="px-2 py-1.5 text-center font-semibold"
+          style={{
+            background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary ?? palette.primary})`,
+            color: palette.darkTextColor,
+          }}
+        >
+          🎁 100% WELCOME BONUS
+        </div>
+
+        {/* CTA buttons */}
+        <div className="px-2 py-2 flex gap-1.5">
+          {["🔥 BetBuilder", "⇄ Peer-to-Peer"].map((label) => (
             <div
-              key={i}
-              className="h-4 w-4 rounded-full flex-shrink-0"
+              key={label}
+              className="flex-1 rounded text-center py-1 font-bold"
               style={{
-                backgroundColor: c,
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.15)",
+                backgroundColor: palette.activeSecondaryGradientColor ?? palette.primaryButton,
+                color: palette.darkTextColor,
               }}
-            />
+            >
+              {label}
+            </div>
           ))}
         </div>
 
-        {/* CTA button mock */}
+        {/* Live game card */}
         <div
-          className="self-start text-xs px-2 py-0.5 rounded font-medium"
+          className="mx-2 mb-2 rounded p-1.5 flex flex-col gap-1"
           style={{
-            backgroundColor: palette.primaryButton,
-            color: palette.lightTextColor,
+            backgroundColor: palette.boxGradientColorStart ?? palette.primaryBackgroundColor,
+            border: `1px solid ${palette.borderAndGradientBg}`,
           }}
         >
-          Bet Now
+          <div className="flex items-center justify-between">
+            <span style={{ color: palette.primary, fontWeight: "bold" }}>● LIVE</span>
+            <span style={{ color: palette.lightTextColor, opacity: 0.6 }}>Premier League</span>
+          </div>
+          <span style={{ color: palette.lightTextColor }}>Liverpool vs Arsenal</span>
+          <div className="flex gap-1">
+            {["1.85", "3.55", "4.15"].map((odds) => (
+              <div
+                key={odds}
+                className="flex-1 rounded text-center py-0.5 font-semibold"
+                style={{
+                  backgroundColor: palette.primaryButton,
+                  color: palette.lightTextColor,
+                }}
+              >
+                {odds}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Reasoning — full text, no truncation */}
+      {reasoning && (
+        <p className="text-xs text-zinc-300 leading-relaxed">{reasoning}</p>
+      )}
     </div>
   );
 }
