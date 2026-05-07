@@ -5,6 +5,7 @@ import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { Button } from "@/components/ui/button";
 import { loadWizardState, saveWizardState } from "@/lib/wizard-state";
 import { Step1CountryPicker } from "./Step1CountryPicker";
+import { Step2PersonalityPicker } from "./Step2PersonalityPicker";
 import type { WizardState, WizardStep } from "./wizard-types";
 
 interface Props {
@@ -69,9 +70,11 @@ export function WizardLayout({ clientId }: Props) {
         );
       case 2:
         return (
-          <PlaceholderStep
-            label="Brand Personality Picker"
-            increment={2}
+          <Step2PersonalityPicker
+            selectedPersonality={state.targetPersonality}
+            onSelect={(personality) =>
+              setState((s) => ({ ...s, targetPersonality: personality }))
+            }
             onBack={handleBack}
             onNext={handleNext}
           />
