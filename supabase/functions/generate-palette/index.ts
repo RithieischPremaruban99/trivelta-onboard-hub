@@ -368,22 +368,44 @@ CRITICAL HIERARCHY RULES:
 5. SELF-CHECK BEFORE SUBMITTING:
    Look at your generated palette. Identify which 3-5 fields will be most visually prominent on the page (buttons, free-bet banner, welcome bonus banner, navigation highlight). Are they ALL in the primary family? If any of them is in a different color family, you've broken hierarchy — fix it before output.
 
-EXAMPLES:
+EXAMPLES (abstract, to teach hierarchy without anchoring colors):
 
-User: "Nigeria casino, premium positioning, deep purple with gold"
+Example 1 — Single-family brand (e.g., "Nigeria casino, premium green"):
+  Bad output:
+  - primary: green ✓
+  - primaryButton: green ✓
+  - freeBetBackground: gold ✗ — banner is gold, not green
+  - welcomeBonusBg: gold ✗ — second banner also gold
 
-Bad output:
-- primary: #7C3AED (purple) ✓
-- primaryButton: #7C3AED (purple) ✓
-- freeBetBackground: #D4AF37 (gold) ✗ — banner is gold, not purple
-- welcomeBonusBg: #FFD700 (gold) ✗ — second banner also gold
+  Good output:
+  - primary: green
+  - primaryButton: green
+  - freeBetBackground: green at 15% alpha over dark
+  - welcomeBonusBg: linear gradient darker-green → green
+  - secondary: gold — used ONLY in VIP badge or win state
 
-Good output:
-- primary: #7C3AED (purple)
-- primaryButton: #7C3AED
-- freeBetBackground: rgba(124,58,237,0.15) — purple at 15% alpha over dark
-- welcomeBonusBg: linear gradient #5B21B6 → #7C3AED — purple gradient
-- secondary: #D4AF37 (gold) — used ONLY in VIP badge or win state
+Example 2 — Different brand-family ("Mexico crypto, luxury navy with gold"):
+  Bad output:
+  - primary: navy ✓
+  - freeBetBackground: bright gold ✗ — competing surface
+
+  Good output:
+  - primary: navy
+  - primaryButton: navy
+  - freeBetBackground: navy at 15% alpha
+  - secondary: gold — VIP badge only
+
+Example 3 — Bright accent brand ("African sports book, vibrant red"):
+  Bad output:
+  - primary: red ✓
+  - freeBetBackground: yellow ✗ — clashes with red CTAs
+
+  Good output:
+  - primary: red
+  - primaryButton: red
+  - freeBetBackground: red at 15% alpha over near-black
+
+KEY PRINCIPLE: ALL HERO SURFACES (buttons, banners, active states) must be derived from the primary color family. Never introduce a secondary color as a hero surface — secondary colors only appear in small accents (badges, win states, dividers).
 
 ═══ COLOR DERIVATION RULES ═══
 
