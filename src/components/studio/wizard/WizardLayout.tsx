@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { loadWizardState, saveWizardState } from "@/lib/wizard-state";
 import { Step1CountryPicker } from "./Step1CountryPicker";
 import { Step2PersonalityPicker } from "./Step2PersonalityPicker";
+import { Step3BriefInput } from "./Step3BriefInput";
 import type { WizardState, WizardStep } from "./wizard-types";
 
 interface Props {
@@ -85,9 +86,23 @@ export function WizardLayout({ clientId }: Props) {
         );
       case 3:
         return (
-          <PlaceholderStep
-            label="Brand Brief Input"
-            increment={3}
+          <Step3BriefInput
+            clientId={clientId}
+            brandPrompt={state.brandPrompt ?? ""}
+            logoUrl={state.logoUrl}
+            selectedCountry={state.targetCountry}
+            isMultiMarket={state.isMultiMarket ?? false}
+            selectedPlatformType={state.targetPlatformType}
+            selectedPersonality={state.targetPersonality}
+            onChangeBrief={(text) =>
+              setState((s) => ({ ...s, brandPrompt: text }))
+            }
+            onLogoUploaded={(url) =>
+              setState((s) => ({ ...s, logoUrl: url }))
+            }
+            onLogoRemoved={() =>
+              setState((s) => ({ ...s, logoUrl: undefined }))
+            }
             onBack={handleBack}
             onNext={handleNext}
           />

@@ -15,6 +15,7 @@ export interface WizardState {
   targetPersonality?: BrandPersonality;
   targetPlatformType?: PlatformType;
   brandPrompt?: string;
+  logoUrl?: string;
 }
 
 export interface CountryEntry {
