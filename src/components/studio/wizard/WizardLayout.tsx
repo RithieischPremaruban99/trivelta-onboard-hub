@@ -60,7 +60,10 @@ export function WizardLayout({ clientId }: Props) {
         return (
           <Step1CountryPicker
             selectedIso={state.targetCountry}
-            onSelect={(iso) => setState((s) => ({ ...s, targetCountry: iso }))}
+            isMultiMarket={state.isMultiMarket ?? false}
+            onSelect={(iso, isMulti) =>
+              setState((s) => ({ ...s, targetCountry: iso, isMultiMarket: isMulti }))
+            }
             onNext={handleNext}
           />
         );

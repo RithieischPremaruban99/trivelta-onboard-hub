@@ -7,11 +7,12 @@ import { TOP_COUNTRIES, ALL_COUNTRIES, type CountryEntry } from "./wizard-types"
 
 interface Props {
   selectedIso: string | undefined;
-  onSelect: (iso: string | undefined) => void;
+  isMultiMarket: boolean;
+  onSelect: (iso: string | undefined, isMulti: boolean) => void;
   onNext: () => void;
 }
 
-export function Step1CountryPicker({ selectedIso, onSelect, onNext }: Props) {
+export function Step1CountryPicker({ selectedIso, isMultiMarket, onSelect, onNext }: Props) {
   const [otherOpen, setOtherOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -21,25 +22,22 @@ export function Step1CountryPicker({ selectedIso, onSelect, onNext }: Props) {
       c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // multiMarket is a local flag to distinguish "nothing chosen yet" from "multi-market chosen"
-  // (both result in selectedIso=undefined, but only the latter enables Next)
-  const [multiMarket, setMultiMarket] = useState(false);
+  // hasSelection derived purely from props — survives remounts
+  const hasSelection = !!selectedIso || isMultiMarket;
 
-  const hasSelection = !!selectedIso || multiMarket;
+  // Auto-show selected country name in Other header if it's a non-top-10 pick
+  const isOtherSelected = !!selectedIso && !TOP_COUNTRIES.some((t) => t.iso === selectedIso);
 
   function handleCardClick(iso: string) {
-    setMultiMarket(false);
-    onSelect(iso);
+    onSelect(iso, false);
   }
 
   function handleMultiMarket() {
-    setMultiMarket(true);
-    onSelect(undefined);
+    onSelect(undefined, true);
   }
 
   function handleOtherSelect(c: CountryEntry) {
-    setMultiMarket(false);
-    onSelect(c.iso);
+    onSelect(c.iso, false);
     setOtherOpen(false);
     setSearch("");
   }
@@ -78,13 +76,20 @@ export function Step1CountryPicker({ selectedIso, onSelect, onNext }: Props) {
         })}
       </div>
 
-      {/* Other Country expandable */}
-      <div className="rounded-xl border border-zinc-700 overflow-hidden">
+      {/* Other country expandable */}
+      <div className="rounded-xl border border-zinc-700 bg-zinc-900 overflow-hidden">
         <button
-          onClick={() => setOtherOpen((v) => !v)}
+          onClick={() => setOtherOpen((o) => !o)}
           className="w-full flex items-center justify-between px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
         >
-          <span className="font-medium">Other Country</span>
+          <span className="font-medium">
+            Other Country
+            {isOtherSelected && (
+              <span className="ml-2 text-blue-400">
+                — {ALL_COUNTRIES.find((c) => c.iso === selectedIso)?.name}
+              </span>
+            )}
+          </span>
           {otherOpen ? (
             <ChevronUp className="h-4 w-4 text-zinc-500" />
           ) : (
@@ -137,7 +142,7 @@ export function Step1CountryPicker({ selectedIso, onSelect, onNext }: Props) {
         className={cn(
           "flex items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-all",
           "bg-zinc-900 border-zinc-700 hover:border-blue-500/50 hover:bg-zinc-800 text-zinc-300",
-          multiMarket && "ring-2 ring-blue-500 bg-blue-500/10 border-blue-500 text-blue-300"
+          isMultiMarket && "ring-2 ring-blue-500 bg-blue-500/10 border-blue-500 text-blue-300"
         )}
       >
         <Globe className="h-5 w-5 shrink-0" />
