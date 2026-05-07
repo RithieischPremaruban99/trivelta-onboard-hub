@@ -16,7 +16,6 @@ interface PersonalityOption {
   title: string;
   description: string;
   references: string;
-  colors: string[];
 }
 
 interface PlatformOption {
@@ -38,35 +37,30 @@ const PERSONALITIES: PersonalityOption[] = [
     title: "Modern Crypto",
     description: "Sleek, tech-forward, dark-base aesthetic",
     references: "Like Stake, Roobet, Rollbit",
-    colors: ["#00C8B4", "#1E3A8A", "#0A0A14"],
   },
   {
     key: "classic-casino",
     title: "Classic Casino",
     description: "Traditional luxury, established trust signals",
     references: "Like Bet365, Caesars, MGM",
-    colors: ["#D4AF37", "#7F1D1D", "#08080F"],
   },
   {
     key: "challenger",
     title: "Challenger",
     description: "Bold, anti-mainstream, unexpected combinations",
     references: "Like Pinnacle, Smarkets",
-    colors: ["#1A1A1A", "#FF6B35", "#F5F5F5"],
   },
   {
     key: "luxury-premium",
     title: "Luxury Premium",
     description: "Sophisticated, jewel tones, VIP-feel",
     references: "Like Hollywoodbets premium, Tsogo",
-    colors: ["#D4AF37", "#0F4C3A", "#1A1A2E"],
   },
   {
     key: "mass-market",
     title: "Mass Market",
     description: "Bold primaries, energetic, accessible",
     references: "Like Bet9ja, SportyBet, GwalaBet, Caliente",
-    colors: ["#00A651", "#E30613", "#FFFFFF"],
   },
 ];
 
@@ -136,15 +130,6 @@ export function Step2PersonalityPicker({
                   selected && "ring-2 ring-blue-500 bg-blue-500/10 border-blue-500"
                 )}
               >
-                <div className="flex gap-1.5">
-                  {p.colors.map((color, i) => (
-                    <div
-                      key={i}
-                      className="h-6 w-6 rounded-full border border-zinc-700"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
                 <div>
                   <h3 className="text-base font-semibold text-zinc-100 mb-1">{p.title}</h3>
                   <p className="text-xs text-zinc-400 mb-2 leading-snug">{p.description}</p>
