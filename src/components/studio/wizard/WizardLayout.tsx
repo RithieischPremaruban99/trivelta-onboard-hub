@@ -58,7 +58,7 @@ export function WizardLayout({ clientId }: Props) {
       setStep((state.step + 1) as WizardStep);
     } else {
       setStep("complete");
-      navigate({ to: `/onboarding/${clientId}/studio` });
+      navigate({ to: `/studio-preview/${clientId}` });
     }
   }
 
