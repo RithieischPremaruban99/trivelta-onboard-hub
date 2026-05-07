@@ -452,7 +452,7 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
 
       {/* Reasoning — full text, no truncation */}
       {reasoning && (
-        <p className="text-xs text-zinc-300 leading-relaxed">{reasoning}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{reasoning}</p>
       )}
     </div>
   );
