@@ -1564,10 +1564,10 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             justifyContent: "space-between",
           }}>
             <div>
-              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+              <div style={{ color: pickContrastText(palette.primary), fontSize: 11, fontWeight: 700 }}>
                 🎁 Free Bet Available
               </div>
-              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
+              <div style={{ color: pickContrastText(palette.primary), fontSize: 9, marginTop: 2, opacity: 0.8 }}>
                 Claim your $25 welcome bet
               </div>
             </div>
@@ -2688,10 +2688,10 @@ const MobilePreview = React.memo(function MobilePreview({
             justifyContent: "space-between",
           }}>
             <div>
-              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+              <div style={{ color: pickContrastText(palette.primary), fontSize: 11, fontWeight: 700 }}>
                 🎁 Free Bet Available
               </div>
-              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
+              <div style={{ color: pickContrastText(palette.primary), fontSize: 9, marginTop: 2, opacity: 0.8 }}>
                 Claim your $25 welcome bet
               </div>
             </div>
