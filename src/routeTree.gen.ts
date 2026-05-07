@@ -19,6 +19,7 @@ import { Route as ProspectTokenRouteImport } from './routes/prospect.$token'
 import { Route as OnboardingClientIdRouteImport } from './routes/onboarding.$clientId'
 import { Route as OnboardingClientIdIndexRouteImport } from './routes/onboarding.$clientId.index'
 import { Route as ProspectWelcomeTokenRouteImport } from './routes/prospect_.welcome.$token'
+import { Route as OnboardingClientIdWizardRouteImport } from './routes/onboarding.$clientId.wizard'
 import { Route as OnboardingClientIdWelcomeRouteImport } from './routes/onboarding.$clientId.welcome'
 import { Route as OnboardingClientIdSuccessRouteImport } from './routes/onboarding.$clientId.success'
 import { Route as OnboardingClientIdStudioUnlockedRouteImport } from './routes/onboarding.$clientId.studio-unlocked'
@@ -80,6 +81,12 @@ const ProspectWelcomeTokenRoute = ProspectWelcomeTokenRouteImport.update({
   path: '/prospect/welcome/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingClientIdWizardRoute =
+  OnboardingClientIdWizardRouteImport.update({
+    id: '/wizard',
+    path: '/wizard',
+    getParentRoute: () => OnboardingClientIdRoute,
+  } as any)
 const OnboardingClientIdWelcomeRoute =
   OnboardingClientIdWelcomeRouteImport.update({
     id: '/welcome',
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/welcome': typeof OnboardingClientIdWelcomeRoute
+  '/onboarding/$clientId/wizard': typeof OnboardingClientIdWizardRoute
   '/prospect/welcome/$token': typeof ProspectWelcomeTokenRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/welcome': typeof OnboardingClientIdWelcomeRoute
+  '/onboarding/$clientId/wizard': typeof OnboardingClientIdWizardRoute
   '/prospect/welcome/$token': typeof ProspectWelcomeTokenRoute
   '/onboarding/$clientId': typeof OnboardingClientIdIndexRoute
   '/admin/prospects/$id/edit': typeof AdminProspectsIdEditRoute
@@ -200,6 +209,7 @@ export interface FileRoutesById {
   '/onboarding/$clientId/studio-unlocked': typeof OnboardingClientIdStudioUnlockedRoute
   '/onboarding/$clientId/success': typeof OnboardingClientIdSuccessRoute
   '/onboarding/$clientId/welcome': typeof OnboardingClientIdWelcomeRoute
+  '/onboarding/$clientId/wizard': typeof OnboardingClientIdWizardRoute
   '/prospect_/welcome/$token': typeof ProspectWelcomeTokenRoute
   '/onboarding/$clientId/': typeof OnboardingClientIdIndexRoute
   '/admin_/prospects/$id/edit': typeof AdminProspectsIdEditRoute
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/welcome'
+    | '/onboarding/$clientId/wizard'
     | '/prospect/welcome/$token'
     | '/onboarding/$clientId/'
     | '/admin/prospects/$id/edit'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/welcome'
+    | '/onboarding/$clientId/wizard'
     | '/prospect/welcome/$token'
     | '/onboarding/$clientId'
     | '/admin/prospects/$id/edit'
@@ -267,6 +279,7 @@ export interface FileRouteTypes {
     | '/onboarding/$clientId/studio-unlocked'
     | '/onboarding/$clientId/success'
     | '/onboarding/$clientId/welcome'
+    | '/onboarding/$clientId/wizard'
     | '/prospect_/welcome/$token'
     | '/onboarding/$clientId/'
     | '/admin_/prospects/$id/edit'
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProspectWelcomeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding/$clientId/wizard': {
+      id: '/onboarding/$clientId/wizard'
+      path: '/wizard'
+      fullPath: '/onboarding/$clientId/wizard'
+      preLoaderRoute: typeof OnboardingClientIdWizardRouteImport
+      parentRoute: typeof OnboardingClientIdRoute
+    }
     '/onboarding/$clientId/welcome': {
       id: '/onboarding/$clientId/welcome'
       path: '/welcome'
@@ -440,6 +460,7 @@ interface OnboardingClientIdRouteChildren {
   OnboardingClientIdStudioUnlockedRoute: typeof OnboardingClientIdStudioUnlockedRoute
   OnboardingClientIdSuccessRoute: typeof OnboardingClientIdSuccessRoute
   OnboardingClientIdWelcomeRoute: typeof OnboardingClientIdWelcomeRoute
+  OnboardingClientIdWizardRoute: typeof OnboardingClientIdWizardRoute
   OnboardingClientIdIndexRoute: typeof OnboardingClientIdIndexRoute
 }
 
@@ -453,6 +474,7 @@ const OnboardingClientIdRouteChildren: OnboardingClientIdRouteChildren = {
   OnboardingClientIdStudioUnlockedRoute: OnboardingClientIdStudioUnlockedRoute,
   OnboardingClientIdSuccessRoute: OnboardingClientIdSuccessRoute,
   OnboardingClientIdWelcomeRoute: OnboardingClientIdWelcomeRoute,
+  OnboardingClientIdWizardRoute: OnboardingClientIdWizardRoute,
   OnboardingClientIdIndexRoute: OnboardingClientIdIndexRoute,
 }
 
