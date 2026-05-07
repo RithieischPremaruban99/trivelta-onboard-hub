@@ -722,6 +722,44 @@ Constraints: avoid pure M-Pesa-style green for payment CTAs.`,
 }
 
 // ---------------------------------------------------------------------------
+// Detect user intent to decide how logo guidance is injected
+// ---------------------------------------------------------------------------
+
+function detectUserIntent(brief: string): "use_logo" | "different_brand" | "conversational" | "ambiguous" {
+  const lower = brief.toLowerCase().trim();
+
+  const conversationalMarkers = [
+    "wie ", "how ", "was ", "what ", "warum ", "why ",
+    "should i", "soll ich", "can you", "kannst du",
+    "?",
+  ];
+  if (conversationalMarkers.some(m => lower.includes(m)) && !lower.includes("logo")) {
+    return "conversational";
+  }
+
+  const logoMarkers = [
+    "use my logo", "extract logo", "from my logo", "logo colors",
+    "match my logo", "logo zeigt", "use the logo", "from the logo",
+    "make it match", "use the brand",
+  ];
+  if (logoMarkers.some(m => lower.includes(m))) {
+    return "use_logo";
+  }
+
+  const differentBrandMarkers = [
+    "like ", "wie ", "style of", "im stil von", "inspired by",
+    "casino in", "betting for", "for the", "for my",
+    "luxury", "premium", "modern", "bet365", "sportybet",
+    "caliente", "hollywoodbets",
+  ];
+  if (differentBrandMarkers.some(m => lower.includes(m))) {
+    return "different_brand";
+  }
+
+  return "ambiguous";
+}
+
+// ---------------------------------------------------------------------------
 // Build user message text (logo handled separately via vision)
 // ---------------------------------------------------------------------------
 
@@ -1447,6 +1485,9 @@ Deno.serve(async (req: Request) => {
   type ContentBlock = Anthropic.TextBlockParam | Anthropic.ImageBlockParam;
   const userContent: ContentBlock[] = [{ type: "text", text: userText }];
   if (logoData) {
+    const intent = detectUserIntent(body.brandPrompt);
+    console.log(`[generate-palette] User intent: ${intent}`);
+
     userContent.push({
       type: "image",
       source: {
@@ -1455,10 +1496,26 @@ Deno.serve(async (req: Request) => {
         data: logoData.base64,
       },
     });
-    userContent.push({
-      type: "text",
-      text: "The image above is the brand logo. Analyse its colors and aesthetic to inform the palette.",
-    });
+
+    if (intent === "use_logo") {
+      userContent.push({
+        type: "text",
+        text: "The image above is the brand logo. Extract its dominant colors and use them as the foundation for the palette.",
+      });
+    } else if (intent === "different_brand" || intent === "conversational") {
+      userContent.push({
+        type: "text",
+        text: "The image above is the user's currently uploaded logo. " +
+              "However, the user's request is for a DIFFERENT direction. " +
+              "Follow the user's text request, not the logo. " +
+              "If the user is asking a question, answer conversationally without generating a palette.",
+      });
+    } else {
+      userContent.push({
+        type: "text",
+        text: "The image above is the brand logo. Consider its aesthetic, but prioritize the user's text request.",
+      });
+    }
   }
 
   // ── Build messages array - prepend conversation history (last ≤10 turns) ──
