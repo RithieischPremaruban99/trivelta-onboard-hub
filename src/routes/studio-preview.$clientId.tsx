@@ -25,6 +25,7 @@ import {
   type StudioSavedConfig,
   type Language,
 } from "@/contexts/StudioContext";
+import { type TCMPalette, DEFAULT_TCM_PALETTE } from "@/lib/tcm-palette";
 import { OnboardingCtx, type OnboardingCtxValue } from "@/lib/onboarding-context";
 import { StudioInner } from "@/routes/onboarding.$clientId.studio";
 import {
@@ -69,6 +70,7 @@ function StudioPreviewPage() {
   const navigate = useNavigate();
 
   const [clientName, setClientName] = useState<string | null>(null);
+  const [initialPalette, setInitialPalette] = useState<TCMPalette | null>(null);
   const [initialColors, setInitialColors] = useState<StudioThemeColors | undefined>(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
@@ -137,7 +139,11 @@ function StudioPreviewPage() {
       const data = formRes.data;
       if (data?.studio_config && typeof data.studio_config === "object") {
         const saved = data.studio_config as StudioSavedConfig;
-        if (saved.colors) {
+
+        if (saved.palette && typeof saved.palette === "object") {
+          setInitialPalette({ ...DEFAULT_TCM_PALETTE, ...saved.palette } as TCMPalette);
+          setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
+        } else if (saved.colors) {
           setInitialColors({ ...defaultStudioColors, ...saved.colors });
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else {
@@ -146,6 +152,7 @@ function StudioPreviewPage() {
             ...(data.studio_config as Partial<StudioThemeColors>),
           });
         }
+
         if (saved.language) setInitialLanguage(saved.language);
         if (saved.appName) setInitialAppName(saved.appName);
       }
@@ -334,6 +341,7 @@ function StudioPreviewPage() {
       <div className="h-screen overflow-hidden">
         <OnboardingCtx.Provider value={ctxValue}>
           <StudioProvider
+            initialPalette={initialPalette ?? undefined}
             initialColors={initialColors}
             initialIcons={initialIcons}
             initialLanguage={initialLanguage}
