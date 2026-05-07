@@ -47,6 +47,204 @@ const GAMEPASS_GOLD_FIXED_FIELDS: (keyof TCMPalette)[] = [
   "gamepassGoldReverseGradient2",
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Country list — Africa + LATAM focus (Trivelta target markets)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface CountryEntry {
+  iso: string;
+  name: string;
+  region: string;
+  language: string;
+}
+
+const COUNTRY_LIST: CountryEntry[] = [
+  // Africa - West Anglophone
+  { iso: "NG", name: "Nigeria", region: "africa-west-anglo", language: "en" },
+  { iso: "GH", name: "Ghana", region: "africa-west-anglo", language: "en" },
+  { iso: "SL", name: "Sierra Leone", region: "africa-west-anglo", language: "en" },
+  { iso: "LR", name: "Liberia", region: "africa-west-anglo", language: "en" },
+  { iso: "GM", name: "Gambia", region: "africa-west-anglo", language: "en" },
+
+  // Africa - West Francophone
+  { iso: "SN", name: "Senegal", region: "africa-west-franco", language: "fr" },
+  { iso: "CI", name: "Côte d'Ivoire", region: "africa-west-franco", language: "fr" },
+  { iso: "ML", name: "Mali", region: "africa-west-franco", language: "fr" },
+  { iso: "BF", name: "Burkina Faso", region: "africa-west-franco", language: "fr" },
+  { iso: "NE", name: "Niger", region: "africa-west-franco", language: "fr" },
+  { iso: "GN", name: "Guinea", region: "africa-west-franco", language: "fr" },
+  { iso: "TG", name: "Togo", region: "africa-west-franco", language: "fr" },
+  { iso: "BJ", name: "Benin", region: "africa-west-franco", language: "fr" },
+
+  // Africa - East
+  { iso: "KE", name: "Kenya", region: "africa-east", language: "en" },
+  { iso: "TZ", name: "Tanzania", region: "africa-east", language: "sw" },
+  { iso: "UG", name: "Uganda", region: "africa-east", language: "en" },
+  { iso: "RW", name: "Rwanda", region: "africa-east", language: "en" },
+  { iso: "ET", name: "Ethiopia", region: "africa-east", language: "en" },
+  { iso: "BI", name: "Burundi", region: "africa-east", language: "fr" },
+  { iso: "SS", name: "South Sudan", region: "africa-east", language: "en" },
+
+  // Africa - Southern
+  { iso: "ZA", name: "South Africa", region: "africa-south", language: "en" },
+  { iso: "NA", name: "Namibia", region: "africa-south", language: "en" },
+  { iso: "BW", name: "Botswana", region: "africa-south", language: "en" },
+  { iso: "ZW", name: "Zimbabwe", region: "africa-south", language: "en" },
+  { iso: "ZM", name: "Zambia", region: "africa-south", language: "en" },
+  { iso: "MW", name: "Malawi", region: "africa-south", language: "en" },
+  { iso: "MZ", name: "Mozambique", region: "africa-south-luso", language: "pt" },
+  { iso: "LS", name: "Lesotho", region: "africa-south", language: "en" },
+  { iso: "SZ", name: "Eswatini", region: "africa-south", language: "en" },
+
+  // Africa - Central
+  { iso: "CD", name: "DR Congo", region: "africa-central", language: "fr" },
+  { iso: "CM", name: "Cameroon", region: "africa-central", language: "fr" },
+  { iso: "GA", name: "Gabon", region: "africa-central", language: "fr" },
+  { iso: "AO", name: "Angola", region: "africa-south-luso", language: "pt" },
+  { iso: "CG", name: "Congo Republic", region: "africa-central", language: "fr" },
+  { iso: "TD", name: "Chad", region: "africa-central", language: "fr" },
+  { iso: "CF", name: "Central African Republic", region: "africa-central", language: "fr" },
+
+  // Africa - North/Arabic
+  { iso: "EG", name: "Egypt", region: "africa-north-arabic", language: "ar" },
+  { iso: "MA", name: "Morocco", region: "africa-north-arabic", language: "ar" },
+  { iso: "TN", name: "Tunisia", region: "africa-north-arabic", language: "ar" },
+  { iso: "DZ", name: "Algeria", region: "africa-north-arabic", language: "ar" },
+  { iso: "LY", name: "Libya", region: "africa-north-arabic", language: "ar" },
+  { iso: "SD", name: "Sudan", region: "africa-north-arabic", language: "ar" },
+
+  // Africa - Islands
+  { iso: "MG", name: "Madagascar", region: "africa-island", language: "fr" },
+  { iso: "MU", name: "Mauritius", region: "africa-island", language: "en" },
+  { iso: "SC", name: "Seychelles", region: "africa-island", language: "en" },
+  { iso: "CV", name: "Cape Verde", region: "africa-island", language: "pt" },
+
+  // LATAM - Mexico + Central America
+  { iso: "MX", name: "Mexico", region: "latam-mexico", language: "es" },
+  { iso: "GT", name: "Guatemala", region: "latam-central", language: "es" },
+  { iso: "HN", name: "Honduras", region: "latam-central", language: "es" },
+  { iso: "SV", name: "El Salvador", region: "latam-central", language: "es" },
+  { iso: "NI", name: "Nicaragua", region: "latam-central", language: "es" },
+  { iso: "CR", name: "Costa Rica", region: "latam-central", language: "es" },
+  { iso: "PA", name: "Panama", region: "latam-central", language: "es" },
+  { iso: "BZ", name: "Belize", region: "latam-central", language: "en" },
+
+  // LATAM - Caribbean
+  { iso: "DO", name: "Dominican Republic", region: "latam-caribbean-es", language: "es" },
+  { iso: "CU", name: "Cuba", region: "latam-caribbean-es", language: "es" },
+  { iso: "PR", name: "Puerto Rico", region: "latam-caribbean-es", language: "es" },
+  { iso: "JM", name: "Jamaica", region: "latam-caribbean-en", language: "en" },
+  { iso: "TT", name: "Trinidad & Tobago", region: "latam-caribbean-en", language: "en" },
+  { iso: "BS", name: "Bahamas", region: "latam-caribbean-en", language: "en" },
+  { iso: "BB", name: "Barbados", region: "latam-caribbean-en", language: "en" },
+  { iso: "CW", name: "Curaçao", region: "latam-caribbean-en", language: "en" },
+
+  // LATAM - Andes
+  { iso: "CO", name: "Colombia", region: "latam-andes", language: "es" },
+  { iso: "VE", name: "Venezuela", region: "latam-andes", language: "es" },
+  { iso: "EC", name: "Ecuador", region: "latam-andes", language: "es" },
+  { iso: "PE", name: "Peru", region: "latam-andes", language: "es" },
+  { iso: "BO", name: "Bolivia", region: "latam-andes", language: "es" },
+
+  // LATAM - Cono Sur
+  { iso: "AR", name: "Argentina", region: "latam-cono-sur", language: "es" },
+  { iso: "CL", name: "Chile", region: "latam-cono-sur", language: "es" },
+  { iso: "UY", name: "Uruguay", region: "latam-cono-sur", language: "es" },
+  { iso: "PY", name: "Paraguay", region: "latam-cono-sur", language: "es" },
+
+  // LATAM - Brazil + Guianas
+  { iso: "BR", name: "Brazil", region: "latam-brazil", language: "pt" },
+  { iso: "GY", name: "Guyana", region: "latam-guianas", language: "en" },
+  { iso: "SR", name: "Suriname", region: "latam-guianas", language: "nl" },
+  { iso: "GF", name: "French Guiana", region: "latam-guianas", language: "fr" },
+];
+
+const DETAILED_COUNTRY_CONTEXTS: Record<string, string> = {
+  NG: `Nigeria — dominant operators: Bet9ja (green, mass-market trust), SportyBet (red, energy/youth), BetKing (red), 1xBet (blue, international). Cultural: mobile-first 85%+, premium tier underdeveloped, English with Pidgin acceptable. Differentiation directions: navy+gold accents, deep amber/burnt-orange, teal, monochrome with cyan/lime accent, sophisticated terracotta/copper. Constraints: avoid pure green (mass-market read), avoid red+green combos.`,
+
+  KE: `Kenya — dominant operators: SportPesa (blue), Betika (green), Odibets (green mass-market). Cultural: M-Pesa integration mandatory, Swahili+English bilingual UI, mobile-first. Differentiation: deep emerald (premium tier distinct from M-Pesa green), navy+copper, deep teal, monochrome+gold, warm sunset palettes. Constraints: avoid M-Pesa green clone.`,
+
+  GH: `Ghana — dominant operators: SportyBet (red), 1xBet (blue), Betway (green). Cultural: MTN MoMo dominant, English+Twi/Akan undertones, Adinkra patterns resonate. Differentiation: deep gold/amber (Adinkra-inspired), warm copper, navy+yellow, sophisticated earth tones. Constraints: avoid SportyBet red dominance.`,
+
+  TZ: `Tanzania — dominant operators: SportPesa (blue), Betway (green), Premier Bet (red). Cultural: Swahili-first UI mandatory, M-Pesa+Tigo Pesa, mobile data conscious. Differentiation: deep ocean blue (distinct from SportPesa), emerald variations, sunset amber/orange, monochrome+gold. Constraints: avoid SportPesa blue, oversaturated palettes.`,
+
+  ZA: `South Africa — dominant operators: Hollywoodbets (purple+gold OWNS premium), Betway (green traditional), Supabets (yellow+black mass), TopBet, Sunbet. Cultural: 11 official languages (English UI standard), premium tier mature, mobile+desktop. Differentiation for challengers: navy+silver, monochrome black/gold, sophisticated charcoal+amber, emerald+bronze, deep teal+copper. Constraints: avoid purple+gold (Hollywoodbets clone), avoid green-only (Betway clone).`,
+
+  UG: `Uganda — dominant operators: Betway, BetPawa, Fortebet. Cultural: mobile-first, English+Luganda undertones, mobile money critical. Differentiation: warm gold, terracotta, navy+amber, deep emerald, copper+black. Constraints: less saturated market = more freedom but avoid generic flat colors.`,
+
+  MX: `Mexico — dominant operators: Caliente (red leader), Codere (green retail), Betano (orange sports), Strendus, PlayCity. Cultural: Spanish UI mandatory, modern professional aesthetics travel well. Differentiation: premium navy/gold, deep emerald with bronze, sophisticated charcoal+amber, sophisticated muted earth tones. Constraints: avoid clichéd folkloric, avoid Caliente red clone.`,
+
+  BR: `Brazil — dominant operators: Betano (orange), Pixbet (pink/green), KTO (yellow/black), Sportingbet, Galera.bet (blue), Stake (purple already taken). Cultural: Portuguese UI, Pix payment universal, post-2024 regulation, mobile-first. Differentiation: deep navy, cool teal, emerald+copper, monochrome black/gold, charcoal+amber. Constraints: avoid yellow+green (flag cliché), avoid Betano orange/KTO yellow/Stake purple clones.`,
+
+  AR: `Argentina — dominant operators: Bplay, Codere, Betano (regional). Cultural: Spanish UI, sophisticated palette appreciated, European-influenced aesthetics travel well. Differentiation: navy+silver, charcoal+amber, deep wine, emerald, sophisticated monochrome. Constraints: avoid aggressive bright primaries (reads downmarket).`,
+
+  CO: `Colombia — dominant operators: Codere, Wplay (yellow), Betplay, BetSafe. Cultural: Spanish UI, mobile-first, Colombia has mature regulated market. Differentiation: deep blue, copper+black, emerald, sunset orange (distinct from Wplay yellow), sophisticated wine tones. Constraints: avoid Wplay yellow clone.`,
+};
+
+const REGIONAL_FALLBACKS: Record<string, string> = {
+  "africa-west-anglo": `West African anglophone market: English UI, mobile-first, mobile money critical, market typically less saturated than Nigeria/Ghana giving brand freedom. Suggested directions: warm gold/amber, navy+copper, deep emerald, terracotta, monochrome+bright accent. Avoid cloning Nigeria green/red or Ghana red.`,
+
+  "africa-west-franco": `West African francophone market: French UI mandatory, Orange Money/MTN dominant, francophone aesthetic preferred (sophisticated/muted, not bright). Suggested directions: navy+gold, sophisticated earth tones, deep emerald, copper+black, monochrome. Avoid anglophone-style bright primaries.`,
+
+  "africa-east": `East African market: mobile money universal, mobile-first, often Swahili+English bilingual. Suggested directions: deep ocean blue, emerald (deeper than M-Pesa green), warm sunset palettes, navy+copper. Avoid M-Pesa green clone, oversaturated palettes.`,
+
+  "africa-south": `Southern African market: English UI, mobile+desktop both relevant, premium tier emerging. Suggested directions: navy+silver, sophisticated charcoal+amber, emerald+bronze, monochrome+gold. Avoid purple+gold (Hollywoodbets-derivative read), generic flat green.`,
+
+  "africa-south-luso": `Lusophone Africa market: Portuguese UI mandatory, Brazilian aesthetics travel (linguistic link), mobile money critical. Suggested directions: warm coastal blue, sunset orange, deep emerald, copper, sophisticated earth tones. Avoid too-on-the-nose Brazilian-yellow.`,
+
+  "africa-central": `Central African market: French UI primarily, market less saturated, mobile data expensive (lightweight UI critical). Suggested directions: warm earth tones, deep navy, copper+black, sophisticated muted palettes. Avoid oversaturated palettes.`,
+
+  "africa-north-arabic": `North African Arabic market: Arabic UI RTL mandatory, religious sensitivity to gambling (gold acceptable as luxury, GREEN AVOID due to religious connotations). Suggested directions: gold+navy luxury, deep blue, sophisticated charcoal, copper. Constraints: AVOID GREEN.`,
+
+  "africa-island": `African islands market: tourism-influenced aesthetics, mixed language (French/Portuguese/English), more international feel. Suggested directions: ocean blue, sunset palettes, sophisticated tropical premium (NOT clichéd), warm gold. Avoid clichéd "tropical paradise".`,
+
+  "latam-mexico": `Mexico region — see detailed Mexico context.`,
+
+  "latam-central": `Central American market: Spanish UI mandatory, smaller markets often less mature regulation, sophisticated minimal aesthetics work. Suggested directions: tropical-but-sophisticated (deep teal, emerald), warm copper, navy+gold, monochrome+amber. Avoid clichéd "tropical".`,
+
+  "latam-caribbean-es": `Spanish Caribbean market: Spanish UI, often crypto-friendly markets, Caribbean cultural aesthetic warmer than mainland. Suggested directions: deep ocean blue, sunset palettes, emerald with copper, sophisticated tropical premium.`,
+
+  "latam-caribbean-en": `English Caribbean market: English UI, often international iGaming hubs (Curaçao licensing), more international feel. Suggested directions: navy+gold, sophisticated monochrome, deep teal, copper+black.`,
+
+  "latam-andes": `Andean LATAM market: Spanish UI mandatory, mobile-first, Andean cultural undertones can resonate if subtle. Suggested directions: warm earth tones (Andean-inspired but subtle), copper+amber, deep teal, sophisticated wine tones, navy+gold. Avoid clichéd indigenous patterns.`,
+
+  "latam-cono-sur": `Cono Sur market: Spanish UI, sophisticated/European-influenced aesthetics preferred, mature regulatory environments. Suggested directions: navy+silver, charcoal+amber, deep wine, sophisticated monochrome. Avoid aggressive bright primaries.`,
+
+  "latam-brazil": `Brazil region — see detailed Brazil context.`,
+
+  "latam-guianas": `Guianas market: mixed colonial heritage (Portuguese/Dutch/French), small markets, often crypto-friendly. Suggested directions: deep ocean blue, sophisticated earth tones, copper+amber, navy+gold.`,
+};
+
+function getCountryContext(iso: string): string | null {
+  if (DETAILED_COUNTRY_CONTEXTS[iso]) {
+    return `MARKET CONTEXT — ${COUNTRY_LIST.find(c => c.iso === iso)?.name ?? iso}:\n${DETAILED_COUNTRY_CONTEXTS[iso]}`;
+  }
+  const country = COUNTRY_LIST.find(c => c.iso === iso);
+  if (!country) return null;
+  const fallback = REGIONAL_FALLBACKS[country.region];
+  if (!fallback) return null;
+  return `MARKET CONTEXT — ${country.name} (${country.region}):\n${fallback}`;
+}
+
+const BRAND_PERSONALITIES: Record<string, string> = {
+  "modern-crypto": `BRAND PERSONALITY HINT: Modern Crypto.
+Reference: Stake, Roobet, Rollbit aesthetic. Cool tones (teal, navy, electric accents), sleek minimalism, dark base preferred. Avoid: warm earth tones, gold-dominant palettes, traditional casino glamour. Note: this is a HINT — if the brief explicitly contradicts (e.g., "warm Mexican aesthetic"), weight the brief higher.`,
+
+  "classic-casino": `BRAND PERSONALITY HINT: Classic Casino.
+Reference: Bet365, Caesars, MGM aesthetic. Gold + deep red/midnight, traditional luxury, ornate accents, established trust signals. Avoid: too-modern minimalism, neon colors, crypto-native cool palettes. Note: this is a HINT — if the brief explicitly modernizes (e.g., "fresh take on classic"), weight the brief higher.`,
+
+  "challenger": `BRAND PERSONALITY HINT: Challenger.
+Reference: Pinnacle, Smarkets aesthetic. Bold accent + monochrome base, unexpected color combinations, anti-mainstream positioning. Avoid: industry-standard palettes (no premium-purple, no Hollywoodbets-purple-gold, no Bet9ja-green). Note: this is a HINT — if the brief asks for warmth or accessibility, weight the brief higher.`,
+
+  "luxury-premium": `BRAND PERSONALITY HINT: Luxury Premium.
+Reference: Hollywoodbets premium tier, Tsogo Sun aesthetic. Sophisticated dark base + jewel tones, VIP-feel, gold/silver accents, hospitality-grade refinement. Avoid: mass-market bright primaries, casual aesthetics. Note: this is a HINT — if the brief explicitly modernizes or goes minimal, weight the brief higher.`,
+};
+
+function getPersonalityContext(personality: string | undefined): string | null {
+  if (!personality) return null;
+  return BRAND_PERSONALITIES[personality] ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // Atomic palette - 15 brand-defining fields the AI generates
 // ---------------------------------------------------------------------------
@@ -612,6 +810,8 @@ interface GeneratePaletteRequest {
   manualOverrides?: string[];
   regenerationFeedback?: string;
   conversationHistory?: ConversationMessage[];
+  targetCountry?: string;       // ISO country code — STRICT, overrides text detection
+  targetPersonality?: string;   // "modern-crypto" | "classic-casino" | "challenger" | "luxury-premium" — HINT
 }
 
 // ---------------------------------------------------------------------------
@@ -793,15 +993,31 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
 
   parts.push(`BRAND DESCRIPTION:\n${req.brandPrompt}`);
 
-  // Country-aware market context — silent injection, no prompt to user
-  const detectedCountry = detectCountryFromPrompt(req.brandPrompt);
-  if (detectedCountry) {
-    const marketContext = buildMarketContext(detectedCountry);
-    if (marketContext) {
+  // Country: STRICT — explicit targetCountry overrides text detection
+  if (req.targetCountry) {
+    const ctx = getCountryContext(req.targetCountry);
+    if (ctx) {
       parts.push(
-        `${marketContext}\n\nUse this market context to inform DIFFERENTIATION in your reasoning. Do NOT push the user toward copying market leaders. Mention what makes their brand distinct from the dominant cluster, briefly and naturally — not as a sales pitch.`
+        `${ctx}\n\nUse this market context to inform DIFFERENTIATION in your reasoning. Do NOT push the user toward copying market leaders. Mention what makes their brand distinct from the dominant cluster, briefly and naturally — not as a sales pitch.`
       );
     }
+  } else {
+    // Fallback: detection from brief text (legacy behavior)
+    const detected = detectCountryFromPrompt(req.brandPrompt);
+    if (detected) {
+      const marketContext = buildMarketContext(detected);
+      if (marketContext) {
+        parts.push(
+          `${marketContext}\n\nUse this market context to inform DIFFERENTIATION in your reasoning. Do NOT push the user toward copying market leaders. Mention what makes their brand distinct from the dominant cluster, briefly and naturally — not as a sales pitch.`
+        );
+      }
+    }
+  }
+
+  // Personality: HINT — AI weights against brief
+  if (req.targetPersonality) {
+    const persCtx = getPersonalityContext(req.targetPersonality);
+    if (persCtx) parts.push(persCtx);
   }
 
   if (req.language) {
@@ -1472,9 +1688,15 @@ Deno.serve(async (req: Request) => {
     `overrides_count=${body.manualOverrides?.length ?? 0}, ` +
     `has_logo=${!!body.logoUrl}`
   );
-  const detectedCountryLog = detectCountryFromPrompt(body.brandPrompt);
-  if (detectedCountryLog) {
-    console.log(`[generate-palette] Country detected: ${detectedCountryLog}`);
+  const explicitCountry = body.targetCountry;
+  const detectedCountry = detectCountryFromPrompt(body.brandPrompt);
+  const effectiveCountry = explicitCountry ?? detectedCountry;
+  const personality = body.targetPersonality;
+  if (effectiveCountry || personality) {
+    const logParts: string[] = [];
+    if (effectiveCountry) logParts.push(`Country: ${effectiveCountry} (${explicitCountry ? "explicit" : "detected"})`);
+    if (personality) logParts.push(`Personality: ${personality}`);
+    console.log(`[generate-palette] Context: ${logParts.join(" | ")}`);
   }
 
   // ── Fetch logo as vision image (best-effort, 5s, 4MB cap) ─────────────────
