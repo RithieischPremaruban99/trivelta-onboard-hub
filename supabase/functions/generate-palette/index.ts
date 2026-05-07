@@ -713,31 +713,31 @@ function buildMarketContext(iso: string): string | null {
     NG: `MARKET CONTEXT — NIGERIA:
 Dominant visual codes in market: green (Bet9ja, mass-market trust signal), red (SportyBet, BetKing — energy/aggression), blue (1xBet — international sportsbook trust).
 Cultural notes: mobile-first is mandatory (>85% of betting traffic). Mass-market positioning skews to bright primary colors. Premium tier is significantly underdeveloped.
-Differentiation cues: deep purple, navy with gold accents, monochrome with single bright accent, or teal/sky-blue read as "modern challenger" against the dominant green-red cluster.
+Differentiation cues: navy with gold accents, deep amber/burnt-orange, teal, monochrome with single bright accent (cyan/lime), or sophisticated earth tones (clay, terracotta) read as "modern challenger" against the dominant green-red cluster.
 Constraints: avoid pure green if the user is positioning as premium (reads mass-market). Avoid red+green combinations (SportyBet/Bet9ja overlap).`,
 
     MX: `MARKET CONTEXT — MEXICO:
 Dominant visual codes in market: red (Caliente — market leader), green (Codere — retail-derived), orange/black (Betano — sports-focused).
 Cultural notes: avoid clichéd "Mexican folkloric" references unless specifically requested. Modern professional aesthetics travel better. Spanish-language UI is mandatory.
-Differentiation cues: most operators cluster around warm reds and oranges. A premium gold/dark identity, deep purple, or sophisticated muted earth tones break visually from the dominant warm cluster.
+Differentiation cues: premium navy/gold, deep emerald with bronze accent, sophisticated muted earth tones (clay, charcoal-gold), or cool teal break visually from the dominant warm red-orange cluster. Avoid generic "premium purple" — be specific to brand positioning.
 Constraints: if user goes for red, push for a distinct shade or composition that doesn't read as Caliente clone.`,
 
     BR: `MARKET CONTEXT — BRAZIL:
 Dominant visual codes in market post-2024 regulation: orange (Betano), green/pink (Pixbet), yellow/black (KTO, Sportingbet), blue (Galera.bet), dark navy/purple (Stake).
 Cultural notes: yellow+green as flag-color shorthand is overused. Pix payment integration is universal — palette must support clean payment-CTA distinct from confirmation green.
-Differentiation cues: market is saturated with yellow-orange palettes. Cool tones (deep blue, teal, deep purple) visually break through.
+Differentiation cues: market is saturated with yellow-orange palettes. Deep navy, cool teal, emerald with copper accent, monochrome black/gold, or sophisticated charcoal palette visually break through.
 Constraints: avoid copying Betano's orange or KTO's yellow unless user explicitly requests those references.`,
 
     ZA: `MARKET CONTEXT — SOUTH AFRICA:
 Dominant visual codes in market: purple+gold (Hollywoodbets, premium positioning — market leader), black+green (Betway, traditional sportsbook), yellow+black (Supabets, mass-market).
 Cultural notes: regulated environment with Manufacturing License recently established. Premium positioning is the growth segment, not mass-market.
-Differentiation cues: premium tier dominated by Hollywoodbets purple. Differentiation through deep navy+silver, monochrome+single bright accent, or sophisticated warm earth tones reads as distinct.
+Differentiation cues: although Hollywoodbets owns purple+gold in the premium tier, alternatives include deep navy/silver, monochrome black/gold, sophisticated charcoal+amber, or emerald+bronze for challenger positioning.
 Constraints: if user wants premium, avoid purple unless they accept being read as Hollywoodbets-adjacent.`,
 
     KE: `MARKET CONTEXT — KENYA:
 Dominant visual codes in market: deep blue (SportPesa, traditional sportsbook), green (Betika, Odibets, mass-market), red (SportyBet, energy).
 Cultural notes: M-Pesa integration affects CTA color choice — payment buttons should be visually distinct from M-Pesa green. Mobile-first is dominant.
-Differentiation cues: warmer tones (orange, gold) or modern dark palettes (charcoal+single bright accent) read as premium against the dominant deep-blue/green cluster.
+Differentiation cues: premium emerald (deeper than market-standard M-Pesa green), navy with copper, deep teal, or monochrome black/gold distinguish from the flat-green operator cluster.
 Constraints: avoid pure M-Pesa-style green for payment CTAs.`,
   };
   return contexts[iso] ?? null;
