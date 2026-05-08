@@ -11,6 +11,31 @@ import { PERSONALITY_TITLES, PERSONALITY_VARIATIONS } from "./wizard-types";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
+const LOADING_PHASES = [
+  { until: 3000, text: "Analyzing brand context" },
+  { until: 7000, text: "Crafting color harmony" },
+  { until: Infinity, text: "Finalizing palette" },
+];
+
+function useLoadingPhase(isLoading: boolean): string {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setElapsed(0);
+      return;
+    }
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setElapsed(Date.now() - start);
+    }, 200);
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  const phase = LOADING_PHASES.find((p) => elapsed < p.until);
+  return phase?.text ?? "Generating";
+}
+
 interface Props {
   clientId: string;
   brandPrompt: string;
@@ -271,7 +296,9 @@ export function Step4ThreeOptions({
               <div className="flex flex-col gap-3 p-5 flex-1">
                 {/* Preview */}
                 {isDone && opt.palette ? (
-                  <PaletteCardPreview palette={opt.palette} reasoning={opt.summaryText} />
+                  <div className="card-reveal">
+                    <PaletteCardPreview palette={opt.palette} reasoning={opt.summaryText} />
+                  </div>
                 ) : isError ? (
                   <div className="flex-1 rounded-lg bg-muted flex flex-col items-center justify-center gap-2 border border-dashed border-border">
                     <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -284,18 +311,7 @@ export function Step4ThreeOptions({
                     </button>
                   </div>
                 ) : (
-                  <div className="flex-1 rounded-lg bg-muted flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
-                    <span className="text-xs text-muted-foreground">
-                      {opt.status === "loading" ? "Starting…" : "Generating palette…"}
-                    </span>
-                  </div>
-                )}
-
-                {opt.status === "streaming" && opt.streamingText && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {opt.streamingText}
-                  </p>
+                  <PremiumLoadingState status={opt.status} streamingText={opt.streamingText} />
                 )}
 
                 {/* Select button */}
@@ -354,14 +370,14 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
       {/* Brand colors — primary dominant, secondary as smaller accent */}
       <div className="flex items-center gap-2">
         <div
-          className="h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md"
-          style={{ backgroundColor: palette.primary }}
+          className="swatch-reveal h-10 w-10 rounded-full border-2 border-zinc-700/50 shadow-md"
+          style={{ backgroundColor: palette.primary, animationDelay: "0ms" }}
           title="Primary brand color"
         />
         {palette.secondary && (
           <div
-            className="h-6 w-6 rounded-full border-2 border-zinc-700/50 shadow-md"
-            style={{ backgroundColor: palette.secondary }}
+            className="swatch-reveal h-6 w-6 rounded-full border-2 border-zinc-700/50 shadow-md"
+            style={{ backgroundColor: palette.secondary, animationDelay: "80ms" }}
             title="Accent color (used sparingly)"
           />
         )}
@@ -453,6 +469,52 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
       {/* Reasoning — full text, no truncation */}
       {reasoning && (
         <p className="text-sm text-muted-foreground leading-relaxed">{reasoning}</p>
+      )}
+    </div>
+  );
+}
+
+interface PremiumLoadingStateProps {
+  status: OptionStatus;
+  streamingText: string;
+}
+
+function PremiumLoadingState({ status, streamingText }: PremiumLoadingStateProps) {
+  const isActive = status === "loading" || status === "streaming";
+  const phaseText = useLoadingPhase(isActive);
+
+  return (
+    <div className="flex flex-col gap-3 px-1 py-2">
+      {/* Color swatches skeleton */}
+      <div className="flex items-center gap-2">
+        <div className="h-10 w-10 rounded-full shimmer-skeleton" />
+        <div className="h-6 w-6 rounded-full shimmer-skeleton" />
+      </div>
+
+      {/* Mockup skeleton */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        <div className="h-7 shimmer-skeleton" />
+        <div className="h-8 shimmer-skeleton" />
+        <div className="px-2 py-2 flex gap-1.5">
+          <div className="flex-1 h-7 rounded shimmer-skeleton" />
+          <div className="flex-1 h-7 rounded shimmer-skeleton" />
+        </div>
+        <div className="mx-2 mb-2 h-20 rounded shimmer-skeleton" />
+      </div>
+
+      {/* Status text with subtle pulse dot */}
+      <div className="flex items-center gap-2 pt-1">
+        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+        <span className="text-xs text-muted-foreground">
+          {phaseText}…
+        </span>
+      </div>
+
+      {/* Streaming text preview if available */}
+      {status === "streaming" && streamingText && (
+        <div className="text-xs text-muted-foreground/70 leading-relaxed line-clamp-3 italic">
+          {streamingText}
+        </div>
       )}
     </div>
   );
