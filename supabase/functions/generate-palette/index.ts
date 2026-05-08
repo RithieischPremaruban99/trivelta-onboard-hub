@@ -1724,25 +1724,38 @@ const FIELD_KEYWORDS: Record<string, (keyof AtomicPalette)[]> = {
 
 // Words that suggest generic/full-palette refinement (no field-targeting)
 const GENERIC_REFINEMENT_TRIGGERS = [
+  // Aesthetic descriptors (clear full-palette intent)
   "premium", "luxurious", "modern", "vibrant", "muted", "professional",
-  "energetic", "calm", "bold", "subtle", "feel", "vibe", "style",
-  "everything", "all", "whole palette", "complete",
+  "energetic", "calm", "subtle", "sophisticated", "refined",
+  // Vibe / feel words
+  "feel", "vibe", "aesthetic",
+  // Explicit full-palette markers
+  "whole palette", "entire palette", "complete refresh", "full refresh",
+  "regenerate", "start over",
+  // REMOVED: "bold" (matches "bolder"), "all" (too broad), "everything",
+  //          "style", "complete" (matches "completely")
 ];
+
+function matchesWordBoundary(text: string, word: string): boolean {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+}
 
 function detectTargetFields(userPrompt: string): Set<keyof AtomicPalette> | null {
   const lower = userPrompt.toLowerCase();
 
   // If prompt contains generic refinement language, no field-restriction
   for (const trigger of GENERIC_REFINEMENT_TRIGGERS) {
-    if (lower.includes(trigger)) {
-      return null;
+    if (matchesWordBoundary(lower, trigger)) {
+      return null; // AI may change anything
     }
   }
 
-  // Detect specific field keywords
+  // Detect specific field keywords using word-boundary matching
+  // (prevents "darker" from matching "dark", "primarily" from matching "primary")
   const targets = new Set<keyof AtomicPalette>();
   for (const [keyword, fields] of Object.entries(FIELD_KEYWORDS)) {
-    if (lower.includes(keyword)) {
+    if (matchesWordBoundary(lower, keyword)) {
       for (const field of fields) {
         targets.add(field);
       }
