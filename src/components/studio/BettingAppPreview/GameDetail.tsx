@@ -101,11 +101,15 @@ export function GameDetail({
           borderBottom: "1px solid var(--p-border-and-gradient-bg)",
         }}
       >
-        {/* Top: tiny date pill */}
+        {/* Top: date pill */}
         <div className="flex justify-center mb-3">
           <span
-            className="text-[10px] font-bold uppercase tracking-[0.12em]"
-            style={{ color: "var(--p-primary)" }}
+            className="text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-[3px] rounded-full"
+            style={{
+              background: "color-mix(in oklab, var(--p-primary) 18%, transparent)",
+              color: "var(--p-primary)",
+              border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
+            }}
           >
             {heroDate}
           </span>
