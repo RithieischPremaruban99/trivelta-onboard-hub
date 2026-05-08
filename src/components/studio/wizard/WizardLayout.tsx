@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Lock, X } from "lucide-react";
+import { toast } from "sonner";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { loadWizardState, saveWizardState } from "@/lib/wizard-state";
 import { Step1CountryPicker } from "./Step1CountryPicker";
@@ -54,8 +56,15 @@ export function WizardLayout({ clientId }: Props) {
   const search = useSearch({ strict: false }) as { regenerate?: string };
   const isRegenerateMode = search.regenerate === "true";
 
+  const { role } = useAuth();
+  const isAdmin = role === "admin" || role === "super_admin";
+
   const [state, setState] = useState<WizardState>({ step: 1 });
   const [hydrated, setHydrated] = useState(false);
+  const [lockStatus, setLockStatus] = useState<{ locked: boolean; checkedAt: Date | null }>({
+    locked: false,
+    checkedAt: null,
+  });
 
   useEffect(() => {
     const stored = loadWizardState(clientId);
@@ -116,6 +125,27 @@ export function WizardLayout({ clientId }: Props) {
     if (!hydrated) return;
     saveWizardState(clientId, state);
   }, [clientId, state, hydrated]);
+
+  // Check if studio is locked — block self-service users, warn admins
+  useEffect(() => {
+    if (!clientId) return;
+
+    (async () => {
+      const { data } = await supabase
+        .from("onboarding_forms")
+        .select("studio_locked")
+        .eq("client_id", clientId)
+        .maybeSingle();
+
+      const isLocked = !!data?.studio_locked;
+      setLockStatus({ locked: isLocked, checkedAt: new Date() });
+
+      if (isLocked && !isAdmin) {
+        toast.error("Your brand is locked. Contact your account manager to make changes.");
+        navigate({ to: `/onboarding/${clientId}/studio`, replace: true });
+      }
+    })();
+  }, [clientId, isAdmin, navigate]);
 
   const totalSteps = getTotalSteps(state);
   const currentStepNum = getDisplayStepNumber(state);
@@ -326,7 +356,23 @@ export function WizardLayout({ clientId }: Props) {
 
       {/* Body */}
       <main className="flex-1 flex justify-center px-4 py-10">
-        <div className="w-full max-w-2xl">{renderStep()}</div>
+        <div className="w-full max-w-2xl">
+          {lockStatus.locked && isAdmin && (
+            <div className="border border-yellow-500/40 bg-yellow-500/10 rounded-lg px-4 py-3 mb-4 flex items-start gap-3">
+              <Lock className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
+              <div className="flex-1 text-sm">
+                <div className="font-semibold text-yellow-500 mb-0.5">
+                  This brand is locked
+                </div>
+                <div className="text-yellow-500/80 text-[13px]">
+                  Re-generating will overwrite the locked design. Proceed only if
+                  this is an authorized change (e.g. client-requested rebrand).
+                </div>
+              </div>
+            </div>
+          )}
+          {renderStep()}
+        </div>
       </main>
     </div>
   );
