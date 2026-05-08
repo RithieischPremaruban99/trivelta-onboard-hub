@@ -453,10 +453,7 @@ export function StudioInner({
     () => !!safeLocalStorage.getItem(`trivelta_studio_tour_${clientId}`),
   );
 
-  // Keep chat open while tour is running so step 2 spotlight has content to highlight
-  useEffect(() => {
-    if (tourActive) setActivePanel("chat");
-  }, [tourActive]);
+  // Panel synced with tour step via onStepChange callback — see <StudioTour> below
 
   /* ── Save helpers ── */
   const saveNow = useCallback(async () => {
@@ -1089,6 +1086,10 @@ export function StudioInner({
             setShowHelp(true);
           }}
           refs={tourRefs}
+          onStepChange={(refKey) => {
+            if (refKey === "fineTune") setActivePanel("quickEdit");
+            else if (refKey === "chat") setActivePanel("chat");
+          }}
         />
       )}
 
@@ -1149,32 +1150,32 @@ export function StudioInner({
 const TOUR_STEPS = [
   {
     refKey: null as string | null,
-    title: "Welcome to Trivelta Studio",
-    text: "This is where you'll design your platform. We'll show you around in 30 seconds.",
-    cta: "Let's go →",
-  },
-  {
-    refKey: "chat",
-    title: "Your AI Palette Generator",
-    text: "Describe what you want in plain language. Try: 'I want a dark green theme for a Nigerian sportsbook'. The AI will generate your full 344-field color palette instantly.",
-    cta: "Next →",
+    title: "Welcome to your Studio",
+    text: "Your brand is generated and ready. This is where you refine the details — colors, copy, layout — until it's exactly right. Takes 30 seconds to learn.",
+    cta: "Show me around →",
   },
   {
     refKey: "fineTune",
-    title: "Quick Edit Colors",
-    text: "Prefer to control colors yourself? Click 'Quick Edit' to tweak the 25 most important fields. For full control, use Advanced Mode (all 344 fields).",
+    title: "Quick Edit — your refinement hub",
+    text: "These 25 fields cover 80% of brand decisions: primary color, button styles, accents, fonts. Tweak anything and see live updates. For deep control, switch to Advanced Mode (all 344 fields).",
+    cta: "Next →",
+  },
+  {
+    refKey: "chat",
+    title: "AI Chat — for bigger changes",
+    text: "Want to shift the entire mood? Describe it in plain language: 'Make it more premium' or 'Use a navy primary'. The AI rewrites your palette intelligently. Or generate a fresh logo by asking.",
     cta: "Next →",
   },
   {
     refKey: "preview",
-    title: "Live Platform Preview",
-    text: "See your changes in real time. Toggle between Mobile and Web view to see exactly how your platform will look.",
+    title: "Live Preview — what your users will see",
+    text: "Every change reflects here in real time. Toggle between Mobile and Web to see your platform from both angles. This is the actual UI your players will use.",
     cta: "Next →",
   },
   {
     refKey: "lock",
-    title: "Lock Your Design When Ready",
-    text: "When you're happy with your colors and logo, click 'Lock My Design'. Your Account Manager will then configure your platform exactly as shown here.",
+    title: "Lock when ready",
+    text: "Happy with your brand? Click Lock My Design and your Account Manager builds the platform exactly as shown. You can request changes anytime — locking just signals 'this is the version to build'.",
     cta: "Start designing →",
   },
 ];
@@ -1183,10 +1184,12 @@ function StudioTour({
   clientId,
   onDone,
   refs,
+  onStepChange,
 }: {
   clientId: string;
   onDone: () => void;
   refs: Record<string, React.RefObject<HTMLDivElement>>;
+  onStepChange?: (refKey: string | null) => void;
 }) {
   const [step, setStep] = useState(0);
   const [fading, setFading] = useState(false);
@@ -1194,6 +1197,10 @@ function StudioTour({
 
   const current = TOUR_STEPS[step];
   const CARD_W = 340;
+
+  useEffect(() => {
+    onStepChange?.(current.refKey);
+  }, [step, current.refKey, onStepChange]);
   const PAD = 12;
 
   useLayoutEffect(() => {
@@ -1282,8 +1289,8 @@ function StudioTour({
             height: spotRect.height + PAD * 2,
             borderRadius: 12,
             // box-shadow creates the dark overlay; the div center is transparent, showing content
-            boxShadow: "0 0 0 100vmax rgba(0,0,0,0.78)",
-            border: "2px solid rgba(99,179,237,0.6)",
+            boxShadow: "0 0 0 100vmax rgba(0,0,0,0.78), 0 0 24px hsl(var(--primary) / 0.4)",
+            border: "2px solid hsl(var(--primary) / 0.7)",
             pointerEvents: "none",
           }}
         />
@@ -1300,8 +1307,14 @@ function StudioTour({
 
       {/* Tour card */}
       <div
-        className="rounded-xl border border-white/10 bg-card shadow-2xl"
-        style={{ ...cardStyle(), position: "fixed", zIndex: 10000, pointerEvents: "all" }}
+        className="rounded-xl border border-border bg-card shadow-2xl"
+        style={{
+          ...cardStyle(),
+          position: "fixed",
+          zIndex: 10000,
+          pointerEvents: "all",
+          transition: "top 350ms cubic-bezier(0.16, 1, 0.3, 1), left 350ms cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <div className="flex items-center gap-1.5">
@@ -1312,14 +1325,15 @@ function StudioTour({
           </div>
           <button
             onClick={done}
-            className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           >
             Skip tour
+            <span className="text-[9px] opacity-60">·</span>
           </button>
         </div>
 
         <div className="px-5 py-4">
-          <p className="mb-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-primary">
+          <p className="micro-label mb-1.5 text-primary">
             Step {step + 1} of {TOUR_STEPS.length}
           </p>
           <h3 className="mb-2 text-[15px] font-semibold leading-snug text-foreground">
@@ -1333,10 +1347,15 @@ function StudioTour({
             {TOUR_STEPS.map((_, i) => (
               <span
                 key={i}
-                className="block h-1.5 rounded-full transition-all duration-200"
+                className="block h-1.5 rounded-full transition-all duration-300 ease-out"
                 style={{
-                  width: i === step ? 16 : 6,
-                  background: i === step ? "var(--primary)" : "rgba(255,255,255,0.15)",
+                  width: i === step ? 20 : 6,
+                  background:
+                    i === step
+                      ? "hsl(var(--primary))"
+                      : i < step
+                      ? "hsl(var(--primary) / 0.4)"
+                      : "hsl(var(--muted-foreground) / 0.2)",
                 }}
               />
             ))}
@@ -1352,7 +1371,7 @@ function StudioTour({
             )}
             <button
               onClick={next}
-              className="rounded-lg bg-primary px-4 py-1.5 text-[12px] font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              className="btn-premium h-8 px-4 text-[12px] font-semibold rounded-lg"
             >
               {current.cta}
             </button>
