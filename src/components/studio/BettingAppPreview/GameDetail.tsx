@@ -101,11 +101,15 @@ export function GameDetail({
           borderBottom: "1px solid var(--p-border-and-gradient-bg)",
         }}
       >
-        {/* Top: tiny date pill */}
+        {/* Top: date pill */}
         <div className="flex justify-center mb-3">
           <span
-            className="text-[10px] font-bold uppercase tracking-[0.12em]"
-            style={{ color: "var(--p-primary)" }}
+            className="text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-[3px] rounded-full"
+            style={{
+              background: "color-mix(in oklab, var(--p-primary) 18%, transparent)",
+              color: "var(--p-primary)",
+              border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
+            }}
           >
             {heroDate}
           </span>
@@ -184,7 +188,7 @@ export function GameDetail({
             <button
               key={t}
               onClick={() => setActiveTab(i)}
-              className="flex-1 min-w-[80px] h-10 text-[11px] font-semibold relative whitespace-nowrap px-2 transition-colors"
+              className="flex-1 min-w-[78px] h-11 text-[12px] font-semibold relative whitespace-nowrap px-2 transition-colors"
               style={{
                 color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
               }}
@@ -192,7 +196,7 @@ export function GameDetail({
               {t}
               {active && (
                 <span
-                  className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
                   style={{ background: "var(--p-primary)" }}
                 />
               )}
@@ -217,7 +221,12 @@ export function GameDetail({
               {/* Accordion header */}
               <button
                 onClick={() => toggleSection(market.id)}
-                className="w-full flex items-center justify-between px-3.5 py-3 cursor-pointer"
+                className="w-full flex items-center justify-between px-3.5 py-3 cursor-pointer transition-colors"
+                style={{
+                  background: isExpanded
+                    ? "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)"
+                    : "transparent",
+                }}
               >
                 <span
                   className="text-[12px] font-bold"
@@ -287,18 +296,21 @@ export function GameDetail({
                           </span>
                         ))}
                       </div>
-                      {/* Home row */}
+                      {/* Single match row: Home — Away with 3 odds */}
                       <div
                         className="grid gap-1.5 items-center"
                         style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <TeamDot label={heroHomeName} size={18} />
+                          <div className="flex -space-x-1.5 flex-shrink-0">
+                            <TeamDot label={heroHomeName} size={20} />
+                            <TeamDot label={heroAwayName} size={20} />
+                          </div>
                           <span
                             className="text-[11px] font-bold truncate"
                             style={{ color: "var(--p-light-text-color)" }}
                           >
-                            {heroHomeName}
+                            {heroHomeName.split(" ")[0]} – {heroAwayName.split(" ")[0]}
                           </span>
                         </div>
                         {(match as FootballMatch).odds.map((o, j) => (
@@ -314,24 +326,6 @@ export function GameDetail({
                             {o}
                           </button>
                         ))}
-                      </div>
-                      {/* Away row */}
-                      <div
-                        className="grid gap-1.5 items-center"
-                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <TeamDot label={heroAwayName} size={18} />
-                          <span
-                            className="text-[11px] font-bold truncate"
-                            style={{ color: "var(--p-light-text-color)" }}
-                          >
-                            {heroAwayName}
-                          </span>
-                        </div>
-                        <span />
-                        <span />
-                        <span />
                       </div>
                     </div>
                   )}
