@@ -2431,7 +2431,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             }}
           >
             <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-              {currencySymbol}
+              {strings.CURRENCY_SYMBOL ?? "₦"}
             </span>
             <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text-secondary-color)" }}>
               ---
