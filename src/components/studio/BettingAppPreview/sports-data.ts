@@ -200,6 +200,56 @@ export const FOOTBALL_LEAGUES: FootballLeague[] = [
   },
 ];
 
+export const FOOTBALL_GAME_DETAIL_MARKETS: BetMarket[] = [
+  {
+    id: "match-result",
+    title: "Match Result (1X2)",
+    hasSGP: true,
+    defaultExpanded: true,
+    content: {
+      type: "table",
+      columns: ["Home (1)", "Draw (X)", "Away (2)"],
+      rows: [{ team: "Match Odds", values: ["{ODD_1}", "{ODD_X}", "{ODD_2}"] }],
+      leagueLabel: "{LEAGUE_NAME} · {DATE}",
+    },
+  },
+  {
+    id: "over-under",
+    title: "Over / Under (Total Goals)",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "double-chance",
+    title: "Double Chance",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "btts",
+    title: "Both Teams to Score (GG/NG)",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "first-half-result",
+    title: "1st Half Result",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "anytime-scorer",
+    title: "Anytime Goalscorer",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+];
+
 export const NBA_GAME_DETAIL_MARKETS: BetMarket[] = [
   {
     id: "game-line",

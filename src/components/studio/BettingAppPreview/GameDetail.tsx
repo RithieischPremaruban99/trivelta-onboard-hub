@@ -6,9 +6,10 @@ import {
   NBA_SCHEDULE,
   FOOTBALL_LEAGUES,
   NBA_GAME_DETAIL_MARKETS,
+  FOOTBALL_GAME_DETAIL_MARKETS,
   GAME_DETAIL_TABS,
 } from "./sports-data";
-import type { BetMarket } from "./sports-data";
+import type { NbaMatch, FootballMatch, BetMarket } from "./sports-data";
 
 type Props = {
   matchId: string;
@@ -30,35 +31,33 @@ export function GameDetail({
   TeamDot,
 }: Props) {
   const [activeDetailTab, setActiveDetailTab] = useState(0);
-  const [expandedMarket, setExpandedMarket] = useState<string>("game-line");
+  const isFootball = sport === "football";
 
   const match = (() => {
-    if (sport === "nba") {
-      return NBA_SCHEDULE.find((m) => m.id === matchId) ?? NBA_SCHEDULE[0];
+    if (!isFootball) {
+      return (NBA_SCHEDULE.find((m) => m.id === matchId) ?? NBA_SCHEDULE[0]) as NbaMatch;
     }
     for (const league of FOOTBALL_LEAGUES) {
       const found = league.matches.find((m) => m.id === matchId);
-      if (found) return { ...found, league: league.name };
+      if (found) return { ...found, league: league.name } as FootballMatch & { league: string };
     }
     return null;
   })();
 
-  const home = match ? ("home" in match ? match.home : "") : "Home";
-  const away = match ? ("away" in match ? match.away : "") : "Away";
-  const dateLabel =
-    match && "date" in match
-      ? match.date
-      : sport === "nba"
-        ? "TOMORROW 1:00 AM"
-        : "TODAY";
-  const leagueLabel =
-    match && "league" in match
-      ? match.league
-      : sport === "nba"
-        ? "NBA - USA"
-        : "Football";
+  const heroHomeName = match ? match.home : "Home";
+  const heroAwayName = match ? match.away : "Away";
+  const heroDate = match ? match.date : isFootball ? "TODAY" : "TOMORROW 1:00 AM";
+  const heroLeague = match
+    ? isFootball
+      ? (match as FootballMatch & { league?: string }).league ?? "Football"
+      : (match as NbaMatch).league ?? "NBA"
+    : isFootball
+      ? "Football"
+      : "NBA";
 
-  const markets: BetMarket[] = NBA_GAME_DETAIL_MARKETS;
+  const markets: BetMarket[] = isFootball ? FOOTBALL_GAME_DETAIL_MARKETS : NBA_GAME_DETAIL_MARKETS;
+  const defaultExpanded = markets[0]?.id ?? "";
+  const [expandedMarket, setExpandedMarket] = useState<string>(defaultExpanded);
 
   return (
     <div
@@ -88,23 +87,21 @@ export function GameDetail({
           borderBottom: "1px solid var(--p-border-and-gradient-bg)",
         }}
       >
-        {/* Date */}
         <div
           className="text-center text-[9px] font-bold mb-2"
           style={{ color: "var(--p-primary)" }}
         >
-          {dateLabel}
+          {heroDate}
         </div>
 
-        {/* Teams */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col items-center gap-1.5 flex-1">
-            <TeamDot label={home} size={32} />
+            <TeamDot label={heroHomeName} size={32} />
             <span
               className="text-[10px] font-bold text-center leading-tight"
               style={{ color: "var(--p-light-text-color)" }}
             >
-              {home}
+              {heroHomeName}
             </span>
           </div>
 
@@ -123,17 +120,17 @@ export function GameDetail({
                 border: "1px solid var(--p-primary)",
               }}
             >
-              {leagueLabel}
+              {heroLeague}
             </span>
           </div>
 
           <div className="flex flex-col items-center gap-1.5 flex-1">
-            <TeamDot label={away} size={32} />
+            <TeamDot label={heroAwayName} size={32} />
             <span
               className="text-[10px] font-bold text-center leading-tight"
               style={{ color: "var(--p-light-text-color)" }}
             >
-              {away}
+              {heroAwayName}
             </span>
           </div>
         </div>
@@ -150,8 +147,7 @@ export function GameDetail({
             onClick={() => setActiveDetailTab(i)}
             className="px-3 h-7 rounded-md text-[9px] font-semibold flex-shrink-0 whitespace-nowrap"
             style={{
-              background:
-                activeDetailTab === i ? "var(--p-primary)" : "transparent",
+              background: activeDetailTab === i ? "var(--p-primary)" : "transparent",
               border:
                 activeDetailTab === i
                   ? "1px solid var(--p-primary)"
@@ -171,6 +167,26 @@ export function GameDetail({
       <div className="flex-1 min-h-0 overflow-auto">
         {markets.map((market) => {
           const isExpanded = expandedMarket === market.id;
+
+          // For football match-result, inject real odds from the looked-up match
+          let renderRows =
+            market.content.type === "table" ? market.content.rows : [];
+          let renderColumns =
+            market.content.type === "table" ? market.content.columns : [];
+          let renderLeagueLabel =
+            market.content.type === "table" ? (market.content.leagueLabel ?? "") : "";
+
+          if (isFootball && market.id === "match-result" && match && "odds" in match) {
+            const fm = match as FootballMatch & { league?: string };
+            renderRows = [
+              {
+                team: `${fm.home} vs ${fm.away}`,
+                values: [fm.odds[0], fm.odds[1], fm.odds[2]],
+              },
+            ];
+            renderLeagueLabel = `${fm.league ?? "Football"} · ${fm.date}`;
+          }
+
           return (
             <div
               key={market.id}
@@ -179,9 +195,7 @@ export function GameDetail({
               {/* Section header */}
               <button
                 className="w-full flex items-center justify-between px-3 py-2.5"
-                onClick={() =>
-                  setExpandedMarket(isExpanded ? "" : market.id)
-                }
+                onClick={() => setExpandedMarket(isExpanded ? "" : market.id)}
               >
                 <span
                   className="text-[10px] font-bold"
@@ -218,12 +232,12 @@ export function GameDetail({
               {/* Section content */}
               {isExpanded && market.content.type === "table" && (
                 <div className="px-3 pb-3">
-                  {market.content.leagueLabel && (
+                  {renderLeagueLabel && (
                     <div
                       className="text-[8px] font-semibold mb-1.5"
                       style={{ color: "var(--p-primary)" }}
                     >
-                      {market.content.leagueLabel}
+                      {renderLeagueLabel}
                     </div>
                   )}
                   {/* Column headers */}
@@ -232,7 +246,7 @@ export function GameDetail({
                     style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4 }}
                   >
                     <div />
-                    {market.content.columns.map((col) => (
+                    {renderColumns.map((col) => (
                       <div
                         key={col}
                         className="text-center text-[8px] font-bold"
@@ -243,7 +257,7 @@ export function GameDetail({
                     ))}
                   </div>
                   {/* Team rows */}
-                  {market.content.rows.map((row) => (
+                  {renderRows.map((row) => (
                     <div
                       key={row.team}
                       className="grid items-center mb-1.5"
