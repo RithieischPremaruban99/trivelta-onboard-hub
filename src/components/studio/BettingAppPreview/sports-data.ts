@@ -17,6 +17,7 @@ export type FootballMatch = {
   home: string;
   away: string;
   odds: [string, string, string];
+  live?: boolean;
 };
 
 export type FootballLeague = {
@@ -111,6 +112,20 @@ export const NBA_SCHEDULE: NbaMatch[] = [
 ];
 
 export const FOOTBALL_LEAGUES: FootballLeague[] = [
+  {
+    name: "Premier League - England",
+    country: "England",
+    matches: [
+      { id: "pl-1", date: "LIVE · Not started", home: "Manchester City", away: "Arsenal FC", odds: ["1.85", "3.55", "4.15"], live: true },
+      { id: "pl-2", date: "TOMORROW · 9:00 PM", home: "Crystal Palace", away: "West Ham United", odds: ["2.46", "3.35", "3.10"] },
+      { id: "pl-3", date: "21 APR · 9:00 PM", home: "Brighton & Hove Albion", away: "Chelsea FC", odds: ["2.50", "3.75", "2.75"] },
+      { id: "pl-4", date: "22 APR · 9:00 PM", home: "AFC Bournemouth", away: "Leeds United", odds: ["2.10", "3.65", "3.60"] },
+      { id: "pl-5", date: "22 APR · 9:00 PM", home: "Burnley FC", away: "Manchester City", odds: ["12.00", "7.20", "1.24"] },
+      { id: "pl-6", date: "24 APR · 9:00 PM", home: "Sunderland AFC", away: "Nottingham Forest", odds: ["2.90", "3.35", "2.60"] },
+      { id: "pl-7", date: "25 APR · 1:30 PM", home: "Fulham FC", away: "Aston Villa", odds: ["2.70", "3.65", "2.60"] },
+      { id: "pl-8", date: "25 APR · 4:00 PM", home: "Wolverhampton Wanderers", away: "Tottenham Hotspur", odds: ["4.10", "3.85", "1.90"] },
+    ],
+  },
   {
     name: "MSFL - Czechia",
     country: "CZ",

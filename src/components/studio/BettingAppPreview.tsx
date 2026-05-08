@@ -372,6 +372,9 @@ type Match = {
   live?: boolean;
 };
 
+// NOTE: These 8 fixtures duplicate FOOTBALL_LEAGUES[0] (Premier League).
+// Match IDs pl-1..pl-8 in sports-data.ts mirror this array's index order.
+// When clicking a card, we navigate to detail using pl-${i + 1}.
 const MATCHES: Match[] = [
   {
     date: "LIVE · Not started",
@@ -1641,7 +1644,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
                 className="rounded-md p-2 cursor-pointer"
                 style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 onClick={() => {
-                  setSelectedMatchId(`football-${i}`);
+                  setSelectedMatchId(`pl-${i + 1}`);
+                  setSelectedSportSchedule("football");
                   setSportsViewMode("detail");
                 }}
               >
