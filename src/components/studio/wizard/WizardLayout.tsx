@@ -24,6 +24,26 @@ const STEP_LABELS: Record<number, { logo: string; fresh: string }> = {
   5: { logo: "",                                    fresh: "Choose your options" },
 };
 
+function getDisplayStepNumber(state: WizardState): number {
+  const step = typeof state.step === "number" ? state.step : 4;
+
+  // Fresh path: stages 1-5 directly map
+  if (state.brandIdentityChoice === "fresh") {
+    return step;
+  }
+
+  // Logo path: stages 1, 2, 4, 5 (skips 3=Personality)
+  // Internally steps 1, 2, 3, 4 — map step 3 → 4, step 4 → 5
+  if (state.brandIdentityChoice === "logo") {
+    if (step <= 2) return step;
+    if (step === 3) return 4;
+    if (step === 4) return 5;
+    return step;
+  }
+
+  return step;
+}
+
 function getStepLabel(state: WizardState): string {
   const path = state.brandIdentityChoice === "fresh" ? "fresh" : "logo";
   return STEP_LABELS[state.step as number]?.[path] ?? "";
@@ -81,7 +101,7 @@ export function WizardLayout({ clientId }: Props) {
   }, [clientId, state, hydrated]);
 
   const totalSteps = getTotalSteps(state);
-  const currentStepNum = typeof state.step === "number" ? state.step : totalSteps;
+  const currentStepNum = getDisplayStepNumber(state);
   const progressPct = (currentStepNum / totalSteps) * 100;
   const stepLabel = getStepLabel(state);
 

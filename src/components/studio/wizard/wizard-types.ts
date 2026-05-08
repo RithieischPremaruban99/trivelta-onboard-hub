@@ -22,8 +22,10 @@ export interface WizardState {
   logoUrl?: string;
 }
 
-export function getTotalSteps(state: WizardState): number {
-  return state.brandIdentityChoice === "fresh" ? 5 : 4;
+export function getTotalSteps(_state: WizardState): number {
+  // Always 5 to keep step indicator consistent. Logo path skips the
+  // personality stage (visually shown as "Step 4 of 5" jumping from 2).
+  return 5;
 }
 
 export interface CountryEntry {
