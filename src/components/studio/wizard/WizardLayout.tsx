@@ -57,7 +57,7 @@ export function WizardLayout({ clientId }: Props) {
   const isRegenerateMode = search.regenerate === "true";
 
   const { role } = useAuth();
-  const isAdmin = role === "admin" || role === "super_admin";
+  const isAdmin = role === "admin" || role === "account_executive";
 
   const [state, setState] = useState<WizardState>({ step: 1 });
   const [hydrated, setHydrated] = useState(false);

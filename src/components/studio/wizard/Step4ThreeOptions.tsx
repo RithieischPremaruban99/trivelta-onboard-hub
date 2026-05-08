@@ -163,7 +163,7 @@ export function Step4ThreeOptions({
           headers: {
             "Content-Type": "application/json",
             apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify(payload),
         });
