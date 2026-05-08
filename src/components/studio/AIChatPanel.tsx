@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Undo2 } from "lucide-react";
 import { TriveltaIcon } from "@/components/TriveltaIcon";
 import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
@@ -50,6 +50,9 @@ export function AIChatPanel() {
     appIcons,
     setAppIcons,
     appName,
+    canUndo,
+    undoLastChange,
+    pushPaletteSnapshot,
   } = useStudio();
 
   const hasLogo = !!(appIcons.appNameLogo || appIcons.topLeftAppIcon);
@@ -345,6 +348,7 @@ export function AIChatPanel() {
               break outer;
             } else if (evt.type === "complete" && evt.palette) {
               streamCompleted = true;
+              pushPaletteSnapshot(palette);
               setPalette(evt.palette as TCMPalette);
               const reasoning =
                 typeof evt.reasoning === "string" ? evt.reasoning : undefined;
@@ -539,6 +543,23 @@ export function AIChatPanel() {
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Undo bar */}
+      {canUndo && (
+        <div className="shrink-0 flex items-center border-t border-border px-3 pt-2 pb-1">
+          <button
+            onClick={() => {
+              const success = undoLastChange();
+              if (success) toast.success("Last change undone");
+            }}
+            className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
+            title="Undo last AI change"
+          >
+            <Undo2 className="h-3 w-3" />
+            Undo last change
+          </button>
+        </div>
+      )}
 
       {/* Input - sticky at bottom */}
       <div className="shrink-0 flex items-center gap-2 border-t border-border px-3 py-3">

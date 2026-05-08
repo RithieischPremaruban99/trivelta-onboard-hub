@@ -262,6 +262,12 @@ export interface StudioState {
   resetPaletteField: (fieldName: keyof TCMPalette) => void;
   resetPalette: () => void;
 
+  // Undo
+  paletteHistory: TCMPalette[];
+  pushPaletteSnapshot: (snapshot: TCMPalette) => void;
+  undoLastChange: () => boolean;
+  canUndo: boolean;
+
   // Manual override tracking
   manualOverrides: Set<keyof TCMPalette>;
   isOverridden: (fieldName: keyof TCMPalette) => boolean;
@@ -351,6 +357,10 @@ export const StudioProvider: React.FC<{
     initialBrandPromptHistory ?? [],
   );
 
+  // ── Undo stack: snapshots taken before each AI refinement ─────────────────
+  const [paletteHistory, setPaletteHistory] = useState<TCMPalette[]>([]);
+  const MAX_HISTORY = 10;
+
   // Tracks the last palette set by the AI (for per-field reset)
   const lastAIPaletteRef = useRef<TCMPalette | null>(resolvedInitialPalette);
 
@@ -394,6 +404,28 @@ export const StudioProvider: React.FC<{
     setPaletteState(newPalette);
     lastAIPaletteRef.current = newPalette;
     // manualOverrides intentionally NOT cleared - overrides persist across AI generations
+  }, []);
+
+  /** Snapshot current palette before an AI refinement is applied. */
+  const pushPaletteSnapshot = useCallback((snapshot: TCMPalette) => {
+    setPaletteHistory((prev) => {
+      const next = [...prev, snapshot];
+      return next.length > MAX_HISTORY ? next.slice(next.length - MAX_HISTORY) : next;
+    });
+  }, []);
+
+  /** Undo the last AI-driven change. Returns true if successful. */
+  const undoLastChange = useCallback((): boolean => {
+    let didUndo = false;
+    setPaletteHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const lastSnapshot = prev[prev.length - 1];
+      setPaletteState(lastSnapshot);
+      lastAIPaletteRef.current = lastSnapshot;
+      didUndo = true;
+      return prev.slice(0, -1);
+    });
+    return didUndo;
   }, []);
 
   /** Manually edit a single field (Quick Edit / Advanced Mode). */
@@ -478,6 +510,10 @@ export const StudioProvider: React.FC<{
         locked,
         canLock,
         headingFont: "Sora",
+        paletteHistory,
+        pushPaletteSnapshot,
+        undoLastChange,
+        canUndo: paletteHistory.length > 0,
       }}
     >
       {children}
