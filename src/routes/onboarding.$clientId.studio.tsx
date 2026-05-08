@@ -427,7 +427,7 @@ export function StudioInner({
   const [unlockConfirmOpen, setUnlockConfirmOpen] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | null;
-  const [activePanel, setActivePanel] = useState<ActivePanel>("landingPages");
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1475,6 +1475,17 @@ function StudioPage() {
         if (saved.language) setInitialLanguage(saved.language);
         if (saved.appName) setInitialAppName(saved.appName);
         if (saved.appLabels) setInitialAppLabels(saved.appLabels);
+      }
+
+      // Smart redirect: if no brand exists, send user to wizard
+      const hasBrand =
+        data?.studio_config &&
+        typeof data.studio_config === "object" &&
+        ((data.studio_config as any).palette || (data.studio_config as any).colors);
+
+      if (!hasBrand) {
+        navigate({ to: `/onboarding/${clientId}/wizard`, replace: true });
+        return;
       }
 
       if (data?.studio_locked) {
