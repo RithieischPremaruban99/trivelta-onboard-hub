@@ -1397,7 +1397,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
       );
     }
 
-    if (sportsViewMode === "detail" && selectedMatchId && selectedSportSchedule !== "tennis") {
+    if (sportsViewMode === "detail" && selectedMatchId && (selectedSportSchedule === "nba" || selectedSportSchedule === "football")) {
       return (
         <div className="flex-1 min-h-0 flex">
           {renderSportsSidebar()}
