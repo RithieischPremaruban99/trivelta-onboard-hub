@@ -20,6 +20,8 @@
 import React, { useState, useMemo } from "react";
 import { useStudio } from "@/contexts/StudioContext";
 import type { TCMStrings } from "@/lib/tcm-strings";
+import { SportsListing } from "./BettingAppPreview/SportsListing";
+import { GameDetail } from "./BettingAppPreview/GameDetail";
 import {
   Bell,
   Search,
@@ -272,7 +274,7 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
 }
 
 
-function pickContrastText(rgbaStr: string): string {
+export function pickContrastText(rgbaStr: string): string {
   const m = rgbaStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (!m) return "var(--p-light-text-color)";
 
@@ -536,7 +538,7 @@ const teamLogoUrl = (name: string): string | null => {
   return id ? `https://media.api-sports.io/football/teams/${id}.png` : null;
 };
 
-const TeamDot = ({ label, size = 16 }: { label: string; size?: number }) => {
+export const TeamDot = ({ label, size = 16 }: { label: string; size?: number }) => {
   const url = teamLogoUrl(label);
   if (url) {
     return (
@@ -589,6 +591,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
   const [webMyBetsMainTab, setWebMyBetsMainTab] = useState(0); // 0=My Bets, 1=My Feed
   const [webMyBetsFilter, setWebMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [webFeedTab, setWebFeedTab] = useState(0); // 0=Friends, 1=Explore
+  const [sportsViewMode, setSportsViewMode] = useState<"main" | "schedule" | "detail">("main");
+  const [selectedSportSchedule, setSelectedSportSchedule] = useState<"nba" | "football">("football");
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
   const statusLabel = (s: string) =>
     s === "WON"
@@ -1281,7 +1286,45 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
 
 
   /* Sports view (nav index 1) - 3-column layout */
-  const renderSportsView = () => (
+  const renderSportsView = () => {
+    if (sportsViewMode === "schedule") {
+      return (
+        <div className="flex-1 min-h-0 flex">
+          <SportsListing
+            sport={selectedSportSchedule}
+            onMatchClick={(id) => {
+              setSelectedMatchId(id);
+              setSportsViewMode("detail");
+            }}
+            onBack={() => setSportsViewMode("main")}
+            palette={palette}
+            strings={strings}
+            pickContrastText={pickContrastText}
+            TeamDot={TeamDot}
+          />
+          {renderRightPanel()}
+        </div>
+      );
+    }
+
+    if (sportsViewMode === "detail" && selectedMatchId) {
+      return (
+        <div className="flex-1 min-h-0 flex">
+          <GameDetail
+            matchId={selectedMatchId}
+            sport={selectedSportSchedule}
+            onBack={() => setSportsViewMode("schedule")}
+            palette={palette}
+            strings={strings}
+            pickContrastText={pickContrastText}
+            TeamDot={TeamDot}
+          />
+          {renderRightPanel()}
+        </div>
+      );
+    }
+
+    return (
     <div className="flex-1 min-h-0 flex">
       {/* Left sidebar */}
       <aside
@@ -1308,7 +1351,16 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             return (
               <button
                 key={s.name}
-                onClick={() => setActiveSportSidebar(i)}
+                onClick={() => {
+                  setActiveSportSidebar(i);
+                  if (s.name === strings.BASKETBALL) {
+                    setSelectedSportSchedule("nba");
+                    setSportsViewMode("schedule");
+                  } else if (s.name === strings.SOCCER) {
+                    setSelectedSportSchedule("football");
+                    setSportsViewMode("schedule");
+                  }
+                }}
                 className="w-full flex items-center gap-1.5 px-1.5 h-7 rounded-md mb-0.5 text-left"
                 style={{
                   background: active ? "var(--p-active-secondary-gradient-color)" : "transparent",
@@ -1586,8 +1638,12 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             {MATCHES.map((m, i) => (
               <div
                 key={i}
-                className="rounded-md p-2"
+                className="rounded-md p-2 cursor-pointer"
                 style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                onClick={() => {
+                  setSelectedMatchId(`football-${i}`);
+                  setSportsViewMode("detail");
+                }}
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span
@@ -1661,7 +1717,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
 
       {renderRightPanel()}
     </div>
-  );
+    );
+  };
 
   /* Placeholder for Discovery / Casino / P2P */
   const renderPlaceholder = (title: string, Icon: React.ElementType) => (
