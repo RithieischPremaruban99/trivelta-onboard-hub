@@ -33,6 +33,7 @@ export type BetMarketContent =
       rows: { team: string; values: string[] }[];
       leagueLabel?: string;
     }
+  | { type: "match-line" }
   | { type: "placeholder" };
 
 export type BetMarket = {
@@ -66,7 +67,17 @@ export const FOOTBALL_BET_TYPES = [
 
 export const NBA_TOP_TABS = ["Schedule", "Players", "Futures"];
 export const FOOTBALL_TOP_TABS = ["Upcoming", "Top Leagues", "All"];
-export const GAME_DETAIL_TABS = ["Popular", "Win Quick", "Player Combos", "Halves"];
+export const FOOTBALL_DETAIL_TABS = [
+  "Popular",
+  "Goals",
+  "Corners",
+  "1st Half",
+  "2nd Half",
+  "Player Specials",
+  "Scorers",
+  "Bookings",
+];
+export const NBA_DETAIL_TABS = ["Popular", "Win Quick", "Player Combos", "Halves"];
 
 export const NBA_SCHEDULE: NbaMatch[] = [
   {
@@ -202,49 +213,65 @@ export const FOOTBALL_LEAGUES: FootballLeague[] = [
 
 export const FOOTBALL_GAME_DETAIL_MARKETS: BetMarket[] = [
   {
-    id: "match-result",
-    title: "Match Result (1X2)",
+    id: "game-line",
+    title: "Game Line",
     hasSGP: true,
     defaultExpanded: true,
-    content: {
-      type: "table",
-      columns: ["Home (1)", "Draw (X)", "Away (2)"],
-      rows: [{ team: "Match Odds", values: ["{ODD_1}", "{ODD_X}", "{ODD_2}"] }],
-      leagueLabel: "{LEAGUE_NAME} · {DATE}",
-    },
+    content: { type: "match-line" },
   },
   {
-    id: "over-under",
-    title: "Over / Under (Total Goals)",
-    hasSGP: true,
-    defaultExpanded: false,
-    content: { type: "placeholder" },
-  },
-  {
-    id: "double-chance",
-    title: "Double Chance",
+    id: "total",
+    title: "Total",
     hasSGP: true,
     defaultExpanded: false,
     content: { type: "placeholder" },
   },
   {
     id: "btts",
-    title: "Both Teams to Score (GG/NG)",
+    title: "Both teams to score",
     hasSGP: true,
     defaultExpanded: false,
     content: { type: "placeholder" },
   },
   {
-    id: "first-half-result",
-    title: "1st Half Result",
+    id: "1x2-1up-2up",
+    title: "1x2 (1UP / 2UP)",
+    hasSGP: false,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "double-chance",
+    title: "Double chance",
     hasSGP: true,
     defaultExpanded: false,
     content: { type: "placeholder" },
   },
   {
-    id: "anytime-scorer",
-    title: "Anytime Goalscorer",
+    id: "handicap",
+    title: "Handicap",
     hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "draw-no-bet",
+    title: "Draw no bet",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "halftime-fulltime",
+    title: "Halftime/fulltime",
+    hasSGP: true,
+    defaultExpanded: false,
+    content: { type: "placeholder" },
+  },
+  {
+    id: "correct-score",
+    title: "Correct score",
+    hasSGP: false,
     defaultExpanded: false,
     content: { type: "placeholder" },
   },
