@@ -291,18 +291,21 @@ export function GameDetail({
                           </span>
                         ))}
                       </div>
-                      {/* Home row */}
+                      {/* Single match row: Home — Away with 3 odds */}
                       <div
                         className="grid gap-1.5 items-center"
                         style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <TeamDot label={heroHomeName} size={18} />
+                          <div className="flex -space-x-1.5 flex-shrink-0">
+                            <TeamDot label={heroHomeName} size={20} />
+                            <TeamDot label={heroAwayName} size={20} />
+                          </div>
                           <span
                             className="text-[11px] font-bold truncate"
                             style={{ color: "var(--p-light-text-color)" }}
                           >
-                            {heroHomeName}
+                            {heroHomeName.split(" ")[0]} – {heroAwayName.split(" ")[0]}
                           </span>
                         </div>
                         {(match as FootballMatch).odds.map((o, j) => (
@@ -318,24 +321,6 @@ export function GameDetail({
                             {o}
                           </button>
                         ))}
-                      </div>
-                      {/* Away row */}
-                      <div
-                        className="grid gap-1.5 items-center"
-                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <TeamDot label={heroAwayName} size={18} />
-                          <span
-                            className="text-[11px] font-bold truncate"
-                            style={{ color: "var(--p-light-text-color)" }}
-                          >
-                            {heroAwayName}
-                          </span>
-                        </div>
-                        <span />
-                        <span />
-                        <span />
                       </div>
                     </div>
                   )}
