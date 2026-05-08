@@ -1573,6 +1573,49 @@ function validateAndEnforce(
     aiProvidedCount++;
   }
 
+  // ── Refinement field-filter: revert unauthorized changes ──────────────
+  if (isRefinement && req.currentPalette) {
+    const targetFields = detectTargetFields(req.brandPrompt);
+
+    if (targetFields !== null) {
+      const oldPalette = req.currentPalette as unknown as Record<string, string>;
+      let revertedCount = 0;
+      const revertedFields: string[] = [];
+
+      for (const key of ATOMIC_FIELDS) {
+        const k = key as string;
+        if (!targetFields.has(key as keyof AtomicPalette)) {
+          const oldValue = oldPalette[k];
+          const aiValue = atomicBase[k];
+          if (oldValue && aiValue && oldValue !== aiValue) {
+            atomicBase[k] = oldValue;
+            revertedCount++;
+            revertedFields.push(k);
+          }
+        }
+      }
+
+      if (revertedCount > 0) {
+        console.log(
+          `[generate-palette] Refinement filter: reverted ${revertedCount} unauthorized field changes. ` +
+          `User targeted: [${Array.from(targetFields).join(", ")}]. ` +
+          `Reverted: [${revertedFields.join(", ")}]`,
+        );
+        warnings.push(
+          `Refinement filter applied: AI tried to change ${revertedCount} fields outside user's request. Reverted to preserve: ${revertedFields.join(", ")}`,
+        );
+      } else {
+        console.log(
+          `[generate-palette] Refinement filter: AI respected target fields [${Array.from(targetFields).join(", ")}]`,
+        );
+      }
+    } else {
+      console.log(
+        `[generate-palette] Refinement filter: generic/no-field-target — AI given full freedom`,
+      );
+    }
+  }
+
   // Warn if key atomics are missing
   for (const key of ATOMIC_FIELDS) {
     if (!atomicBase[key as string] || !isValidRgba(atomicBase[key as string])) {
@@ -1626,6 +1669,87 @@ function validateAndEnforce(
   );
 
   return palette;
+}
+
+// ---------------------------------------------------------------------------
+// Field-Detection — parse user prompt for explicit field keywords
+// Returns a Set of atomic-field names the user explicitly wants to change,
+// or null if the prompt is generic/no-clear-targets (AI may change anything).
+// ---------------------------------------------------------------------------
+
+const FIELD_KEYWORDS: Record<string, (keyof AtomicPalette)[]> = {
+  // primary family
+  "primary":      ["primary", "primaryButton"],
+  "main color":   ["primary", "primaryButton"],
+  "main brand":   ["primary", "primaryButton"],
+  "brand color":  ["primary", "primaryButton"],
+
+  // secondary / accent family
+  "secondary": ["secondary"],
+  "accent":    ["secondary", "activeSecondaryGradientColor"],
+
+  // button family
+  "button":  ["primaryButton"],
+  "buttons": ["primaryButton"],
+  "cta":     ["primaryButton"],
+
+  // background family
+  "background":      ["primaryBackgroundColor", "modalBackground"],
+  "bg":              ["primaryBackgroundColor", "modalBackground"],
+  "main background": ["primaryBackgroundColor"],
+  "modal":           ["modalBackground"],
+
+  // text family
+  "text":       ["lightTextColor", "darkTextColor", "primaryTextColor"],
+  "light text": ["lightTextColor"],
+  "dark text":  ["darkTextColor"],
+
+  // dark / surface
+  "dark":    ["dark"],
+  "surface": ["dark", "modalBackground"],
+
+  // status colors
+  "win":       ["wonColor"],
+  "lost":      ["lostColor"],
+  "loss":      ["lostColor"],
+  "free bet":  ["freeBetBackground"],
+
+  // active states
+  "active":   ["activeSecondaryGradientColor"],
+  "gradient": ["activeSecondaryGradientColor"],
+
+  // border
+  "border": ["borderAndGradientBg"],
+};
+
+// Words that suggest generic/full-palette refinement (no field-targeting)
+const GENERIC_REFINEMENT_TRIGGERS = [
+  "premium", "luxurious", "modern", "vibrant", "muted", "professional",
+  "energetic", "calm", "bold", "subtle", "feel", "vibe", "style",
+  "everything", "all", "whole palette", "complete",
+];
+
+function detectTargetFields(userPrompt: string): Set<keyof AtomicPalette> | null {
+  const lower = userPrompt.toLowerCase();
+
+  // If prompt contains generic refinement language, no field-restriction
+  for (const trigger of GENERIC_REFINEMENT_TRIGGERS) {
+    if (lower.includes(trigger)) {
+      return null;
+    }
+  }
+
+  // Detect specific field keywords
+  const targets = new Set<keyof AtomicPalette>();
+  for (const [keyword, fields] of Object.entries(FIELD_KEYWORDS)) {
+    if (lower.includes(keyword)) {
+      for (const field of fields) {
+        targets.add(field);
+      }
+    }
+  }
+
+  return targets.size > 0 ? targets : null;
 }
 
 // ---------------------------------------------------------------------------
