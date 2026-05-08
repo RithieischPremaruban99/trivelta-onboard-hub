@@ -594,6 +594,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
   const [webMyBetsMainTab, setWebMyBetsMainTab] = useState(0); // 0=My Bets, 1=My Feed
   const [webMyBetsFilter, setWebMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [webFeedTab, setWebFeedTab] = useState(0); // 0=Friends, 1=Explore
+  const [matchDiscoveryBannerDismissed, setMatchDiscoveryBannerDismissed] = useState(false);
   const [sportsViewMode, setSportsViewMode] = useState<"main" | "schedule" | "detail">("main");
   const [selectedSportSchedule, setSelectedSportSchedule] = useState<"nba" | "football">("football");
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
@@ -1467,6 +1468,36 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             </div>
           </div>
 
+          {/* Discovery banner */}
+          {!matchDiscoveryBannerDismissed && (
+            <div
+              className="rounded-md mb-2 px-2.5 py-2 flex items-center gap-2"
+              style={{
+                background: "color-mix(in oklab, var(--p-primary) 12%, transparent)",
+                border: "1px solid color-mix(in oklab, var(--p-primary) 40%, transparent)",
+              }}
+            >
+              <ChevronRight
+                className="h-3 w-3 flex-shrink-0"
+                style={{ color: "var(--p-primary)" }}
+              />
+              <span
+                className="text-[9.5px] font-medium flex-1"
+                style={{ color: "var(--p-light-text-color)" }}
+              >
+                Click any match below to see your palette on the full detail screen — accordion markets, table buttons, SGP badges
+              </span>
+              <button
+                onClick={() => setMatchDiscoveryBannerDismissed(true)}
+                className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ color: "var(--p-text-secondary-color)", background: "transparent" }}
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Live & upcoming */}
           <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
             {strings.LIVE_AND_UPCOMING_GAMES}
@@ -1641,8 +1672,22 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             {MATCHES.map((m, i) => (
               <div
                 key={i}
-                className="rounded-md p-2 cursor-pointer"
-                style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                className="rounded-md p-2 cursor-pointer transition-all"
+                style={{
+                  background: "var(--p-dark)",
+                  border: "1px solid var(--p-border-and-gradient-bg)",
+                  transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--p-primary)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px color-mix(in oklab, var(--p-primary) 25%, transparent)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "var(--p-border-and-gradient-bg)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 onClick={() => {
                   setSelectedMatchId(`pl-${i + 1}`);
                   setSelectedSportSchedule("football");
@@ -1712,6 +1757,15 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
                   >
                     {strings.MORE_BETS} <ChevronRight className="h-2 w-2" />
                   </span>
+                  {/* discovery hint — only on first 2 cards to avoid noise */}
+                  {i < 2 && (
+                    <span
+                      className="text-[8px] font-medium ml-2"
+                      style={{ color: "var(--p-primary)", opacity: 0.7 }}
+                    >
+                      → click for full view
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

@@ -127,10 +127,21 @@ export function SportsListing({
             {NBA_SCHEDULE.map((m) => (
               <div
                 key={m.id}
-                className="rounded-md p-2 cursor-pointer"
+                className="rounded-md p-2 cursor-pointer transition-all"
                 style={{
                   background: "var(--p-dark)",
                   border: "1px solid var(--p-border-and-gradient-bg)",
+                  transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--p-primary)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px color-mix(in oklab, var(--p-primary) 25%, transparent)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "var(--p-border-and-gradient-bg)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
                 onClick={() => onMatchClick(m.id)}
               >
@@ -299,10 +310,21 @@ function FootballMatchCard({
 }: FootballMatchCardProps) {
   return (
     <div
-      className="rounded-md p-2 cursor-pointer"
+      className="rounded-md p-2 cursor-pointer transition-all"
       style={{
         background: "var(--p-dark)",
         border: "1px solid var(--p-border-and-gradient-bg)",
+        transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "var(--p-primary)";
+        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.boxShadow = "0 2px 8px color-mix(in oklab, var(--p-primary) 25%, transparent)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--p-border-and-gradient-bg)";
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
       }}
       onClick={() => onMatchClick(match.id)}
     >
