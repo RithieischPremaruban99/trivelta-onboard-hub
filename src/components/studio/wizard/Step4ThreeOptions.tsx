@@ -270,10 +270,49 @@ export function Step4ThreeOptions({
 
     setSaving(true);
     try {
+      // Read existing studio_config to preserve other fields
+      const { data: existingForm } = await (supabase as any)
+        .from("onboarding_forms")
+        .select("studio_config")
+        .eq("client_id", clientId)
+        .maybeSingle();
+
+      const existingConfig = (existingForm?.studio_config && typeof existingForm.studio_config === "object")
+        ? existingForm.studio_config as Record<string, unknown>
+        : {};
+
+      // Build brandContext from current wizard state (for Re-generate mode)
+      const brandContext = {
+        targetCountry: selectedCountry,
+        isMultiMarket,
+        ...(selectedPersonality && { targetPersonality: selectedPersonality }),
+        ...(selectedPlatformType && { targetPlatformType: selectedPlatformType }),
+      };
+
+      // Build prompt history entry from this generation
+      const newHistoryEntry = {
+        prompt: brandPrompt,
+        timestamp: new Date().toISOString(),
+        ...(opt.summaryText && { keyColorsSummary: opt.summaryText }),
+      };
+
+      // Append to existing history (or start new)
+      const existingHistory = Array.isArray(existingConfig.brandPromptHistory)
+        ? (existingConfig.brandPromptHistory as Array<unknown>)
+        : [];
+
+      const mergedConfig = {
+        ...existingConfig,
+        palette: opt.palette,
+        brandContext,
+        brandPromptHistory: [newHistoryEntry, ...existingHistory].slice(0, 20),
+        ...(logoUrl && { logoUrl }),
+      };
+
       const { error } = await (supabase as any)
         .from("onboarding_forms")
         .upsert(
-          { client_id: clientId, studio_config: { palette: opt.palette } },
+          { client_id: clientId, studio_config: mergedConfig },
           { onConflict: "client_id" },
         );
       if (error) throw error;
