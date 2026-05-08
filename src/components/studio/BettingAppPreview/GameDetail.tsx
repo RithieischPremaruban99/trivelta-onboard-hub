@@ -188,7 +188,7 @@ export function GameDetail({
             <button
               key={t}
               onClick={() => setActiveTab(i)}
-              className="flex-1 min-w-[80px] h-10 text-[11px] font-semibold relative whitespace-nowrap px-2 transition-colors"
+              className="flex-1 min-w-[78px] h-11 text-[12px] font-semibold relative whitespace-nowrap px-2 transition-colors"
               style={{
                 color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
               }}
@@ -196,7 +196,7 @@ export function GameDetail({
               {t}
               {active && (
                 <span
-                  className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
                   style={{ background: "var(--p-primary)" }}
                 />
               )}
