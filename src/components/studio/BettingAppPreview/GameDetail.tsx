@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, ChevronLeft } from "lucide-react";
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import type { TCMPalette } from "@/lib/tcm-palette";
 import type { TCMStrings } from "@/lib/tcm-strings";
 import {
@@ -55,9 +55,9 @@ export function GameDetail({
 
   const heroHomeName = match?.home ?? "Home";
   const heroAwayName = match?.away ?? "Away";
-  const heroDate = match?.date ?? (isFootball ? "TODAY" : "TOMORROW 1:00 AM");
+  const heroDate = match?.date ?? (isFootball ? "TOMORROW 1:30 PM" : "TOMORROW 1:00 AM");
   const heroLeague = isFootball
-    ? (match as (FootballMatch & { league?: string }) | null)?.league ?? "Football"
+    ? (match as (FootballMatch & { league?: string }) | null)?.league ?? "Premier League"
     : (match as NbaMatch | null)?.league ?? "NBA";
 
   // Track expanded sections — multi-expand allowed
@@ -81,54 +81,68 @@ export function GameDetail({
       style={{ background: "var(--p-primary-background-color)" }}
     >
       {/* Back button */}
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-5 pt-3 pb-1">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 text-[10px] font-semibold"
+          className="inline-flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-80"
           style={{ color: "var(--p-primary)" }}
         >
-          <ChevronLeft className="h-3 w-3" />
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2.5} />
           Back
         </button>
       </div>
 
       {/* Hero */}
       <div
-        className="px-6 py-5"
+        className="px-6 pt-5 pb-6"
         style={{
           background:
-            "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)",
+            "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 10%, transparent) 0%, transparent 100%)",
           borderBottom: "1px solid var(--p-border-and-gradient-bg)",
         }}
       >
-        <div className="grid grid-cols-3 items-center gap-4">
+        {/* Top: tiny date pill */}
+        <div className="flex justify-center mb-3">
+          <span
+            className="text-[10px] font-bold uppercase tracking-[0.12em]"
+            style={{ color: "var(--p-primary)" }}
+          >
+            {heroDate}
+          </span>
+        </div>
+        <div className="grid grid-cols-3 items-center gap-3">
           {/* Home team */}
-          <div className="flex flex-col items-center gap-2 text-center">
-            <TeamDot label={heroHomeName} size={56} />
+          <div className="flex flex-col items-center gap-2.5 text-center min-w-0">
+            <div
+              className="rounded-xl grid place-items-center"
+              style={{
+                width: 68,
+                height: 68,
+                background: "var(--p-dark-container-background)",
+                boxShadow:
+                  "0 4px 12px -4px color-mix(in oklab, var(--p-primary) 30%, transparent)",
+              }}
+            >
+              <TeamDot label={heroHomeName} size={48} />
+            </div>
             <span
-              className="text-[12px] font-bold leading-tight"
+              className="text-[12px] font-bold leading-tight truncate max-w-full"
               style={{ color: "var(--p-light-text-color)" }}
             >
               {heroHomeName}
             </span>
           </div>
 
-          {/* Center: date · vs · league */}
-          <div className="flex flex-col items-center gap-1.5">
+          {/* Center: vs · league */}
+          <div className="flex flex-col items-center gap-1.5 px-1">
             <span
-              className="text-[10px] font-semibold uppercase tracking-wider"
-              style={{ color: "var(--p-primary)" }}
-            >
-              {heroDate}
-            </span>
-            <span
-              className="text-[11px] font-bold"
-              style={{ color: "var(--p-text-secondary-color)" }}
+              className="text-[18px] font-black leading-none"
+              style={{ color: "var(--p-light-text-color)" }}
             >
               vs
             </span>
             <span
-              className="text-[10px] font-semibold"
+              className="text-[10px] font-semibold text-center leading-tight"
               style={{ color: "var(--p-text-secondary-color)" }}
             >
               {heroLeague}
@@ -136,10 +150,21 @@ export function GameDetail({
           </div>
 
           {/* Away team */}
-          <div className="flex flex-col items-center gap-2 text-center">
-            <TeamDot label={heroAwayName} size={56} />
+          <div className="flex flex-col items-center gap-2.5 text-center min-w-0">
+            <div
+              className="rounded-xl grid place-items-center"
+              style={{
+                width: 68,
+                height: 68,
+                background: "var(--p-dark-container-background)",
+                boxShadow:
+                  "0 4px 12px -4px color-mix(in oklab, var(--p-primary) 30%, transparent)",
+              }}
+            >
+              <TeamDot label={heroAwayName} size={48} />
+            </div>
             <span
-              className="text-[12px] font-bold leading-tight"
+              className="text-[12px] font-bold leading-tight truncate max-w-full"
               style={{ color: "var(--p-light-text-color)" }}
             >
               {heroAwayName}
@@ -148,9 +173,9 @@ export function GameDetail({
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — evenly distributed */}
       <div
-        className="flex border-b overflow-x-auto px-4"
+        className="flex border-b overflow-x-auto"
         style={{ borderColor: "var(--p-border-and-gradient-bg)", scrollbarWidth: "none" }}
       >
         {tabs.map((t, i) => {
@@ -159,7 +184,7 @@ export function GameDetail({
             <button
               key={t}
               onClick={() => setActiveTab(i)}
-              className="px-4 h-9 text-[11px] font-semibold relative flex-shrink-0"
+              className="flex-1 min-w-[80px] h-10 text-[11px] font-semibold relative whitespace-nowrap px-2 transition-colors"
               style={{
                 color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
               }}
@@ -167,7 +192,7 @@ export function GameDetail({
               {t}
               {active && (
                 <span
-                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
+                  className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
                   style={{ background: "var(--p-primary)" }}
                 />
               )}
@@ -177,25 +202,25 @@ export function GameDetail({
       </div>
 
       {/* Markets accordion */}
-      <div className="px-4 py-3 space-y-2">
+      <div className="px-4 py-4 space-y-2">
         {markets.map((market) => {
           const isExpanded = expandedIds.has(market.id);
           return (
             <div
               key={market.id}
-              className="rounded-md overflow-hidden"
+              className="rounded-lg overflow-hidden transition-colors group"
               style={{
                 background: "var(--p-dark)",
-                border: "1px solid var(--p-border-and-gradient-bg)",
+                border: `1px solid ${isExpanded ? "color-mix(in oklab, var(--p-primary) 40%, transparent)" : "var(--p-border-and-gradient-bg)"}`,
               }}
             >
               {/* Accordion header */}
               <button
                 onClick={() => toggleSection(market.id)}
-                className="w-full flex items-center justify-between px-3 py-2.5"
+                className="w-full flex items-center justify-between px-3.5 py-3 cursor-pointer"
               >
                 <span
-                  className="text-[11px] font-bold"
+                  className="text-[12px] font-bold"
                   style={{ color: "var(--p-light-text-color)" }}
                 >
                   {market.title}
@@ -203,7 +228,7 @@ export function GameDetail({
                 <div className="flex items-center gap-2">
                   {market.hasSGP && (
                     <span
-                      className="text-[8px] font-bold px-1.5 py-[2px] rounded"
+                      className="text-[8px] font-extrabold px-1.5 py-[3px] rounded leading-none tracking-wider"
                       style={{
                         background: "var(--p-primary)",
                         color: pickContrastText(palette.primary),
@@ -212,39 +237,50 @@ export function GameDetail({
                       SGP
                     </span>
                   )}
-                  {isExpanded ? (
-                    <ChevronUp className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
-                  ) : (
-                    <ChevronDown className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
-                  )}
+                  <ChevronDown
+                    className="h-3.5 w-3.5 transition-transform"
+                    strokeWidth={2.5}
+                    style={{
+                      color: "var(--p-text-secondary-color)",
+                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                  />
                 </div>
               </button>
 
               {/* Accordion body */}
               {isExpanded && (
                 <div
-                  className="px-3 pb-3 pt-2"
+                  className="px-3.5 pb-3.5 pt-3"
                   style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   {/* match-line: home/away rows with 1/X/2 buttons */}
                   {market.content.type === "match-line" && match && "odds" in match && (
-                    <div className="space-y-2">
-                      <div
-                        className="text-[9px] font-semibold uppercase tracking-wider mb-1"
-                        style={{ color: "var(--p-primary)" }}
-                      >
-                        {heroLeague} · {heroDate}
+                    <div className="space-y-2.5">
+                      <div className="space-y-0.5">
+                        <div
+                          className="text-[9px] font-bold uppercase tracking-wider"
+                          style={{ color: "var(--p-primary)" }}
+                        >
+                          {heroLeague}
+                        </div>
+                        <div
+                          className="text-[10px] font-semibold"
+                          style={{ color: "var(--p-text-secondary-color)" }}
+                        >
+                          {heroDate}
+                        </div>
                       </div>
                       {/* Column header row */}
                       <div
                         className="grid gap-1.5"
-                        style={{ gridTemplateColumns: "1fr 60px 60px 60px" }}
+                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
                       >
                         <span />
                         {["1", "X", "2"].map((h) => (
                           <span
                             key={h}
-                            className="text-center text-[9px] font-semibold"
+                            className="text-center text-[10px] font-bold"
                             style={{ color: "var(--p-text-secondary-color)" }}
                           >
                             {h}
@@ -254,12 +290,12 @@ export function GameDetail({
                       {/* Home row */}
                       <div
                         className="grid gap-1.5 items-center"
-                        style={{ gridTemplateColumns: "1fr 60px 60px 60px" }}
+                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
                       >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <TeamDot label={heroHomeName} size={16} />
+                        <div className="flex items-center gap-2 min-w-0">
+                          <TeamDot label={heroHomeName} size={18} />
                           <span
-                            className="text-[10px] font-medium truncate"
+                            className="text-[11px] font-bold truncate"
                             style={{ color: "var(--p-light-text-color)" }}
                           >
                             {heroHomeName}
@@ -268,10 +304,10 @@ export function GameDetail({
                         {(match as FootballMatch).odds.map((o, j) => (
                           <button
                             key={j}
-                            className="h-9 rounded text-[10px] font-bold"
+                            className="h-9 rounded text-[11px] font-bold transition-transform active:scale-95"
                             style={{
                               background: "var(--p-active-secondary-gradient-color)",
-                              border: "1px solid var(--p-primary)",
+                              border: "1px solid color-mix(in oklab, var(--p-primary) 60%, transparent)",
                               color: pickContrastText(palette.activeSecondaryGradientColor),
                             }}
                           >
@@ -279,21 +315,20 @@ export function GameDetail({
                           </button>
                         ))}
                       </div>
-                      {/* Away row (team label only, same odds buttons) */}
+                      {/* Away row */}
                       <div
                         className="grid gap-1.5 items-center"
-                        style={{ gridTemplateColumns: "1fr 60px 60px 60px" }}
+                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
                       >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <TeamDot label={heroAwayName} size={16} />
+                        <div className="flex items-center gap-2 min-w-0">
+                          <TeamDot label={heroAwayName} size={18} />
                           <span
-                            className="text-[10px] font-medium truncate"
+                            className="text-[11px] font-bold truncate"
                             style={{ color: "var(--p-light-text-color)" }}
                           >
                             {heroAwayName}
                           </span>
                         </div>
-                        {/* empty cells to preserve grid alignment */}
                         <span />
                         <span />
                         <span />
@@ -303,10 +338,10 @@ export function GameDetail({
 
                   {/* table: NBA-style Spread/ML/Total */}
                   {market.content.type === "table" && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {market.content.leagueLabel && (
                         <div
-                          className="text-[9px] font-semibold uppercase tracking-wider mb-1"
+                          className="text-[9px] font-bold uppercase tracking-wider mb-1"
                           style={{ color: "var(--p-primary)" }}
                         >
                           {market.content.leagueLabel}
@@ -322,7 +357,7 @@ export function GameDetail({
                         {market.content.columns.map((c) => (
                           <span
                             key={c}
-                            className="text-center text-[9px] font-semibold"
+                            className="text-center text-[10px] font-bold"
                             style={{ color: "var(--p-text-secondary-color)" }}
                           >
                             {c}
@@ -337,10 +372,10 @@ export function GameDetail({
                             gridTemplateColumns: `1fr repeat(${market.content.type === "table" ? market.content.columns.length : 0}, 1fr)`,
                           }}
                         >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <TeamDot label={row.team} size={16} />
+                          <div className="flex items-center gap-2 min-w-0">
+                            <TeamDot label={row.team} size={18} />
                             <span
-                              className="text-[10px] font-medium truncate"
+                              className="text-[11px] font-bold truncate"
                               style={{ color: "var(--p-light-text-color)" }}
                             >
                               {row.team}
@@ -349,10 +384,10 @@ export function GameDetail({
                           {row.values.map((v, vi) => (
                             <button
                               key={vi}
-                              className="h-9 rounded text-[10px] font-bold"
+                              className="h-9 rounded text-[11px] font-bold transition-transform active:scale-95"
                               style={{
                                 background: "var(--p-active-secondary-gradient-color)",
-                                border: "1px solid var(--p-primary)",
+                                border: "1px solid color-mix(in oklab, var(--p-primary) 60%, transparent)",
                                 color: pickContrastText(palette.activeSecondaryGradientColor),
                               }}
                             >
@@ -367,7 +402,7 @@ export function GameDetail({
                   {/* placeholder */}
                   {market.content.type === "placeholder" && (
                     <div
-                      className="text-[9px] py-3 text-center"
+                      className="text-[10px] py-3 text-center"
                       style={{ color: "var(--p-text-secondary-color)" }}
                     >
                       Markets shown when expanded in production app
