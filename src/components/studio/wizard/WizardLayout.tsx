@@ -132,7 +132,12 @@ export function WizardLayout({ clientId }: Props) {
   }
 
   function handleBrandIdentityChoice(choice: BrandIdentityChoice) {
-    setState({ ...state, brandIdentityChoice: choice });
+    setState({
+      ...state,
+      brandIdentityChoice: choice,
+      ...(choice === "logo" && { targetPersonality: undefined }),
+      ...(choice === "fresh" && { logoUrl: undefined }),
+    });
   }
 
   function renderStep() {
