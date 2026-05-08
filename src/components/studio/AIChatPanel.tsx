@@ -201,6 +201,32 @@ export function AIChatPanel() {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
       setInput("");
 
+      // Detect undo-style commands — handle locally, no AI call
+      const undoPattern = /^(undo|revert|go back|cancel last|undo (the |my )?(last |recent )?(change|changes|edit|adjustment))/i;
+      if (undoPattern.test(trimmed)) {
+        if (canUndo) {
+          const success = undoLastChange();
+          if (success) {
+            setMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: "Undone — reverted to the previous palette. Click Undo again or use the chat to keep going back." },
+            ]);
+            toast.success("Last change undone");
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: "Nothing to undo." },
+            ]);
+          }
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Nothing to undo yet — make a refinement first, then I can revert it." },
+          ]);
+        }
+        return;
+      }
+
       // Route logo requests to logo generation
       if (isLogoRequest(trimmed)) {
         await handleLogoGeneration(trimmed);
