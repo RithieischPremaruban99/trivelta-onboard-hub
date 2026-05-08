@@ -17,6 +17,7 @@ interface Props {
   onLogoRemoved: () => void;
   onBack: () => void;
   onNext: () => void;
+  pathChoice?: "logo" | "fresh";
 }
 
 const PERSONALITY_LABELS: Record<BrandPersonality, string> = {
@@ -54,6 +55,7 @@ export function Step3BriefInput({
   onLogoRemoved,
   onBack,
   onNext,
+  pathChoice,
 }: Props) {
   const briefLength = brandPrompt.trim().length;
   const canProceed = briefLength >= MIN_BRIEF_LENGTH;
@@ -71,10 +73,14 @@ export function Step3BriefInput({
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-          Tell us about your brand
+          {pathChoice === "logo"
+            ? "Upload your logo and tell us about your brand"
+            : "Tell us about your brand"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          A 1–2 sentence description. This is the main signal for the palette generator.
+          {pathChoice === "logo"
+            ? "Upload your logo so we can match the colors, then describe your brand in 1-2 sentences."
+            : "A 1–2 sentence description. This is the main signal for the palette generator."}
         </p>
       </div>
 
@@ -124,12 +130,14 @@ export function Step3BriefInput({
                 : "—"}
             </div>
           </div>
-          <div>
-            <div className="micro-label mb-1">Personality</div>
-            <div className="text-foreground font-medium">
-              {selectedPersonality ? PERSONALITY_LABELS[selectedPersonality] : "—"}
+          {pathChoice !== "logo" && (
+            <div>
+              <div className="micro-label mb-1">Personality</div>
+              <div className="text-foreground font-medium">
+                {selectedPersonality ? PERSONALITY_LABELS[selectedPersonality] : "—"}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

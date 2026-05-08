@@ -130,6 +130,7 @@ export function WizardLayout({ clientId }: Props) {
             onLogoRemoved={() => setState((s) => ({ ...s, logoUrl: undefined }))}
             onBack={handleBack}
             onNext={handleNext}
+            pathChoice="fresh"
           />
         );
       }
@@ -174,6 +175,7 @@ export function WizardLayout({ clientId }: Props) {
             onLogoRemoved={() => setState((s) => ({ ...s, logoUrl: undefined }))}
             onBack={handleBack}
             onNext={handleNext}
+            pathChoice="logo"
           />
         );
       }
