@@ -522,11 +522,49 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
         </div>
       </div>
 
-      {/* Reasoning — full text, no truncation */}
-      {reasoning && (
-        <p className="text-sm text-muted-foreground leading-relaxed">{reasoning}</p>
-      )}
+      {/* Reasoning bullets */}
+      {reasoning && <ReasoningBullets text={reasoning} />}
     </div>
+  );
+}
+
+interface ReasoningBulletsProps {
+  text: string;
+}
+
+function ReasoningBullets({ text }: ReasoningBulletsProps) {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const bullets: string[] = [];
+  let nonBulletText = "";
+
+  for (const line of lines) {
+    const bulletMatch = line.match(/^[•*\-]\s+(.+)$/);
+    if (bulletMatch) {
+      bullets.push(bulletMatch[1].trim());
+    } else {
+      nonBulletText += (nonBulletText ? " " : "") + line;
+    }
+  }
+
+  if (bullets.length >= 2) {
+    return (
+      <ul className="text-sm text-muted-foreground leading-relaxed space-y-1.5 pl-0">
+        {bullets.map((b, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="text-muted-foreground/60 shrink-0">•</span>
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
   );
 }
 

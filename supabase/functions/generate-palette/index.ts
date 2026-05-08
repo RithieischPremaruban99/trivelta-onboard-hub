@@ -348,8 +348,57 @@ JSON schema:
     "lostColor": "rgba(...)"
   },
   "reasoning": "same 2-3 sentences",
-  "keyColorsSummary": "1-2 punchy sentences naming key colors"
+  "keyColorsSummary": "3 short bullet points in customer-friendly language (see KEYCOLORSSUMMARY FORMAT section below)"
 }
+
+═══ KEYCOLORSSUMMARY FORMAT — 3 BULLETS, CUSTOMER LANGUAGE ═══
+
+The keyColorsSummary field MUST be 3 short bullet points formatted as markdown.
+Each bullet 8-15 words, customer-friendly language.
+
+REQUIRED FORMAT (literal markdown bullets):
+"• [bullet 1]\n• [bullet 2]\n• [bullet 3]"
+
+BULLET STRUCTURE:
+1. Main color — what it does, what feeling it conveys
+2. Accent — where it appears prominently (VIP, casino, highlights)
+3. Differentiation — how this stands out from market or fits the brand
+
+CUSTOMER-FRIENDLY RULES:
+- NO hex codes — say "warm orange" not "(#FF6B00)"
+- NO field names — say "main color" not "primary", "accent" not "secondary"
+- NO designer jargon — avoid "ownable", "positioning", "harmony", "register"
+- USE feeling words — "confident", "bold", "warm", "trustworthy", "premium"
+- USE concrete contexts — "for sports betting", "VIP areas", "casino moments"
+- Active voice — "feels", "stands out", "reserved for", "matches"
+
+GOOD EXAMPLES (English):
+"• Warm orange feels confident and energetic — perfect for sports betting
+• Gold accent reserved for VIP and casino premium moments
+• Stands apart from competitors' green-red palette in your market"
+
+"• Deep navy conveys trust and stability for serious bettors
+• Bright cyan highlights bring energy to live odds and CTAs
+• Distinct from the orange-heavy Nigerian sportsbook landscape"
+
+GOOD EXAMPLES (German — when brief is German):
+"• Warmes Orange wirkt selbstbewusst und energisch — passt zu Sport
+• Gold-Akzent reserviert für VIP-Bereiche und Casino-Highlights
+• Hebt sich klar vom üblichen Grün-Rot der Konkurrenz ab"
+
+GOOD EXAMPLES (Spanish — when brief is Spanish):
+"• Naranja cálido transmite confianza y energía — ideal para apuestas
+• Acento dorado reservado para zonas VIP y momentos de casino
+• Se distingue del rojo-verde dominante en el mercado mexicano"
+
+BAD EXAMPLES (do NOT do):
+✗ "Burnt orange (#FF6B00) as the ownable mass-market primary..." (hex, jargon)
+✗ "Primary color set to confident orange tone for brand positioning" (uses "primary")
+✗ "Three sentence paragraph explaining the palette decisions in detail" (not bullets)
+
+LANGUAGE: keyColorsSummary follows the same RESPONSE LANGUAGE rules as reasoning —
+match the user's brief language. German brief → German bullets. Spanish brief → Spanish bullets.
+Default English if brief language is ambiguous.
 
 OUTPUT EXACTLY THESE 15 FIELDS — NO MORE, NO FEWER. The derivation engine handles the other 329 fields automatically. Do NOT add extra palette fields.
 
