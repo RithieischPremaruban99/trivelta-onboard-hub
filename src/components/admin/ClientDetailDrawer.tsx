@@ -426,6 +426,47 @@ function ClientDrawerBody({
               <span className="text-[11px] text-muted-foreground/50">No config yet</span>
             )}
           </SummaryRow>
+          <SummaryRow label="Brand status">
+            {(() => {
+              const cfg = (sd?.config ?? null) as any;
+              const hasBrand = !!(cfg?.palette || cfg?.colors);
+              const hasBrandContext = !!cfg?.brandContext;
+              const historyCount = Array.isArray(cfg?.brandPromptHistory)
+                ? (cfg.brandPromptHistory as unknown[]).length
+                : 0;
+              return (
+                <div className="flex flex-wrap gap-1 justify-end">
+                  {hasBrand ? (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500/10 text-green-500 border border-green-500/30">
+                      ✓ Brand
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-500/10 text-zinc-400 border border-zinc-500/30">
+                      ✗ No Brand
+                    </span>
+                  )}
+                  {sd?.locked && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/10 text-yellow-500 border border-yellow-500/30">
+                      🔒 Locked
+                    </span>
+                  )}
+                  {hasBrand && !hasBrandContext && (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 cursor-help"
+                      title="Brand exists but missing context — re-generate may need re-selection"
+                    >
+                      ⚠ Legacy
+                    </span>
+                  )}
+                  {historyCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-muted text-muted-foreground border border-border/40">
+                      {historyCount} prompt{historyCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
+          </SummaryRow>
         </div>
       </SectionCard>
 
