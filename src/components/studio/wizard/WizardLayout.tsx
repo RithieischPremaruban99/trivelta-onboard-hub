@@ -118,8 +118,12 @@ export function WizardLayout({ clientId }: Props) {
   }
 
   function handleNext() {
-    const total = getTotalSteps(state);
-    if (typeof state.step === "number" && state.step < total) {
+    // Use REAL max step per path, not the display total
+    // Logo path has 4 actual steps (skips Personality)
+    // Fresh path has 5 actual steps
+    const realMaxStep = state.brandIdentityChoice === "fresh" ? 5 : 4;
+
+    if (typeof state.step === "number" && state.step < realMaxStep) {
       setState({ ...state, step: (state.step + 1) as WizardStep });
     } else {
       setState({ ...state, step: "complete" });
