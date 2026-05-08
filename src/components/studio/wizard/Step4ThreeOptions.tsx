@@ -432,11 +432,13 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
           </div>
         </div>
 
-        {/* Bonus banner — uses primaryButton like Studio's actual rendering */}
+        {/* Bonus banner */}
         <div
           className="px-2 py-1.5 text-center font-semibold"
           style={{
-            background: palette.primaryButton,
+            background: palette.secondary
+              ? `linear-gradient(135deg, ${palette.primaryButton}, ${palette.secondary})`
+              : palette.primaryButton,
             color: palette.darkTextColor,
           }}
         >
@@ -445,18 +447,24 @@ function PaletteCardPreview({ palette, reasoning }: PaletteCardPreviewProps) {
 
         {/* CTA buttons */}
         <div className="px-2 py-2 flex gap-1.5">
-          {["🔥 BetBuilder", "⇄ Peer-to-Peer"].map((label) => (
-            <div
-              key={label}
-              className="flex-1 rounded text-center py-1 font-bold"
-              style={{
-                backgroundColor: palette.activeSecondaryGradientColor ?? palette.primaryButton,
-                color: palette.darkTextColor,
-              }}
-            >
-              {label}
-            </div>
-          ))}
+          <div
+            className="flex-1 rounded text-center py-1 font-bold"
+            style={{
+              backgroundColor: palette.activeSecondaryGradientColor ?? palette.primaryButton,
+              color: palette.darkTextColor,
+            }}
+          >
+            🔥 BetBuilder
+          </div>
+          <div
+            className="flex-1 rounded text-center py-1 font-bold"
+            style={{
+              backgroundColor: palette.secondary ?? palette.primaryButton,
+              color: palette.darkTextColor,
+            }}
+          >
+            ⇄ Peer-to-Peer
+          </div>
         </div>
 
         {/* Live game card */}
