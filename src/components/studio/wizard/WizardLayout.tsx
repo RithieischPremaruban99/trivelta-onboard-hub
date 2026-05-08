@@ -79,9 +79,26 @@ export function WizardLayout({ clientId }: Props) {
       const saved = data.studio_config as any;
       const ctx = saved.brandContext;
 
+      // Determine path and target step based on prefilled data completeness
+      const hasLogo = !!saved.logoUrl;
+      const hasPersonality = !!ctx?.targetPersonality;
+      const hasCountry = !!ctx?.targetCountry;
+      const hasBrief = !!saved.brandPromptHistory?.[0]?.prompt;
+
+      // Jump to Brief step if enough context is prefilled (user adjusts + regenerates)
+      // Logo path: step 3 = Brief+Logo; Fresh path: step 4 = Brief
+      let targetStep: WizardStep = 1;
+      if (hasCountry && (hasLogo || hasPersonality) && hasBrief) {
+        targetStep = hasLogo ? 3 : 4;
+      } else if (hasCountry && (hasLogo || hasPersonality)) {
+        targetStep = hasLogo ? 3 : 4;
+      } else if (hasCountry) {
+        targetStep = 2;
+      }
+
       setState((prev) => ({
         ...prev,
-        step: 1,
+        step: targetStep,
         ...(ctx?.targetCountry && { targetCountry: ctx.targetCountry }),
         isMultiMarket: ctx?.isMultiMarket ?? false,
         ...(ctx?.targetPersonality && { targetPersonality: ctx.targetPersonality }),
@@ -89,7 +106,7 @@ export function WizardLayout({ clientId }: Props) {
         ...(saved.brandPromptHistory?.[0]?.prompt && {
           brandPrompt: saved.brandPromptHistory[0].prompt,
         }),
-        brandIdentityChoice: saved.logoUrl ? "logo" : "fresh",
+        brandIdentityChoice: hasLogo ? "logo" : (hasPersonality ? "fresh" : undefined),
         ...(saved.logoUrl && { logoUrl: saved.logoUrl }),
       }));
     })();
