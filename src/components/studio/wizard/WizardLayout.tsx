@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, X } from "lucide-react";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
+import { supabase } from "@/integrations/supabase/client";
 import { loadWizardState, saveWizardState } from "@/lib/wizard-state";
 import { Step1CountryPicker } from "./Step1CountryPicker";
 import { Step2BrandIdentityChoice } from "./Step2BrandIdentityChoice";
@@ -30,6 +31,9 @@ function getStepLabel(state: WizardState): string {
 
 export function WizardLayout({ clientId }: Props) {
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { regenerate?: string };
+  const isRegenerateMode = search.regenerate === "true";
+
   const [state, setState] = useState<WizardState>({ step: 1 });
   const [hydrated, setHydrated] = useState(false);
 
@@ -38,6 +42,38 @@ export function WizardLayout({ clientId }: Props) {
     if (stored) setState(stored);
     setHydrated(true);
   }, [clientId]);
+
+  // Prefill from existing studio_config when in regenerate mode
+  useEffect(() => {
+    if (!isRegenerateMode || !clientId) return;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("onboarding_forms")
+        .select("studio_config")
+        .eq("client_id", clientId)
+        .maybeSingle();
+
+      if (error || !data?.studio_config) return;
+
+      const saved = data.studio_config as any;
+      const ctx = saved.brandContext;
+
+      setState((prev) => ({
+        ...prev,
+        step: 1,
+        ...(ctx?.targetCountry && { targetCountry: ctx.targetCountry }),
+        isMultiMarket: ctx?.isMultiMarket ?? false,
+        ...(ctx?.targetPersonality && { targetPersonality: ctx.targetPersonality }),
+        ...(ctx?.targetPlatformType && { targetPlatformType: ctx.targetPlatformType }),
+        ...(saved.brandPromptHistory?.[0]?.prompt && {
+          brandPrompt: saved.brandPromptHistory[0].prompt,
+        }),
+        brandIdentityChoice: saved.logoUrl ? "logo" : "fresh",
+        ...(saved.logoUrl && { logoUrl: saved.logoUrl }),
+      }));
+    })();
+  }, [isRegenerateMode, clientId]);
 
   useEffect(() => {
     if (!hydrated) return;

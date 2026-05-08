@@ -38,6 +38,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Sparkles,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -162,6 +163,17 @@ function StudioPreviewPage() {
         setInitialLockedAt(data.studio_locked_at ?? null);
       }
 
+      // Redirect to wizard if no brand has been generated yet
+      const hasBrand =
+        data?.studio_config &&
+        typeof data.studio_config === "object" &&
+        ((data.studio_config as any).palette || (data.studio_config as any).colors);
+
+      if (!hasBrand) {
+        navigate({ to: `/onboarding/${clientId}/wizard`, replace: true });
+        return;
+      }
+
       setReady(true);
     })();
   }, [authLoading, user, clientId, isAdmin]);
@@ -246,8 +258,9 @@ function StudioPreviewPage() {
   /* Loading */
   if (authLoading || !ready) {
     return (
-      <div className="min-h-screen grid place-items-center">
+      <div className="min-h-screen grid place-items-center gap-3">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <p className="text-xs text-muted-foreground">Detecting your brand…</p>
       </div>
     );
   }
@@ -388,6 +401,7 @@ function AdminPreviewPill({
 }) {
   const [open, setOpen] = useState(false);
   const pillRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Close popover on outside click
   useEffect(() => {
@@ -476,6 +490,22 @@ function AdminPreviewPill({
                 )}
                 <span>Design: <strong>{studioAccessLocked ? "Locked" : "Unlocked"}</strong></span>
                 <span className="ml-auto text-amber-600 text-[10px]">toggle</span>
+              </button>
+
+              {/* Re-generate brand */}
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  navigate({
+                    to: `/onboarding/${clientId}/wizard`,
+                    search: { regenerate: "true" } as any,
+                  });
+                }}
+                className="flex w-full items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-[11px] font-medium transition-colors hover:bg-amber-100"
+                title="Re-generate brand with AI Wizard"
+              >
+                <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <span>Re-generate Brand</span>
               </button>
             </div>
 
