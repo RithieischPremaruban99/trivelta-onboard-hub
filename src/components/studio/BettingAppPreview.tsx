@@ -2603,9 +2603,9 @@ const MobilePreview = React.memo(function MobilePreview({
             <button
               className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
               style={{
-                background: "var(--p-active-secondary-gradient-color)",
+                background: palette.secondary ? "var(--p-secondary)" : "var(--p-active-secondary-gradient-color)",
                 border: "1px solid var(--p-primary)",
-                color: pickContrastText(palette.activeSecondaryGradientColor),
+                color: palette.secondary ? pickContrastText(palette.secondary) : pickContrastText(palette.activeSecondaryGradientColor),
               }}
             >
               <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
@@ -3422,9 +3422,9 @@ function SportsView({
           <button
             className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
             style={{
-              background: "var(--p-active-secondary-gradient-color)",
+              background: palette.secondary ? "var(--p-secondary)" : "var(--p-active-secondary-gradient-color)",
               border: "1px solid var(--p-primary)",
-              color: pickContrastText(palette.activeSecondaryGradientColor),
+              color: palette.secondary ? pickContrastText(palette.secondary) : pickContrastText(palette.activeSecondaryGradientColor),
             }}
           >
             <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
