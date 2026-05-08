@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeft, Lock, X } from "lucide-react";
+import { ArrowLeft, Info, Lock, X } from "lucide-react";
 import { toast } from "sonner";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { useAuth } from "@/lib/auth-context";
@@ -61,6 +61,7 @@ export function WizardLayout({ clientId }: Props) {
 
   const [state, setState] = useState<WizardState>({ step: 1 });
   const [hydrated, setHydrated] = useState(false);
+  const [isLegacyBrandRegenerate, setIsLegacyBrandRegenerate] = useState(false);
   const [lockStatus, setLockStatus] = useState<{ locked: boolean; checkedAt: Date | null }>({
     locked: false,
     checkedAt: null,
@@ -87,6 +88,12 @@ export function WizardLayout({ clientId }: Props) {
 
       const saved = data.studio_config as any;
       const ctx = saved.brandContext;
+
+      // Detect legacy brand (pre-brandContext-persistence): has palette but no brandContext
+      const isLegacyBrand = !!saved.palette && !ctx;
+      if (isLegacyBrand) {
+        setIsLegacyBrandRegenerate(true);
+      }
 
       // Determine path and target step based on prefilled data completeness
       const hasLogo = !!saved.logoUrl;
@@ -367,6 +374,21 @@ export function WizardLayout({ clientId }: Props) {
                 <div className="text-yellow-500/80 text-[13px]">
                   Re-generating will overwrite the locked design. Proceed only if
                   this is an authorized change (e.g. client-requested rebrand).
+                </div>
+              </div>
+            </div>
+          )}
+          {isLegacyBrandRegenerate && !lockStatus.locked && (
+            <div className="border border-blue-500/40 bg-blue-500/10 rounded-lg px-4 py-3 mb-4 flex items-start gap-3">
+              <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+              <div className="flex-1 text-sm">
+                <div className="font-semibold text-blue-500 mb-0.5">
+                  Re-generating an existing brand
+                </div>
+                <div className="text-blue-500/80 text-[13px]">
+                  This brand was created before some context was tracked. Your
+                  previous brief will be prefilled, but please confirm market
+                  and personality settings as you go.
                 </div>
               </div>
             </div>
