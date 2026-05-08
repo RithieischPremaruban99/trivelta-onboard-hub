@@ -1383,6 +1383,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
           <SportsListing
             sport={selectedSportSchedule}
             onMatchClick={(id) => {
+              // Detail view only supported for nba/football today; tennis is a no-op.
+              if (selectedSportSchedule === "tennis") return;
               setSelectedMatchId(id);
               setSportsViewMode("detail");
             }}
