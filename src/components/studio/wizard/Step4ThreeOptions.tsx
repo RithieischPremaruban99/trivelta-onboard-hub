@@ -234,6 +234,20 @@ export function Step4ThreeOptions({
     generateOption(2);
   }, [generateOption]);
 
+  const handleRegenerate = useCallback(() => {
+    setOptions([
+      { status: "idle", palette: null, summaryText: "", streamingText: "" },
+      { status: "idle", palette: null, summaryText: "", streamingText: "" },
+      { status: "idle", palette: null, summaryText: "", streamingText: "" },
+    ]);
+    setSelectedIndex(null);
+    setTimeout(() => {
+      generateOption(0);
+      generateOption(1);
+      generateOption(2);
+    }, 50);
+  }, [generateOption]);
+
   async function handleSelect(index: number) {
     const opt = options[index];
     if (opt.status !== "done" || !opt.palette || saving) return;
@@ -351,8 +365,17 @@ export function Step4ThreeOptions({
         >
           ← Back
         </Button>
-        {allSettled && selectedIndex === null && (
-          <p className="text-xs text-muted-foreground">Select a palette to continue to Studio</p>
+
+        {options.some((o) => o.status === "done" || o.status === "error") && (
+          <Button
+            variant="outline"
+            onClick={handleRegenerate}
+            disabled={options.some((o) => o.status === "loading" || o.status === "streaming") || saving}
+            className="h-11 px-6 bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground gap-2"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Generate 3 New Options
+          </Button>
         )}
       </div>
     </div>

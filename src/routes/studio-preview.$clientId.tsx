@@ -38,7 +38,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Sparkles,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -401,7 +400,6 @@ function AdminPreviewPill({
 }) {
   const [open, setOpen] = useState(false);
   const pillRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   // Close popover on outside click
   useEffect(() => {
@@ -492,21 +490,6 @@ function AdminPreviewPill({
                 <span className="ml-auto text-amber-600 text-[10px]">toggle</span>
               </button>
 
-              {/* Re-generate brand */}
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  navigate({
-                    to: `/onboarding/${clientId}/wizard`,
-                    search: { regenerate: "true" } as any,
-                  });
-                }}
-                className="flex w-full items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-[11px] font-medium transition-colors hover:bg-amber-100"
-                title="Re-generate brand with AI Wizard"
-              >
-                <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
-                <span>Re-generate Brand</span>
-              </button>
             </div>
 
             {/* Links */}
