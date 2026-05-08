@@ -1398,7 +1398,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
           <div
             className="rounded-lg p-3 mb-3 relative overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
+              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-secondary))",
             }}
           >
             <div
@@ -2462,7 +2462,7 @@ const MobilePreview = React.memo(function MobilePreview({
         <div
           className="rounded-lg p-3 mb-3 relative"
           style={{
-            background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
+            background: "linear-gradient(135deg, var(--p-primary-button), var(--p-secondary))",
             border: "1px solid var(--p-primary)",
           }}
         >
