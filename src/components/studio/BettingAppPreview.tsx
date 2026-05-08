@@ -2422,19 +2422,42 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             );
           })}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-medium" style={{ color: "var(--p-light-text-color)" }}>
-            {strings.SIGN_IN}
-          </span>
-          <button
-            className="h-7 px-3 rounded-md text-[10px] font-bold"
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center gap-1.5 px-2.5 h-7 rounded-full"
             style={{
-              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
-              color: "var(--p-light-text-color)",
+              background: "var(--p-dark-container-background)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
             }}
           >
-            {strings.CREATE_ACCOUNT}
-          </button>
+            <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+              {currencySymbol}
+            </span>
+            <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text-secondary-color)" }}>
+              ---
+            </span>
+            <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+            <div
+              className="h-4 w-4 rounded-full grid place-items-center"
+              style={{ background: "var(--p-primary)" }}
+            >
+              <Plus className="h-2.5 w-2.5" strokeWidth={3} style={{ color: pickContrastText(palette.primary) }} />
+            </div>
+          </div>
+          <div className="relative">
+            <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+            <span
+              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
+              style={{ background: "var(--p-primary)" }}
+            />
+          </div>
+          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+          <div
+            className="h-7 w-7 rounded-full grid place-items-center text-[9px] font-black"
+            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+          >
+            {appName.slice(0, 2).toUpperCase()}
+          </div>
         </div>
       </div>
 
