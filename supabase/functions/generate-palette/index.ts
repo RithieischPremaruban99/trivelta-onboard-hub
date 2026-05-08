@@ -227,20 +227,40 @@ function getCountryContext(iso: string): string | null {
 }
 
 const BRAND_PERSONALITIES: Record<string, string> = {
-  "modern-crypto": `BRAND PERSONALITY HINT: Modern Crypto.
-Reference: Stake, Roobet, Rollbit aesthetic. Cool tones (teal, navy, electric accents), sleek minimalism, dark base preferred. Avoid: warm earth tones, gold-dominant palettes, traditional casino glamour. Note: this is a HINT — if the brief explicitly contradicts (e.g., "warm Mexican aesthetic"), weight the brief higher.`,
+  "modern-crypto": `BRAND PERSONALITY: Modern Crypto.
+Reference: Stake, Roobet, Rollbit aesthetic.
+PREFERRED PRIMARY COLOR FAMILY: teal (#00D4B4–#00C2A8), cyan, electric blue, vibrant indigo, neon mint.
+AVOID PRIMARY COLORS: gold, warm orange, deep red, burgundy, traditional casino reds, muted earth tones.
+DIFFERENTIATION RULE: this option must feel SLEEK, MODERN, CRYPTO-NATIVE — distinct from any Luxury Premium or Classic Casino interpretation. If brief is generic, lean fully into crypto aesthetic.
+Note: if the brief EXPLICITLY contradicts (e.g., "warm Mexican aesthetic"), weight the brief higher — but never blend personalities.`,
 
-  "classic-casino": `BRAND PERSONALITY HINT: Classic Casino.
-Reference: Bet365, Caesars, MGM aesthetic. Gold + deep red/midnight, traditional luxury, ornate accents, established trust signals. Avoid: too-modern minimalism, neon colors, crypto-native cool palettes. Note: this is a HINT — if the brief explicitly modernizes (e.g., "fresh take on classic"), weight the brief higher.`,
+  "classic-casino": `BRAND PERSONALITY: Classic Casino.
+Reference: Bet365, Caesars, MGM aesthetic.
+PREFERRED PRIMARY COLOR FAMILY: burgundy red (#8B0000–#A52A2A), royal navy (#1E3A8A–#2A4A9E), deep midnight, ornate gold-accented dark.
+AVOID PRIMARY COLORS: crypto teals, neon brights, electric cyans, modern minimalist whites, mass-market warm oranges.
+DIFFERENTIATION RULE: this option must feel TRADITIONAL, ORNATE, ESTABLISHED — distinct from any Modern Crypto or Mass Market interpretation. Lean into Vegas-tradition gravitas.
+Note: if the brief explicitly modernizes (e.g., "fresh take on classic"), weight the brief higher — but never blend personalities.`,
 
-  "challenger": `BRAND PERSONALITY HINT: Challenger.
-Reference: Pinnacle, Smarkets aesthetic. Bold accent + monochrome base, unexpected color combinations, anti-mainstream positioning. Avoid: industry-standard palettes (no premium-purple, no Hollywoodbets-purple-gold, no Bet9ja-green). Note: this is a HINT — if the brief asks for warmth or accessibility, weight the brief higher.`,
+  "challenger": `BRAND PERSONALITY: Challenger.
+Reference: FanDuel disruptor energy, BetMGM challenger positioning, bold market-entrant aesthetic.
+PREFERRED PRIMARY COLOR FAMILY: vibrant orange (#FF6B00–#FF8C00), hot magenta, electric red (#E63946), saturated yellow-orange.
+AVOID PRIMARY COLORS: muted teals, conservative blues, traditional gold, sophisticated dark palettes.
+DIFFERENTIATION RULE: this option must feel ENERGETIC, BRASH, CONFRONTATIONAL — distinct from any Modern Crypto or Luxury Premium interpretation. High saturation, high confidence.
+Note: never produce muted or sophisticated palettes for Challenger — that breaks the personality.`,
 
-  "luxury-premium": `BRAND PERSONALITY HINT: Luxury Premium.
-Reference: Hollywoodbets premium tier, Tsogo Sun aesthetic. Sophisticated dark base + jewel tones, VIP-feel, gold/silver accents, hospitality-grade refinement. Avoid: mass-market bright primaries, casual aesthetics. Note: this is a HINT — if the brief explicitly modernizes or goes minimal, weight the brief higher.`,
+  "luxury-premium": `BRAND PERSONALITY: Luxury Premium.
+Reference: Hollywoodbets premium tier, Tsogo Sun aesthetic, hospitality-grade refinement.
+PREFERRED PRIMARY COLOR FAMILY: deep purple (#4A1A4D–#6B2D6E), burgundy, gold-tinged dark, jewel-tone navy, refined emerald.
+AVOID PRIMARY COLORS: neon brights, electric crypto cyans, mass-market warm oranges, basic primaries.
+DIFFERENTIATION RULE: this option must feel ESTABLISHED, REFINED, HOSPITALITY-GRADE — distinct from any Modern Crypto or Challenger interpretation. Sophisticated dark base, jewel-tone primary, gold or silver accent.
+Note: if the brief asks for minimalism, you can simplify but never lose the premium feel.`,
 
-  "mass-market": `BRAND PERSONALITY HINT: Mass Market.
-Style: Bold primary colors (saturated greens, reds, oranges depending on logo/brief), high-contrast accessible UI, energetic athletic feel, mobile-first mass-appeal. The trust-and-energy aesthetic that dominates emerging markets. Avoid: muted/sophisticated palettes, jewel tones, crypto-cool minimalism, gold-dominant luxury. Embrace: bright primaries that signal trust and excitement at mobile-first scale. Note: Reference brands exist in many emerging markets (each market has its own dominant Mass Market operators). Do NOT name specific brands or markets in your reasoning — focus on the user's stated target country. (Note: if logoUrl is provided, this personality affects style/saturation only — hue follows the logo's color family per LOGO-DOMINANT MODE rules.)`,
+  "mass-market": `BRAND PERSONALITY: Mass Market.
+Reference: Hollywoodbets standard tier, broad-appeal operator aesthetic.
+PREFERRED PRIMARY COLOR FAMILY: warm orange (#FF6B00–#FF8400), accessible blue (#1E88E5), friendly green (#43A047), confident red.
+AVOID PRIMARY COLORS: crypto-cool tones, luxury dark navies, ornate gold-dominant palettes, niche crypto cyans.
+DIFFERENTIATION RULE: this option must feel APPROACHABLE, BROAD-APPEAL, ACCESSIBLE — distinct from any Modern Crypto or Luxury Premium interpretation. Warm primary, dark base, no premium pretensions.
+Note: weight brief higher if it explicitly contradicts.`,
 };
 
 const LOGO_DOMINANT_HINT = `LOGO-DOMINANT MODE:
@@ -1097,8 +1117,17 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
     }
   }
 
-  // Personality: HINT — AI weights against brief
+  // Personality: strong differentiation instruction + personality block
   if (req.targetPersonality) {
+    parts.push(`CRITICAL DIFFERENTIATION INSTRUCTION:
+You are generating ONE of three palette options for the user. Each option corresponds to a different brand personality. Your output for this option MUST visibly differ from how the other personalities would interpret the same brief.
+
+If you are generating a Modern Crypto option, the result must NOT look interchangeable with a Challenger or Luxury Premium output.
+If you are generating a Challenger option, primary colors must be markedly more saturated and warmer than crypto options.
+If you are generating a Luxury Premium option, the palette must feel distinctly more sophisticated and dark than mass-market or challenger.
+
+The user explicitly chose to see DIFFERENT personality interpretations. Generating similar palettes across personalities defeats the wizard's purpose.`);
+
     const persCtx = getPersonalityContext(req.targetPersonality);
     if (persCtx) parts.push(persCtx);
   }
