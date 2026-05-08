@@ -4,23 +4,29 @@ import { ArrowLeft, X } from "lucide-react";
 import { TriveltaLogo } from "@/components/TriveltaLogo";
 import { loadWizardState, saveWizardState } from "@/lib/wizard-state";
 import { Step1CountryPicker } from "./Step1CountryPicker";
+import { Step2BrandIdentityChoice } from "./Step2BrandIdentityChoice";
 import { Step2PersonalityPicker } from "./Step2PersonalityPicker";
 import { Step3BriefInput } from "./Step3BriefInput";
 import { Step4ThreeOptions } from "./Step4ThreeOptions";
-import type { WizardState, WizardStep } from "./wizard-types";
+import type { BrandIdentityChoice, WizardState, WizardStep } from "./wizard-types";
+import { getTotalSteps } from "./wizard-types";
 
 interface Props {
   clientId: string;
 }
 
-const STEP_LABELS: Record<number, string> = {
-  1: "Where will you launch?",
-  2: "Brand Personality",
-  3: "Describe Your Brand",
-  4: "Choose Your Options",
+const STEP_LABELS: Record<number, { logo: string; fresh: string }> = {
+  1: { logo: "Where will you launch?",              fresh: "Where will you launch?" },
+  2: { logo: "How do you want to define your brand?", fresh: "How do you want to define your brand?" },
+  3: { logo: "Tell us about your brand",            fresh: "Choose your brand style" },
+  4: { logo: "Choose your options",                 fresh: "Tell us about your brand" },
+  5: { logo: "",                                    fresh: "Choose your options" },
 };
 
-const TOTAL_STEPS = 4;
+function getStepLabel(state: WizardState): string {
+  const path = state.brandIdentityChoice === "fresh" ? "fresh" : "logo";
+  return STEP_LABELS[state.step as number]?.[path] ?? "";
+}
 
 export function WizardLayout({ clientId }: Props) {
   const navigate = useNavigate();
@@ -38,8 +44,10 @@ export function WizardLayout({ clientId }: Props) {
     saveWizardState(clientId, state);
   }, [clientId, state, hydrated]);
 
-  const stepNumber = state.step === "complete" ? TOTAL_STEPS : (state.step as number);
-  const progressPct = (stepNumber / TOTAL_STEPS) * 100;
+  const totalSteps = getTotalSteps(state);
+  const currentStepNum = typeof state.step === "number" ? state.step : totalSteps;
+  const progressPct = (currentStepNum / totalSteps) * 100;
+  const stepLabel = getStepLabel(state);
 
   function setStep(step: WizardStep) {
     setState((s) => ({ ...s, step }));
@@ -54,43 +62,60 @@ export function WizardLayout({ clientId }: Props) {
   }
 
   function handleNext() {
-    if (typeof state.step === "number" && state.step < TOTAL_STEPS) {
-      setStep((state.step + 1) as WizardStep);
+    const total = getTotalSteps(state);
+    if (typeof state.step === "number" && state.step < total) {
+      setState({ ...state, step: (state.step + 1) as WizardStep });
     } else {
-      setStep("complete");
+      setState({ ...state, step: "complete" });
       navigate({ to: `/studio-preview/${clientId}` });
     }
   }
 
+  function handleBrandIdentityChoice(choice: BrandIdentityChoice) {
+    setState({ ...state, brandIdentityChoice: choice });
+  }
+
   function renderStep() {
-    switch (state.step) {
-      case 1:
-        return (
-          <Step1CountryPicker
-            selectedIso={state.targetCountry}
-            isMultiMarket={state.isMultiMarket ?? false}
-            onSelect={(iso, isMulti) =>
-              setState((s) => ({ ...s, targetCountry: iso, isMultiMarket: isMulti }))
-            }
-            onNext={handleNext}
-          />
-        );
-      case 2:
+    if (state.step === 1) {
+      return (
+        <Step1CountryPicker
+          selectedIso={state.targetCountry}
+          isMultiMarket={state.isMultiMarket ?? false}
+          onSelect={(iso, isMulti) =>
+            setState((s) => ({ ...s, targetCountry: iso, isMultiMarket: isMulti }))
+          }
+          onNext={handleNext}
+        />
+      );
+    }
+
+    if (state.step === 2) {
+      return (
+        <Step2BrandIdentityChoice
+          selectedChoice={state.brandIdentityChoice}
+          onSelect={handleBrandIdentityChoice}
+          onBack={handleBack}
+          onNext={handleNext}
+        />
+      );
+    }
+
+    // Steps 3+ branch by brandIdentityChoice
+    if (state.brandIdentityChoice === "fresh") {
+      // Fresh path: 5 steps — Step 3 = Personality, Step 4 = Brief, Step 5 = Options
+      if (state.step === 3) {
         return (
           <Step2PersonalityPicker
             selectedPersonality={state.targetPersonality}
             selectedPlatformType={state.targetPlatformType}
-            onSelectPersonality={(personality) =>
-              setState((s) => ({ ...s, targetPersonality: personality }))
-            }
-            onSelectPlatformType={(type) =>
-              setState((s) => ({ ...s, targetPlatformType: type }))
-            }
+            onSelectPersonality={(p) => setState((s) => ({ ...s, targetPersonality: p }))}
+            onSelectPlatformType={(pt) => setState((s) => ({ ...s, targetPlatformType: pt }))}
             onBack={handleBack}
             onNext={handleNext}
           />
         );
-      case 3:
+      }
+      if (state.step === 4) {
         return (
           <Step3BriefInput
             clientId={clientId}
@@ -98,22 +123,17 @@ export function WizardLayout({ clientId }: Props) {
             logoUrl={state.logoUrl}
             selectedCountry={state.targetCountry}
             isMultiMarket={state.isMultiMarket ?? false}
-            selectedPlatformType={state.targetPlatformType}
             selectedPersonality={state.targetPersonality}
-            onChangeBrief={(text) =>
-              setState((s) => ({ ...s, brandPrompt: text }))
-            }
-            onLogoUploaded={(url) =>
-              setState((s) => ({ ...s, logoUrl: url }))
-            }
-            onLogoRemoved={() =>
-              setState((s) => ({ ...s, logoUrl: undefined }))
-            }
+            selectedPlatformType={state.targetPlatformType}
+            onChangeBrief={(text) => setState((s) => ({ ...s, brandPrompt: text }))}
+            onLogoUploaded={(url) => setState((s) => ({ ...s, logoUrl: url }))}
+            onLogoRemoved={() => setState((s) => ({ ...s, logoUrl: undefined }))}
             onBack={handleBack}
             onNext={handleNext}
           />
         );
-      case 4:
+      }
+      if (state.step === 5) {
         if (!state.targetPersonality) {
           return (
             <div className="text-center text-muted-foreground text-sm py-10">
@@ -134,13 +154,54 @@ export function WizardLayout({ clientId }: Props) {
             onNext={handleNext}
           />
         );
-      default:
-        return null;
+      }
     }
-  }
 
-  const currentStepNum = typeof state.step === "number" ? state.step : TOTAL_STEPS;
-  const stepLabel = STEP_LABELS[currentStepNum] ?? "";
+    if (state.brandIdentityChoice === "logo") {
+      // Logo path: 4 steps — Step 3 = Brief + Logo, Step 4 = Options
+      if (state.step === 3) {
+        return (
+          <Step3BriefInput
+            clientId={clientId}
+            brandPrompt={state.brandPrompt ?? ""}
+            logoUrl={state.logoUrl}
+            selectedCountry={state.targetCountry}
+            isMultiMarket={state.isMultiMarket ?? false}
+            selectedPersonality={state.targetPersonality}
+            selectedPlatformType={state.targetPlatformType}
+            onChangeBrief={(text) => setState((s) => ({ ...s, brandPrompt: text }))}
+            onLogoUploaded={(url) => setState((s) => ({ ...s, logoUrl: url }))}
+            onLogoRemoved={() => setState((s) => ({ ...s, logoUrl: undefined }))}
+            onBack={handleBack}
+            onNext={handleNext}
+          />
+        );
+      }
+      if (state.step === 4) {
+        return (
+          <Step4ThreeOptions
+            clientId={clientId}
+            brandPrompt={state.brandPrompt ?? ""}
+            logoUrl={state.logoUrl}
+            selectedCountry={state.targetCountry}
+            isMultiMarket={state.isMultiMarket ?? false}
+            selectedPlatformType={state.targetPlatformType}
+            // Logo path has no personality step; logo-mode override in Step4 ignores it anyway
+            selectedPersonality={state.targetPersonality ?? "modern-crypto"}
+            onBack={handleBack}
+            onNext={handleNext}
+          />
+        );
+      }
+    }
+
+    // Fallback: brandIdentityChoice not yet set but step > 2 (shouldn't happen in normal flow)
+    return (
+      <div className="text-center text-zinc-400 text-sm py-10">
+        Please go back and select an identity option.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -150,7 +211,7 @@ export function WizardLayout({ clientId }: Props) {
 
         <div className="flex flex-col items-center gap-1.5 flex-1 mx-8">
           <span className="micro-label">
-            Step {currentStepNum} of {TOTAL_STEPS}: {stepLabel}
+            Step {currentStepNum} of {totalSteps}: {stepLabel}
           </span>
           <div className="w-full max-w-xs h-1.5 bg-muted rounded-full overflow-hidden">
             <div

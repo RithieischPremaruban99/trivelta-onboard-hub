@@ -1,4 +1,4 @@
-export type WizardStep = 1 | 2 | 3 | 4 | "complete";
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | "complete";
 
 export type BrandPersonality =
   | "modern-crypto"
@@ -9,14 +9,21 @@ export type BrandPersonality =
 
 export type PlatformType = "sportsbook" | "casino" | "both";
 
+export type BrandIdentityChoice = "logo" | "fresh";
+
 export interface WizardState {
   step: WizardStep;
+  brandIdentityChoice?: BrandIdentityChoice;
   targetCountry?: string;
   isMultiMarket?: boolean;        // distinguishes "Multi-Market chosen" from "nothing chosen yet"
   targetPersonality?: BrandPersonality;
   targetPlatformType?: PlatformType;
   brandPrompt?: string;
   logoUrl?: string;
+}
+
+export function getTotalSteps(state: WizardState): number {
+  return state.brandIdentityChoice === "fresh" ? 5 : 4;
 }
 
 export interface CountryEntry {
