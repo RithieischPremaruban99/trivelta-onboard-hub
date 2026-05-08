@@ -1289,11 +1289,97 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
   };
 
 
+  /* All-Sports left sidebar (reused across schedule, detail, and main views) */
+  const renderSportsSidebar = () => (
+    <aside
+      className="w-[170px] border-r flex flex-col flex-shrink-0"
+      style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+    >
+      <div className="px-2.5 py-2">
+        <div
+          className="flex items-center gap-1.5 px-2 h-6 rounded-md"
+          style={{
+            background: "var(--p-dark-container-background)",
+            border: "1px solid var(--p-border-and-gradient-bg)",
+          }}
+        >
+          <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+          <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+            {strings.SEARCH}
+          </span>
+        </div>
+      </div>
+      <div
+        className="px-3 pb-1 text-[9px] font-semibold"
+        style={{ color: "var(--p-text-secondary-color)" }}
+      >
+        {strings.ALL_SPORTS}
+      </div>
+      <div className="flex-1 overflow-auto px-1.5">
+        {getSportsSidebar(strings).map((s, i) => {
+          const active = activeSportSidebar === i;
+          return (
+            <button
+              key={s.name}
+              onClick={() => {
+                setActiveSportSidebar(i);
+                if (s.name === strings.BASKETBALL) {
+                  setSelectedSportSchedule("nba");
+                  setSportsViewMode("schedule");
+                } else if (s.name === strings.SOCCER) {
+                  setSelectedSportSchedule("football");
+                  setSportsViewMode("schedule");
+                } else if (s.name === strings.TENNIS) {
+                  setSelectedSportSchedule("tennis");
+                  setSportsViewMode("schedule");
+                }
+              }}
+              className="w-full flex items-center gap-1.5 px-1.5 h-7 rounded-md mb-0.5 text-left transition-colors"
+              style={{
+                background: active
+                  ? "var(--p-active-secondary-gradient-color)"
+                  : "transparent",
+                border: active ? "1px solid var(--p-primary)" : "1px solid transparent",
+              }}
+            >
+              <span
+                className="h-3 w-3 rounded border"
+                style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+              />
+              <span className="text-[10px]">{s.flag}</span>
+              <span
+                className="flex-1 text-[10px] font-medium"
+                style={{
+                  color: active
+                    ? pickContrastText(palette.activeSecondaryGradientColor)
+                    : "var(--p-light-text-color)",
+                }}
+              >
+                {s.name}
+              </span>
+              <span
+                className="text-[9px] font-semibold"
+                style={{ color: "var(--p-text-secondary-color)" }}
+              >
+                {s.count}
+              </span>
+              <ChevronDown
+                className="h-2.5 w-2.5"
+                style={{ color: "var(--p-text-secondary-color)" }}
+              />
+            </button>
+          );
+        })}
+      </div>
+    </aside>
+  );
+
   /* Sports view (nav index 1) - 3-column layout */
   const renderSportsView = () => {
     if (sportsViewMode === "schedule") {
       return (
         <div className="flex-1 min-h-0 flex">
+          {renderSportsSidebar()}
           <SportsListing
             sport={selectedSportSchedule}
             onMatchClick={(id) => {
@@ -1314,6 +1400,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
     if (sportsViewMode === "detail" && selectedMatchId && selectedSportSchedule !== "tennis") {
       return (
         <div className="flex-1 min-h-0 flex">
+          {renderSportsSidebar()}
           <GameDetail
             matchId={selectedMatchId}
             sport={selectedSportSchedule as "nba" | "football"}
@@ -1330,70 +1417,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
 
     return (
     <div className="flex-1 min-h-0 flex">
-      {/* Left sidebar */}
-      <aside
-        className="w-[170px] border-r flex flex-col flex-shrink-0"
-        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
-      >
-        <div className="px-2.5 py-2">
-          <div
-            className="flex items-center gap-1.5 px-2 h-6 rounded-md"
-            style={{ background: "var(--p-dark-container-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
-          >
-            <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
-            <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
-              {strings.SEARCH}
-            </span>
-          </div>
-        </div>
-        <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
-          {strings.ALL_SPORTS}
-        </div>
-        <div className="flex-1 overflow-auto px-1.5">
-          {getSportsSidebar(strings).map((s, i) => {
-            const active = activeSportSidebar === i;
-            return (
-              <button
-                key={s.name}
-                onClick={() => {
-                  setActiveSportSidebar(i);
-                  if (s.name === strings.BASKETBALL) {
-                    setSelectedSportSchedule("nba");
-                    setSportsViewMode("schedule");
-                  } else if (s.name === strings.SOCCER) {
-                    setSelectedSportSchedule("football");
-                    setSportsViewMode("schedule");
-                  } else if (s.name === strings.TENNIS) {
-                    setSelectedSportSchedule("tennis");
-                    setSportsViewMode("schedule");
-                  }
-                }}
-                className="w-full flex items-center gap-1.5 px-1.5 h-7 rounded-md mb-0.5 text-left"
-                style={{
-                  background: active ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border: active ? "1px solid var(--p-primary)" : "1px solid transparent",
-                }}
-              >
-                <span
-                  className="h-3 w-3 rounded border"
-                  style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
-                />
-                <span className="text-[10px]">{s.flag}</span>
-                <span
-                  className="flex-1 text-[10px] font-medium"
-                  style={{ color: active ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-light-text-color)" }}
-                >
-                  {s.name}
-                </span>
-                <span className="text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
-                  {s.count}
-                </span>
-                <ChevronDown className="h-2.5 w-2.5" style={{ color: "var(--p-text-secondary-color)" }} />
-              </button>
-            );
-          })}
-        </div>
-      </aside>
+      {renderSportsSidebar()}
 
       {/* Center content */}
       <main className="flex-1 min-w-0 overflow-auto">
@@ -2398,19 +2422,42 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             );
           })}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-medium" style={{ color: "var(--p-light-text-color)" }}>
-            {strings.SIGN_IN}
-          </span>
-          <button
-            className="h-7 px-3 rounded-md text-[10px] font-bold"
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center gap-1.5 px-2.5 h-7 rounded-full"
             style={{
-              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
-              color: "var(--p-light-text-color)",
+              background: "var(--p-dark-container-background)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
             }}
           >
-            {strings.CREATE_ACCOUNT}
-          </button>
+            <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+              {strings.CURRENCY_SYMBOL ?? "₦"}
+            </span>
+            <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text-secondary-color)" }}>
+              ---
+            </span>
+            <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+            <div
+              className="h-4 w-4 rounded-full grid place-items-center"
+              style={{ background: "var(--p-primary)" }}
+            >
+              <Plus className="h-2.5 w-2.5" strokeWidth={3} style={{ color: pickContrastText(palette.primary) }} />
+            </div>
+          </div>
+          <div className="relative">
+            <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+            <span
+              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
+              style={{ background: "var(--p-primary)" }}
+            />
+          </div>
+          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+          <div
+            className="h-7 w-7 rounded-full grid place-items-center text-[9px] font-black"
+            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+          >
+            {appName.slice(0, 2).toUpperCase()}
+          </div>
         </div>
       </div>
 
