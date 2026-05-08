@@ -596,7 +596,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
   const [webFeedTab, setWebFeedTab] = useState(0); // 0=Friends, 1=Explore
   const [matchDiscoveryBannerDismissed, setMatchDiscoveryBannerDismissed] = useState(false);
   const [sportsViewMode, setSportsViewMode] = useState<"main" | "schedule" | "detail">("main");
-  const [selectedSportSchedule, setSelectedSportSchedule] = useState<"nba" | "football">("football");
+  const [selectedSportSchedule, setSelectedSportSchedule] = useState<"nba" | "football" | "tennis">("football");
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
   const statusLabel = (s: string) =>
@@ -1311,12 +1311,12 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
       );
     }
 
-    if (sportsViewMode === "detail" && selectedMatchId) {
+    if (sportsViewMode === "detail" && selectedMatchId && selectedSportSchedule !== "tennis") {
       return (
         <div className="flex-1 min-h-0 flex">
           <GameDetail
             matchId={selectedMatchId}
-            sport={selectedSportSchedule}
+            sport={selectedSportSchedule as "nba" | "football"}
             onBack={() => setSportsViewMode("schedule")}
             palette={palette}
             strings={strings}
@@ -1362,6 +1362,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
                     setSportsViewMode("schedule");
                   } else if (s.name === strings.SOCCER) {
                     setSelectedSportSchedule("football");
+                    setSportsViewMode("schedule");
+                  } else if (s.name === strings.TENNIS) {
+                    setSelectedSportSchedule("tennis");
                     setSportsViewMode("schedule");
                   }
                 }}

@@ -1,5 +1,24 @@
 export type SportScheduleType = "nba" | "football" | "basketball" | "tennis";
 
+export type TennisPlayer = {
+  name: string;
+  countryCode: string;
+};
+
+export type TennisMatch = {
+  id: string;
+  playerA: TennisPlayer;
+  playerB: TennisPlayer;
+  oddsA: string;
+  oddsB: string;
+};
+
+export type TennisTournament = {
+  name: string;
+  type: "ATP" | "WTA";
+  matches: TennisMatch[];
+};
+
 export type NbaMatch = {
   id: string;
   date: string;
@@ -51,6 +70,7 @@ export const NBA_BET_TYPES = [
   "HT/FT Result",
   "Will there be overtime",
   "Odd/even (incl. overtime)",
+  "First Basket",
 ];
 
 export const FOOTBALL_BET_TYPES = [
@@ -63,6 +83,36 @@ export const FOOTBALL_BET_TYPES = [
   "Anytime goalscorer",
   "Total corners",
   "Total bookings",
+];
+
+export const TENNIS_BET_TYPES = [
+  "Winner",
+  "Set Winners",
+  "Game O/U",
+  "Home to win a set",
+  "Away to win a set",
+];
+
+export const TENNIS_TOURNAMENT_TABS = [
+  "ATP Rome, Italy Men Singles - ATP",
+  "WTA Rome, Italy Women Singles - WTA",
+];
+
+export const TENNIS_TOURNAMENTS: TennisTournament[] = [
+  {
+    name: "ATP Rome, Italy Men Singles - ATP",
+    type: "ATP",
+    matches: [
+      { id: "tn-1", playerA: { name: "Humbert, Ugo", countryCode: "FR" }, playerB: { name: "Kopriva, Vit", countryCode: "CZ" }, oddsA: "2.65", oddsB: "1.41" },
+      { id: "tn-2", playerA: { name: "Hanfmann, Yannick", countryCode: "DE" }, playerB: { name: "Darderi, Luciano", countryCode: "IT" }, oddsA: "2.28", oddsB: "1.54" },
+      { id: "tn-3", playerA: { name: "Musetti, Lorenzo", countryCode: "IT" }, playerB: { name: "Mpetshi Perricard, Giovanni", countryCode: "FR" }, oddsA: "1.10", oddsB: "5.60" },
+      { id: "tn-4", playerA: { name: "Machac, Tomas", countryCode: "CZ" }, playerB: { name: "Medvedev, Daniil", countryCode: "RU" }, oddsA: "2.23", oddsB: "1.56" },
+      { id: "tn-5", playerA: { name: "Tirante, Thiago Agustin", countryCode: "AR" }, playerB: { name: "Norrie, Cameron", countryCode: "GB" }, oddsA: "2.31", oddsB: "1.52" },
+      { id: "tn-6", playerA: { name: "Rublev, Andrey", countryCode: "RU" }, playerB: { name: "Kecmanovic, Miomir", countryCode: "RS" }, oddsA: "1.39", oddsB: "2.70" },
+      { id: "tn-7", playerA: { name: "Sinner, Jannik", countryCode: "IT" }, playerB: { name: "Ofner, Sebastian", countryCode: "AT" }, oddsA: "1.00", oddsB: "8.80" },
+      { id: "tn-8", playerA: { name: "Khachanov, Karen", countryCode: "RU" }, playerB: { name: "Van de Zandschulp, Botic", countryCode: "NL" }, oddsA: "1.47", oddsB: "2.32" },
+    ],
+  },
 ];
 
 export const NBA_TOP_TABS = ["Schedule", "Players", "Futures"];
