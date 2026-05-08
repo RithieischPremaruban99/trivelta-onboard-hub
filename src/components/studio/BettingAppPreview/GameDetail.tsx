@@ -221,7 +221,12 @@ export function GameDetail({
               {/* Accordion header */}
               <button
                 onClick={() => toggleSection(market.id)}
-                className="w-full flex items-center justify-between px-3.5 py-3 cursor-pointer"
+                className="w-full flex items-center justify-between px-3.5 py-3 cursor-pointer transition-colors"
+                style={{
+                  background: isExpanded
+                    ? "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)"
+                    : "transparent",
+                }}
               >
                 <span
                   className="text-[12px] font-bold"
