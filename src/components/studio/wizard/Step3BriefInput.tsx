@@ -58,7 +58,9 @@ export function Step3BriefInput({
   pathChoice,
 }: Props) {
   const briefLength = brandPrompt.trim().length;
-  const canProceed = briefLength >= MIN_BRIEF_LENGTH;
+  const canProceed =
+    briefLength >= MIN_BRIEF_LENGTH &&
+    !(pathChoice === "logo" && !logoUrl);
 
   const countryEntry = selectedCountry
     ? ALL_COUNTRIES.find((c) => c.iso === selectedCountry)
@@ -101,18 +103,20 @@ export function Step3BriefInput({
         </div>
       </div>
 
-      {/* Logo Upload */}
-      <div className="flex flex-col gap-2">
-        <label className="micro-label">Brand logo (optional)</label>
-        <div className="bg-card border border-border rounded-xl p-5">
-          <LogoUploadField
-            clientId={clientId}
-            currentLogoUrl={logoUrl ?? null}
-            onUploadComplete={onLogoUploaded}
-            onRemove={onLogoRemoved}
-          />
+      {/* Logo Upload — logo path only */}
+      {pathChoice === "logo" && (
+        <div className="flex flex-col gap-2">
+          <label className="micro-label">Brand logo</label>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <LogoUploadField
+              clientId={clientId}
+              currentLogoUrl={logoUrl ?? null}
+              onUploadComplete={onLogoUploaded}
+              onRemove={onLogoRemoved}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Context Summary */}
       <div className="rounded-xl border border-border bg-card p-5">
