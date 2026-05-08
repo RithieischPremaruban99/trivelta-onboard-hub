@@ -229,38 +229,53 @@ function getCountryContext(iso: string): string | null {
 const BRAND_PERSONALITIES: Record<string, string> = {
   "modern-crypto": `BRAND PERSONALITY: Modern Crypto.
 Reference: Stake, Roobet, Rollbit aesthetic.
-PREFERRED PRIMARY COLOR FAMILY: teal (#00D4B4–#00C2A8), cyan, electric blue, vibrant indigo, neon mint.
-AVOID PRIMARY COLORS: gold, warm orange, deep red, burgundy, traditional casino reds, muted earth tones.
-DIFFERENTIATION RULE: this option must feel SLEEK, MODERN, CRYPTO-NATIVE — distinct from any Luxury Premium or Classic Casino interpretation. If brief is generic, lean fully into crypto aesthetic.
-Note: if the brief EXPLICITLY contradicts (e.g., "warm Mexican aesthetic"), weight the brief higher — but never blend personalities.`,
+PREFERRED PRIMARY COLOR FAMILY (MANDATORY): teal / cyan / mint / electric blue. Concrete examples: #00D4B4, #00BFA5, #14B8A6, #06B6D4, #0EA5E9.
+AVOID PRIMARY COLORS (these are reserved for OTHER personalities):
+  - warm orange / coral (= Mass Market territory)
+  - hot magenta / electric pink (= Challenger territory)
+  - burgundy / royal navy (= Classic Casino territory)
+  - deep purple / plum (= Luxury Premium territory)
+DIFFERENTIATION RULE: feel SLEEK, MODERN, CRYPTO-NATIVE. Cool tones only.`,
 
   "classic-casino": `BRAND PERSONALITY: Classic Casino.
 Reference: Bet365, Caesars, MGM aesthetic.
-PREFERRED PRIMARY COLOR FAMILY: burgundy red (#8B0000–#A52A2A), royal navy (#1E3A8A–#2A4A9E), deep midnight, ornate gold-accented dark.
-AVOID PRIMARY COLORS: crypto teals, neon brights, electric cyans, modern minimalist whites, mass-market warm oranges.
-DIFFERENTIATION RULE: this option must feel TRADITIONAL, ORNATE, ESTABLISHED — distinct from any Modern Crypto or Mass Market interpretation. Lean into Vegas-tradition gravitas.
-Note: if the brief explicitly modernizes (e.g., "fresh take on classic"), weight the brief higher — but never blend personalities.`,
+PREFERRED PRIMARY COLOR FAMILY (MANDATORY): burgundy / royal navy / midnight / ornate dark. Concrete examples: #8B0000, #6B0F1A, #1E3A8A, #2C1810, #1A1F3A.
+AVOID PRIMARY COLORS (these are reserved for OTHER personalities):
+  - teal / cyan / mint (= Modern Crypto territory)
+  - warm orange / coral (= Mass Market territory)
+  - hot magenta / electric pink (= Challenger territory)
+  - deep purple / plum (= Luxury Premium territory)
+DIFFERENTIATION RULE: feel TRADITIONAL, ESTABLISHED, ORNATE. Dark + traditional only.`,
 
   "challenger": `BRAND PERSONALITY: Challenger.
-Reference: FanDuel disruptor energy, BetMGM challenger positioning, bold market-entrant aesthetic.
-PREFERRED PRIMARY COLOR FAMILY: vibrant orange (#FF6B00–#FF8C00), hot magenta, electric red (#E63946), saturated yellow-orange.
-AVOID PRIMARY COLORS: muted teals, conservative blues, traditional gold, sophisticated dark palettes.
-DIFFERENTIATION RULE: this option must feel ENERGETIC, BRASH, CONFRONTATIONAL — distinct from any Modern Crypto or Luxury Premium interpretation. High saturation, high confidence.
-Note: never produce muted or sophisticated palettes for Challenger — that breaks the personality.`,
+Reference: FanDuel disruptor energy, BetMGM challenger positioning.
+PREFERRED PRIMARY COLOR FAMILY (MANDATORY): hot magenta / electric pink / vibrant rose. Concrete examples: #E91E63, #FF1744, #FF4081, #EC407A, #D81B60.
+AVOID PRIMARY COLORS (these are reserved for OTHER personalities):
+  - teal / cyan / mint (= Modern Crypto territory)
+  - warm orange / coral (= Mass Market territory)
+  - burgundy / royal navy (= Classic Casino territory)
+  - deep purple / plum (= Luxury Premium territory)
+DIFFERENTIATION RULE: feel ENERGETIC, BRASH, BOLD. Hot pink/magenta saturation, NEVER orange (that's Mass Market's family).`,
 
   "luxury-premium": `BRAND PERSONALITY: Luxury Premium.
-Reference: Hollywoodbets premium tier, Tsogo Sun aesthetic, hospitality-grade refinement.
-PREFERRED PRIMARY COLOR FAMILY: deep purple (#4A1A4D–#6B2D6E), burgundy, gold-tinged dark, jewel-tone navy, refined emerald.
-AVOID PRIMARY COLORS: neon brights, electric crypto cyans, mass-market warm oranges, basic primaries.
-DIFFERENTIATION RULE: this option must feel ESTABLISHED, REFINED, HOSPITALITY-GRADE — distinct from any Modern Crypto or Challenger interpretation. Sophisticated dark base, jewel-tone primary, gold or silver accent.
-Note: if the brief asks for minimalism, you can simplify but never lose the premium feel.`,
+Reference: Hollywoodbets premium tier, Tsogo Sun aesthetic.
+PREFERRED PRIMARY COLOR FAMILY (MANDATORY): deep purple / plum / jewel-tone. Concrete examples: #4A148C, #6B2D6E, #5E35B1, #4527A0, #311B92.
+AVOID PRIMARY COLORS (these are reserved for OTHER personalities):
+  - teal / cyan / mint (= Modern Crypto territory)
+  - warm orange / coral (= Mass Market territory)
+  - hot magenta / electric pink (= Challenger territory)
+  - burgundy / royal navy (= Classic Casino territory)
+DIFFERENTIATION RULE: feel SOPHISTICATED, REFINED, HOSPITALITY-GRADE. Purple/jewel-tone primary, NEVER navy or burgundy (that's Classic Casino).`,
 
   "mass-market": `BRAND PERSONALITY: Mass Market.
 Reference: Hollywoodbets standard tier, broad-appeal operator aesthetic.
-PREFERRED PRIMARY COLOR FAMILY: warm orange (#FF6B00–#FF8400), accessible blue (#1E88E5), friendly green (#43A047), confident red.
-AVOID PRIMARY COLORS: crypto-cool tones, luxury dark navies, ornate gold-dominant palettes, niche crypto cyans.
-DIFFERENTIATION RULE: this option must feel APPROACHABLE, BROAD-APPEAL, ACCESSIBLE — distinct from any Modern Crypto or Luxury Premium interpretation. Warm primary, dark base, no premium pretensions.
-Note: weight brief higher if it explicitly contradicts.`,
+PREFERRED PRIMARY COLOR FAMILY (MANDATORY): warm orange / coral / amber. Concrete examples: #FF6B00, #FF7043, #F4511E, #FB8C00, #E65100.
+AVOID PRIMARY COLORS (these are reserved for OTHER personalities):
+  - teal / cyan / mint (= Modern Crypto territory)
+  - hot magenta / electric pink (= Challenger territory)
+  - burgundy / royal navy (= Classic Casino territory)
+  - deep purple / plum (= Luxury Premium territory)
+DIFFERENTIATION RULE: feel APPROACHABLE, FRIENDLY, BROAD-APPEAL. Warm orange primary, NEVER hot pink (that's Challenger's family).`,
 };
 
 const LOGO_DOMINANT_HINT = `LOGO-DOMINANT MODE:
@@ -1119,11 +1134,26 @@ function buildUserMessage(req: GeneratePaletteRequest, logoFetchedViaVision: boo
 
   // Personality: strong differentiation instruction + personality block
   if (req.targetPersonality) {
+    parts.push(`PRIMARY HUE HIERARCHY (mandatory):
+1. Personality determines the primary HUE FAMILY — this CANNOT be overridden by country or brief context. If user picks Challenger, primary MUST be in hot magenta/pink family. If user picks Mass Market, primary MUST be in warm orange family.
+
+2. Country influences saturation, warmth, accent choices, and overall palette mood — but cannot change the personality's hue family.
+
+3. Brief fine-tunes within personality+country bounds — e.g. "make it more premium" while in Mass Market means "deeper orange, more saturated" not "switch to purple".
+
+Example: Mass Market + Nigeria + "premium feel"
+→ Primary: warm orange (Mass Market family, mandatory)
+→ Saturation: deeper, slightly less bright (Nigerian taste preference)
+→ Accent: gold or deep blue (Brief-hint of premium)
+NOT acceptable: hot pink (= Challenger), even if "premium" suggests pink.
+
+This hierarchy ensures the 3 wizard options are visibly distinct (each personality has its own color family).`);
+
     parts.push(`CRITICAL DIFFERENTIATION INSTRUCTION:
 You are generating ONE of three palette options for the user. Each option corresponds to a different brand personality. Your output for this option MUST visibly differ from how the other personalities would interpret the same brief.
 
 If you are generating a Modern Crypto option, the result must NOT look interchangeable with a Challenger or Luxury Premium output.
-If you are generating a Challenger option, primary colors must be markedly more saturated and warmer than crypto options.
+If you are generating a Challenger option, primary colors must be hot magenta/pink — NEVER orange (that's Mass Market territory).
 If you are generating a Luxury Premium option, the palette must feel distinctly more sophisticated and dark than mass-market or challenger.
 
 The user explicitly chose to see DIFFERENT personality interpretations. Generating similar palettes across personalities defeats the wizard's purpose.`);
