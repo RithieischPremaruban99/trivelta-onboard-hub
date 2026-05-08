@@ -124,10 +124,26 @@ export function Step4ThreeOptions({
       updateOption(index, { status: "loading", streamingText: "", summaryText: "", palette: null });
 
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) throw new Error("Not authenticated");
+        // Get session, attempt refresh if expired/missing
+        let { data: { session } } = await supabase.auth.getSession();
+
+        // Check if session is missing or about to expire (within 60s)
+        const expiresInMs = session?.expires_at
+          ? (session.expires_at * 1000) - Date.now()
+          : -1;
+        const needsRefresh = !session?.access_token || expiresInMs < 60000;
+
+        if (needsRefresh) {
+          console.log("[Step4] Session needs refresh, attempting...");
+          const refreshResult = await supabase.auth.refreshSession();
+
+          if (refreshResult.error || !refreshResult.data.session?.access_token) {
+            throw new Error("Session expired. Please sign in again.");
+          }
+
+          session = refreshResult.data.session;
+          console.log("[Step4] Session refreshed successfully");
+        }
 
         const isLogoMode = Boolean(logoUrl);
         const optionBrief = isLogoMode
@@ -267,7 +283,16 @@ export function Step4ThreeOptions({
       setTimeout(() => onNext(), 700);
     } catch (err) {
       console.error("[Step4] Save failed:", err);
-      toast.error("Failed to save selection. Please try again.");
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (
+        errMsg.toLowerCase().includes("jwt") ||
+        errMsg.toLowerCase().includes("expired") ||
+        errMsg.toLowerCase().includes("unauthorized")
+      ) {
+        toast.error("Session expired. Please refresh the page and try again.");
+      } else {
+        toast.error("Failed to save selection. Please try again.");
+      }
       setSaving(false);
     }
   }
