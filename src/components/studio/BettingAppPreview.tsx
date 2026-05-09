@@ -2486,24 +2486,35 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             <MessageCircle className="h-3.5 w-3.5" />
           </button>
           {/* User avatar */}
-          <div className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold"
-            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}>
+          <button
+            onClick={() => setShowProfile((v) => !v)}
+            className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold cursor-pointer transition-transform hover:scale-105"
+            style={{
+              background: showProfile ? "var(--p-primary)" : "var(--p-primary)",
+              color: pickContrastText(palette.primary),
+              boxShadow: showProfile ? "0 0 0 2px var(--p-primary-background-color), 0 0 0 3px var(--p-primary)" : "none",
+            }}
+          >
             {appName.slice(0, 2).toUpperCase()}
-          </div>
+          </button>
         </div>
       </div>
 
       {/* View switcher */}
-      {activeNav === 0 && renderFeedView()}
-      {activeNav === 1 && renderSportsView()}
-      {activeNav === 2 && renderWebDiscoveryView()}
-      {activeNav === 3 && (
-        <div className="flex-1 min-h-0 flex">
-          <CasinoContent variant="web" />
-          {renderRightPanel()}
-        </div>
+      {showProfile ? renderProfileView() : (
+        <>
+          {activeNav === 0 && renderFeedView()}
+          {activeNav === 1 && renderSportsView()}
+          {activeNav === 2 && renderWebDiscoveryView()}
+          {activeNav === 3 && (
+            <div className="flex-1 min-h-0 flex">
+              <CasinoContent variant="web" />
+              {renderRightPanel()}
+            </div>
+          )}
+          {activeNav === 4 && renderP2PView()}
+        </>
       )}
-      {activeNav === 4 && renderP2PView()}
     </div>
   );
 });
