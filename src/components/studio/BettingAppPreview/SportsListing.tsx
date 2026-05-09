@@ -305,32 +305,45 @@ export function SportsListing({
         })}
       </div>
 
-      {/* Bet-type pills */}
-      <div
-        className="flex gap-1.5 px-4 py-2.5 overflow-x-auto flex-shrink-0"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {betTypes.map((b, i) => {
-          const active = activeBetType === i;
-          return (
-            <button
-              key={b}
-              onClick={() => setActiveBetType(i)}
-              className="px-3 h-7 rounded-md text-[10px] font-bold flex-shrink-0 whitespace-nowrap transition-colors"
-              style={{
-                background: active ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                border: active
-                  ? "1px solid var(--p-primary)"
-                  : "1px solid var(--p-border-and-gradient-bg)",
-                color: active
-                  ? pickContrastText(palette.activeSecondaryGradientColor)
-                  : "var(--p-text-secondary-color)",
-              }}
-            >
-              {b}
-            </button>
-          );
-        })}
+      {/* Bet-type pills + filter */}
+      <div className="flex items-center gap-2 px-4 py-2.5 flex-shrink-0">
+        <div
+          className="flex gap-1.5 overflow-x-auto flex-1 min-w-0"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {betTypes.map((b, i) => {
+            const active = activeBetType === i;
+            return (
+              <button
+                key={b}
+                onClick={() => setActiveBetType(i)}
+                className="px-3 h-7 rounded-md text-[10px] font-bold flex-shrink-0 whitespace-nowrap transition-colors"
+                style={{
+                  background: active ? "var(--p-active-secondary-gradient-color)" : "transparent",
+                  border: active
+                    ? "1px solid var(--p-primary)"
+                    : "1px solid var(--p-border-and-gradient-bg)",
+                  color: active
+                    ? pickContrastText(palette.activeSecondaryGradientColor)
+                    : "var(--p-text-secondary-color)",
+                }}
+              >
+                {b}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          className="h-7 w-7 grid place-items-center rounded-md flex-shrink-0"
+          style={{
+            border: "1px solid var(--p-border-and-gradient-bg)",
+            color: "var(--p-text-secondary-color)",
+          }}
+          aria-label="Filter"
+        >
+          <Filter className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Match list */}
