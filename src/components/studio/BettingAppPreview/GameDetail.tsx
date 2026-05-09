@@ -112,7 +112,7 @@ export function GameDetail({
           }}
         />
         {/* Top: date pill */}
-        <div className="flex justify-center mb-3">
+        <div className="relative flex justify-center mb-3">
           <span
             className="text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-[3px] rounded-full"
             style={{
