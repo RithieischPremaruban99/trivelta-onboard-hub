@@ -3840,40 +3840,48 @@ const MobilePreview = React.memo(function MobilePreview({
         {NAV.map((n, i) => {
           const Icon = n.icon;
           const active = activeNav === i;
-          const isProfile = n.label === "Profile";
+          const isProfile = i === 4;
+          const labels = ["home", strings.SPORTSBOOK, strings.DISCOVERY, strings.CASINO, "Profile"];
+          const handle = appName.slice(0, 2).toUpperCase();
           return (
             <button
               key={n.label}
               onClick={() => setActiveNav(i)}
-              className="flex flex-col items-center justify-center gap-0.5 h-12 relative"
+              className="flex flex-col items-center justify-center gap-0.5 h-14 relative"
             >
-              {active && !isProfile && (
-                <span
-                  className="absolute top-0 left-3 right-3 h-[2px] rounded-full"
-                  style={{ background: "var(--p-primary)" }}
-                />
-              )}
               {isProfile ? (
                 <div
-                  className="h-5 w-5 rounded-full grid place-items-center text-[8px] font-black"
+                  className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold transition-all"
                   style={{
-                    background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
-                    color: "var(--p-light-text-color)",
+                    background: active
+                      ? "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))"
+                      : "color-mix(in oklab, var(--p-primary) 20%, transparent)",
+                    color: active ? pickContrastText(palette.primary) : "var(--p-primary)",
+                    boxShadow: active ? "0 0 0 1px var(--p-primary)" : "none",
                   }}
                 >
-                  TN
+                  {handle}
                 </div>
               ) : (
-                <Icon
-                  className="h-4 w-4"
-                  style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
-                />
+                <div
+                  className="h-7 w-7 rounded-full grid place-items-center transition-all"
+                  style={{
+                    background: active
+                      ? "color-mix(in oklab, var(--p-primary) 22%, transparent)"
+                      : "transparent",
+                  }}
+                >
+                  <Icon
+                    className="h-4 w-4"
+                    style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                  />
+                </div>
               )}
               <span
                 className="text-[9px] font-medium"
-                style={{ color: active || isProfile ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
               >
-                {n.label}
+                {labels[i]}
               </span>
             </button>
           );
