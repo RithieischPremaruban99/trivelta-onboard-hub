@@ -66,7 +66,6 @@ import {
   Filter,
   Settings,
   Copy,
-  Trophy as TrophyIcon,
   Wallet,
   Info,
 } from "lucide-react";
