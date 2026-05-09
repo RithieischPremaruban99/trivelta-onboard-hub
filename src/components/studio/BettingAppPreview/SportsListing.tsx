@@ -157,9 +157,10 @@ export function SportsListing({
           })}
         </div>
 
-        {/* Bet type pills */}
+        {/* Bet type pills + filter */}
+        <div className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0">
         <div
-          className="flex gap-1.5 px-3 py-2.5 overflow-x-auto flex-shrink-0"
+          className="flex gap-1.5 overflow-x-auto flex-1 min-w-0"
           style={{ scrollbarWidth: "none" }}
         >
           {TENNIS_BET_TYPES.map((b, i) => {
