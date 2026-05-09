@@ -541,9 +541,30 @@ const TEAM_LOGO_IDS: Record<string, number> = {
   "Le Havre AC": 111, "SCO Angers": 77, "Racing Club": 116,
 };
 
+// NBA team logos via ESPN CDN (official team logos, public)
+const NBA_LOGO_ABBR: Record<string, string> = {
+  "Knicks": "ny", "New York Knicks": "ny",
+  "76ers": "phi", "Philadelphia 76ers": "phi",
+  "Spurs": "sa", "San Antonio Spurs": "sa",
+  "Timberwolves": "min", "Minnesota Timberwolves": "min",
+  "Pistons": "det", "Detroit Pistons": "det",
+  "Cavaliers": "cle", "Cleveland Cavaliers": "cle",
+  "Thunder": "okc", "Oklahoma City Thunder": "okc",
+  "Lakers": "lal", "Los Angeles Lakers": "lal",
+  "Celtics": "bos", "Warriors": "gs", "Bucks": "mil", "Heat": "mia",
+  "Nets": "bkn", "Bulls": "chi", "Suns": "phx", "Nuggets": "den",
+  "Mavericks": "dal", "Rockets": "hou", "Clippers": "lac", "Grizzlies": "mem",
+  "Hawks": "atl", "Hornets": "cha", "Magic": "orl", "Wizards": "wsh",
+  "Raptors": "tor", "Pacers": "ind", "Pelicans": "no", "Kings": "sac",
+  "Trail Blazers": "por", "Jazz": "utah",
+};
+
 const teamLogoUrl = (name: string): string | null => {
-  const id = TEAM_LOGO_IDS[name];
-  return id ? `https://media.api-sports.io/football/teams/${id}.png` : null;
+  const footballId = TEAM_LOGO_IDS[name];
+  if (footballId) return `https://media.api-sports.io/football/teams/${footballId}.png`;
+  const nbaAbbr = NBA_LOGO_ABBR[name];
+  if (nbaAbbr) return `https://a.espncdn.com/i/teamlogos/nba/500/${nbaAbbr}.png`;
+  return null;
 };
 
 export const TeamDot = ({ label, size = 16 }: { label: string; size?: number }) => {
