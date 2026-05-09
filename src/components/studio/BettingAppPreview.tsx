@@ -628,6 +628,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const [sportsViewMode, setSportsViewMode] = useState<"main" | "schedule" | "detail">("main");
   const [selectedSportSchedule, setSelectedSportSchedule] = useState<"nba" | "football" | "tennis">("football");
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileMainTab, setProfileMainTab] = useState(0); // 0=My Bets, 1=My Feed
+  const [profileBetsFilter, setProfileBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
 
   const statusLabel = (s: string) =>
     s === "WON"
