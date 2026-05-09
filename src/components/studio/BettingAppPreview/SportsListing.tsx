@@ -185,6 +185,18 @@ export function SportsListing({
             );
           })}
         </div>
+          <button
+            type="button"
+            className="h-7 w-7 grid place-items-center rounded-md flex-shrink-0"
+            style={{
+              border: "1px solid var(--p-border-and-gradient-bg)",
+              color: "var(--p-text-secondary-color)",
+            }}
+            aria-label="Filter"
+          >
+            <Filter className="h-3.5 w-3.5" />
+          </button>
+        </div>
 
         {/* Match cards — single column, full width */}
         <div className="flex-1 min-h-0 overflow-auto px-3 pb-3 space-y-2">
