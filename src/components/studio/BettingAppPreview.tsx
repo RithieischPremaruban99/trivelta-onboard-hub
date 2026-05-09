@@ -3454,7 +3454,7 @@ const MobilePreview = React.memo(function MobilePreview({
                         return (
                           <button
                             key={j}
-                            onClick={() => toggleOdd(key)}
+                            onClick={(e) => { e.stopPropagation(); toggleOdd(key); }}
                             className="w-10 h-10 rounded-md text-[11px] font-bold transition-colors"
                             style={{
                               background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
