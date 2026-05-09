@@ -583,7 +583,7 @@ const LiveDot = () => {
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appName: string; logoUrl?: string | null }) {
+const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol }: { appName: string; logoUrl?: string | null; currencySymbol?: string }) {
   const { strings, palette } = useStudio();
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
@@ -701,12 +701,12 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
                         background: isWon
                           ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
                           : b.status === "PENDING"
-                            ? "rgba(234,179,8,0.15)"
-                            : "rgba(239,68,68,0.15)",
+                            ? "color-mix(in oklab, var(--p-secondary) 18%, transparent)"
+                            : "color-mix(in oklab, var(--p-lost-color) 18%, transparent)",
                         color: isWon
                           ? "var(--p-light-text-color)"
                           : b.status === "PENDING"
-                            ? "#eab308"
+                            ? "var(--p-secondary)"
                             : "var(--p-lost-color)",
                       }}
                     >
@@ -1670,30 +1670,34 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
 
           {/* Free Bet Promo Banner */}
           <div style={{
-            margin: "8px 8px 4px",
+            marginTop: 8,
+            marginBottom: 4,
             borderRadius: 8,
             padding: "10px 12px",
-            background: `linear-gradient(135deg, var(--p-free-bet-background), var(--p-primary))`,
+            background: "var(--p-free-bet-background)",
+            border: "1px solid color-mix(in oklab, var(--p-primary) 40%, transparent)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}>
             <div>
-              <div style={{ color: pickContrastText(palette.primary), fontSize: 11, fontWeight: 700 }}>
-                🎁 Free Bet Available
+              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+                Free Bet Available
               </div>
-              <div style={{ color: pickContrastText(palette.primary), fontSize: 9, marginTop: 2, opacity: 0.8 }}>
+              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
                 Claim your $25 welcome bet
               </div>
             </div>
-            <div style={{
+            <button style={{
               background: "var(--p-primary-button)",
               color: pickContrastText(palette.primaryButton),
               fontSize: 9,
               fontWeight: 700,
-              padding: "4px 8px",
+              padding: "4px 10px",
               borderRadius: 4,
-            }}>Claim</div>
+              border: "none",
+              cursor: "pointer",
+            }}>Claim</button>
           </div>
 
           {/* Match cards (2-column grid) */}
@@ -1701,7 +1705,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             {MATCHES.map((m, i) => (
               <div
                 key={i}
-                className="rounded-md p-2 cursor-pointer transition-all"
+                className="rounded-md p-2.5 cursor-pointer transition-all"
                 style={{
                   background: "var(--p-dark)",
                   border: "1px solid var(--p-border-and-gradient-bg)",
@@ -1741,7 +1745,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
+                    <div className="flex items-center gap-1.5 mb-1.5">
                       <TeamDot label={m.home} />
                       <span
                         className="text-[9.5px] font-medium truncate"
@@ -2424,40 +2428,33 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl }: { appNam
             );
           })}
         </div>
-        <div className="flex items-center gap-2.5">
-          <div
-            className="flex items-center gap-1.5 px-2.5 h-7 rounded-full"
-            style={{
-              background: "var(--p-dark-container-background)",
-              border: "1px solid var(--p-border-and-gradient-bg)",
-            }}
-          >
-            <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-              {strings.CURRENCY_SYMBOL ?? "₦"}
-            </span>
-            <span className="text-[10px] tracking-wider" style={{ color: "var(--p-text-secondary-color)" }}>
-              ---
-            </span>
+        <div className="flex items-center gap-2">
+          {/* Wallet pill */}
+          <div className="flex items-center gap-1 h-7 px-2 rounded-md text-[10px] font-semibold"
+            style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-light-text-color)" }}>
+            <span>{currencySymbol ?? "₦"}</span>
+            <span>---</span>
             <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
-            <div
-              className="h-4 w-4 rounded-full grid place-items-center"
-              style={{ background: "var(--p-primary)" }}
-            >
-              <Plus className="h-2.5 w-2.5" strokeWidth={3} style={{ color: pickContrastText(palette.primary) }} />
-            </div>
           </div>
-          <div className="relative">
-            <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
-            <span
-              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full"
-              style={{ background: "var(--p-primary)" }}
-            />
-          </div>
-          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
-          <div
-            className="h-7 w-7 rounded-full grid place-items-center text-[9px] font-black"
-            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
-          >
+          {/* Plus / Deposit */}
+          <button className="h-7 w-7 rounded-md grid place-items-center"
+            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}>
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+          {/* Bell with notification dot */}
+          <button className="h-7 w-7 rounded-md grid place-items-center relative"
+            style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-light-text-color)" }}>
+            <Bell className="h-3.5 w-3.5" />
+            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-primary)" }}></span>
+          </button>
+          {/* Chat */}
+          <button className="h-7 w-7 rounded-md grid place-items-center"
+            style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-light-text-color)" }}>
+            <MessageCircle className="h-3.5 w-3.5" />
+          </button>
+          {/* User avatar */}
+          <div className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold"
+            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}>
             {appName.slice(0, 2).toUpperCase()}
           </div>
         </div>
@@ -2846,30 +2843,34 @@ const MobilePreview = React.memo(function MobilePreview({
 
           {/* Free Bet Promo Banner */}
           <div style={{
-            margin: "8px 8px 4px",
+            marginTop: 8,
+            marginBottom: 4,
             borderRadius: 8,
             padding: "10px 12px",
-            background: `linear-gradient(135deg, var(--p-free-bet-background), var(--p-primary))`,
+            background: "var(--p-free-bet-background)",
+            border: "1px solid color-mix(in oklab, var(--p-primary) 40%, transparent)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}>
             <div>
-              <div style={{ color: pickContrastText(palette.primary), fontSize: 11, fontWeight: 700 }}>
-                🎁 Free Bet Available
+              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
+                Free Bet Available
               </div>
-              <div style={{ color: pickContrastText(palette.primary), fontSize: 9, marginTop: 2, opacity: 0.8 }}>
+              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
                 Claim your $25 welcome bet
               </div>
             </div>
-            <div style={{
+            <button style={{
               background: "var(--p-primary-button)",
               color: pickContrastText(palette.primaryButton),
               fontSize: 9,
               fontWeight: 700,
-              padding: "4px 8px",
+              padding: "4px 10px",
               borderRadius: 4,
-            }}>Claim</div>
+              border: "none",
+              cursor: "pointer",
+            }}>Claim</button>
           </div>
 
           {/* Match cards */}
@@ -3167,12 +3168,12 @@ const MobilePreview = React.memo(function MobilePreview({
                         background: isWon
                           ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
                           : b.status === "PENDING"
-                            ? "rgba(234,179,8,0.15)"
-                            : "rgba(239,68,68,0.15)",
+                            ? "color-mix(in oklab, var(--p-secondary) 18%, transparent)"
+                            : "color-mix(in oklab, var(--p-lost-color) 18%, transparent)",
                         color: isWon
                           ? "var(--p-light-text-color)"
                           : b.status === "PENDING"
-                            ? "#eab308"
+                            ? "var(--p-secondary)"
                             : "var(--p-lost-color)",
                       }}
                     >
@@ -3211,7 +3212,7 @@ const MobilePreview = React.memo(function MobilePreview({
                   </span>
                   <span
                     className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                    style={{ background: "rgba(234,179,8,0.15)", color: "#eab308" }}
+                    style={{ background: "color-mix(in oklab, var(--p-secondary) 18%, transparent)", color: "var(--p-secondary)" }}
                   >
                     PENDING
                   </span>
@@ -4464,7 +4465,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
             background: "var(--p-primary-background-color)",
           }}
         >
-          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} />
+          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} currencySymbol={strings.CURRENCY_SYMBOL} />
         </div>
       )}
       </div>
