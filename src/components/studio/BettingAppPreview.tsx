@@ -1429,8 +1429,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       {/* Center content */}
       <main className="flex-1 min-w-0 overflow-auto">
         <div className="px-3 py-2">
-          {/* Quick tiles */}
-          <div className="flex gap-1.5 mb-2">
+          {/* Quick tiles - BetCorrect style: 6 large tiles, active has primary border */}
+          <div className="flex gap-2 mb-3">
             {QUICK_TILE_ICONS.map((t) => {
               const Icon = t.icon;
               const active = activeNav === t.nav;
@@ -1438,18 +1438,18 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 <button
                   key={t.strKey}
                   onClick={() => setActiveNav(t.nav)}
-                  className="flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-md flex-shrink-0"
+                  className="flex flex-col items-center justify-center gap-1 w-[68px] h-[68px] rounded-lg flex-shrink-0 transition-colors"
                   style={{
                     background: "var(--p-dark)",
-                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                    border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
                   }}
                 >
                   <Icon
-                    className="h-3.5 w-3.5"
+                    className="h-4 w-4"
                     style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
                   />
                   <span
-                    className="text-[7.5px] font-medium text-center leading-tight px-0.5"
+                    className="text-[8px] font-medium text-center leading-tight px-1"
                     style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
                   >
                     {strings[t.strKey]}
