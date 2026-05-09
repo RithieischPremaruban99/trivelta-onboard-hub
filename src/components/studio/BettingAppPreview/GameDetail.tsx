@@ -94,13 +94,23 @@ export function GameDetail({
 
       {/* Hero */}
       <div
-        className="px-6 pt-5 pb-6"
+        className="relative px-6 pt-5 pb-6 overflow-hidden"
         style={{
           background:
             "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 10%, transparent) 0%, transparent 100%)",
           borderBottom: "1px solid var(--p-border-and-gradient-bg)",
         }}
       >
+        {/* Decorative blurred glow behind teams */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 18% 55%, color-mix(in oklab, var(--p-primary) 32%, transparent) 0%, transparent 38%), radial-gradient(circle at 82% 55%, color-mix(in oklab, var(--p-primary) 22%, transparent) 0%, transparent 38%)",
+            filter: "blur(18px)",
+          }}
+        />
         {/* Top: date pill */}
         <div className="flex justify-center mb-3">
           <span
