@@ -124,7 +124,34 @@ export function SportsListing({
         className="flex-1 min-w-0 flex flex-col min-h-0"
         style={{ background: "var(--p-primary-background-color)" }}
       >
-        {/* ATP / WTA top tabs */}
+        {/* ATP / WTA segmented switch */}
+        <div className="px-3 pt-3 flex-shrink-0">
+          <div
+            className="inline-flex rounded-md p-0.5 w-full"
+            style={{ background: "var(--p-border-and-gradient-bg)" }}
+          >
+            {(["ATP", "WTA"] as const).map((label, i) => {
+              const active = activeTournamentTab === i;
+              return (
+                <button
+                  key={label}
+                  onClick={() => setActiveTournamentTab(i)}
+                  className="flex-1 h-7 text-[11px] font-bold rounded-[5px] transition-colors"
+                  style={{
+                    background: active ? "var(--p-primary)" : "transparent",
+                    color: active
+                      ? pickContrastText(palette.primary)
+                      : "var(--p-text-secondary-color)",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tournament tabs */}
         <div
           className="flex border-b flex-shrink-0 px-3 pt-3"
           style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
