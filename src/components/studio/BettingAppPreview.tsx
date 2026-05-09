@@ -323,6 +323,7 @@ function getSportsSidebar(strings: TCMStrings) {
 // These are computed inside components using strings - kept as icon-only config here
 const QUICK_TILE_ICONS = [
   { icon: Radio, strKey: "TILE_LIVE_SPORTS" as const, nav: 1 },
+  { icon: CircleDot, strKey: "TILE_FOOTBALL" as const, nav: 1 },
   { icon: Code2, strKey: "TILE_LOAD_CODE" as const, nav: 2 },
   { icon: Clapperboard, strKey: "TILE_VIRTUALS" as const, nav: 3 },
   { icon: ArrowLeftRight, strKey: "TILE_PEER_TO_PEER" as const, nav: 4 },
@@ -344,6 +345,8 @@ const LEAGUE_TABS = [
   "Bundesliga - Germany",
   "Serie A - Italy",
   "Ligue 1 - France",
+  "Liga Portugal - Portugal",
+  "Eredivisie - Netherlands",
 ];
 const BET_TYPE_TABS = [
   "1X2",
@@ -353,6 +356,8 @@ const BET_TYPE_TABS = [
   "1st half O/U",
   "Handicap",
   "Anytime goalscorer",
+  "Total corners",
+  "Total bookings",
 ];
 
 const LIVE_UPCOMING = [
@@ -1424,8 +1429,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       {/* Center content */}
       <main className="flex-1 min-w-0 overflow-auto">
         <div className="px-3 py-2">
-          {/* Quick tiles */}
-          <div className="flex gap-1.5 mb-2">
+          {/* Quick tiles - BetCorrect style: 6 large tiles, active has primary border */}
+          <div className="flex gap-2 mb-3">
             {QUICK_TILE_ICONS.map((t) => {
               const Icon = t.icon;
               const active = activeNav === t.nav;
@@ -1433,18 +1438,18 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 <button
                   key={t.strKey}
                   onClick={() => setActiveNav(t.nav)}
-                  className="flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-md flex-shrink-0"
+                  className="flex flex-col items-center justify-center gap-1 w-[68px] h-[68px] rounded-lg flex-shrink-0 transition-colors"
                   style={{
                     background: "var(--p-dark)",
-                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                    border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
                   }}
                 >
                   <Icon
-                    className="h-3.5 w-3.5"
+                    className="h-4 w-4"
                     style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
                   />
                   <span
-                    className="text-[7.5px] font-medium text-center leading-tight px-0.5"
+                    className="text-[8px] font-medium text-center leading-tight px-1"
                     style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
                   >
                     {strings[t.strKey]}

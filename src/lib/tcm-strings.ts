@@ -17,6 +17,7 @@ export interface TCMStrings {
   PROFILE: string;
   // ── Quick access tiles ───────────────────────────────────────────────────
   TILE_LIVE_SPORTS: string;
+  TILE_FOOTBALL: string;
   TILE_LOAD_CODE: string;
   TILE_VIRTUALS: string;
   TILE_PEER_TO_PEER: string;
@@ -153,6 +154,7 @@ export const DEFAULT_STRINGS: TCMStrings = {
   HOME: "home",
   PROFILE: "Profile",
   TILE_LIVE_SPORTS: "Live Sports",
+  TILE_FOOTBALL: "Football",
   TILE_LOAD_CODE: "Load Code",
   TILE_VIRTUALS: "Virtuals",
   TILE_PEER_TO_PEER: "Peer to Peer",
