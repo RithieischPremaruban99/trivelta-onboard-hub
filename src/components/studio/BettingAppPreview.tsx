@@ -2418,6 +2418,486 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
     );
   };
 
+  /* Profile view (clicking the TN avatar) */
+  const renderProfileView = () => {
+    const primaryText = pickContrastText(palette.primary);
+    const handle = appName.slice(0, 2).toUpperCase();
+    const top5Casino = [
+      { name: "Aviator", image: imgAviator },
+      { name: "Crazy Chicken", image: imgFortuneSpin },
+      { name: "England League", image: imgWildTiger },
+      { name: "Golden Boat", image: imgRoyalRiches },
+      { name: "Bario Jet", image: imgRocketLaunch },
+    ];
+    const profileBets = [
+      {
+        kind: "tennis" as const,
+        score: "1:2",
+        odds: "2.70",
+        market: "Correct match score",
+        status: "LOST" as const,
+        stake: "200",
+        payout: "0",
+        date: "7 MAY",
+        time: "2:04 PM",
+        league: "1win",
+        away: "Team Nemesis",
+        id: "b982857c-8dc6-4d57-97f8-545d88e73b91-od",
+        timestamp: "5/7/2026, 4:45:45 PM",
+        rows: undefined as undefined | { team: string; q: number[] }[],
+        legs: undefined as undefined | { home: string; away: string }[],
+      },
+      {
+        kind: "basketball" as const,
+        score: "Detroit Pistons (-6.5)",
+        odds: "2.01",
+        market: "1st half - handicap",
+        status: "WON" as const,
+        stake: "1000",
+        payout: "2010",
+        rows: [
+          { team: "Orlando Magic", q: [22, 27, 15, 30, 94] },
+          { team: "Detroit Pistons", q: [20, 40, 23, 33, 116] },
+        ],
+        id: "09df0304-3c54-4ebd-bf93-f71203761b01",
+        timestamp: "5/2/2026, 8:11:23 PM",
+        date: "", time: "", league: "", away: "",
+        legs: undefined as undefined | { home: string; away: string }[],
+      },
+      {
+        kind: "multi" as const,
+        score: "19 Leg …",
+        odds: "Multi Odds",
+        market: "draw  4.20",
+        status: "PENDING" as const,
+        stake: "",
+        payout: "",
+        legs: [{ home: "Arsenal FC", away: "Atletico Madrid" }],
+        id: "",
+        timestamp: "",
+        date: "", time: "", league: "", away: "",
+        rows: undefined as undefined | { team: string; q: number[] }[],
+      },
+    ];
+    const transactions = [
+      { kind: "bet", title: "Made a bet", date: "May 7, 4:45 PM", amount: "- 200.00", color: "neutral" as const },
+      { kind: "casino", title: "Casino bet placement", date: "May 4, 9:15 PM", amount: "- 50.00", color: "neutral" as const },
+      { kind: "casino", title: "Casino bet win", date: "May 4, 9:14 PM", amount: "+ 85.00", color: "win" as const },
+      { kind: "casino", title: "Casino bet placement", date: "May 4, 9:14 PM", amount: "- 50.00", color: "neutral" as const },
+      { kind: "naira", title: "Naira bet win", date: "May 4, 12:18 AM", amount: "+ 2,010.00", color: "win" as const },
+      { kind: "bet", title: "Made a bet", date: "May 2, 8:11 PM", amount: "- 1,000.00", color: "neutral" as const },
+      { kind: "rejected", title: "Bet rejected", date: "May 2, 5:36 PM", amount: "+ 1,000.00", color: "win" as const },
+      { kind: "bet", title: "Made a bet", date: "May 2, 5:36 PM", amount: "- 1,000.00", color: "neutral" as const },
+    ];
+
+    return (
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        {/* LEFT — profile sidebar */}
+        <aside
+          className="w-[230px] border-r flex flex-col flex-shrink-0 overflow-auto"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+        >
+          <div className="px-3 py-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                {appName}Test
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  className="h-6 w-6 rounded-md grid place-items-center"
+                  style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-text-secondary-color)" }}
+                >
+                  <Share2 className="h-3 w-3" />
+                </button>
+                <button
+                  className="h-6 w-6 rounded-md grid place-items-center"
+                  style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-text-secondary-color)" }}
+                >
+                  <Settings className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center pt-1">
+              <div
+                className="h-16 w-16 rounded-full grid place-items-center text-[18px] font-bold"
+                style={{
+                  background: "color-mix(in oklab, var(--p-primary) 22%, transparent)",
+                  border: "1px solid color-mix(in oklab, var(--p-primary) 45%, transparent)",
+                  color: "var(--p-primary)",
+                }}
+              >
+                {handle}
+              </div>
+              <div className="mt-2 text-[11px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>
+                Testing Name
+              </div>
+            </div>
+
+            <div className="flex justify-between text-center pt-1">
+              {[
+                { label: "Wins", val: "90", color: "var(--p-light-text-color)" },
+                { label: strings.FOLLOWING, val: "23", color: "var(--p-primary)" },
+                { label: strings.FOLLOWERS, val: "46", color: "var(--p-primary)" },
+              ].map((s) => (
+                <div key={s.label} className="flex-1">
+                  <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>{s.label}</div>
+                  <div className="text-[14px] font-bold" style={{ color: s.color }}>{s.val}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>
+                  Available Bonuses
+                </span>
+                <span
+                  className="grid place-items-center h-3.5 min-w-3.5 px-1 rounded-full text-[8px] font-bold"
+                  style={{ background: "var(--p-primary)", color: primaryText }}
+                >
+                  1
+                </span>
+              </div>
+              <button className="text-[8px] font-semibold flex items-center gap-0.5" style={{ color: "var(--p-primary)" }}>
+                All Bonuses <ChevronRight className="h-2.5 w-2.5" />
+              </button>
+            </div>
+
+            <div
+              className="rounded-lg p-2.5 relative overflow-hidden"
+              style={{
+                border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
+                background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 14%, transparent) 0%, color-mix(in oklab, var(--p-primary) 4%, transparent) 100%)",
+              }}
+            >
+              <div className="text-[10px] font-bold leading-tight" style={{ color: "var(--p-light-text-color)" }}>
+                GET A <span style={{ color: "var(--p-primary)" }}>100%</span> BONUS ON YOUR FIRST DEPOSIT
+              </div>
+              <div className="text-[8px] mt-1.5 leading-snug" style={{ color: "var(--p-text-secondary-color)" }}>
+                Enjoy 100% welcome bonus on your first deposit and double your starting stake.
+              </div>
+              <div className="absolute right-1.5 bottom-1.5 opacity-60">
+                <Ticket className="h-6 w-6" style={{ color: "var(--p-primary)" }} />
+              </div>
+            </div>
+
+            <div
+              className="rounded-lg p-3 text-center"
+              style={{
+                border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
+                background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)",
+              }}
+            >
+              <div
+                className="h-7 w-7 mx-auto rounded-full grid place-items-center mb-1.5"
+                style={{ background: "color-mix(in oklab, var(--p-primary) 20%, transparent)", color: "var(--p-primary)" }}
+              >
+                <Users className="h-3.5 w-3.5" />
+              </div>
+              <div className="text-[8px] font-semibold leading-tight" style={{ color: "var(--p-primary)" }}>
+                Refer your friends and build your network
+                <div style={{ color: "var(--p-text-secondary-color)" }}>1 friend at a time!</div>
+              </div>
+              <button
+                className="mt-2 w-full h-6 rounded text-[9px] font-bold"
+                style={{ background: "var(--p-primary)", color: primaryText }}
+              >
+                {strings.REFER_FRIENDS}
+              </button>
+            </div>
+
+            <div className="pt-1">
+              <div className="text-[10px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
+                Top 5 Casino Games
+              </div>
+              <div className="grid grid-cols-5 gap-1">
+                {top5Casino.map((g) => (
+                  <div
+                    key={g.name}
+                    className="aspect-square rounded-md overflow-hidden"
+                    style={{ border: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <img src={g.image} alt={g.name} className="h-full w-full object-cover" loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* CENTER — bets list */}
+        <main className="flex-1 min-w-0 overflow-auto" style={{ background: "var(--p-primary-background-color)" }}>
+          <div className="flex border-b" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
+            {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
+              <button
+                key={t}
+                onClick={() => setProfileMainTab(i)}
+                className="flex-1 h-10 relative text-[12px] font-semibold"
+                style={{ color: profileMainTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
+              >
+                {t}
+                {profileMainTab === i && (
+                  <span
+                    className="absolute bottom-0 left-1/4 right-1/4 h-[2px] rounded-full"
+                    style={{ background: "var(--p-primary)" }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {profileMainTab === 0 && (
+            <div className="px-4 py-3 space-y-3">
+              <div className="flex gap-2">
+                {[strings.FILTER_ALL, "PENDING", strings.FILTER_SETTLED, strings.FILTER_P2P].map((label, i) => {
+                  const active = profileBetsFilter === i;
+                  return (
+                    <button
+                      key={label}
+                      onClick={() => setProfileBetsFilter(i)}
+                      className="flex-1 h-9 rounded-md text-[11px] font-bold"
+                      style={{
+                        background: active
+                          ? "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))"
+                          : "var(--p-modal-background)",
+                        color: active ? primaryText : "var(--p-text-secondary-color)",
+                        border: active ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {profileBets.map((b, idx) => {
+                const isWon = b.status === "WON";
+                const isLost = b.status === "LOST";
+                const badgeColor = isWon ? "var(--p-won-color)" : isLost ? "var(--p-lost-color)" : "var(--p-secondary)";
+                return (
+                  <div
+                    key={idx}
+                    className="rounded-lg overflow-hidden"
+                    style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div className="p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 text-[12px]">
+                            <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>{b.score}</span>
+                            <span style={{ color: "var(--p-text-secondary-color)" }}>|</span>
+                            <span className="font-bold" style={{ color: "var(--p-primary)" }}>{b.odds}</span>
+                          </div>
+                          <div className="text-[10px] mt-0.5" style={{ color: "var(--p-primary)" }}>
+                            {b.market}
+                          </div>
+                        </div>
+                        <span
+                          className="text-[9px] font-bold px-2 py-0.5 rounded"
+                          style={{
+                            border: `1px solid ${badgeColor}`,
+                            color: badgeColor,
+                            background: "transparent",
+                          }}
+                        >
+                          {b.status}
+                        </span>
+                      </div>
+
+                      {b.stake !== "" && (
+                        <div className="flex items-center justify-between text-[10px] py-1.5 border-y" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
+                          <span style={{ color: "var(--p-text-secondary-color)" }}>STAKE</span>
+                          <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>₦ {b.stake}</span>
+                          <span style={{ color: "var(--p-text-secondary-color)" }}>|</span>
+                          <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>₦ {b.payout}</span>
+                          <span style={{ color: "var(--p-text-secondary-color)" }}>PAYOUT</span>
+                        </div>
+                      )}
+
+                      {b.kind === "tennis" && (
+                        <div
+                          className="mt-2 flex items-center justify-between rounded-md p-2"
+                          style={{ background: "var(--p-dark)" }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-full grid place-items-center" style={{ background: "var(--p-inactive-button-bg)" }}>
+                              <CircleDot className="h-3 w-3" style={{ color: "var(--p-light-text-color)" }} />
+                            </div>
+                            <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{b.league}</span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>{b.date}</div>
+                            <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>{b.time}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{b.away}</span>
+                            <div className="h-6 w-6 rounded-full grid place-items-center" style={{ background: "var(--p-inactive-button-bg)" }}>
+                              <CircleDot className="h-3 w-3" style={{ color: "var(--p-light-text-color)" }} />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {b.kind === "basketball" && b.rows && (
+                        <div className="mt-2">
+                          <div className="grid grid-cols-[1fr_repeat(5,28px)] text-[9px] gap-1 mb-1" style={{ color: "var(--p-text-secondary-color)" }}>
+                            <span></span>
+                            {["1", "2", "3", "4", "T"].map((q) => (
+                              <span key={q} className="text-center font-semibold">{q}</span>
+                            ))}
+                          </div>
+                          {b.rows.map((row) => (
+                            <div key={row.team} className="grid grid-cols-[1fr_repeat(5,28px)] items-center gap-1 py-1">
+                              <div className="flex items-center gap-2">
+                                <TeamDot label={row.team} size={16} />
+                                <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{row.team}</span>
+                              </div>
+                              {row.q.map((n, qi) => (
+                                <span key={qi} className="text-center text-[10px]" style={{ color: qi === row.q.length - 1 ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)", fontWeight: qi === row.q.length - 1 ? 700 : 400 }}>{n}</span>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {b.kind === "multi" && b.legs && (
+                        <div className="mt-2 space-y-1">
+                          {b.legs.map((leg, li) => (
+                            <div key={li} className="flex items-center justify-between rounded-md p-2" style={{ background: "var(--p-dark)" }}>
+                              <div className="flex items-center gap-2">
+                                <TeamDot label={leg.home} size={16} />
+                                <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{leg.home}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{leg.away}</span>
+                                <TeamDot label={leg.away} size={16} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {b.id && (
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t text-[8px]" style={{ borderColor: "var(--p-border-and-gradient-bg)", color: "var(--p-text-secondary-color)" }}>
+                          <span className="font-mono">{b.id}</span>
+                          <span>{b.timestamp}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {profileMainTab === 1 && (
+            <div className="px-4 py-3 space-y-2">
+              {SOCIAL_POSTS.map((p, i) => (
+                <div key={i} className="rounded-lg p-3" style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold" style={{ background: "var(--p-primary)", color: primaryText }}>{p.avatar}</div>
+                    <div>
+                      <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{p.user}</div>
+                      <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>{p.action} · {p.time}</div>
+                    </div>
+                  </div>
+                  <div className="text-[10px]" style={{ color: "var(--p-primary)" }}>{p.bet}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+
+        {/* RIGHT — wallet & transactions */}
+        <aside
+          className="w-[270px] border-l flex flex-col flex-shrink-0 overflow-auto"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+        >
+          <div className="px-3 py-3 space-y-3">
+            <div className="text-[13px] font-bold" style={{ color: "var(--p-light-text-color)" }}>Naira</div>
+
+            <button
+              className="w-full h-9 rounded-md flex items-center justify-center gap-2 text-[12px] font-bold"
+              style={{
+                background: "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))",
+                color: primaryText,
+              }}
+            >
+              <span>{currencySymbol ?? "₦"}</span>
+              <span>Naira</span>
+            </button>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-1 text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                <span>Total balance</span>
+                <Info className="h-2.5 w-2.5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[20px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{currencySymbol ?? "₦"}</span>
+                <span className="text-[20px] font-bold" style={{ color: "var(--p-light-text-color)" }}>---</span>
+                <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+              </div>
+              <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                Withdrawable Balance: <span style={{ color: "var(--p-primary)" }}>{currencySymbol ?? "₦"} 17,886.76</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="h-9 rounded-md text-[11px] font-bold"
+                style={{
+                  background: "var(--p-modal-background)",
+                  border: "1px solid var(--p-border-and-gradient-bg)",
+                  color: "var(--p-light-text-color)",
+                }}
+              >
+                Withdraw
+              </button>
+              <button
+                className="h-9 rounded-md text-[11px] font-bold"
+                style={{
+                  background: "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))",
+                  color: primaryText,
+                }}
+              >
+                Deposit
+              </button>
+            </div>
+
+            <div className="text-[12px] font-bold pt-1" style={{ color: "var(--p-light-text-color)" }}>Transactions history</div>
+
+            <div className="space-y-2">
+              {transactions.map((t, i) => {
+                const Icon = t.kind === "naira" || t.kind === "rejected" ? Trophy : Dice5;
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-md grid place-items-center flex-shrink-0" style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-text-secondary-color)" }}>
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 text-[10px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>
+                        {t.title}
+                        <Copy className="h-2.5 w-2.5" style={{ color: "var(--p-text-secondary-color)" }} />
+                      </div>
+                      <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>{t.date}</div>
+                    </div>
+                    <span
+                      className="text-[10px] font-bold whitespace-nowrap"
+                      style={{ color: t.color === "win" ? "var(--p-won-color)" : "var(--p-light-text-color)" }}
+                    >
+                      {t.amount}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
+      </div>
+    );
+  };
+
   return (
     <div
       className="w-full h-full flex flex-col text-[11px]"
