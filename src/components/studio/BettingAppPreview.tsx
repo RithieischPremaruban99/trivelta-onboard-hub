@@ -3862,7 +3862,7 @@ const MobilePreview = React.memo(function MobilePreview({
           return (
             <button
               key={n.label}
-              onClick={() => setActiveNav(i)}
+              onClick={() => { setMobileMatchId(null); setActiveNav(i); }}
               className="flex flex-col items-center justify-center gap-0.5 h-14 relative"
             >
               {isProfile ? (
