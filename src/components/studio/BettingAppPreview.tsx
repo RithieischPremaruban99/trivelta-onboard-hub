@@ -3561,31 +3561,260 @@ const MobilePreview = React.memo(function MobilePreview({
   );
 
   /* Profile view (nav 4) */
-  const renderProfileView = () => (
-    <>
-      {renderTopBar()}
-      {/* My Bets / My Feed tabs */}
-      <div
-        className="flex border-b flex-shrink-0"
-        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
-      >
-        {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
-          <button
-            key={t}
-            onClick={() => setMobileProfileTab(i)}
-            className="flex-1 h-8 text-[10px] font-semibold relative"
-            style={{ color: mobileProfileTab === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
-          >
-            {t}
-            {mobileProfileTab === i && (
-              <span
-                className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full"
-                style={{ background: "var(--p-primary)" }}
-              />
-            )}
-          </button>
-        ))}
+  const renderProfileView = () => {
+    const primaryText = pickContrastText(palette.primary);
+    const handle = appName.slice(0, 2).toUpperCase();
+    return (
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* Profile header strip */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-2 flex-shrink-0">
+        <span className="text-[14px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+          {appName}Test
+        </span>
+        <div className="flex items-center gap-3">
+          <Settings className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+          <div className="relative">
+            <Bell className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-primary)" }} />
+          </div>
+          <MessageCircle className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
+        </div>
       </div>
+
+      {/* Avatar + stats row */}
+      <div className="flex items-center gap-3 px-4 pb-3 flex-shrink-0">
+        <div
+          className="h-14 w-14 rounded-full grid place-items-center text-[16px] font-bold flex-shrink-0"
+          style={{
+            background: "color-mix(in oklab, var(--p-primary) 22%, transparent)",
+            border: "1px solid color-mix(in oklab, var(--p-primary) 45%, transparent)",
+            color: "var(--p-primary)",
+          }}
+        >
+          {handle}
+        </div>
+        <div className="flex flex-1 items-center justify-between divide-x" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
+          {[
+            { label: "Wins", val: "90", c: "var(--p-light-text-color)" },
+            { label: strings.FOLLOWING, val: "23", c: "var(--p-primary)" },
+            { label: strings.FOLLOWERS, val: "46", c: "var(--p-primary)" },
+          ].map((s, idx) => (
+            <div key={s.label} className={`flex-1 ${idx > 0 ? "pl-2" : ""}`}>
+              <div className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>{s.label}</div>
+              <div className="text-[15px] font-bold" style={{ color: s.c }}>{s.val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-auto">
+        {/* Naira balance card */}
+        <div className="px-3 pb-2">
+          <div
+            className="rounded-lg px-3 py-2.5 flex items-center justify-between"
+            style={{
+              background: "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))",
+              color: primaryText,
+              border: "1px solid var(--p-primary)",
+            }}
+          >
+            <div>
+              <div className="flex items-center gap-1.5 text-[14px] font-bold">
+                <span>{currencySymbol ?? "₦"}</span>
+                <span className="tracking-widest">****</span>
+              </div>
+              <div className="text-[11px] font-semibold mt-0.5">Naira</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <EyeOff className="h-4 w-4" />
+              <button className="h-6 w-6 rounded-full grid place-items-center" style={{ background: "rgba(0,0,0,0.4)", color: "#fff" }}>
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Available Bonuses header */}
+        <div className="px-3 pt-1 pb-2 flex items-center gap-1.5">
+          <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>Available Bonuses</span>
+          <span
+            className="grid place-items-center h-4 min-w-4 px-1 rounded-full text-[9px] font-bold"
+            style={{ background: "var(--p-primary)", color: primaryText }}
+          >
+            1
+          </span>
+        </div>
+
+        {/* Welcome Bonus card */}
+        <div className="px-3 pb-2">
+          <div
+            className="rounded-lg p-3"
+            style={{
+              background: "linear-gradient(135deg, var(--p-primary-button, var(--p-primary)), var(--p-box-gradient-color-end, var(--p-primary)))",
+              border: "1px solid var(--p-primary)",
+            }}
+          >
+            <div className="text-[14px] font-black" style={{ color: pickContrastText(palette.primaryButton ?? palette.primary) }}>
+              WELCOME BONUS
+            </div>
+            <div className="text-[11px] mt-1 leading-snug" style={{ color: pickContrastText(palette.primaryButton ?? palette.primary) }}>
+              Get a Free Sportsbook Pick or Enjoy 50% More…For Casino Games
+            </div>
+            <div
+              className="mt-2 h-6 w-6 rounded-full grid place-items-center"
+              style={{ background: "rgba(0,0,0,0.4)" }}
+            >
+              <ChevronDown className="h-3.5 w-3.5" style={{ color: "#fff" }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Refer friends card */}
+        <div className="px-3 pb-3">
+          <div
+            className="rounded-lg p-2.5 flex items-center gap-2"
+            style={{
+              border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
+              background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)",
+            }}
+          >
+            <div
+              className="h-8 w-8 rounded-full grid place-items-center flex-shrink-0"
+              style={{ background: "color-mix(in oklab, var(--p-primary) 20%, transparent)", color: "var(--p-primary)" }}
+            >
+              <Users className="h-4 w-4" />
+            </div>
+            <div className="flex-1 text-[10px] font-semibold leading-tight text-center" style={{ color: "var(--p-primary)" }}>
+              Refer your friends and build your network<span style={{ color: "var(--p-text-secondary-color)" }}>1friend at a time!</span>
+            </div>
+            <button
+              className="h-8 px-3 rounded-md text-[10px] font-bold flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))",
+                color: primaryText,
+              }}
+            >
+              Refer friends
+            </button>
+          </div>
+        </div>
+
+        {/* My Bets / My Feed tabs */}
+        <div className="flex border-b" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
+          {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
+            <button
+              key={t}
+              onClick={() => setMobileProfileTab(i)}
+              className="flex-1 h-10 text-[13px] font-semibold relative"
+              style={{ color: mobileProfileTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
+            >
+              {t}
+              {mobileProfileTab === i && (
+                <span
+                  className="absolute bottom-0 left-1/4 right-1/4 h-[2px] rounded-full"
+                  style={{ background: "linear-gradient(90deg, var(--p-primary), var(--p-active-secondary-gradient-color, var(--p-primary)))" }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {mobileProfileTab === 0 && (
+          <>
+            {/* Filter pills row */}
+            <div className="flex gap-2 px-3 py-3">
+              {[strings.FILTER_ALL, "Pending", strings.FILTER_SETTLED, "P2P Bets"].map((label, i) => {
+                const active = mobileMyBetsFilter === i;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setMobileMyBetsFilter(i)}
+                    className="flex-1 h-8 rounded-md text-[11px] font-bold"
+                    style={{
+                      background: active
+                        ? "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))"
+                        : "transparent",
+                      color: active ? primaryText : "var(--p-text-secondary-color)",
+                      border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="px-3 pb-3 space-y-2">
+              {BET_SLIPS.filter((b) => {
+                if (mobileMyBetsFilter === 0) return true;
+                if (mobileMyBetsFilter === 1) return b.status === "PENDING";
+                if (mobileMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
+                return false;
+              }).map((b, i) => {
+                const isWon = b.status === "WON";
+                return (
+                  <div
+                    key={i}
+                    className="rounded-md p-2.5"
+                    style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <TeamDot label={b.team} />
+                        <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                          {b.team}
+                        </span>
+                      </div>
+                      <span
+                        className="text-[9px] font-bold px-2 py-0.5 rounded"
+                        style={{
+                          border: `1px solid ${isWon ? "var(--p-won-color)" : b.status === "PENDING" ? "var(--p-secondary)" : "var(--p-lost-color)"}`,
+                          color: isWon ? "var(--p-won-color)" : b.status === "PENDING" ? "var(--p-secondary)" : "var(--p-lost-color)",
+                        }}
+                      >
+                        {statusLabel(b.status)}
+                      </span>
+                    </div>
+                    <div className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                      1x2 · odds <span style={{ color: "var(--p-primary)", fontWeight: 700 }}>{b.odds}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-1.5 text-[10px]">
+                      <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
+                      <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>₦{b.stake}</span>
+                      <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
+                      <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>₦{b.payout}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {mobileMyBetsFilter === 3 && (
+                <div className="text-center py-6 text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                  {strings.NO_P2P_BETS}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+        {mobileProfileTab === 1 && (
+          <div className="px-3 py-3 space-y-2">
+            {SOCIAL_POSTS.map((p, i) => (
+              <div key={i} className="rounded-md p-2.5" style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-bold" style={{ background: "var(--p-primary)", color: primaryText }}>{p.avatar}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{p.user}</div>
+                    <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>{p.action} · {p.time}</div>
+                  </div>
+                </div>
+                <div className="text-[10px]" style={{ color: "var(--p-primary)" }}>{p.bet}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+    );
+  };
 
       {mobileProfileTab === 0 ? (
         /* My Bets */
