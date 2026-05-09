@@ -3825,11 +3825,25 @@ const MobilePreview = React.memo(function MobilePreview({
       style={{ background: "var(--p-primary-background-color)", color: "var(--p-light-text-color)" }}
     >
       {/* View switcher */}
-      {activeNav === 0 && renderHomeView()}
-      {activeNav === 1 && renderSportsView()}
-      {activeNav === 2 && renderDiscoveryView()}
-      {activeNav === 3 && renderCasinoView()}
-      {activeNav === 4 && renderProfileView()}
+      {mobileMatchId ? (
+        <GameDetail
+          matchId={mobileMatchId}
+          sport="football"
+          onBack={() => setMobileMatchId(null)}
+          palette={palette}
+          strings={strings}
+          pickContrastText={pickContrastText}
+          TeamDot={TeamDot}
+        />
+      ) : (
+        <>
+          {activeNav === 0 && renderHomeView()}
+          {activeNav === 1 && renderSportsView()}
+          {activeNav === 2 && renderDiscoveryView()}
+          {activeNav === 3 && renderCasinoView()}
+          {activeNav === 4 && renderProfileView()}
+        </>
+      )}
 
       {/* Bottom nav */}
       <div
