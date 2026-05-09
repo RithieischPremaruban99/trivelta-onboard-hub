@@ -3020,6 +3020,7 @@ const MobilePreview = React.memo(function MobilePreview({
   const [mobileMyBetsFilter, setMobileMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [expandedBetCard, setExpandedBetCard] = useState(false);
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
+  const [mobileMatchId, setMobileMatchId] = useState<string | null>(null);
 
   const { strings, palette } = useStudio();
   const statusLabel = (s: string) =>
@@ -3406,7 +3407,8 @@ const MobilePreview = React.memo(function MobilePreview({
               return (
                 <div
                   key={i}
-                  className="rounded-md p-2.5"
+                  onClick={() => setMobileMatchId(`pl-${i + 1}`)}
+                  className="rounded-md p-2.5 cursor-pointer transition-colors hover:opacity-90"
                   style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
@@ -3452,7 +3454,7 @@ const MobilePreview = React.memo(function MobilePreview({
                         return (
                           <button
                             key={j}
-                            onClick={() => toggleOdd(key)}
+                            onClick={(e) => { e.stopPropagation(); toggleOdd(key); }}
                             className="w-10 h-10 rounded-md text-[11px] font-bold transition-colors"
                             style={{
                               background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
@@ -3512,45 +3514,279 @@ const MobilePreview = React.memo(function MobilePreview({
     </>
   );
 
-  /* Discovery view (nav 2) */
-  const renderDiscoveryView = () => (
-    <>
-      {renderTopBar()}
-      <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
-        <div className="text-[12px] font-bold my-2" style={{ color: "var(--p-light-text-color)" }}>
-          {strings.DISCOVER}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {EXPLORE_POSTS.map((p, i) => (
-            <div
-              key={i}
-              className="rounded-md p-3"
-              style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
-            >
-              <span
-                className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                style={{ background: "var(--p-active-secondary-gradient-color)", color: pickContrastText(palette.activeSecondaryGradientColor) }}
-              >
-                {p.badge}
+  /* Discovery view (nav 2) — feed-style parlay posts mirroring web */
+  const renderDiscoveryView = () => {
+    const primaryText = pickContrastText(palette.primary);
+    const leagues = [
+      { code: "MLB", icon: "⚾" },
+      { code: "NHL", icon: "🏒" },
+      { code: "NBA", icon: "🏀" },
+      { code: "MMA", icon: "🥊" },
+      { code: "Soccer", icon: "⚽" },
+      { code: "MLS", icon: "🥅" },
+      { code: "TT", icon: "🏓" },
+    ];
+    type DiscPost = {
+      user: string;
+      league: string;
+      legCount: number;
+      odds: string;
+      status: "PENDING" | "WON" | "LOST";
+      legs: { type: string; pick: string; odds: string; home: string; away: string }[];
+      stake: string;
+      payout: string;
+      time: string;
+    };
+    const posts: DiscPost[] = [
+      {
+        user: "sskit8905",
+        league: "MLB",
+        legCount: 8,
+        odds: "+14954",
+        status: "PENDING",
+        legs: [
+          { type: "Winner (incl. extra innings)", pick: "Los Angeles Angels", odds: "-143", home: "New York Mets", away: "Los Angeles Angels" },
+          { type: "Winner (incl. extra innings)", pick: "Detroit Tigers", odds: "-120", home: "Texas Rangers", away: "Detroit Tigers" },
+          { type: "Handicap", pick: "Philadelphia Phillies (-1)", odds: "+109", home: "Philadelphia Phillies", away: "Miami Marlins" },
+        ],
+        stake: "0.5",
+        payout: "75.27",
+        time: "14s ago",
+      },
+      {
+        user: "ChampagnePogi",
+        league: "NBA",
+        legCount: 2,
+        odds: "+210",
+        status: "PENDING",
+        legs: [
+          { type: "Handicap", pick: "Toronto Raptors (+10.5)", odds: "-159", home: "Toronto Raptors", away: "Cleveland Cavaliers" },
+          { type: "Handicap", pick: "Boston Celtics (-4.5)", odds: "-110", home: "Boston Celtics", away: "Miami Heat" },
+        ],
+        stake: "5",
+        payout: "15.50",
+        time: "3m ago",
+      },
+      {
+        user: "WillyBet",
+        league: "Soccer",
+        legCount: 4,
+        odds: "+850",
+        status: "WON",
+        legs: [
+          { type: "1x2", pick: "Real Madrid", odds: "+105", home: "Real Madrid", away: "Atletico Madrid" },
+          { type: "Over/Under", pick: "Over 2.5", odds: "-130", home: "Manchester City", away: "Liverpool" },
+          { type: "1x2", pick: "Bayern", odds: "-180", home: "Bayern", away: "Borussia Dortmund" },
+        ],
+        stake: "10",
+        payout: "95.00",
+        time: "2h ago",
+      },
+    ];
+    const statusStyle = (s: "PENDING" | "WON" | "LOST") => {
+      if (s === "WON") return { bg: "color-mix(in oklab, var(--p-won-color) 18%, transparent)", color: "var(--p-won-color)" };
+      if (s === "LOST") return { bg: "color-mix(in oklab, var(--p-lost-color) 18%, transparent)", color: "var(--p-lost-color)" };
+      return { bg: "color-mix(in oklab, var(--p-secondary) 18%, transparent)", color: "var(--p-secondary)" };
+    };
+    const statusLabelText = (s: "PENDING" | "WON" | "LOST") =>
+      s === "WON" ? strings.STATUS_WON : s === "LOST" ? strings.STATUS_LOST : strings.STATUS_PENDING;
+    const oddsColor = (o: string) =>
+      o.startsWith("+") ? "var(--p-won-color)" : "var(--p-light-text-color)";
+
+    return (
+      <>
+        {renderTopBar()}
+        <div className="flex-1 min-h-0 overflow-auto px-3 pb-3">
+          {/* Header */}
+          <div className="flex items-center justify-between my-2">
+            <div className="flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5" style={{ color: "var(--p-primary)" }} />
+              <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                For you
               </span>
-              <div className="text-[11px] font-bold mt-1.5" style={{ color: "var(--p-light-text-color)" }}>
-                {p.title}
-              </div>
-              <div className="text-[9px] mt-1" style={{ color: "var(--p-text-secondary-color)" }}>
-                {p.desc}
-              </div>
-              <button
-                className="mt-2 w-full h-7 rounded text-[9px] font-semibold"
-                style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
-              >
-                {strings.VIEW_TIPS}
-              </button>
             </div>
-          ))}
+            <Filter className="h-3.5 w-3.5" style={{ color: "var(--p-text-secondary-color)" }} />
+          </div>
+
+          {/* League tiles row */}
+          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2" style={{ scrollbarWidth: "none" }}>
+            {leagues.map((l, i) => {
+              const active = i === 0;
+              return (
+                <div
+                  key={l.code}
+                  className="flex flex-col items-center justify-center flex-shrink-0 rounded-lg"
+                  style={{
+                    width: 52,
+                    height: 52,
+                    background: "var(--p-dark)",
+                    border: `1px solid ${active ? "var(--p-primary)" : "var(--p-border-and-gradient-bg)"}`,
+                  }}
+                >
+                  <span className="text-[16px] leading-none">{l.icon}</span>
+                  <span className="text-[8px] mt-0.5" style={{ color: "var(--p-text-secondary-color)" }}>
+                    {l.code}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Posts */}
+          <div className="space-y-2.5">
+            {posts.map((p, idx) => {
+              const ss = statusStyle(p.status);
+              return (
+                <div
+                  key={idx}
+                  className="rounded-lg overflow-hidden"
+                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                >
+                  {/* User header */}
+                  <div
+                    className="flex items-center justify-between px-2.5 py-1.5"
+                    style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <div
+                        className="h-5 w-5 rounded-full grid place-items-center text-[8px] font-bold"
+                        style={{ background: "var(--p-primary)", color: primaryText }}
+                      >
+                        {p.user.slice(0, 1).toUpperCase()}
+                      </div>
+                      <span className="text-[10px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>
+                        {p.user}
+                      </span>
+                    </div>
+                    <span
+                      className="text-[8px] font-bold px-1.5 py-0.5 rounded italic"
+                      style={{ background: ss.bg, color: ss.color }}
+                    >
+                      {statusLabelText(p.status)}
+                    </span>
+                  </div>
+
+                  {/* League + Multi title */}
+                  <div className="px-2.5 pt-2">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Trophy className="h-2.5 w-2.5" style={{ color: "var(--p-text-secondary-color)" }} />
+                      <span className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                        {p.league}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                        {p.legCount} Leg Parlay
+                      </span>
+                      <span className="text-[11px] font-bold" style={{ color: oddsColor(p.odds) }}>
+                        {p.odds}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Legs */}
+                  <div className="px-2.5 space-y-1.5">
+                    {p.legs.map((leg, li) => (
+                      <div
+                        key={li}
+                        className="rounded-md px-2 py-1.5"
+                        style={{
+                          background: "var(--p-primary-background-color)",
+                          border: "1px solid var(--p-border-and-gradient-bg)",
+                        }}
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <div className="min-w-0">
+                            <div className="text-[7px] font-semibold mb-0.5" style={{ color: "var(--p-primary)" }}>
+                              {leg.type}
+                            </div>
+                            <div className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                              {leg.pick}
+                            </div>
+                          </div>
+                          <span
+                            className="text-[9px] font-bold ml-1.5 flex-shrink-0"
+                            style={{ color: oddsColor(leg.odds) }}
+                          >
+                            {leg.odds}
+                          </span>
+                        </div>
+                        <div
+                          className="flex items-center justify-between text-[7px]"
+                          style={{ color: "var(--p-text-secondary-color)" }}
+                        >
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <TeamDot label={leg.home} size={12} />
+                            <span className="truncate">{leg.home}</span>
+                          </div>
+                          <span className="px-1.5" style={{ color: "var(--p-vs-color)" }}>VS</span>
+                          <div className="flex items-center gap-1 min-w-0 flex-1 justify-end">
+                            <span className="truncate text-right">{leg.away}</span>
+                            <TeamDot label={leg.away} size={12} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {p.legCount > p.legs.length && (
+                    <div className="px-2.5 py-1.5 text-center">
+                      <span className="text-[9px] font-semibold" style={{ color: "var(--p-primary)" }}>
+                        Show all {p.legCount} legs ›
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Stake / payout */}
+                  <div
+                    className="flex items-center justify-between px-2.5 py-1.5"
+                    style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div>
+                      <div className="text-[7px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>
+                        PICK AMOUNT
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Flame className="h-2 w-2" style={{ color: "var(--p-primary)" }} />
+                        <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                          {p.stake}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[7px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>
+                        PAYOUT
+                      </div>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Flame className="h-2 w-2" style={{ color: "var(--p-primary)" }} />
+                        <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                          {p.payout}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div
+                    className="flex items-center justify-between px-2.5 py-1.5"
+                    style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <div className="flex items-center gap-2.5" style={{ color: "var(--p-text-secondary-color)" }}>
+                      <Heart className="h-3 w-3" />
+                      <MessageCircle className="h-3 w-3" />
+                      <ArrowLeftRight className="h-3 w-3" />
+                      <span className="text-[8px] ml-0.5">{p.time}</span>
+                    </div>
+                    <Share2 className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </>
-  );
+      </>
+    );
+  };
 
   /* Casino view (nav 3) */
   const renderCasinoView = () => (
@@ -3823,11 +4059,25 @@ const MobilePreview = React.memo(function MobilePreview({
       style={{ background: "var(--p-primary-background-color)", color: "var(--p-light-text-color)" }}
     >
       {/* View switcher */}
-      {activeNav === 0 && renderHomeView()}
-      {activeNav === 1 && renderSportsView()}
-      {activeNav === 2 && renderDiscoveryView()}
-      {activeNav === 3 && renderCasinoView()}
-      {activeNav === 4 && renderProfileView()}
+      {mobileMatchId ? (
+        <GameDetail
+          matchId={mobileMatchId}
+          sport="football"
+          onBack={() => setMobileMatchId(null)}
+          palette={palette}
+          strings={strings}
+          pickContrastText={pickContrastText}
+          TeamDot={TeamDot}
+        />
+      ) : (
+        <>
+          {activeNav === 0 && renderHomeView()}
+          {activeNav === 1 && renderSportsView()}
+          {activeNav === 2 && renderDiscoveryView()}
+          {activeNav === 3 && renderCasinoView()}
+          {activeNav === 4 && renderProfileView()}
+        </>
+      )}
 
       {/* Bottom nav */}
       <div
@@ -3846,7 +4096,7 @@ const MobilePreview = React.memo(function MobilePreview({
           return (
             <button
               key={n.label}
-              onClick={() => setActiveNav(i)}
+              onClick={() => { setMobileMatchId(null); setActiveNav(i); }}
               className="flex flex-col items-center justify-center gap-0.5 h-14 relative"
             >
               {isProfile ? (
