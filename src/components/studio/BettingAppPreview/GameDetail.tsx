@@ -124,7 +124,7 @@ export function GameDetail({
             {heroDate}
           </span>
         </div>
-        <div className="grid grid-cols-3 items-center gap-3">
+        <div className="relative grid grid-cols-3 items-center gap-3">
           {/* Home team */}
           <div className="flex flex-col items-center gap-2.5 text-center min-w-0">
             <div
