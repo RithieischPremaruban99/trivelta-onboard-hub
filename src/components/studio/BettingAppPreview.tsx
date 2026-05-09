@@ -3020,6 +3020,7 @@ const MobilePreview = React.memo(function MobilePreview({
   const [mobileMyBetsFilter, setMobileMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [expandedBetCard, setExpandedBetCard] = useState(false);
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
+  const [mobileMatchId, setMobileMatchId] = useState<string | null>(null);
 
   const { strings, palette } = useStudio();
   const statusLabel = (s: string) =>
