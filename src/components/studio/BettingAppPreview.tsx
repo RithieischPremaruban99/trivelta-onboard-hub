@@ -3407,7 +3407,8 @@ const MobilePreview = React.memo(function MobilePreview({
               return (
                 <div
                   key={i}
-                  className="rounded-md p-2.5"
+                  onClick={() => setMobileMatchId(`pl-${i + 1}`)}
+                  className="rounded-md p-2.5 cursor-pointer transition-colors hover:opacity-90"
                   style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
