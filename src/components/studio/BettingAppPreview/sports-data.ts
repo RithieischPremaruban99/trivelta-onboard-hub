@@ -113,6 +113,18 @@ export const TENNIS_TOURNAMENTS: TennisTournament[] = [
       { id: "tn-8", playerA: { name: "Khachanov, Karen", countryCode: "RU" }, playerB: { name: "Van de Zandschulp, Botic", countryCode: "NL" }, oddsA: "1.47", oddsB: "2.32" },
     ],
   },
+  {
+    name: "WTA Rome, Italy Women Singles - WTA",
+    type: "WTA",
+    matches: [
+      { id: "wtn-1", playerA: { name: "Swiatek, Iga", countryCode: "PL" }, playerB: { name: "Kostyuk, Marta", countryCode: "UA" }, oddsA: "1.18", oddsB: "4.80" },
+      { id: "wtn-2", playerA: { name: "Sabalenka, Aryna", countryCode: "BY" }, playerB: { name: "Paolini, Jasmine", countryCode: "IT" }, oddsA: "1.32", oddsB: "3.30" },
+      { id: "wtn-3", playerA: { name: "Gauff, Coco", countryCode: "US" }, playerB: { name: "Vekic, Donna", countryCode: "HR" }, oddsA: "1.22", oddsB: "4.20" },
+      { id: "wtn-4", playerA: { name: "Rybakina, Elena", countryCode: "KZ" }, playerB: { name: "Kasatkina, Daria", countryCode: "RU" }, oddsA: "1.55", oddsB: "2.45" },
+      { id: "wtn-5", playerA: { name: "Pegula, Jessica", countryCode: "US" }, playerB: { name: "Haddad Maia, Beatriz", countryCode: "BR" }, oddsA: "1.62", oddsB: "2.30" },
+      { id: "wtn-6", playerA: { name: "Jabeur, Ons", countryCode: "TN" }, playerB: { name: "Putintseva, Yulia", countryCode: "KZ" }, oddsA: "1.45", oddsB: "2.70" },
+    ],
+  },
 ];
 
 export const NBA_TOP_TABS = ["Schedule", "Players", "Futures"];
