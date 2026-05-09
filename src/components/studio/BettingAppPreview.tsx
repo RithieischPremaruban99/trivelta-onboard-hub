@@ -323,6 +323,7 @@ function getSportsSidebar(strings: TCMStrings) {
 // These are computed inside components using strings - kept as icon-only config here
 const QUICK_TILE_ICONS = [
   { icon: Radio, strKey: "TILE_LIVE_SPORTS" as const, nav: 1 },
+  { icon: CircleDot, strKey: "TILE_FOOTBALL" as const, nav: 1 },
   { icon: Code2, strKey: "TILE_LOAD_CODE" as const, nav: 2 },
   { icon: Clapperboard, strKey: "TILE_VIRTUALS" as const, nav: 3 },
   { icon: ArrowLeftRight, strKey: "TILE_PEER_TO_PEER" as const, nav: 4 },
@@ -344,6 +345,8 @@ const LEAGUE_TABS = [
   "Bundesliga - Germany",
   "Serie A - Italy",
   "Ligue 1 - France",
+  "Liga Portugal - Portugal",
+  "Eredivisie - Netherlands",
 ];
 const BET_TYPE_TABS = [
   "1X2",
@@ -353,6 +356,8 @@ const BET_TYPE_TABS = [
   "1st half O/U",
   "Handicap",
   "Anytime goalscorer",
+  "Total corners",
+  "Total bookings",
 ];
 
 const LIVE_UPCOMING = [
