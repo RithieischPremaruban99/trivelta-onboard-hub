@@ -140,7 +140,7 @@ export function SportsListing({
                   style={{
                     background: active ? "var(--p-primary)" : "transparent",
                     color: active
-                      ? pickContrastText(palette.primary ?? "rgba(0,0,0,1)")
+                      ? pickContrastText(palette.primary)
                       : "var(--p-text-secondary-color)",
                   }}
                 >
