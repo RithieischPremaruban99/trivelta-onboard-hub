@@ -1071,7 +1071,7 @@ export function StudioInner({
               ref={previewContainerRef}
               className="flex-1 overflow-auto transition-all duration-300"
             >
-              <BettingAppPreview />
+              <BettingAppPreview clientId={clientId} />
             </div>
           </div>
         )}
