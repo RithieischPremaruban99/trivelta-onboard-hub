@@ -307,7 +307,7 @@ function FullscreenMobile({ clientId }: { clientId: string }) {
       </div>
       <MobileFrame className="w-full max-w-[420px]">
         <div style={{ height: 820 }}>
-          <BettingAppPreview viewMode="mobile" readOnly />
+          <BettingAppPreview viewMode="mobile" readOnly clientId={clientId} />
         </div>
       </MobileFrame>
       <p className="text-[11px] text-muted-foreground">
