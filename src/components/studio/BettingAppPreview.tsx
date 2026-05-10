@@ -2991,7 +2991,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       >
         <div className="flex items-center gap-1">
           {isKMK ? (
-            <MyBetWordmark size={14} />
+            <MyBetWordmark size={20} />
           ) : logoUrl ? (
             <img src={logoUrl} alt="Logo" className="h-6 mr-2 object-contain max-w-[100px]" />
           ) : (
