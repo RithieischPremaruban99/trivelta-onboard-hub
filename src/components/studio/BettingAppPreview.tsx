@@ -381,6 +381,74 @@ type Match = {
   live?: boolean;
 };
 
+/* ─────────── KMK Entertainment override (MyBet.Africa demo) ─────────── */
+const KMK_CLIENT_ID = "8e1aee03-7a76-4ad8-a336-6a8a1dae9fc0";
+
+const MYBET_OVERRIDES: React.CSSProperties = {
+  ["--p-primary" as any]: "#22B14C",
+  ["--p-primary-button" as any]: "#22B14C",
+  ["--p-primary-button-gradient" as any]: "#1A8E3D",
+  ["--p-secondary" as any]: "#F5C518",
+  ["--p-active-secondary-gradient-color" as any]: "#22B14C",
+  ["--p-primary-background-color" as any]: "#0A0F14",
+  ["--p-dark" as any]: "#11161E",
+  ["--p-modal-background" as any]: "#161D27",
+  ["--p-dark-container-background" as any]: "#11161E",
+  ["--p-border-and-gradient-bg" as any]: "#252D3A",
+  ["--p-border-color" as any]: "#252D3A",
+  ["--p-light-text-color" as any]: "#FFFFFF",
+  ["--p-text-secondary-color" as any]: "#A0A8B5",
+  ["--p-primary-text-color" as any]: "#000000",
+  ["--p-free-bet-background" as any]: "rgba(245,197,24,0.18)",
+  ["--p-box-gradient-color-end" as any]: "#1A8E3D",
+  ["--p-won-color" as any]: "#22B14C",
+  ["--p-won-gradient-1" as any]: "#22B14C",
+  ["--p-won-gradient-2" as any]: "#1A8E3D",
+  ["--p-lost-color" as any]: "#E8202A",
+  ["--p-vs-color" as any]: "#A0A8B5",
+  ["--p-inactive-button-bg" as any]: "#252D3A",
+};
+
+const MYBET_MATCHES: Match[] = [
+  { date: "TODAY · 5:00 PM", home: "Enyimba FC", away: "Rivers United", odds: ["2.10", "3.20", "3.40"], live: false },
+  { date: "TODAY · 7:00 PM", home: "Kano Pillars", away: "Plateau United", odds: ["1.85", "3.50", "4.10"], live: false },
+  { date: "LIVE · 67'", home: "Remo Stars", away: "Rangers Int'l", odds: ["1.95", "3.30", "3.80"], live: true },
+  { date: "TOMORROW · 4:00 PM", home: "Lobi Stars", away: "Sunshine Stars", odds: ["2.40", "3.10", "2.90"], live: false },
+  { date: "TOMORROW · 6:00 PM", home: "Akwa United", away: "Heartland", odds: ["2.20", "3.20", "3.10"], live: false },
+  { date: "10 MAY · 4:00 PM", home: "Bendel Insurance", away: "Bayelsa United", odds: ["1.75", "3.60", "4.50"], live: false },
+];
+
+const MYBET_LIVE_UPCOMING = [
+  { live: true, code: "NPFL", home: "ENY", away: "RIV", odds: null },
+  { live: true, code: "NPFL", home: "KAN", away: "PLA", odds: null },
+  { live: true, code: "NPFL", home: "REM", away: "RAN", odds: "1.95" },
+  { live: false, code: "NNL Cup", home: "LOB", away: "SUN", odds: "2.40" },
+  { live: false, code: "Africa CL", home: "ENY", away: "MAM", odds: "2.10" },
+  { live: false, code: "CAF Conf", home: "RIV", away: "ASA", odds: "1.85" },
+];
+
+const MYBET_BET_SLIPS = [
+  { team: "Enyimba FC", odds: "2.10", status: "WON", stake: "5000", payout: "10500" },
+  { team: "Kano Pillars", odds: "1.85", status: "PENDING", stake: "2500", payout: "4625" },
+  { team: "Remo Stars", odds: "3.30", status: "LOST", stake: "1000", payout: "0" },
+];
+
+const MYBET_STRINGS_OVERRIDES = {
+  WELCOME_BONUS_PROMO: "GET A 100% BONUS UP TO ₦100,000",
+  WELCOME_BONUS_BODY_WEB: "Enjoy 100% welcome bonus on your first deposit and double your starting stake.",
+  WELCOME_BONUS_BODY_MOBILE: "100% welcome bonus up to ₦100,000",
+};
+
+function MyBetWordmark({ size = 14 }: { size?: number }) {
+  return (
+    <div className="flex items-baseline gap-0 mr-3 select-none" style={{ fontSize: size }}>
+      <span className="font-black" style={{ color: "#F5C518" }}>my</span>
+      <span className="font-black" style={{ color: "#FFFFFF" }}>bet.</span>
+      <span className="font-black" style={{ color: "#22B14C" }}>africa</span>
+    </div>
+  );
+}
+
 // NOTE: These 8 fixtures duplicate FOOTBALL_LEAGUES[0] (Premier League).
 // Match IDs pl-1..pl-8 in sports-data.ts mirror this array's index order.
 // When clicking a card, we navigate to detail using pl-${i + 1}.
@@ -613,8 +681,13 @@ const LiveDot = () => {
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol }: { appName: string; logoUrl?: string | null; currencySymbol?: string }) {
-  const { strings, palette } = useStudio();
+const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string }) {
+  const { strings: rawStrings, palette } = useStudio();
+  const isKMK = clientId === KMK_CLIENT_ID;
+  const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
+  const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
+  const effectiveLiveUpcoming = isKMK ? MYBET_LIVE_UPCOMING : LIVE_UPCOMING;
+  const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
@@ -708,7 +781,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             ))}
           </div>
           <div className="flex-1 overflow-auto p-2 space-y-2">
-            {BET_SLIPS.filter((b) => {
+            {effectiveBetSlips.filter((b) => {
               if (webMyBetsFilter === 0) return true;
               if (webMyBetsFilter === 1) return b.status === "PENDING";
               if (webMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
@@ -1586,7 +1659,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
           {/* Live row */}
           <div className="grid grid-cols-6 gap-1.5 mb-3">
-            {LIVE_UPCOMING.map((m, i) => (
+            {effectiveLiveUpcoming.map((m, i) => (
               <div
                 key={i}
                 className="rounded-md p-1.5"
@@ -1735,7 +1808,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
           {/* Match cards (2-column grid) */}
           <div className="grid grid-cols-2 gap-2">
-            {MATCHES.map((m, i) => (
+            {effectiveMatches.map((m, i) => (
               <div
                 key={i}
                 className="rounded-md p-2.5 cursor-pointer transition-all"
@@ -2909,7 +2982,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
         style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
         <div className="flex items-center gap-1">
-          {logoUrl ? (
+          {isKMK ? (
+            <MyBetWordmark size={14} />
+          ) : logoUrl ? (
             <img src={logoUrl} alt="Logo" className="h-6 mr-2 object-contain max-w-[100px]" />
           ) : (
             <div
@@ -3005,11 +3080,16 @@ const MobilePreview = React.memo(function MobilePreview({
   appName,
   currencySymbol,
   logoUrl,
+  clientId,
 }: {
   appName: string;
   currencySymbol: string;
   logoUrl?: string | null;
+  clientId?: string;
 }) {
+  const isKMK = clientId === KMK_CLIENT_ID;
+  const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
+  const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const [activeNav, setActiveNav] = useState(1); // 0=Home, 1=Sports, 2=Discovery, 3=Casino, 4=Profile
   const [mobileSportsTab, setMobileSportsTab] = useState(0); // 0=Sports, 1=All Sports
   const [activeSport, setActiveSport] = useState(0);
@@ -3022,7 +3102,8 @@ const MobilePreview = React.memo(function MobilePreview({
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
   const [mobileMatchId, setMobileMatchId] = useState<string | null>(null);
 
-  const { strings, palette } = useStudio();
+  const { strings: rawStrings, palette } = useStudio();
+  const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
   const statusLabel = (s: string) =>
     s === "WON"
       ? strings.STATUS_WON
@@ -3054,7 +3135,9 @@ const MobilePreview = React.memo(function MobilePreview({
   /* Shared top bar */
   const renderTopBar = () => (
     <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
-      {logoUrl ? (
+      {isKMK ? (
+        <MyBetWordmark size={13} />
+      ) : logoUrl ? (
         <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
       ) : (
         <div
@@ -3173,7 +3256,7 @@ const MobilePreview = React.memo(function MobilePreview({
           {strings.LIVE_AND_UPCOMING}
         </div>
         <div className="space-y-2">
-          {MATCHES.slice(0, 3).map((m, i) => {
+          {effectiveMatches.slice(0, 3).map((m, i) => {
             const k0 = `home-${i}-0`;
             const k1 = `home-${i}-1`;
             const k2 = `home-${i}-2`;
@@ -3400,7 +3483,7 @@ const MobilePreview = React.memo(function MobilePreview({
 
           {/* Match cards */}
           <div className="space-y-2">
-            {MATCHES.slice(0, 4).map((m, i) => {
+            {effectiveMatches.slice(0, 4).map((m, i) => {
               const k0 = `sports-${i}-0`;
               const k1 = `sports-${i}-1`;
               const k2 = `sports-${i}-2`;
@@ -3981,7 +4064,7 @@ const MobilePreview = React.memo(function MobilePreview({
             </div>
 
             <div className="px-3 pb-3 space-y-2">
-              {BET_SLIPS.filter((b) => {
+              {effectiveBetSlips.filter((b) => {
                 if (mobileMyBetsFilter === 0) return true;
                 if (mobileMyBetsFilter === 1) return b.status === "PENDING";
                 if (mobileMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
@@ -4971,15 +5054,19 @@ function paletteToInlineStyle(
   return { ...style, ...extraStyles } as React.CSSProperties;
 }
 
-const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile" | "web"; readOnly?: boolean } = {}) => {
+const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?: "mobile" | "web"; readOnly?: boolean; clientId?: string } = {}) => {
   const { palette, appIcons, previewMode, headingFont, strings } = useStudio();
   const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
+  const isKMK = clientId === KMK_CLIENT_ID;
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
   const paletteStyle = useMemo(
-    () => paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
-    [palette, headingFont],
+    () => ({
+      ...paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
+      ...(isKMK ? MYBET_OVERRIDES : {}),
+    }),
+    [palette, headingFont, isKMK],
   );
 
   const handleSimulateNotification = () => {
@@ -5110,6 +5197,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
             appName={strings.APP_NAME}
             currencySymbol={strings.CURRENCY_SYMBOL}
             logoUrl={appIcons.appNameLogo}
+            clientId={clientId}
           />
         </div>
       ) : (
@@ -5122,7 +5210,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile"
             background: "var(--p-primary-background-color)",
           }}
         >
-          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} currencySymbol={strings.CURRENCY_SYMBOL} />
+          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} currencySymbol={strings.CURRENCY_SYMBOL} clientId={clientId} />
         </div>
       )}
       </div>

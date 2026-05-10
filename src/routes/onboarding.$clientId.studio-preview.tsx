@@ -267,7 +267,7 @@ function WebFrame({
 
 /* ── Preview Modes ──────────────────────────────────────────────────────── */
 
-function SplitView() {
+function SplitView({ clientId }: { clientId: string }) {
   const { appName } = useStudio();
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
@@ -278,7 +278,7 @@ function SplitView() {
         </div>
         <MobileFrame className="w-full max-w-[340px]">
           <div style={{ height: 680 }}>
-            <BettingAppPreview viewMode="mobile" readOnly />
+            <BettingAppPreview viewMode="mobile" readOnly clientId={clientId} />
           </div>
         </MobileFrame>
       </div>
@@ -290,7 +290,7 @@ function SplitView() {
         </div>
         <WebFrame appName={appName}>
           <div style={{ height: 680 }}>
-            <BettingAppPreview viewMode="web" readOnly />
+            <BettingAppPreview viewMode="web" readOnly clientId={clientId} />
           </div>
         </WebFrame>
       </div>
@@ -298,7 +298,7 @@ function SplitView() {
   );
 }
 
-function FullscreenMobile() {
+function FullscreenMobile({ clientId }: { clientId: string }) {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -307,7 +307,7 @@ function FullscreenMobile() {
       </div>
       <MobileFrame className="w-full max-w-[420px]">
         <div style={{ height: 820 }}>
-          <BettingAppPreview viewMode="mobile" readOnly />
+          <BettingAppPreview viewMode="mobile" readOnly clientId={clientId} />
         </div>
       </MobileFrame>
       <p className="text-[11px] text-muted-foreground">
@@ -318,7 +318,7 @@ function FullscreenMobile() {
   );
 }
 
-function FullscreenWeb() {
+function FullscreenWeb({ clientId }: { clientId: string }) {
   const { appName } = useStudio();
   return (
     <div className="flex flex-col items-center gap-4">
@@ -328,7 +328,7 @@ function FullscreenWeb() {
       </div>
       <WebFrame appName={appName} className="w-full max-w-6xl">
         <div style={{ height: 820 }}>
-          <BettingAppPreview viewMode="web" readOnly />
+          <BettingAppPreview viewMode="web" readOnly clientId={clientId} />
         </div>
       </WebFrame>
       <p className="text-[11px] text-muted-foreground">
@@ -345,10 +345,12 @@ function PreviewShell({
   lockedAt,
   submittedBy,
   onBack,
+  clientId,
 }: {
   lockedAt: string | null;
   submittedBy: string | null;
   onBack: () => void;
+  clientId: string;
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>("split");
 
@@ -397,9 +399,9 @@ function PreviewShell({
             viewMode === "split" ? "max-w-7xl" : "max-w-7xl",
           )}
         >
-          {viewMode === "split" && <SplitView />}
-          {viewMode === "mobile" && <FullscreenMobile />}
-          {viewMode === "web" && <FullscreenWeb />}
+          {viewMode === "split" && <SplitView clientId={clientId} />}
+          {viewMode === "mobile" && <FullscreenMobile clientId={clientId} />}
+          {viewMode === "web" && <FullscreenWeb clientId={clientId} />}
         </div>
       </div>
     </div>
@@ -513,6 +515,7 @@ function StudioPreviewPage() {
         lockedAt={config.lockedAt}
         submittedBy={config.submittedByEmail}
         onBack={handleBack}
+        clientId={clientId}
       />
     </StudioProvider>
   );
