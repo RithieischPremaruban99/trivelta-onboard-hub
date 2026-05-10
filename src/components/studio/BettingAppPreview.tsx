@@ -681,8 +681,13 @@ const LiveDot = () => {
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol }: { appName: string; logoUrl?: string | null; currencySymbol?: string }) {
-  const { strings, palette } = useStudio();
+const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string }) {
+  const { strings: rawStrings, palette } = useStudio();
+  const isKMK = clientId === KMK_CLIENT_ID;
+  const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
+  const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
+  const effectiveLiveUpcoming = isKMK ? MYBET_LIVE_UPCOMING : LIVE_UPCOMING;
+  const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
