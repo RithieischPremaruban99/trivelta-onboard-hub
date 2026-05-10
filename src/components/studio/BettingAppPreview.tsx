@@ -1802,11 +1802,11 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
           {/* League pills */}
           <div className="flex gap-1.5 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {LEAGUE_TABS.map((l, i) => (
+            {effectiveLeagueTabs.map((l, i) => (
               <button
                 key={l}
                 onClick={() => setActiveLeague(i)}
-                className="px-2.5 h-6 rounded-full text-[9px] font-semibold flex-shrink-0"
+                className="px-2.5 h-6 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
                 style={{
                   background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
@@ -1816,7 +1816,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
-                ⚽ {l}
+                <LeagueLogo label={l} size={12} /> {l}
               </button>
             ))}
           </div>
