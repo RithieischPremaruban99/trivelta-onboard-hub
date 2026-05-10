@@ -3252,7 +3252,7 @@ const MobilePreview = React.memo(function MobilePreview({
           {strings.LIVE_AND_UPCOMING}
         </div>
         <div className="space-y-2">
-          {MATCHES.slice(0, 3).map((m, i) => {
+          {effectiveMatches.slice(0, 3).map((m, i) => {
             const k0 = `home-${i}-0`;
             const k1 = `home-${i}-1`;
             const k2 = `home-${i}-2`;
@@ -3479,7 +3479,7 @@ const MobilePreview = React.memo(function MobilePreview({
 
           {/* Match cards */}
           <div className="space-y-2">
-            {MATCHES.slice(0, 4).map((m, i) => {
+            {effectiveMatches.slice(0, 4).map((m, i) => {
               const k0 = `sports-${i}-0`;
               const k1 = `sports-${i}-1`;
               const k2 = `sports-${i}-2`;
@@ -4060,7 +4060,7 @@ const MobilePreview = React.memo(function MobilePreview({
             </div>
 
             <div className="px-3 pb-3 space-y-2">
-              {BET_SLIPS.filter((b) => {
+              {effectiveBetSlips.filter((b) => {
                 if (mobileMyBetsFilter === 0) return true;
                 if (mobileMyBetsFilter === 1) return b.status === "PENDING";
                 if (mobileMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
