@@ -1734,8 +1734,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <LiveDot />
-                <div className="text-[8px] mt-1 truncate" style={{ color: "var(--p-text-secondary-color)" }}>
-                  {m.code}
+                <div className="flex items-center gap-1 mt-1 truncate" style={{ color: "var(--p-text-secondary-color)" }}>
+                  <LeagueLogo label={m.code} size={10} />
+                  <span className="text-[8px] truncate">{m.code}</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
