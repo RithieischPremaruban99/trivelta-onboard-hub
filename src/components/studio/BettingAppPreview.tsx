@@ -3100,7 +3100,8 @@ const MobilePreview = React.memo(function MobilePreview({
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
   const [mobileMatchId, setMobileMatchId] = useState<string | null>(null);
 
-  const { strings, palette } = useStudio();
+  const { strings: rawStrings, palette } = useStudio();
+  const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
   const statusLabel = (s: string) =>
     s === "WON"
       ? strings.STATUS_WON
