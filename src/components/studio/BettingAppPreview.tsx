@@ -439,12 +439,20 @@ const MYBET_STRINGS_OVERRIDES = {
   WELCOME_BONUS_BODY_MOBILE: "100% welcome bonus up to ₦100,000",
 };
 
-function MyBetWordmark({ size = 14 }: { size?: number }) {
+function MyBetWordmark({ size = 18 }: { size?: number }) {
   return (
-    <div className="flex items-baseline gap-0 mr-3 select-none" style={{ fontSize: size }}>
-      <span className="font-black" style={{ color: "#F5C518" }}>my</span>
-      <span className="font-black" style={{ color: "#FFFFFF" }}>bet.</span>
-      <span className="font-black" style={{ color: "#22B14C" }}>africa</span>
+    <div className="flex flex-col items-start mr-3 select-none leading-none">
+      <div className="flex items-baseline gap-0" style={{ fontSize: size }}>
+        <span className="font-black italic" style={{ color: "#F5C518" }}>my</span>
+        <span className="font-black italic" style={{ color: "#FFFFFF" }}>bet.</span>
+        <span className="font-black italic" style={{ color: "#22B14C" }}>africa</span>
+      </div>
+      <div
+        className="font-bold tracking-[0.18em] mt-[2px]"
+        style={{ fontSize: Math.max(6, Math.round(size * 0.34)), color: "#FFFFFF" }}
+      >
+        HOME OF BETTING
+      </div>
     </div>
   );
 }
