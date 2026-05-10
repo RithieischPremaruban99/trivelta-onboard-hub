@@ -757,8 +757,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const effectiveLiveUpcoming = isKMK ? MYBET_LIVE_UPCOMING : LIVE_UPCOMING;
   const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const effectiveLeagueTabs = isKMK ? MYBET_LEAGUE_TABS : LEAGUE_TABS;
-  const effectiveCurrencySymbol = isKMK ? "GH₵" : "₦";
+  const effectiveCurrencySymbol = isKMK ? "GH₵" : (currencySymbol ?? "₦");
   const effectiveCurrencyName = isKMK ? "Ghana Cedi" : "Naira";
+  const effectiveAppName = isKMK ? "MyBet.Africa" : appName;
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
@@ -2570,7 +2571,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   /* Profile view (clicking the TN avatar) */
   const renderProfileView = () => {
     const primaryText = pickContrastText(palette.primary);
-    const handle = appName.slice(0, 2).toUpperCase();
+    const handle = effectiveAppName.slice(0, 2).toUpperCase();
     const top5Casino = [
       { name: "Aviator", image: imgAviator },
       { name: "Crazy Chicken", image: imgFortuneSpin },
@@ -2649,7 +2650,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           <div className="px-3 py-3 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                {appName}Test
+                {effectiveAppName}
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -3067,7 +3068,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               className="h-8 w-8 rounded-full grid place-items-center mr-3 text-[11px] font-black"
               style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
             >
-              {appName.slice(0, 1)}
+              {effectiveAppName.slice(0, 1)}
             </div>
           )}
           {NAV.map((n, i) => {
@@ -3126,7 +3127,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               boxShadow: showProfile ? "0 0 0 2px var(--p-primary-background-color), 0 0 0 3px var(--p-primary)" : "none",
             }}
           >
-            {appName.slice(0, 2).toUpperCase()}
+            {effectiveAppName.slice(0, 2).toUpperCase()}
           </button>
         </div>
       </div>
@@ -3167,8 +3168,9 @@ const MobilePreview = React.memo(function MobilePreview({
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
   const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const effectiveLeagueTabs = isKMK ? MYBET_LEAGUE_TABS : LEAGUE_TABS;
-  const effectiveCurrencySymbol = isKMK ? "GH₵" : "₦";
+  const effectiveCurrencySymbol = isKMK ? "GH₵" : currencySymbol;
   const effectiveCurrencyName = isKMK ? "Ghana Cedi" : "Naira";
+  const effectiveAppName = isKMK ? "MyBet.Africa" : appName;
   const [activeNav, setActiveNav] = useState(1); // 0=Home, 1=Sports, 2=Discovery, 3=Casino, 4=Profile
   const [mobileSportsTab, setMobileSportsTab] = useState(0); // 0=Sports, 1=All Sports
   const [activeSport, setActiveSport] = useState(0);
@@ -3223,7 +3225,7 @@ const MobilePreview = React.memo(function MobilePreview({
           className="h-8 w-8 rounded-full grid place-items-center text-[11px] font-black"
           style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
         >
-          {appName.slice(0, 1)}
+          {effectiveAppName.slice(0, 1)}
         </div>
       )}
       <div
@@ -3231,7 +3233,7 @@ const MobilePreview = React.memo(function MobilePreview({
         style={{ background: "var(--p-dark)" }}
       >
         <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-          {currencySymbol}
+          {effectiveCurrencySymbol}
         </span>
         <span className="text-[10px] tracking-wider" style={{ color: "var(--p-light-text-color)" }}>
           ****
@@ -3961,13 +3963,13 @@ const MobilePreview = React.memo(function MobilePreview({
   /* Profile view (nav 4) */
   const renderProfileView = () => {
     const primaryText = pickContrastText(palette.primary);
-    const handle = appName.slice(0, 2).toUpperCase();
+    const handle = effectiveAppName.slice(0, 2).toUpperCase();
     return (
     <>
       {/* Profile header strip */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2 flex-shrink-0">
         <span className="text-[14px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-          {appName}Test
+          {effectiveAppName}
         </span>
         <div className="flex items-center gap-3">
           <Settings className="h-4 w-4" style={{ color: "var(--p-light-text-color)" }} />
@@ -4254,7 +4256,7 @@ const MobilePreview = React.memo(function MobilePreview({
           const active = activeNav === i;
           const isProfile = i === 4;
           const labels = ["home", strings.SPORTSBOOK, strings.DISCOVERY, strings.CASINO, "Profile"];
-          const handle = appName.slice(0, 2).toUpperCase();
+          const handle = effectiveAppName.slice(0, 2).toUpperCase();
           return (
             <button
               key={n.label}
@@ -5137,6 +5139,8 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
   const { palette, appIcons, previewMode, headingFont, strings } = useStudio();
   const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
   const isKMK = clientId === KMK_CLIENT_ID;
+  const effectiveStrings = isKMK ? { ...strings, ...MYBET_STRINGS_OVERRIDES } : strings;
+  const effectiveAppName = isKMK ? "MyBet.Africa" : strings.APP_NAME;
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -5273,8 +5277,8 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
           }}
         >
           <MobilePreview
-            appName={strings.APP_NAME}
-            currencySymbol={strings.CURRENCY_SYMBOL}
+            appName={effectiveAppName}
+            currencySymbol={effectiveStrings.CURRENCY_SYMBOL}
             logoUrl={appIcons.appNameLogo}
             clientId={clientId}
           />
@@ -5289,7 +5293,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
             background: "var(--p-primary-background-color)",
           }}
         >
-          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} currencySymbol={strings.CURRENCY_SYMBOL} clientId={clientId} />
+          <WebPreview appName={effectiveAppName} logoUrl={appIcons.appNameLogo} currencySymbol={effectiveStrings.CURRENCY_SYMBOL} clientId={clientId} />
         </div>
       )}
       </div>
