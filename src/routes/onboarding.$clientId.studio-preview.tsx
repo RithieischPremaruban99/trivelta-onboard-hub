@@ -278,7 +278,7 @@ function SplitView({ clientId }: { clientId: string }) {
         </div>
         <MobileFrame className="w-full max-w-[340px]">
           <div style={{ height: 680 }}>
-            <BettingAppPreview viewMode="mobile" readOnly />
+            <BettingAppPreview viewMode="mobile" readOnly clientId={clientId} />
           </div>
         </MobileFrame>
       </div>
