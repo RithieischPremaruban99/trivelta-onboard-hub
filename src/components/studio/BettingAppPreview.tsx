@@ -2993,10 +2993,10 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {isKMK ? (
             <MyBetWordmark size={32} />
           ) : logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="h-6 mr-2 object-contain max-w-[100px]" />
+            <img src={logoUrl} alt="Logo" className="h-8 mr-3 object-contain max-w-[140px]" />
           ) : (
             <div
-              className="h-6 w-6 rounded-full grid place-items-center mr-2 text-[9px] font-black"
+              className="h-8 w-8 rounded-full grid place-items-center mr-3 text-[11px] font-black"
               style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
             >
               {appName.slice(0, 1)}
@@ -3146,10 +3146,10 @@ const MobilePreview = React.memo(function MobilePreview({
       {isKMK ? (
         <MyBetWordmark size={13} />
       ) : logoUrl ? (
-        <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
+        <img src={logoUrl} alt="Logo" className="h-8 object-contain max-w-[110px]" />
       ) : (
         <div
-          className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
+          className="h-8 w-8 rounded-full grid place-items-center text-[11px] font-black"
           style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
         >
           {appName.slice(0, 1)}
@@ -4265,10 +4265,10 @@ function SportsView({
       {/* Top bar */}
       <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
         {logoUrl ? (
-          <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
+          <img src={logoUrl} alt="Logo" className="h-8 object-contain max-w-[110px]" />
         ) : (
           <div
-            className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
+            className="h-8 w-8 rounded-full grid place-items-center text-[11px] font-black"
             style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
           >
             {appName.slice(0, 1)}
