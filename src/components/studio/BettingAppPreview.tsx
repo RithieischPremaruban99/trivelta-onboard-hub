@@ -3135,7 +3135,9 @@ const MobilePreview = React.memo(function MobilePreview({
   /* Shared top bar */
   const renderTopBar = () => (
     <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
-      {logoUrl ? (
+      {isKMK ? (
+        <MyBetWordmark size={13} />
+      ) : logoUrl ? (
         <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
       ) : (
         <div
