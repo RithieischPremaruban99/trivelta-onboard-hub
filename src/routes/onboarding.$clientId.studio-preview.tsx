@@ -328,7 +328,7 @@ function FullscreenWeb({ clientId }: { clientId: string }) {
       </div>
       <WebFrame appName={appName} className="w-full max-w-6xl">
         <div style={{ height: 820 }}>
-          <BettingAppPreview viewMode="web" readOnly />
+          <BettingAppPreview viewMode="web" readOnly clientId={clientId} />
         </div>
       </WebFrame>
       <p className="text-[11px] text-muted-foreground">
