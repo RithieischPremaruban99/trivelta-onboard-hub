@@ -3158,6 +3158,7 @@ const MobilePreview = React.memo(function MobilePreview({
   const isKMK = clientId === KMK_CLIENT_ID;
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
   const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
+  const effectiveLeagueTabs = isKMK ? MYBET_LEAGUE_TABS : LEAGUE_TABS;
   const [activeNav, setActiveNav] = useState(1); // 0=Home, 1=Sports, 2=Discovery, 3=Casino, 4=Profile
   const [mobileSportsTab, setMobileSportsTab] = useState(0); // 0=Sports, 1=All Sports
   const [activeSport, setActiveSport] = useState(0);
