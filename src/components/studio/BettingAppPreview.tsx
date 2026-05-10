@@ -2982,7 +2982,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
         style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
         <div className="flex items-center gap-1">
-          {logoUrl ? (
+          {isKMK ? (
+            <MyBetWordmark size={14} />
+          ) : logoUrl ? (
             <img src={logoUrl} alt="Logo" className="h-6 mr-2 object-contain max-w-[100px]" />
           ) : (
             <div
