@@ -447,12 +447,14 @@ function MyBetWordmark({ size = 18 }: { size?: number }) {
         <span className="font-black italic" style={{ color: "#FFFFFF" }}>bet.</span>
         <span className="font-black italic" style={{ color: "#22B14C" }}>africa</span>
       </div>
-      <div
-        className="font-bold tracking-[0.18em] mt-[2px]"
-        style={{ fontSize: Math.max(6, Math.round(size * 0.34)), color: "#FFFFFF" }}
-      >
-        HOME OF BETTING
-      </div>
+      {size >= 36 && (
+        <div
+          className="font-bold tracking-[0.18em] mt-[2px]"
+          style={{ fontSize: Math.max(6, Math.round(size * 0.34)), color: "#FFFFFF" }}
+        >
+          HOME OF BETTING
+        </div>
+      )}
     </div>
   );
 }
@@ -2991,7 +2993,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       >
         <div className="flex items-center gap-1">
           {isKMK ? (
-            <MyBetWordmark size={32} />
+            <MyBetWordmark size={22} />
           ) : logoUrl ? (
             <img src={logoUrl} alt="Logo" className="h-8 mr-3 object-contain max-w-[140px]" />
           ) : (
