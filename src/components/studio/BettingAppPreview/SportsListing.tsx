@@ -41,18 +41,58 @@ function getLeagueShortName(fullName: string): string {
   return map[fullName] ?? fullName.split(" - ")[0].toUpperCase();
 }
 
+// api-sports league IDs for real badge logos
+const LEAGUE_LOGO_IDS: Record<string, number> = {
+  "Premier League - England": 39,
+  "LaLiga - Spain": 140,
+  "Bundesliga - Germany": 78,
+  "Serie A - Italy": 135,
+  "Ligue 1 - France": 61,
+  "Liga Portugal - Portugal": 94,
+  "Eredivisie - Netherlands": 88,
+  "MSFL - Czechia": 346,
+  "Parva Liga - Bulgaria": 172,
+  "Virsliga - Latvia": 365,
+  "2. Liga - Slovakia": 502,
+  "MLS Next Pro - USA": 909,
+  "GPL - Ghana": 286,
+  "GFA Cup": 287,
+  "CAF CL": 12,
+  "CAF Conf": 20,
+};
+
+const FALLBACK_GRADIENTS: Record<string, { bg: string; ch: string }> = {
+  "Premier League - England": { bg: "linear-gradient(135deg, #38003c, #00ff85)", ch: "PL" },
+  "LaLiga - Spain": { bg: "linear-gradient(135deg, #ee8707, #c12126)", ch: "LL" },
+  "Bundesliga - Germany": { bg: "linear-gradient(135deg, #d20515, #000000)", ch: "B" },
+  "Serie A - Italy": { bg: "linear-gradient(135deg, #0066cc, #003366)", ch: "SA" },
+  "Ligue 1 - France": { bg: "linear-gradient(135deg, #091c3e, #dae025)", ch: "L1" },
+  "Liga Portugal - Portugal": { bg: "linear-gradient(135deg, #006600, #ff0000)", ch: "LP" },
+  "Eredivisie - Netherlands": { bg: "linear-gradient(135deg, #ff6600, #003399)", ch: "E" },
+};
+
 function LeagueIcon({ name, size = 36 }: { name: string; size?: number }) {
-  const config: Record<string, { bg: string; ch: string }> = {
-    "Premier League - England": { bg: "linear-gradient(135deg, #38003c, #00ff85)", ch: "PL" },
-    "LaLiga - Spain": { bg: "linear-gradient(135deg, #ee8707, #c12126)", ch: "LL" },
-    "Bundesliga - Germany": { bg: "linear-gradient(135deg, #d20515, #000000)", ch: "B" },
-    "Serie A - Italy": { bg: "linear-gradient(135deg, #0066cc, #003366)", ch: "SA" },
-    "Ligue 1 - France": { bg: "linear-gradient(135deg, #091c3e, #dae025)", ch: "L1" },
-    "Liga Portugal - Portugal": { bg: "linear-gradient(135deg, #006600, #ff0000)", ch: "LP" },
-    "Eredivisie - Netherlands": { bg: "linear-gradient(135deg, #ff6600, #003399)", ch: "E" },
-  };
+  const [errored, setErrored] = useState(false);
+  const id = LEAGUE_LOGO_IDS[name];
+  if (id && !errored) {
+    return (
+      <img
+        src={`https://media.api-sports.io/football/leagues/${id}.png`}
+        alt={name}
+        onError={() => setErrored(true)}
+        className="object-contain flex-shrink-0 rounded-full"
+        style={{
+          height: size,
+          width: size,
+          background: "var(--p-modal-background)",
+          padding: Math.max(2, Math.floor(size * 0.08)),
+          boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+        }}
+      />
+    );
+  }
   const cfg =
-    config[name] ?? { bg: "var(--p-modal-background)", ch: name.slice(0, 2).toUpperCase() };
+    FALLBACK_GRADIENTS[name] ?? { bg: "var(--p-modal-background)", ch: name.slice(0, 2).toUpperCase() };
   return (
     <div
       className="rounded-full grid place-items-center font-black flex-shrink-0 text-white"
