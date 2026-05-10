@@ -621,6 +621,54 @@ const TEAM_LOGO_IDS: Record<string, number> = {
   "Olympique Marseille": 81, "Olympique Lyon": 80, "AS Monaco": 91,
   "Lille OSC": 79, "FC Nantes": 83, "Strasbourg": 95, "Toulouse FC": 96,
   "Le Havre AC": 111, "SCO Angers": 77, "Racing Club": 116,
+  // NPFL — Nigeria Premier Football League (full names + 3-letter codes)
+  "Enyimba FC": 1564, "ENY": 1564,
+  "Rivers United": 1559, "RIV": 1559,
+  "Kano Pillars": 1554, "KAN": 1554,
+  "Plateau United": 1567, "PLA": 1567,
+  "Remo Stars": 1571, "REM": 1571,
+  "Rangers Int'l": 1570, "RAN": 1570,
+  "Lobi Stars": 1572, "LOB": 1572,
+  "Sunshine Stars": 1568, "SUN": 1568,
+  "Akwa United": 1551, "AKW": 1551,
+  "Heartland": 1565, "HEA": 1565,
+  "Bendel Insurance": 1566, "BEN": 1566,
+  "Bayelsa United": 1553, "BAY": 1553,
+  "Mamelodi Sundowns": 1027, "MAM": 1027,
+  "ASEC Mimosas": 1018, "ASA": 1018,
+};
+
+// Football league badges via api-sports CDN
+const LEAGUE_LOGO_IDS: Record<string, number> = {
+  "Premier League": 39, "Premier League - England": 39,
+  "LaLiga": 140, "LaLiga - Spain": 140,
+  "Bundesliga": 78, "Bundesliga - Germany": 78,
+  "Serie A": 135, "Serie A - Italy": 135,
+  "Ligue 1": 61, "Ligue 1 - France": 61,
+  "Liga Portugal": 94, "Liga Portugal - Portugal": 94,
+  "Eredivisie": 88, "Eredivisie - Netherlands": 88,
+  "NPFL": 357, "NPFL - Nigeria": 357,
+  "NNL Cup": 358,
+  "Africa CL": 12, "CAF Champions League": 12,
+  "CAF Conf": 20, "CAF Confederation Cup": 20,
+};
+
+const leagueLogoUrl = (name: string): string | null => {
+  const id = LEAGUE_LOGO_IDS[name];
+  return id ? `https://media.api-sports.io/football/leagues/${id}.png` : null;
+};
+
+const LeagueLogo = ({ label, size = 12 }: { label: string; size?: number }) => {
+  const url = leagueLogoUrl(label);
+  if (!url) return <span style={{ fontSize: size }}>⚽</span>;
+  return (
+    <img
+      src={url}
+      alt={label}
+      className="object-contain flex-shrink-0"
+      style={{ height: size, width: size }}
+    />
+  );
 };
 
 // NBA team logos via ESPN CDN (official team logos, public)
