@@ -646,6 +646,17 @@ const TEAM_LOGO_IDS: Record<string, number> = {
   "Nsoatreman FC": 697, "NSO": 697,
   "Mamelodi Sundowns": 1027, "MAM": 1027,
   "ASEC Mimosas": 1018, "ASE": 1018,
+  // Czech MSFL
+  "TJ Unie Hlubina": 8364, "FC Zbrojovka Brno B": 5705,
+  "FK Blansko": 8392, "SK Unicov": 8400,
+  // Bulgaria Parva Liga
+  "PFC Lokomotiv Plovdiv": 765, "FC Arda Kardzhali": 779,
+  // Latvia Virsliga
+  "BFC Daugavpils": 3287, "Riga FC": 3286,
+  // Slovakia 2. Liga
+  "Slavia TU Kosice": 3552, "FK Inter Bratislava": 3549,
+  // MLS Next Pro
+  "Toronto FC II": 22043, "Red Bull New York II": 22041,
 };
 
 // Football league badges via api-sports CDN
@@ -657,8 +668,13 @@ const LEAGUE_LOGO_IDS: Record<string, number> = {
   "Ligue 1": 61, "Ligue 1 - France": 61,
   "Liga Portugal": 94, "Liga Portugal - Portugal": 94,
   "Eredivisie": 88, "Eredivisie - Netherlands": 88,
-  "GPL": 501, "GPL - Ghana": 501,
-  "GFA Cup": 502,
+  "MSFL": 346, "MSFL - Czechia": 346,
+  "Parva Liga": 172, "Parva Liga - Bulgaria": 172,
+  "Virsliga": 365, "Virsliga - Latvia": 365,
+  "2. Liga": 502, "2. Liga - Slovakia": 502,
+  "MLS Next Pro": 909, "MLS Next Pro - USA": 909,
+  "GPL": 286, "GPL - Ghana": 286,
+  "GFA Cup": 287,
   "CAF CL": 12, "CAF Champions League": 12,
   "CAF Conf": 20, "CAF Confederation Cup": 20,
 };
