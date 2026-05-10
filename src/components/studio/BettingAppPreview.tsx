@@ -410,39 +410,40 @@ const MYBET_OVERRIDES: React.CSSProperties = {
 };
 
 const MYBET_MATCHES: Match[] = [
-  { date: "TODAY · 5:00 PM", home: "Enyimba FC", away: "Rivers United", odds: ["2.10", "3.20", "3.40"], live: false },
-  { date: "TODAY · 7:00 PM", home: "Kano Pillars", away: "Plateau United", odds: ["1.85", "3.50", "4.10"], live: false },
-  { date: "LIVE · 67'", home: "Remo Stars", away: "Rangers Int'l", odds: ["1.95", "3.30", "3.80"], live: true },
-  { date: "TOMORROW · 4:00 PM", home: "Lobi Stars", away: "Sunshine Stars", odds: ["2.40", "3.10", "2.90"], live: false },
-  { date: "TOMORROW · 6:00 PM", home: "Akwa United", away: "Heartland", odds: ["2.20", "3.20", "3.10"], live: false },
-  { date: "10 MAY · 4:00 PM", home: "Bendel Insurance", away: "Bayelsa United", odds: ["1.75", "3.60", "4.50"], live: false },
+  { date: "TODAY · 5:00 PM", home: "Asante Kotoko", away: "Hearts of Oak", odds: ["2.10", "3.20", "3.40"], live: false },
+  { date: "TODAY · 7:00 PM", home: "Aduana Stars", away: "Medeama SC", odds: ["1.85", "3.50", "4.10"], live: false },
+  { date: "LIVE · 67'", home: "Dreams FC", away: "Bechem United", odds: ["1.95", "3.30", "3.80"], live: true },
+  { date: "TOMORROW · 4:00 PM", home: "Berekum Chelsea", away: "Karela United", odds: ["2.40", "3.10", "2.90"], live: false },
+  { date: "TOMORROW · 6:00 PM", home: "Legon Cities", away: "King Faisal", odds: ["2.20", "3.20", "3.10"], live: false },
+  { date: "10 MAY · 4:00 PM", home: "Accra Lions", away: "Nsoatreman FC", odds: ["1.75", "3.60", "4.50"], live: false },
 ];
 
 const MYBET_LIVE_UPCOMING = [
-  { live: true, code: "NPFL", home: "ENY", away: "RIV", odds: null },
-  { live: true, code: "NPFL", home: "KAN", away: "PLA", odds: null },
-  { live: true, code: "NPFL", home: "REM", away: "RAN", odds: "1.95" },
-  { live: false, code: "NNL Cup", home: "LOB", away: "SUN", odds: "2.40" },
-  { live: false, code: "Africa CL", home: "ENY", away: "MAM", odds: "2.10" },
-  { live: false, code: "CAF Conf", home: "RIV", away: "ASA", odds: "1.85" },
+  { live: true, code: "GPL", home: "ASA", away: "HOA", odds: null },
+  { live: true, code: "GPL", home: "ADU", away: "MED", odds: null },
+  { live: true, code: "GPL", home: "DRE", away: "BEC", odds: "1.95" },
+  { live: false, code: "GFA Cup", home: "BER", away: "KAR", odds: "2.40" },
+  { live: false, code: "CAF CL", home: "ASA", away: "MAM", odds: "2.10" },
+  { live: false, code: "CAF Conf", home: "MED", away: "ASE", odds: "1.85" },
 ];
 
 const MYBET_BET_SLIPS = [
-  { team: "Enyimba FC", odds: "2.10", status: "WON", stake: "5000", payout: "10500" },
-  { team: "Kano Pillars", odds: "1.85", status: "PENDING", stake: "2500", payout: "4625" },
-  { team: "Remo Stars", odds: "3.30", status: "LOST", stake: "1000", payout: "0" },
+  { team: "Asante Kotoko", odds: "2.10", status: "WON", stake: "5000", payout: "10500" },
+  { team: "Aduana Stars", odds: "1.85", status: "PENDING", stake: "2500", payout: "4625" },
+  { team: "Dreams FC", odds: "3.30", status: "LOST", stake: "1000", payout: "0" },
 ];
 
 const MYBET_STRINGS_OVERRIDES = {
-  WELCOME_BONUS_PROMO: "GET A 100% BONUS UP TO ₦100,000",
-  WELCOME_BONUS_BODY_WEB: "Enjoy 100% welcome bonus on your first deposit and double your starting stake.",
-  WELCOME_BONUS_BODY_MOBILE: "100% welcome bonus up to ₦100,000",
+  WELCOME_BONUS_PROMO: "GET A 100% BONUS UP TO GH₵2,000",
+  WELCOME_BONUS_BODY_WEB: "Enjoy a 100% welcome bonus on your first deposit and double your starting stake.",
+  WELCOME_BONUS_BODY_MOBILE: "100% welcome bonus up to GH₵2,000",
+  CURRENCY_SYMBOL: "GH₵",
 };
 
 const MYBET_LEAGUE_TABS = [
-  "NPFL - Nigeria",
-  "NNL Cup",
-  "Africa CL",
+  "GPL - Ghana",
+  "GFA Cup",
+  "CAF CL",
   "CAF Conf",
   "Premier League - England",
   "LaLiga - Spain",
@@ -630,21 +631,21 @@ const TEAM_LOGO_IDS: Record<string, number> = {
   "Olympique Marseille": 81, "Olympique Lyon": 80, "AS Monaco": 91,
   "Lille OSC": 79, "FC Nantes": 83, "Strasbourg": 95, "Toulouse FC": 96,
   "Le Havre AC": 111, "SCO Angers": 77, "Racing Club": 116,
-  // NPFL — Nigeria Premier Football League (full names + 3-letter codes)
-  "Enyimba FC": 1564, "ENY": 1564,
-  "Rivers United": 1559, "RIV": 1559,
-  "Kano Pillars": 1554, "KAN": 1554,
-  "Plateau United": 1567, "PLA": 1567,
-  "Remo Stars": 1571, "REM": 1571,
-  "Rangers Int'l": 1570, "RAN": 1570,
-  "Lobi Stars": 1572, "LOB": 1572,
-  "Sunshine Stars": 1568, "SUN": 1568,
-  "Akwa United": 1551, "AKW": 1551,
-  "Heartland": 1565, "HEA": 1565,
-  "Bendel Insurance": 1566, "BEN": 1566,
-  "Bayelsa United": 1553, "BAY": 1553,
+  // GPL — Ghana Premier League (full names + 3-letter codes)
+  "Asante Kotoko": 693, "ASA": 693,
+  "Hearts of Oak": 685, "HOA": 685,
+  "Aduana Stars": 689, "ADU": 689,
+  "Medeama SC": 687, "MED": 687,
+  "Dreams FC": 690, "DRE": 690,
+  "Bechem United": 688, "BEC": 688,
+  "Berekum Chelsea": 691, "BER": 691,
+  "Karela United": 694, "KAR": 694,
+  "Legon Cities": 692, "LEG": 692,
+  "King Faisal": 695, "KFB": 695,
+  "Accra Lions": 696, "ACL": 696,
+  "Nsoatreman FC": 697, "NSO": 697,
   "Mamelodi Sundowns": 1027, "MAM": 1027,
-  "ASEC Mimosas": 1018, "ASA": 1018,
+  "ASEC Mimosas": 1018, "ASE": 1018,
 };
 
 // Football league badges via api-sports CDN
@@ -656,9 +657,9 @@ const LEAGUE_LOGO_IDS: Record<string, number> = {
   "Ligue 1": 61, "Ligue 1 - France": 61,
   "Liga Portugal": 94, "Liga Portugal - Portugal": 94,
   "Eredivisie": 88, "Eredivisie - Netherlands": 88,
-  "NPFL": 357, "NPFL - Nigeria": 357,
-  "NNL Cup": 358,
-  "Africa CL": 12, "CAF Champions League": 12,
+  "GPL": 501, "GPL - Ghana": 501,
+  "GFA Cup": 502,
+  "CAF CL": 12, "CAF Champions League": 12,
   "CAF Conf": 20, "CAF Confederation Cup": 20,
 };
 
@@ -756,6 +757,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const effectiveLiveUpcoming = isKMK ? MYBET_LIVE_UPCOMING : LIVE_UPCOMING;
   const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const effectiveLeagueTabs = isKMK ? MYBET_LEAGUE_TABS : LEAGUE_TABS;
+  const effectiveCurrencySymbol = isKMK ? "GH₵" : "₦";
+  const effectiveCurrencyName = isKMK ? "Ghana Cedi" : "Naira";
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
@@ -893,14 +896,14 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   <div className="flex items-center justify-between mt-1 text-[9px]">
                     <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
                     <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                      ₦{b.stake}
+                      {effectiveCurrencySymbol}{b.stake}
                     </span>
                     <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
                     <span
                       className="font-bold"
                       style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}
                     >
-                      ₦{b.payout}
+                      {effectiveCurrencySymbol}{b.payout}
                     </span>
                   </div>
                 </div>
@@ -1384,13 +1387,13 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       <div className="text-[8.5px]">
                         <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE} </span>
                         <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                          ₦{post.stake}
+                          {effectiveCurrencySymbol}{post.stake}
                         </span>
                       </div>
                       <div className="text-[8.5px]">
                         <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT} </span>
                         <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                          ₦{post.payout}
+                          {effectiveCurrencySymbol}{post.payout}
                         </span>
                       </div>
                     </div>
@@ -2854,9 +2857,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       {b.stake !== "" && (
                         <div className="flex items-center justify-between text-[10px] py-1.5 border-y" style={{ borderColor: "var(--p-border-and-gradient-bg)" }}>
                           <span style={{ color: "var(--p-text-secondary-color)" }}>STAKE</span>
-                          <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>₦ {b.stake}</span>
+                          <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>{effectiveCurrencySymbol} {b.stake}</span>
                           <span style={{ color: "var(--p-text-secondary-color)" }}>|</span>
-                          <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>₦ {b.payout}</span>
+                          <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>{effectiveCurrencySymbol} {b.payout}</span>
                           <span style={{ color: "var(--p-text-secondary-color)" }}>PAYOUT</span>
                         </div>
                       )}
@@ -2970,8 +2973,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 color: primaryText,
               }}
             >
-              <span>{currencySymbol ?? "₦"}</span>
-              <span>Naira</span>
+              <span>{currencySymbol ?? effectiveCurrencySymbol}</span>
+              <span>{effectiveCurrencyName}</span>
             </button>
 
             <div className="space-y-1">
@@ -2980,12 +2983,12 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 <Info className="h-2.5 w-2.5" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[20px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{currencySymbol ?? "₦"}</span>
+                <span className="text-[20px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{currencySymbol ?? effectiveCurrencySymbol}</span>
                 <span className="text-[20px] font-bold" style={{ color: "var(--p-light-text-color)" }}>---</span>
                 <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
               </div>
               <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                Withdrawable Balance: <span style={{ color: "var(--p-primary)" }}>{currencySymbol ?? "₦"} 17,886.76</span>
+                Withdrawable Balance: <span style={{ color: "var(--p-primary)" }}>{currencySymbol ?? effectiveCurrencySymbol} 17,886.76</span>
               </div>
             </div>
 
@@ -3093,7 +3096,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {/* Wallet pill */}
           <div className="flex items-center gap-1 h-7 px-2 rounded-md text-[10px] font-semibold"
             style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-light-text-color)" }}>
-            <span>{currencySymbol ?? "₦"}</span>
+            <span>{currencySymbol ?? effectiveCurrencySymbol}</span>
             <span>---</span>
             <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
           </div>
@@ -3164,6 +3167,8 @@ const MobilePreview = React.memo(function MobilePreview({
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
   const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
   const effectiveLeagueTabs = isKMK ? MYBET_LEAGUE_TABS : LEAGUE_TABS;
+  const effectiveCurrencySymbol = isKMK ? "GH₵" : "₦";
+  const effectiveCurrencyName = isKMK ? "Ghana Cedi" : "Naira";
   const [activeNav, setActiveNav] = useState(1); // 0=Home, 1=Sports, 2=Discovery, 3=Casino, 4=Profile
   const [mobileSportsTab, setMobileSportsTab] = useState(0); // 0=Sports, 1=All Sports
   const [activeSport, setActiveSport] = useState(0);
@@ -4013,10 +4018,10 @@ const MobilePreview = React.memo(function MobilePreview({
           >
             <div>
               <div className="flex items-center gap-1.5 text-[14px] font-bold">
-                <span>{currencySymbol ?? "₦"}</span>
+                <span>{currencySymbol ?? effectiveCurrencySymbol}</span>
                 <span className="tracking-widest">****</span>
               </div>
-              <div className="text-[11px] font-semibold mt-0.5">Naira</div>
+              <div className="text-[11px] font-semibold mt-0.5">{effectiveCurrencyName}</div>
             </div>
             <div className="flex items-center gap-2">
               <EyeOff className="h-4 w-4" />
@@ -4173,9 +4178,9 @@ const MobilePreview = React.memo(function MobilePreview({
                     </div>
                     <div className="flex items-center justify-between mt-1.5 text-[10px]">
                       <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
-                      <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>₦{b.stake}</span>
+                      <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>{effectiveCurrencySymbol}{b.stake}</span>
                       <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
-                      <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>₦{b.payout}</span>
+                      <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>{effectiveCurrencySymbol}{b.payout}</span>
                     </div>
                   </div>
                 );
