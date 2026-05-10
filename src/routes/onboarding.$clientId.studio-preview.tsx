@@ -267,7 +267,7 @@ function WebFrame({
 
 /* ── Preview Modes ──────────────────────────────────────────────────────── */
 
-function SplitView() {
+function SplitView({ clientId }: { clientId: string }) {
   const { appName } = useStudio();
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
