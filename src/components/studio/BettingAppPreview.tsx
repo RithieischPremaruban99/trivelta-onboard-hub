@@ -439,6 +439,15 @@ const MYBET_STRINGS_OVERRIDES = {
   WELCOME_BONUS_BODY_MOBILE: "100% welcome bonus up to ₦100,000",
 };
 
+const MYBET_LEAGUE_TABS = [
+  "NPFL - Nigeria",
+  "NNL Cup",
+  "Africa CL",
+  "CAF Conf",
+  "Premier League - England",
+  "LaLiga - Spain",
+];
+
 function MyBetWordmark({ size = 18 }: { size?: number }) {
   return (
     <div className="flex flex-col items-start mr-3 select-none leading-none">
