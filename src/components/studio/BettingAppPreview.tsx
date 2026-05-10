@@ -1738,18 +1738,22 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   <LeagueLogo label={m.code} size={10} />
                   <span className="text-[8px] truncate">{m.code}</span>
                 </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                    {m.home}
-                  </span>
+                <div className="flex items-center justify-between mt-1 gap-1">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <TeamDot label={m.home} size={10} />
+                    <span className="text-[9px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>
+                      {m.home}
+                    </span>
+                  </div>
                   {m.odds && (
-                    <span className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
+                    <span className="text-[8px] flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }}>
                       {m.odds}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                <div className="flex items-center gap-1 min-w-0">
+                  <TeamDot label={m.away} size={10} />
+                  <span className="text-[9px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>
                     {m.away}
                   </span>
                 </div>
