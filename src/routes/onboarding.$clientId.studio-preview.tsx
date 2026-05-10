@@ -345,10 +345,12 @@ function PreviewShell({
   lockedAt,
   submittedBy,
   onBack,
+  clientId,
 }: {
   lockedAt: string | null;
   submittedBy: string | null;
   onBack: () => void;
+  clientId: string;
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>("split");
 
