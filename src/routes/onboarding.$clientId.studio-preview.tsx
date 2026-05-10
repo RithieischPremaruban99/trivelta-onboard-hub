@@ -399,9 +399,9 @@ function PreviewShell({
             viewMode === "split" ? "max-w-7xl" : "max-w-7xl",
           )}
         >
-          {viewMode === "split" && <SplitView />}
-          {viewMode === "mobile" && <FullscreenMobile />}
-          {viewMode === "web" && <FullscreenWeb />}
+          {viewMode === "split" && <SplitView clientId={clientId} />}
+          {viewMode === "mobile" && <FullscreenMobile clientId={clientId} />}
+          {viewMode === "web" && <FullscreenWeb clientId={clientId} />}
         </div>
       </div>
     </div>
