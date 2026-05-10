@@ -781,7 +781,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             ))}
           </div>
           <div className="flex-1 overflow-auto p-2 space-y-2">
-            {BET_SLIPS.filter((b) => {
+            {effectiveBetSlips.filter((b) => {
               if (webMyBetsFilter === 0) return true;
               if (webMyBetsFilter === 1) return b.status === "PENDING";
               if (webMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
@@ -1659,7 +1659,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
           {/* Live row */}
           <div className="grid grid-cols-6 gap-1.5 mb-3">
-            {LIVE_UPCOMING.map((m, i) => (
+            {effectiveLiveUpcoming.map((m, i) => (
               <div
                 key={i}
                 className="rounded-md p-1.5"
@@ -1808,7 +1808,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
           {/* Match cards (2-column grid) */}
           <div className="grid grid-cols-2 gap-2">
-            {MATCHES.map((m, i) => (
+            {effectiveMatches.map((m, i) => (
               <div
                 key={i}
                 className="rounded-md p-2.5 cursor-pointer transition-all"
