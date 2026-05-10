@@ -3146,10 +3146,10 @@ const MobilePreview = React.memo(function MobilePreview({
       {isKMK ? (
         <MyBetWordmark size={13} />
       ) : logoUrl ? (
-        <img src={logoUrl} alt="Logo" className="h-7 object-contain max-w-[80px]" />
+        <img src={logoUrl} alt="Logo" className="h-8 object-contain max-w-[110px]" />
       ) : (
         <div
-          className="h-7 w-7 rounded-full grid place-items-center text-[10px] font-black"
+          className="h-8 w-8 rounded-full grid place-items-center text-[11px] font-black"
           style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
         >
           {appName.slice(0, 1)}
