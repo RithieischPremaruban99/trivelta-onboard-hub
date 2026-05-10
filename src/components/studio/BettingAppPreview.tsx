@@ -4445,7 +4445,7 @@ function SportsView({
         </div>
 
         <div className="flex gap-1.5 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-          {effectiveLeagueTabs.slice(0, 3).map((l, i) => (
+          {LEAGUE_TABS.slice(0, 3).map((l, i) => (
             <button
               key={l}
               onClick={() => setActiveLeague(i)}
