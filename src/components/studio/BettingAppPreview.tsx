@@ -755,6 +755,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
   const effectiveLiveUpcoming = isKMK ? MYBET_LIVE_UPCOMING : LIVE_UPCOMING;
   const effectiveBetSlips = isKMK ? MYBET_BET_SLIPS : BET_SLIPS;
+  const effectiveLeagueTabs = isKMK ? MYBET_LEAGUE_TABS : LEAGUE_TABS;
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
