@@ -5044,15 +5044,19 @@ function paletteToInlineStyle(
   return { ...style, ...extraStyles } as React.CSSProperties;
 }
 
-const BettingAppPreview = ({ viewMode, readOnly = false }: { viewMode?: "mobile" | "web"; readOnly?: boolean } = {}) => {
+const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?: "mobile" | "web"; readOnly?: boolean; clientId?: string } = {}) => {
   const { palette, appIcons, previewMode, headingFont, strings } = useStudio();
   const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
+  const isKMK = clientId === KMK_CLIENT_ID;
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
   const paletteStyle = useMemo(
-    () => paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
-    [palette, headingFont],
+    () => ({
+      ...paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
+      ...(isKMK ? MYBET_OVERRIDES : {}),
+    }),
+    [palette, headingFont, isKMK],
   );
 
   const handleSimulateNotification = () => {
