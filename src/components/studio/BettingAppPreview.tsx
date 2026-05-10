@@ -5187,6 +5187,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
             appName={strings.APP_NAME}
             currencySymbol={strings.CURRENCY_SYMBOL}
             logoUrl={appIcons.appNameLogo}
+            clientId={clientId}
           />
         </div>
       ) : (
@@ -5199,7 +5200,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
             background: "var(--p-primary-background-color)",
           }}
         >
-          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} currencySymbol={strings.CURRENCY_SYMBOL} />
+          <WebPreview appName={strings.APP_NAME} logoUrl={appIcons.appNameLogo} currencySymbol={strings.CURRENCY_SYMBOL} clientId={clientId} />
         </div>
       )}
       </div>
