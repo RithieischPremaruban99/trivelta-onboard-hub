@@ -290,7 +290,7 @@ function SplitView({ clientId }: { clientId: string }) {
         </div>
         <WebFrame appName={appName}>
           <div style={{ height: 680 }}>
-            <BettingAppPreview viewMode="web" readOnly />
+            <BettingAppPreview viewMode="web" readOnly clientId={clientId} />
           </div>
         </WebFrame>
       </div>
