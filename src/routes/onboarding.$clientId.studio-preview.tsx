@@ -318,7 +318,7 @@ function FullscreenMobile({ clientId }: { clientId: string }) {
   );
 }
 
-function FullscreenWeb() {
+function FullscreenWeb({ clientId }: { clientId: string }) {
   const { appName } = useStudio();
   return (
     <div className="flex flex-col items-center gap-4">
