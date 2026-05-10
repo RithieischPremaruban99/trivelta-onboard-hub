@@ -515,6 +515,7 @@ function StudioPreviewPage() {
         lockedAt={config.lockedAt}
         submittedBy={config.submittedByEmail}
         onBack={handleBack}
+        clientId={clientId}
       />
     </StudioProvider>
   );
