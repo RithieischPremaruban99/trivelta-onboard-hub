@@ -3958,7 +3958,7 @@ const MobilePreview = React.memo(function MobilePreview({
     const primaryText = pickContrastText(palette.primary);
     const handle = appName.slice(0, 2).toUpperCase();
     return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <>
       {/* Profile header strip */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2 flex-shrink-0">
         <span className="text-[14px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
@@ -4205,7 +4205,7 @@ const MobilePreview = React.memo(function MobilePreview({
           </div>
         )}
       </div>
-    </div>
+    </>
     );
   };
 
