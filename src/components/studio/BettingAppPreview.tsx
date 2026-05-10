@@ -3478,11 +3478,11 @@ const MobilePreview = React.memo(function MobilePreview({
 
           {/* League pills */}
           <div className="flex gap-1.5 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {LEAGUE_TABS.slice(0, 3).map((l, i) => (
+            {effectiveLeagueTabs.slice(0, 3).map((l, i) => (
               <button
                 key={l}
                 onClick={() => setActiveLeague(i)}
-                className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0"
+                className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
                 style={{
                   background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
                   border:
@@ -3492,7 +3492,7 @@ const MobilePreview = React.memo(function MobilePreview({
                   color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
                 }}
               >
-                ⚽ {l.split(" - ")[0]}
+                <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
               </button>
             ))}
           </div>
