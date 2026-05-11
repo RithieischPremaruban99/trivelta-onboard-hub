@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import type { TCMPalette } from "@/lib/tcm-palette";
 import type { TCMStrings } from "@/lib/tcm-strings";
 import {
@@ -38,16 +38,13 @@ export function GameDetail({
     : NBA_GAME_DETAIL_MARKETS;
 
   const [activeTab, setActiveTab] = useState(0);
+  const [scoreboardTab, setScoreboardTab] = useState<"scoreboard" | "action">("action");
 
-  // Lookup match data
   let match: (FootballMatch & { league?: string }) | NbaMatch | null = null;
   if (isFootball) {
     for (const league of FOOTBALL_LEAGUES) {
       const found = league.matches.find((m) => m.id === matchId);
-      if (found) {
-        match = { ...found, league: league.name };
-        break;
-      }
+      if (found) { match = { ...found, league: league.name }; break; }
     }
   } else {
     match = NBA_SCHEDULE.find((m) => m.id === matchId) ?? null;
@@ -60,355 +57,166 @@ export function GameDetail({
     ? (match as (FootballMatch & { league?: string }) | null)?.league ?? "Premier League"
     : (match as NbaMatch | null)?.league ?? "NBA";
 
-  // Track expanded sections — multi-expand allowed
-  const initialExpanded = new Set(
-    markets.filter((m) => m.defaultExpanded).map((m) => m.id),
-  );
+  const initialExpanded = new Set(markets.filter((m) => m.defaultExpanded).map((m) => m.id));
   const [expandedIds, setExpandedIds] = useState<Set<string>>(initialExpanded);
+  const [selectedOddsIdx, setSelectedOddsIdx] = useState<number | null>(null);
 
   const toggleSection = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
 
+  const footballOdds = isFootball && match && "odds" in match
+    ? (match as FootballMatch).odds
+    : ["1.83", "3.90", "4.40"];
+
+  const primaryText = pickContrastText(palette.primary);
+
   return (
-    <main
-      className="flex-1 min-w-0 overflow-auto"
-      style={{ background: "var(--p-primary-background-color)" }}
-    >
-      {/* Back button */}
-      <div className="px-5 pt-3 pb-1">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-80"
-          style={{ color: "var(--p-primary)" }}
-        >
-          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2.5} />
-          Back
+    <main className="flex-1 min-w-0 flex flex-col overflow-hidden" style={{ background: "var(--p-primary-background-color)" }}>
+
+      {/* Header: < back + centered league title */}
+      <div className="flex items-center px-4 h-12 flex-shrink-0 relative" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
+        <button onClick={onBack} className="h-8 w-8 grid place-items-center rounded-full flex-shrink-0" style={{ color: "var(--p-light-text-color)" }}>
+          <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
         </button>
-      </div>
-
-      {/* Hero */}
-      <div
-        className="relative px-6 pt-5 pb-6 overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 10%, transparent) 0%, transparent 100%)",
-          borderBottom: "1px solid var(--p-border-and-gradient-bg)",
-        }}
-      >
-        {/* Decorative blurred glow behind teams */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at 18% 55%, color-mix(in oklab, var(--p-primary) 32%, transparent) 0%, transparent 38%), radial-gradient(circle at 82% 55%, color-mix(in oklab, var(--p-primary) 22%, transparent) 0%, transparent 38%)",
-            filter: "blur(18px)",
-          }}
-        />
-        {/* Top: date pill */}
-        <div className="relative flex justify-center mb-3">
-          <span
-            className="text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-[3px] rounded-full"
-            style={{
-              background: "color-mix(in oklab, var(--p-primary) 18%, transparent)",
-              color: "var(--p-primary)",
-              border: "1px solid color-mix(in oklab, var(--p-primary) 35%, transparent)",
-            }}
-          >
-            {heroDate}
-          </span>
-        </div>
-        <div className="relative grid grid-cols-3 items-center gap-3">
-          {/* Home team */}
-          <div className="flex flex-col items-center gap-2.5 text-center min-w-0">
-            <div
-              className="rounded-xl grid place-items-center"
-              style={{
-                width: 68,
-                height: 68,
-                background: "var(--p-dark-container-background)",
-                boxShadow:
-                  "0 4px 12px -4px color-mix(in oklab, var(--p-primary) 30%, transparent)",
-              }}
-            >
-              <TeamDot label={heroHomeName} size={48} />
-            </div>
-            <span
-              className="text-[12px] font-bold leading-tight truncate max-w-full"
-              style={{ color: "var(--p-light-text-color)" }}
-            >
-              {heroHomeName}
-            </span>
-          </div>
-
-          {/* Center: vs · league */}
-          <div className="flex flex-col items-center gap-1.5 px-1">
-            <span
-              className="text-[18px] font-black leading-none"
-              style={{ color: "var(--p-light-text-color)" }}
-            >
-              vs
-            </span>
-            <span
-              className="text-[10px] font-semibold text-center leading-tight"
-              style={{ color: "var(--p-text-secondary-color)" }}
-            >
-              {heroLeague}
-            </span>
-          </div>
-
-          {/* Away team */}
-          <div className="flex flex-col items-center gap-2.5 text-center min-w-0">
-            <div
-              className="rounded-xl grid place-items-center"
-              style={{
-                width: 68,
-                height: 68,
-                background: "var(--p-dark-container-background)",
-                boxShadow:
-                  "0 4px 12px -4px color-mix(in oklab, var(--p-primary) 30%, transparent)",
-              }}
-            >
-              <TeamDot label={heroAwayName} size={48} />
-            </div>
-            <span
-              className="text-[12px] font-bold leading-tight truncate max-w-full"
-              style={{ color: "var(--p-light-text-color)" }}
-            >
-              {heroAwayName}
-            </span>
-          </div>
+        <div className="absolute inset-x-0 flex justify-center pointer-events-none">
+          <span className="text-[15px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{heroLeague}</span>
         </div>
       </div>
 
-      {/* Tabs — evenly distributed */}
-      <div
-        className="flex border-b overflow-x-auto"
-        style={{ borderColor: "var(--p-border-and-gradient-bg)", scrollbarWidth: "none" }}
-      >
+      {/* Scoreboard / Action Tracker toggle */}
+      <div className="flex items-center justify-end px-4 py-2 flex-shrink-0" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
+        <div className="flex rounded-full overflow-hidden" style={{ background: "var(--p-dark-container-background)" }}>
+          {(["scoreboard", "action"] as const).map((t) => {
+            const active = scoreboardTab === t;
+            return (
+              <button key={t} onClick={() => setScoreboardTab(t)} className="px-3.5 py-1.5 text-[10px] font-bold rounded-full transition-all" style={{ background: active ? "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient, var(--p-primary)))" : "transparent", color: active ? primaryText : "var(--p-text-secondary-color)" }}>
+                {t === "scoreboard" ? "Scoreboard" : "Action Tracker"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Match header row */}
+      <div className="flex items-center px-4 py-3 flex-shrink-0" style={{ background: "var(--p-dark)", borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <TeamDot label={heroHomeName} size={28} />
+          <span className="text-[12px] font-bold leading-tight" style={{ color: "var(--p-light-text-color)" }}>{heroHomeName}</span>
+        </div>
+        <div className="flex flex-col items-center flex-shrink-0 px-3">
+          <span className="text-[11px] font-bold whitespace-nowrap" style={{ color: "var(--p-primary)" }}>{heroDate}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+          <span className="text-[12px] font-bold leading-tight text-right" style={{ color: "var(--p-light-text-color)" }}>{heroAwayName}</span>
+          <TeamDot label={heroAwayName} size={28} />
+        </div>
+      </div>
+
+      {/* Market tabs — first tab orange filled pill */}
+      <div className="flex overflow-x-auto flex-shrink-0 px-3 py-2 gap-2" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)", scrollbarWidth: "none" }}>
         {tabs.map((t, i) => {
           const active = activeTab === i;
           return (
-            <button
-              key={t}
-              onClick={() => setActiveTab(i)}
-              className="flex-1 min-w-[78px] h-11 text-[12px] font-semibold relative whitespace-nowrap px-2 transition-colors"
-              style={{
-                color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
-              }}
-            >
+            <button key={t} onClick={() => setActiveTab(i)} className="flex-shrink-0 px-4 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all" style={{ background: active ? "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient, var(--p-primary)))" : "transparent", color: active ? primaryText : "var(--p-text-secondary-color)", border: active ? "none" : "1px solid transparent" }}>
               {t}
-              {active && (
-                <span
-                  className="absolute bottom-0 left-0 right-0 h-[2px]"
-                  style={{ background: "var(--p-primary)" }}
-                />
-              )}
             </button>
           );
         })}
       </div>
 
       {/* Markets accordion */}
-      <div className="px-4 py-4 space-y-2">
+      <div className="flex-1 overflow-auto px-4 py-3 space-y-2">
         {markets.map((market) => {
           const isExpanded = expandedIds.has(market.id);
           return (
-            <div
-              key={market.id}
-              className="rounded-lg overflow-hidden transition-colors group"
-              style={{
-                background: "var(--p-dark)",
-                border: `1px solid ${isExpanded ? "color-mix(in oklab, var(--p-primary) 40%, transparent)" : "var(--p-border-and-gradient-bg)"}`,
-              }}
-            >
-              {/* Accordion header */}
-              <button
-                onClick={() => toggleSection(market.id)}
-                className="w-full flex items-center justify-between px-3.5 py-3 cursor-pointer transition-colors"
-                style={{
-                  background: isExpanded
-                    ? "linear-gradient(180deg, color-mix(in oklab, var(--p-primary) 8%, transparent) 0%, transparent 100%)"
-                    : "transparent",
-                }}
-              >
-                <span
-                  className="text-[12px] font-bold"
-                  style={{ color: "var(--p-light-text-color)" }}
-                >
-                  {market.title}
-                </span>
+            <div key={market.id} className="rounded-xl overflow-hidden" style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}>
+              <button onClick={() => toggleSection(market.id)} className="w-full flex items-center justify-between px-4 py-3.5">
+                <span className="text-[13px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{market.title}</span>
                 <div className="flex items-center gap-2">
                   {market.hasSGP && (
-                    <span
-                      className="text-[8px] font-extrabold px-1.5 py-[3px] rounded leading-none tracking-wider"
-                      style={{
-                        background: "var(--p-primary)",
-                        color: pickContrastText(palette.primary),
-                      }}
-                    >
-                      SGP
-                    </span>
+                    <span className="text-[8px] font-extrabold px-1.5 py-[3px] rounded leading-none tracking-wider" style={{ background: "var(--p-primary)", color: primaryText }}>SGP</span>
                   )}
-                  <ChevronDown
-                    className="h-3.5 w-3.5 transition-transform"
-                    strokeWidth={2.5}
-                    style={{
-                      color: "var(--p-text-secondary-color)",
-                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  />
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4" style={{ color: "var(--p-text-secondary-color)" }} strokeWidth={2} />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" style={{ color: "var(--p-text-secondary-color)" }} strokeWidth={2} />
+                  )}
                 </div>
               </button>
 
-              {/* Accordion body */}
               {isExpanded && (
-                <div
-                  className="px-3.5 pb-3.5 pt-3"
-                  style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
-                >
-                  {/* match-line: home/away rows with 1/X/2 buttons */}
-                  {market.content.type === "match-line" && match && "odds" in match && (
-                    <div className="space-y-2.5">
-                      <div className="space-y-0.5">
-                        <div
-                          className="text-[9px] font-bold uppercase tracking-wider"
-                          style={{ color: "var(--p-primary)" }}
-                        >
-                          {heroLeague}
-                        </div>
-                        <div
-                          className="text-[10px] font-semibold"
-                          style={{ color: "var(--p-text-secondary-color)" }}
-                        >
-                          {heroDate}
-                        </div>
-                      </div>
-                      {/* Column header row */}
-                      <div
-                        className="grid gap-1.5"
-                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
-                      >
+                <div className="px-4 pb-4" style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}>
+
+                  {/* match-line: BetCorrect exact layout — per-team rows */}
+                  {market.content.type === "match-line" && (
+                    <div className="pt-3">
+                      <div className="grid mb-2.5" style={{ gridTemplateColumns: "1fr 60px 60px 60px" }}>
                         <span />
                         {["1", "X", "2"].map((h) => (
-                          <span
-                            key={h}
-                            className="text-center text-[10px] font-bold"
-                            style={{ color: "var(--p-text-secondary-color)" }}
-                          >
-                            {h}
-                          </span>
+                          <span key={h} className="text-center text-[11px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>{h}</span>
                         ))}
                       </div>
-                      {/* Single match row: Home — Away with 3 odds */}
-                      <div
-                        className="grid gap-1.5 items-center"
-                        style={{ gridTemplateColumns: "1fr 56px 56px 56px" }}
-                      >
+
+                      {/* Home team row */}
+                      <div className="grid items-center gap-2 mb-2" style={{ gridTemplateColumns: "1fr 60px 60px 60px" }}>
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="flex -space-x-1.5 flex-shrink-0">
-                            <TeamDot label={heroHomeName} size={20} />
-                            <TeamDot label={heroAwayName} size={20} />
-                          </div>
-                          <span
-                            className="text-[11px] font-bold truncate"
-                            style={{ color: "var(--p-light-text-color)" }}
-                          >
-                            {heroHomeName.split(" ")[0]} – {heroAwayName.split(" ")[0]}
-                          </span>
+                          <TeamDot label={heroHomeName} size={22} />
+                          <span className="text-[11px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>{heroHomeName}</span>
                         </div>
-                        {(match as FootballMatch).odds.map((o, j) => (
-                          <button
-                            key={j}
-                            className="h-9 rounded text-[11px] font-bold transition-transform active:scale-95"
-                            style={{
-                              background: "var(--p-active-secondary-gradient-color)",
-                              border: "1px solid color-mix(in oklab, var(--p-primary) 60%, transparent)",
-                              color: pickContrastText(palette.activeSecondaryGradientColor),
-                            }}
-                          >
-                            {o}
-                          </button>
-                        ))}
+                        {footballOdds.map((o, j) => {
+                          const sel = selectedOddsIdx === j;
+                          return (
+                            <button key={j} onClick={() => setSelectedOddsIdx(sel ? null : j)} className="h-11 rounded-lg text-[12px] font-bold transition-all" style={{ background: sel ? "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient, var(--p-primary)))" : "var(--p-dark-container-background)", border: sel ? "none" : "1px solid var(--p-border-and-gradient-bg)", color: sel ? primaryText : "var(--p-primary)" }}>
+                              {o}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Away team row */}
+                      <div className="grid items-center gap-2" style={{ gridTemplateColumns: "1fr 60px 60px 60px" }}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <TeamDot label={heroAwayName} size={22} />
+                          <span className="text-[11px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>{heroAwayName}</span>
+                        </div>
+                        <span /><span /><span />
                       </div>
                     </div>
                   )}
 
-                  {/* table: NBA-style Spread/ML/Total */}
+                  {/* table: NBA-style */}
                   {market.content.type === "table" && (
-                    <div className="space-y-2">
+                    <div className="pt-3 space-y-2">
                       {market.content.leagueLabel && (
-                        <div
-                          className="text-[9px] font-bold uppercase tracking-wider mb-1"
-                          style={{ color: "var(--p-primary)" }}
-                        >
-                          {market.content.leagueLabel}
-                        </div>
+                        <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--p-primary)" }}>{market.content.leagueLabel}</div>
                       )}
-                      <div
-                        className="grid gap-1.5 pb-1"
-                        style={{
-                          gridTemplateColumns: `1fr repeat(${market.content.columns.length}, 1fr)`,
-                        }}
-                      >
+                      <div className="grid gap-1.5 pb-1" style={{ gridTemplateColumns: `1fr repeat(${market.content.columns.length}, 1fr)` }}>
                         <span />
                         {market.content.columns.map((c) => (
-                          <span
-                            key={c}
-                            className="text-center text-[10px] font-bold"
-                            style={{ color: "var(--p-text-secondary-color)" }}
-                          >
-                            {c}
-                          </span>
+                          <span key={c} className="text-center text-[10px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>{c}</span>
                         ))}
                       </div>
                       {market.content.rows.map((row, ri) => (
-                        <div
-                          key={ri}
-                          className="grid gap-1.5 items-center"
-                          style={{
-                            gridTemplateColumns: `1fr repeat(${market.content.type === "table" ? market.content.columns.length : 0}, 1fr)`,
-                          }}
-                        >
+                        <div key={ri} className="grid gap-1.5 items-center" style={{ gridTemplateColumns: `1fr repeat(${market.content.type === "table" ? market.content.columns.length : 0}, 1fr)` }}>
                           <div className="flex items-center gap-2 min-w-0">
                             <TeamDot label={row.team} size={18} />
-                            <span
-                              className="text-[11px] font-bold truncate"
-                              style={{ color: "var(--p-light-text-color)" }}
-                            >
-                              {row.team}
-                            </span>
+                            <span className="text-[11px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>{row.team}</span>
                           </div>
                           {row.values.map((v, vi) => (
-                            <button
-                              key={vi}
-                              className="h-9 rounded text-[11px] font-bold transition-transform active:scale-95"
-                              style={{
-                                background: "var(--p-active-secondary-gradient-color)",
-                                border: "1px solid color-mix(in oklab, var(--p-primary) 60%, transparent)",
-                                color: pickContrastText(palette.activeSecondaryGradientColor),
-                              }}
-                            >
-                              {v}
-                            </button>
+                            <button key={vi} className="h-9 rounded-lg text-[11px] font-bold" style={{ background: "var(--p-dark-container-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-primary)" }}>{v}</button>
                           ))}
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* placeholder */}
                   {market.content.type === "placeholder" && (
-                    <div
-                      className="text-[10px] py-3 text-center"
-                      style={{ color: "var(--p-text-secondary-color)" }}
-                    >
+                    <div className="text-[10px] py-3 text-center" style={{ color: "var(--p-text-secondary-color)" }}>
                       Markets shown when expanded in production app
                     </div>
                   )}
@@ -418,6 +226,24 @@ export function GameDetail({
           );
         })}
       </div>
+
+      {/* Bet Slip bar — appears when any odds selected */}
+      {selectedOddsIdx !== null && (
+        <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3" style={{ background: "var(--p-dark-container-background)", borderTop: "1px solid var(--p-border-and-gradient-bg)" }}>
+          <div className="h-8 w-8 rounded-full grid place-items-center text-[12px] font-black flex-shrink-0" style={{ background: "var(--p-primary)", color: primaryText }}>1</div>
+          <span className="text-[13px] font-bold flex-1" style={{ color: "var(--p-light-text-color)" }}>Bet slip</span>
+          <div className="text-right">
+            <div className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              1 Leg{" "}
+              <span className="font-bold" style={{ color: "var(--p-primary)" }}>{footballOdds[selectedOddsIdx]}</span>
+            </div>
+            <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              ₦ 10.00 pays{" "}
+              <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>₦ {(10 * parseFloat(footballOdds[selectedOddsIdx])).toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

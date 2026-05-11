@@ -3935,120 +3935,221 @@ const MobilePreview = React.memo(function MobilePreview({
 
   const renderMobileLiveView = () => {
     const MOBILE_SPORT_TABS = [
-      { label: `Soccer (${LIVE_SOCCER.length})`, data: LIVE_SOCCER, type: "soccer" as const },
-      { label: `TT (${LIVE_TABLE_TENNIS.length})`, data: LIVE_TABLE_TENNIS, type: "racket" as const },
-      { label: `Tennis (${LIVE_TENNIS.length})`, data: LIVE_TENNIS, type: "racket" as const },
+      { label: "Soccer", count: 8,  data: LIVE_SOCCER,        type: "soccer" as const, icon: "⚽" },
+      { label: "Basketball", count: 2, data: [] as typeof LIVE_SOCCER, type: "soccer" as const, icon: "🏀" },
+      { label: "Table Tennis", count: 5, data: LIVE_TABLE_TENNIS, type: "racket" as const, icon: "🏓" },
+      { label: "Tennis", count: 3, data: LIVE_TENNIS, type: "racket" as const, icon: "🎾" },
     ];
     const activeTab = MOBILE_SPORT_TABS[mobileLiveActiveSportTab];
+
+    // Live league groups for soccer
+    const liveLeagues = [
+      {
+        name: "Vtora Liga - Bulgaria",
+        icon: "⚽",
+        matches: [
+          { id: "live-bg-1", home: "PFK Sportist Svoge", away: "FC Pirin Blagoevgrad", score: "0:0", status: "Halftime", odds: ["2.35", "2.25", "3.90"], suspended: false },
+          { id: "live-bg-2", home: "PFC Ludogorets Raz...", away: "Gorna Oryahovitsa",   score: "2:0", status: "Halftime", odds: ["1.06", "7.50", "27.00"], suspended: false },
+          { id: "live-bg-3", home: "PFC Minyor Pernik",  away: "PFC CSKA Sofia II",    score: "1:2", status: "Halftime", odds: ["8.75", "3.45", "1.40"], suspended: false },
+        ],
+      },
+    ];
+
     return (
       <>
-        {renderTopBar()}
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 mb-2 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <button onClick={() => setMobileLiveView(false)} className="flex items-center gap-0.5 text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
-              <ChevronLeft className="h-3 w-3" /> Back
-            </button>
-            <div className="flex items-center gap-1">
-              <Radio className="h-3.5 w-3.5" style={{ color: "var(--p-primary)" }} />
-              <span className="text-[14px] font-black" style={{ color: "var(--p-primary)" }}>Live</span>
-            </div>
+        {/* Live header */}
+        <div
+          className="flex items-center justify-between px-4 h-12 flex-shrink-0"
+          style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}
+        >
+          <button onClick={() => setMobileLiveView(false)} className="h-8 w-8 grid place-items-center" style={{ color: "var(--p-light-text-color)" }}>
+            <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+          <div className="flex items-center gap-1.5">
+            <Radio className="h-4 w-4" style={{ color: "var(--p-primary)" }} />
+            <span className="text-[15px] font-bold" style={{ color: "var(--p-light-text-color)" }}>Live</span>
           </div>
-          <button className="flex items-center gap-1 text-[8px] px-2 py-1 rounded" style={{ background: "var(--p-dark-container-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-text-secondary-color)" }}>
-            <Filter className="h-2.5 w-2.5" /> Filter
+          <button className="h-8 w-8 grid place-items-center" style={{ color: "var(--p-light-text-color)" }}>
+            <Filter className="h-4 w-4" />
           </button>
         </div>
-        {/* Sport tabs */}
-        <div className="flex gap-0 border-b flex-shrink-0 overflow-x-auto px-2" style={{ borderColor: "var(--p-border-and-gradient-bg)", scrollbarWidth: "none" }}>
-          {MOBILE_SPORT_TABS.map((tab, i) => (
-            <button
-              key={tab.label}
-              onClick={() => setMobileLiveActiveSportTab(i)}
-              className="px-2.5 h-7 text-[8.5px] font-semibold relative flex-shrink-0"
-              style={{ color: mobileLiveActiveSportTab === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
-            >
-              {tab.label}
-              {mobileLiveActiveSportTab === i && <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full" style={{ background: "var(--p-primary)" }} />}
-            </button>
-          ))}
+
+        {/* Sport tabs with counts — underline active */}
+        <div
+          className="flex border-b flex-shrink-0 overflow-x-auto px-2"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)", scrollbarWidth: "none" }}
+        >
+          {MOBILE_SPORT_TABS.map((tab, i) => {
+            const active = mobileLiveActiveSportTab === i;
+            return (
+              <button
+                key={tab.label}
+                onClick={() => setMobileLiveActiveSportTab(i)}
+                className="flex items-center gap-1 px-3 h-10 text-[11px] font-semibold relative flex-shrink-0 whitespace-nowrap"
+                style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
+              >
+                <span style={{ fontSize: 13 }}>{tab.icon}</span>
+                {tab.label}
+                <span
+                  className="text-[9px] font-bold px-1 py-[1px] rounded ml-0.5"
+                  style={{ background: "color-mix(in oklab, var(--p-primary) 20%, transparent)", color: "var(--p-primary)" }}
+                >
+                  {tab.count}
+                </span>
+                {active && (
+                  <span
+                    className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full"
+                    style={{ background: "var(--p-primary)" }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
-        {/* Match cards */}
-        <div className="flex-1 min-h-0 overflow-auto px-3 pb-3 pt-2 space-y-2">
-          {activeTab.type === "soccer" ? (
-            (activeTab.data as LiveSoccerMatch[]).map((m) => (
-              <div key={m.id} className="rounded-md overflow-hidden" style={{ border: "1px solid var(--p-border-and-gradient-bg)" }}>
-                <div className="flex items-center justify-between px-2 py-1" style={{ background: "var(--p-dark-container-background)" }}>
-                  <div className="flex items-center gap-1">
-                    <Volleyball className="h-2.5 w-2.5" style={{ color: "var(--p-primary)" }} />
-                    <span className="text-[8px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{m.league}</span>
-                  </div>
-                  <span className="text-[7.5px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE →</span>
+
+        {/* Games filter pill */}
+        <div className="px-3 py-2 flex-shrink-0">
+          <button
+            className="px-5 py-2 rounded-full text-[11px] font-bold"
+            style={{
+              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient, var(--p-primary)))",
+              color: pickContrastText(palette.primary),
+            }}
+          >
+            Games
+          </button>
+        </div>
+
+        {/* Live match cards grouped by league */}
+        <div className="flex-1 min-h-0 overflow-auto px-3 pb-3 space-y-3">
+          {(mobileLiveActiveSportTab === 0 ? liveLeagues : []).map((league) => (
+            <div key={league.name}>
+              {/* League header */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span style={{ fontSize: 14 }}>{league.icon}</span>
+                  <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{league.name}</span>
                 </div>
-                <div className="px-2 py-2" style={{ background: "var(--p-modal-background)" }}>
-                  <MobileLivePill statusText={m.statusText} />
-                  <div className="mt-1.5 space-y-1">
-                    <div className="flex items-center gap-1">
-                      <TeamDot label={m.home} />
-                      <span className="text-[9px] font-medium flex-1 min-w-0 truncate" style={{ color: "var(--p-light-text-color)" }}>{m.home}</span>
-                      {m.homeScore !== null && <span className="text-[9px] font-bold" style={{ color: "var(--p-live-score-color, var(--p-primary))" }}>{m.homeScore}</span>}
-                    </div>
-                    {m.away && (
-                      <div className="flex items-center gap-1">
-                        <TeamDot label={m.away} />
-                        <span className="text-[9px] font-medium flex-1 min-w-0 truncate" style={{ color: "var(--p-light-text-color)" }}>{m.away}</span>
-                        {m.awayScore !== null && <span className="text-[9px] font-bold" style={{ color: "var(--p-live-score-color, var(--p-primary))" }}>{m.awayScore}</span>}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-1 mt-2">
-                    {m.odds.map((o, j) => <MobileOddsBtn key={j} label={o} suspended={m.suspended} />)}
-                  </div>
-                  <div className="flex items-center justify-between mt-1.5 pt-1" style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}>
-                    <span className="text-[7.5px] font-semibold" style={{ color: "var(--p-primary)" }}>STATS</span>
-                    <span className="text-[7.5px] font-semibold" style={{ color: "var(--p-primary)" }}>MORE BETS +</span>
-                  </div>
-                </div>
+                <button className="text-[9px] font-bold flex items-center gap-0.5" style={{ color: "var(--p-primary)" }}>
+                  SEE MORE <ChevronRight className="h-3 w-3" />
+                </button>
               </div>
-            ))
-          ) : (
-            (activeTab.data as LiveRacketMatch[]).map((m) => (
-              <div key={m.id} className="rounded-md overflow-hidden" style={{ border: "1px solid var(--p-border-and-gradient-bg)" }}>
-                <div className="flex items-center justify-between px-2 py-1" style={{ background: "var(--p-dark-container-background)" }}>
-                  <div className="flex items-center gap-1">
-                    <Target className="h-2.5 w-2.5" style={{ color: "var(--p-primary)" }} />
-                    <span className="text-[8px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{m.league}</span>
+
+              {/* Match cards */}
+              {league.matches.map((m) => (
+                <div
+                  key={m.id}
+                  className="rounded-xl mb-2 overflow-hidden"
+                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                >
+                  {/* Live pill + status + 1/X/2 headers */}
+                  <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-[2px] rounded text-[8px] font-bold"
+                        style={{ background: "rgba(239,68,68,0.18)", color: "var(--p-lost-color)" }}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-lost-color)" }} />
+                        LIVE
+                      </span>
+                      <span className="text-[10px] font-semibold" style={{ color: "var(--p-primary)" }}>{m.status}</span>
+                    </div>
+                    <div className="flex gap-[44px] text-[10px] font-bold mr-1" style={{ color: "var(--p-text-secondary-color)" }}>
+                      <span>1</span><span>X</span><span>2</span>
+                    </div>
                   </div>
-                  <span className="text-[7.5px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE →</span>
-                </div>
-                <div className="px-2 py-2" style={{ background: "var(--p-modal-background)" }}>
-                  <MobileLivePill statusText={m.statusText} />
-                  {[{ player: m.playerA, score: m.scoreA }, { player: m.playerB, score: m.scoreB }].map((row, ri) => (
-                    <div key={ri} className="flex items-center justify-between mt-1.5">
-                      <div className="flex items-center gap-1 flex-1 min-w-0 mr-1">
-                        <span className="text-[10px]">{row.player.flag}</span>
-                        <span className="text-[8.5px] font-medium truncate" style={{ color: "var(--p-light-text-color)" }}>{row.player.name}</span>
-                        <span className="ml-auto text-[9px] font-bold flex-shrink-0" style={{ color: "var(--p-live-score-color, var(--p-primary))" }}>{row.score}</span>
+
+                  {/* Teams + odds */}
+                  <div className="flex items-center px-3 pb-2.5 gap-2">
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      {/* Home team with score badge */}
+                      <div className="flex items-center gap-1.5">
+                        <TeamDot label={m.home} size={18} />
+                        <span className="text-[11px] font-medium truncate" style={{ color: "var(--p-light-text-color)" }}>{m.home}</span>
+                        <span
+                          className="text-[8px] font-bold px-1.5 py-[1px] rounded ml-1 flex-shrink-0"
+                          style={{ background: "var(--p-dark-container-background)", color: "var(--p-primary)" }}
+                        >
+                          {m.score}
+                        </span>
                       </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <MobileOddsBtn label={m.spreadOdds?.[ri] ?? "—"} suspended={m.suspended || !m.spreadOdds || (m.lockedColumns?.includes("spread") ?? false)} />
-                        <MobileOddsBtn label={m.moneylineOdds?.[ri] ?? "—"} suspended={m.suspended || !m.moneylineOdds || (m.lockedColumns?.includes("moneyline") ?? false)} />
-                        <MobileOddsBtn label={m.totalOdds?.[ri] ?? "—"} suspended={m.suspended || !m.totalOdds || (m.lockedColumns?.includes("total") ?? false)} />
+                      {/* Away team */}
+                      <div className="flex items-center gap-1.5">
+                        <TeamDot label={m.away} size={18} />
+                        <span className="text-[11px] font-medium truncate" style={{ color: "var(--p-light-text-color)" }}>{m.away}</span>
                       </div>
                     </div>
-                  ))}
-                  <div className="flex items-center justify-between mt-1.5 pt-1" style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}>
-                    <span className="text-[7.5px] font-semibold" style={{ color: "var(--p-primary)" }}>STATS</span>
-                    <span className="text-[7.5px] font-semibold" style={{ color: "var(--p-primary)" }}>MORE BETS +</span>
+                    {/* Odds buttons */}
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      {m.odds.map((o, j) => (
+                        <button
+                          key={j}
+                          className="w-[44px] h-[44px] rounded-lg text-[11px] font-bold"
+                          style={{
+                            background: "var(--p-dark-container-background)",
+                            border: "1px solid var(--p-border-and-gradient-bg)",
+                            color: "var(--p-primary)",
+                          }}
+                        >
+                          {o}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Stats / MORE BETS footer */}
+                  <div
+                    className="flex items-center justify-between px-3 py-2"
+                    style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <span
+                      className="text-[9px] font-semibold flex items-center gap-1"
+                      style={{ color: "var(--p-text-secondary-color)" }}
+                    >
+                      Stats <span style={{ fontSize: 10 }}>📊</span>
+                    </span>
+                    <span
+                      className="text-[9px] font-semibold flex items-center gap-0.5"
+                      style={{ color: "var(--p-primary)" }}
+                    >
+                      MORE BETS <ChevronRight className="h-3 w-3" />
+                    </span>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
+          ))}
+
+          {/* Racket sports (Tennis/TT) */}
+          {(mobileLiveActiveSportTab === 2 || mobileLiveActiveSportTab === 3) && (
+            <div>
+              {(mobileLiveActiveSportTab === 2 ? LIVE_TABLE_TENNIS : LIVE_TENNIS).map((m) => (
+                <div
+                  key={m.id}
+                  className="rounded-xl mb-2 overflow-hidden"
+                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                >
+                  <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
+                    <span className="text-[9px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>{m.league}</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE &gt;</span>
+                  </div>
+                  <div className="px-3 pb-2.5">
+                    {[m.playerA, m.playerB].map((p, pi) => (
+                      <div key={pi} className="flex items-center gap-2 mb-1">
+                        <span style={{ fontSize: 13 }}>{p.flag}</span>
+                        <span className="text-[11px] font-medium flex-1" style={{ color: "var(--p-light-text-color)" }}>{p.name}</span>
+                        <MobileOddsBtn label={m.moneylineOdds?.[pi] ?? "—"} suspended={m.suspended} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </>
     );
   };
-
   /* Sports view (nav 1) */
   const renderSportsView = () => {
     if (mobileLiveView) return renderMobileLiveView();
@@ -4898,6 +4999,38 @@ const MobilePreview = React.memo(function MobilePreview({
           {activeNav === 3 && renderCasinoView()}
           {activeNav === 4 && renderProfileView()}
         </>
+      )}
+
+      {/* Bet Slip bar — floats above bottom nav when odds selected */}
+      {selectedOdds.size > 0 && !mobileMatchId && (
+        <div
+          className="flex items-center gap-3 px-4 py-2.5 flex-shrink-0"
+          style={{
+            background: "var(--p-dark-container-background)",
+            borderTop: "1px solid var(--p-border-and-gradient-bg)",
+          }}
+        >
+          <div
+            className="h-8 w-8 rounded-full grid place-items-center text-[12px] font-black flex-shrink-0"
+            style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+          >
+            {selectedOdds.size}
+          </div>
+          <span className="text-[13px] font-bold flex-1" style={{ color: "var(--p-light-text-color)" }}>
+            Bet slip
+          </span>
+          <div className="text-right">
+            <div className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              {selectedOdds.size} Leg{selectedOdds.size > 1 ? "s" : ""}
+            </div>
+            <div className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              ₦ 10.00 pays{" "}
+              <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                ₦ {(10 * 1.83).toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Bottom nav */}
