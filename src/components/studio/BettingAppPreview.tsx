@@ -427,10 +427,11 @@ const MYBET_LIVE_UPCOMING = [
   { live: false, code: "CAF Conf", home: "MED", away: "ASE", odds: "1.85" },
 ];
 
-const MYBET_BET_SLIPS = [
+const MYBET_BET_SLIPS: BetSlip[] = [
   { team: "Asante Kotoko", odds: "2.10", status: "WON", stake: "5000", payout: "10500" },
   { team: "Aduana Stars", odds: "1.85", status: "PENDING", stake: "2500", payout: "4625" },
   { team: "Dreams FC", odds: "3.30", status: "LOST", stake: "1000", payout: "0" },
+  { team: "Hearts of Oak", odds: "3.40", status: "CASHOUT", stake: "3000", payout: "5100", cashOutValue: "5100" },
 ];
 
 const MYBET_STRINGS_OVERRIDES = {
@@ -524,10 +525,16 @@ const MATCHES: Match[] = [
   },
 ];
 
-const BET_SLIPS = [
+type BetSlipStatus = "WON" | "LOST" | "PENDING" | "CASHOUT" | "VOIDED" | "LIVE";
+type BetSlip = { team: string; odds: string; status: BetSlipStatus; stake: string; payout: string; cashOutValue?: string; liveScore?: string; };
+
+const BET_SLIPS: BetSlip[] = [
   { team: "Brentford FC", odds: "2.16", status: "LOST", stake: "100", payout: "0" },
   { team: "Tottenham Hotspur", odds: "2.85", status: "PENDING", stake: "10", payout: "28.50" },
   { team: "Brighton & Hove Albion", odds: "1.64", status: "WON", stake: "55", payout: "243.71" },
+  { team: "Liverpool FC", odds: "4.10", status: "CASHOUT", stake: "150", payout: "225", cashOutValue: "225" },
+  { team: "Arsenal", odds: "1.95", status: "VOIDED", stake: "50", payout: "50" },
+  { team: "Man United", odds: "2.30", status: "LIVE", stake: "20", payout: "46", liveScore: "1-0" },
 ];
 
 const SOCIAL_POSTS = [
@@ -750,6 +757,71 @@ export const TeamDot = ({ label, size = 16 }: { label: string; size?: number }) 
   );
 };
 
+function betStatusStyle(status: BetSlipStatus, variant: "web" | "mobile" = "web") {
+  switch (status) {
+    case "WON": return {
+      wrapperBg: variant === "web"
+        ? "linear-gradient(135deg, var(--p-won-border-grad-colors-1), var(--p-won-border-grad-colors-2))"
+        : "linear-gradient(135deg, var(--p-win-status-border-gradient-1) 0%, var(--p-win-status-border-gradient-2) 50%, var(--p-win-status-border-gradient-3) 100%)",
+      cardBg: "linear-gradient(135deg, var(--p-win-status-gradient-1) 0%, var(--p-win-status-gradient-2) 50%, var(--p-win-status-gradient-3) 100%)",
+      badgeBg: "linear-gradient(90deg, var(--p-bet-status-win-gradient-1) 0%, var(--p-bet-status-win-gradient-2) 100%)",
+      badgeColor: "var(--p-light-text-color)",
+      payoutColor: "var(--p-won-color)",
+      accentBorder: variant === "web" ? "var(--p-won-border-grad-colors-2)" : "var(--p-win-status-border-gradient-2)",
+    };
+    case "LOST": return {
+      wrapperBg: variant === "web"
+        ? "linear-gradient(135deg, var(--p-lost-border-grad-1), var(--p-lost-border-grad-2))"
+        : "linear-gradient(135deg, var(--p-lose-status-border-gradient-1) 0%, var(--p-lose-status-border-gradient-2) 50%, var(--p-lose-status-border-gradient-3) 100%)",
+      cardBg: "linear-gradient(135deg, var(--p-lose-status-gradient-1) 0%, var(--p-lose-status-gradient-2) 50%, var(--p-lose-status-gradient-3) 100%)",
+      badgeBg: "linear-gradient(90deg, var(--p-bet-status-lose-gradient-1) 0%, var(--p-bet-status-lose-gradient-2) 100%)",
+      badgeColor: "var(--p-light-text-color)",
+      payoutColor: "var(--p-lost-color)",
+      accentBorder: variant === "web" ? "var(--p-lost-border-grad-2)" : "var(--p-lose-status-border-gradient-2)",
+    };
+    case "PENDING": return {
+      wrapperBg: null as null,
+      cardBg: "var(--p-dark)",
+      badgeBg: "linear-gradient(90deg, var(--p-bet-status-neutral-gradient-1) 0%, var(--p-bet-status-neutral-gradient-2) 100%)",
+      badgeColor: "var(--p-secondary)",
+      payoutColor: "var(--p-light-text-color)",
+      accentBorder: "transparent",
+    };
+    case "CASHOUT": return {
+      wrapperBg: null as null,
+      cardBg: "linear-gradient(135deg, var(--p-neutral-button-gradient-1) 0%, var(--p-neutral-button-gradient-2) 50%, var(--p-neutral-button-gradient-3) 100%)",
+      badgeBg: "color-mix(in oklab, var(--p-secondary) 18%, transparent)",
+      badgeColor: "var(--p-secondary)",
+      payoutColor: "var(--p-light-text-color)",
+      accentBorder: "transparent",
+    };
+    case "VOIDED": return {
+      wrapperBg: null as null,
+      cardBg: "var(--p-modal-background)",
+      badgeBg: "transparent",
+      badgeColor: "var(--p-text-secondary-color)",
+      payoutColor: "var(--p-text-secondary-color)",
+      accentBorder: "transparent",
+    };
+    case "LIVE": return {
+      wrapperBg: null as null,
+      cardBg: "var(--p-dark)",
+      badgeBg: "color-mix(in oklab, var(--p-primary) 18%, transparent)",
+      badgeColor: "var(--p-primary)",
+      payoutColor: "var(--p-primary)",
+      accentBorder: "transparent",
+    };
+    default: return {
+      wrapperBg: null as null,
+      cardBg: "var(--p-dark)",
+      badgeBg: "color-mix(in oklab, var(--p-secondary) 18%, transparent)",
+      badgeColor: "var(--p-secondary)",
+      payoutColor: "var(--p-light-text-color)",
+      accentBorder: "transparent",
+    };
+  }
+}
+
 const LiveDot = () => {
   const { strings } = useStudio();
   return (
@@ -794,13 +866,12 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const [profileBetsFilter, setProfileBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
 
   const statusLabel = (s: string) =>
-    s === "WON"
-      ? strings.STATUS_WON
-      : s === "LOST"
-        ? strings.STATUS_LOST
-        : s === "LIVE"
-          ? strings.STATUS_LIVE
-          : strings.STATUS_PENDING;
+    s === "WON" ? strings.STATUS_WON
+    : s === "LOST" ? strings.STATUS_LOST
+    : s === "LIVE" ? strings.STATUS_LIVE
+    : s === "CASHOUT" ? "CASHOUT"
+    : s === "VOIDED" ? "VOIDED"
+    : strings.STATUS_PENDING;
 
   const NAV = [
     { icon: Home, label: strings.FEED },
@@ -871,59 +942,50 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           <div className="flex-1 overflow-auto p-2 space-y-2">
             {effectiveBetSlips.filter((b) => {
               if (webMyBetsFilter === 0) return true;
-              if (webMyBetsFilter === 1) return b.status === "PENDING";
-              if (webMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
-              return false; // P2P - no P2P bets in sample
+              if (webMyBetsFilter === 1) return b.status === "PENDING" || b.status === "LIVE";
+              if (webMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST" || b.status === "CASHOUT" || b.status === "VOIDED";
+              return false;
             }).map((b, i) => {
-              const isWon = b.status === "WON";
-              return (
+              const ss = betStatusStyle(b.status, "web");
+              const card = (
                 <div
-                  key={i}
                   className="rounded-md p-2"
-                  style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                  style={{ background: ss.cardBg, ...(ss.wrapperBg ? {} : { border: "1px solid var(--p-border-and-gradient-bg)" }) }}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1">
+                      {b.status === "LIVE" && <span className="h-1.5 w-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "var(--p-primary)" }} />}
                       <TeamDot label={b.team} />
                       <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                         {b.team.slice(0, 12)}…
                       </span>
                     </div>
-                    <span
-                      className="text-[8px] font-bold px-1.5 py-[1px] rounded"
-                      style={{
-                        background: isWon
-                          ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
-                          : b.status === "PENDING"
-                            ? "color-mix(in oklab, var(--p-secondary) 18%, transparent)"
-                            : "color-mix(in oklab, var(--p-lost-color) 18%, transparent)",
-                        color: isWon
-                          ? "var(--p-light-text-color)"
-                          : b.status === "PENDING"
-                            ? "var(--p-secondary)"
-                            : "var(--p-lost-color)",
-                      }}
-                    >
+                    <span className="text-[8px] font-bold px-1.5 py-[1px] rounded" style={{ background: ss.badgeBg, color: ss.badgeColor }}>
                       {statusLabel(b.status)}
                     </span>
                   </div>
                   <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                    1x2 · odds {b.odds}
+                    1x2 · odds <span style={{ color: ss.badgeColor, fontWeight: 700 }}>{b.status === "LIVE" ? b.odds : b.odds}</span>
+                    {b.liveScore && <span className="ml-1 font-bold" style={{ color: "var(--p-primary)" }}>{b.liveScore}</span>}
                   </div>
-                  <div className="flex items-center justify-between mt-1 text-[9px]">
+                  <div className="flex items-center justify-between mt-1 text-[9px]" style={{ borderTop: `1px solid ${ss.accentBorder}`, paddingTop: ss.accentBorder !== "transparent" ? "3px" : undefined }}>
                     <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
-                    <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                    <span className="font-bold" style={{ color: "var(--p-light-text-color)", textDecoration: b.status === "VOIDED" ? "line-through" : undefined }}>
                       {effectiveCurrencySymbol}{b.stake}
                     </span>
-                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
-                    <span
-                      className="font-bold"
-                      style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}
-                    >
-                      {effectiveCurrencySymbol}{b.payout}
+                    <span style={{ color: "var(--p-text-secondary-color)" }}>
+                      {b.status === "CASHOUT" ? "CASHED" : b.status === "VOIDED" ? "REFUND" : strings.PAYOUT}
+                    </span>
+                    <span className="font-bold" style={{ color: ss.payoutColor }}>
+                      {effectiveCurrencySymbol}{b.cashOutValue ?? b.payout}
                     </span>
                   </div>
                 </div>
+              );
+              return ss.wrapperBg ? (
+                <div key={i} style={{ background: ss.wrapperBg, padding: "1px", borderRadius: "7px" }}>{card}</div>
+              ) : (
+                <div key={i}>{card}</div>
               );
             })}
             {webMyBetsFilter === 3 && (
@@ -3202,15 +3264,13 @@ const MobilePreview = React.memo(function MobilePreview({
   const { strings: rawStrings, palette } = useStudio();
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
   const statusLabel = (s: string) =>
-    s === "WON"
-      ? strings.STATUS_WON
-      : s === "LOST"
-        ? strings.STATUS_LOST
-        : s === "PENDING"
-          ? strings.STATUS_PENDING
-          : s === "LIVE"
-            ? strings.STATUS_LIVE
-            : s;
+    s === "WON" ? strings.STATUS_WON
+    : s === "LOST" ? strings.STATUS_LOST
+    : s === "PENDING" ? strings.STATUS_PENDING
+    : s === "LIVE" ? strings.STATUS_LIVE
+    : s === "CASHOUT" ? "CASHOUT"
+    : s === "VOIDED" ? "VOIDED"
+    : s;
 
   const NAV = [
     { icon: Home, label: strings.HOME },
@@ -4163,44 +4223,46 @@ const MobilePreview = React.memo(function MobilePreview({
             <div className="px-3 pb-3 space-y-2">
               {effectiveBetSlips.filter((b) => {
                 if (mobileMyBetsFilter === 0) return true;
-                if (mobileMyBetsFilter === 1) return b.status === "PENDING";
-                if (mobileMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
+                if (mobileMyBetsFilter === 1) return b.status === "PENDING" || b.status === "LIVE";
+                if (mobileMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST" || b.status === "CASHOUT" || b.status === "VOIDED";
                 return false;
               }).map((b, i) => {
-                const isWon = b.status === "WON";
-                return (
+                const ss = betStatusStyle(b.status, "mobile");
+                const card = (
                   <div
-                    key={i}
                     className="rounded-md p-2.5"
-                    style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+                    style={{ background: ss.cardBg, ...(ss.wrapperBg ? {} : { border: "1px solid var(--p-border-and-gradient-bg)" }) }}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5">
+                        {b.status === "LIVE" && <span className="h-1.5 w-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "var(--p-primary)" }} />}
                         <TeamDot label={b.team} />
                         <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                           {b.team}
                         </span>
                       </div>
-                      <span
-                        className="text-[9px] font-bold px-2 py-0.5 rounded"
-                        style={{
-                          border: `1px solid ${isWon ? "var(--p-won-color)" : b.status === "PENDING" ? "var(--p-secondary)" : "var(--p-lost-color)"}`,
-                          color: isWon ? "var(--p-won-color)" : b.status === "PENDING" ? "var(--p-secondary)" : "var(--p-lost-color)",
-                        }}
-                      >
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded" style={{ background: ss.badgeBg, color: ss.badgeColor }}>
                         {statusLabel(b.status)}
                       </span>
                     </div>
                     <div className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                      1x2 · odds <span style={{ color: "var(--p-primary)", fontWeight: 700 }}>{b.odds}</span>
+                      1x2 · odds <span style={{ color: ss.badgeColor, fontWeight: 700 }}>{b.odds}</span>
+                      {b.liveScore && <span className="ml-1 font-bold" style={{ color: "var(--p-primary)" }}>{b.liveScore}</span>}
                     </div>
-                    <div className="flex items-center justify-between mt-1.5 text-[10px]">
+                    <div className="flex items-center justify-between mt-1.5 text-[10px]" style={{ borderTop: `1px solid ${ss.accentBorder}`, paddingTop: ss.accentBorder !== "transparent" ? "3px" : undefined }}>
                       <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
-                      <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>{effectiveCurrencySymbol}{b.stake}</span>
-                      <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
-                      <span className="font-bold" style={{ color: isWon ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>{effectiveCurrencySymbol}{b.payout}</span>
+                      <span className="font-bold" style={{ color: "var(--p-light-text-color)", textDecoration: b.status === "VOIDED" ? "line-through" : undefined }}>{effectiveCurrencySymbol}{b.stake}</span>
+                      <span style={{ color: "var(--p-text-secondary-color)" }}>
+                        {b.status === "CASHOUT" ? "CASHED" : b.status === "VOIDED" ? "REFUND" : strings.PAYOUT}
+                      </span>
+                      <span className="font-bold" style={{ color: ss.payoutColor }}>{effectiveCurrencySymbol}{b.cashOutValue ?? b.payout}</span>
                     </div>
                   </div>
+                );
+                return ss.wrapperBg ? (
+                  <div key={i} style={{ background: ss.wrapperBg, padding: "1px", borderRadius: "7px" }}>{card}</div>
+                ) : (
+                  <div key={i}>{card}</div>
                 );
               })}
               {mobileMyBetsFilter === 3 && (
