@@ -887,144 +887,337 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
     { icon: Swords, label: strings.PEER_TO_PEER_NAV },
   ];
 
-  /* Right panel - always visible */
-  const renderRightPanel = () => (
-    <aside
-      className="w-[200px] border-l flex flex-col flex-shrink-0"
-      style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
-    >
-      {/* My Bets / My Feed top tabs */}
-      <div
-        className="flex border-b text-[9px] font-semibold"
-        style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
-      >
-        {[strings.TAB_MY_BETS, strings.TAB_MY_FEED].map((t, i) => (
-          <button
-            key={t}
-            onClick={() => setWebMyBetsMainTab(i)}
-            className="flex-1 h-7 relative"
-            style={{ color: webMyBetsMainTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
-          >
-            {t}
-            {webMyBetsMainTab === i && (
-              <span
-                className="absolute bottom-0 left-1/4 right-1/4 h-[2px] rounded-full"
-                style={{ background: "var(--p-primary)" }}
-              />
-            )}
-          </button>
-        ))}
-      </div>
+  /* Right panel - BetCorrect "My Bets Panel" */
+  const renderRightPanel = () => {
+    const rightBets = [
+      {
+        kind: "simple" as const,
+        score: "1:2",
+        odds: "2.70",
+        market: "Correct match score",
+        status: "LOST" as const,
+        stake: "200",
+        payout: "0",
+        home: "1win",
+        away: "Team Nemesis",
+        date: "7 MAY",
+        time: "2:04 PM",
+        id: "b982857c-8dc6-4d57-97f8...",
+        timestamp: "5/7/2026, 4:45:45 PM",
+      },
+      {
+        kind: "basketball" as const,
+        score: "Detroit Pistons (...",
+        odds: "2.01",
+        market: "1st half · handicap",
+        status: "WON" as const,
+        stake: "1000",
+        payout: "2010",
+        rows: [
+          { team: "Orlando Magic",   q: [22, 27, 15, 30, 94] },
+          { team: "Detroit Pistons", q: [20, 40, 23, 33, 116] },
+        ],
+        id: "09df0304-3c54-4ebd...",
+        timestamp: "5/2/2026, 8:11:23 PM",
+      },
+      {
+        kind: "multi" as const,
+        score: "19 Leg ...",
+        odds: "Multi Odds",
+        market: "draw · 4.20",
+        marketSub: "1x2",
+        status: "PENDING" as const,
+        stake: "",
+        payout: "",
+        legs: [
+          { home: "Arsenal FC",     homeScores: [1, 0, 1], away: "Atletico Madrid", awayScores: [0, 0, 0] },
+        ],
+        id: "",
+        timestamp: "",
+        rows: undefined as undefined | { team: string; q: number[] }[],
+        home: undefined as string | undefined,
+        away: undefined as string | undefined,
+        date: undefined as string | undefined,
+        time: undefined as string | undefined,
+      },
+      {
+        kind: "basketball" as const,
+        score: "Orlando Magic",
+        odds: "5.20",
+        market: "Winner (incl. overtime)",
+        status: "LOST" as const,
+        stake: "",
+        payout: "",
+        rows: [
+          { team: "Orlando Magic",   q: [26, 34, 19, 30, 10] },
+          { team: "Detroit Pistons", q: [0, 0, 0, 0, 0] },
+        ],
+        id: "",
+        timestamp: "",
+      },
+    ];
 
-      {webMyBetsMainTab === 0 ? (
-        <>
-          {/* All / Pending / Settled / P2P filter pills */}
-          <div className="flex gap-1 p-1.5" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
-            {[strings.FILTER_ALL, strings.FILTER_PENDING, strings.FILTER_SETTLED, strings.FILTER_P2P].map((t, i) => (
-              <button
-                key={t}
-                onClick={() => setWebMyBetsFilter(i)}
-                className="flex-1 h-6 rounded text-[8px] font-bold"
-                style={{
-                  background: webMyBetsFilter === i
-                    ? "linear-gradient(135deg, var(--p-primary), var(--p-secondary, var(--p-primary)))"
-                    : "var(--p-modal-background)",
-                  color: webMyBetsFilter === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
-                  border: webMyBetsFilter === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                }}
-              >
-                {t}
-              </button>
-            ))}
+    const statusBadge = (status: "WON" | "LOST" | "PENDING") => {
+      const styles: Record<string, React.CSSProperties> = {
+        WON:     { background: "var(--p-won-color)",  color: "rgba(0,0,0,0.85)", border: "none" },
+        LOST:    { background: "var(--p-lost-color)", color: "rgba(255,255,255,0.93)", border: "none" },
+        PENDING: { background: "transparent", border: "1px solid var(--p-primary)", color: "var(--p-primary)" },
+      };
+      return (
+        <span
+          className="text-[8px] font-bold px-2 py-0.5 rounded flex-shrink-0"
+          style={styles[status] ?? styles.PENDING}
+        >
+          {status}
+        </span>
+      );
+    };
+
+    const filtered = webMyBetsFilter === 0 ? rightBets
+      : webMyBetsFilter === 1 ? rightBets.filter(b => b.status === "PENDING")
+      : webMyBetsFilter === 2 ? rightBets.filter(b => b.status === "WON" || b.status === "LOST")
+      : [];
+
+    return (
+      <aside
+        className="w-[290px] border-l flex flex-col flex-shrink-0"
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+      >
+        {/* Header */}
+        <div
+          className="px-3 py-2 border-b flex-shrink-0"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+        >
+          <div className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+            My Bets Panel
           </div>
-          <div className="flex-1 overflow-auto p-2 space-y-2">
-            {effectiveBetSlips.filter((b) => {
-              if (webMyBetsFilter === 0) return true;
-              if (webMyBetsFilter === 1) return b.status === "PENDING";
-              if (webMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
-              return false;
-            }).map((b, i) => {
-              const ss = betStatusStyle(b.status);
-              return (
-                <div
-                  key={i}
-                  className="rounded-md p-2"
-                  style={{ background: ss.cardBg, border: ss.cardBorder }}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1">
-                      <TeamDot label={b.team} />
-                      <span className="text-[9px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                        {b.team.slice(0, 14)}
-                      </span>
-                      <span className="text-[9px] font-bold ml-1" style={{ color: ss.oddsColor }}>{b.odds}</span>
-                    </div>
-                    <span className="text-[8px] font-bold px-2 py-[1px] rounded-full" style={ss.pillStyle}>
-                      {statusLabel(b.status)}
-                    </span>
-                  </div>
-                  <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                    1x2 · odds <span style={{ color: ss.oddsColor, fontWeight: 700 }}>{b.odds}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1 pt-1 text-[9px]" style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}>
-                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
-                    <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>{effectiveCurrencySymbol}{b.stake}</span>
-                    <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
-                    <span className="font-bold" style={{ color: ss.payoutColor }}>{effectiveCurrencySymbol}{b.payout}</span>
-                  </div>
-                </div>
-              );
-            })}
-            {webMyBetsFilter === 3 && (
-              <div className="text-center py-4 text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                {strings.NO_P2P_BETS}
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        /* My Feed panel */
-        <div className="flex-1 overflow-auto p-2 space-y-2">
-          {SOCIAL_POSTS.slice(0, 3).map((p, i) => (
-            <div
-              key={i}
-              className="rounded-md p-2"
-              style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+        </div>
+
+        {/* Tabs */}
+        <div
+          className="flex border-b flex-shrink-0"
+          style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+        >
+          {["All", "PENDING", "Settled", "P2P Bets"].map((t, i) => (
+            <button
+              key={t}
+              onClick={() => setWebMyBetsFilter(i)}
+              className="flex-1 h-8 relative text-[8.5px] font-semibold"
+              style={{ color: webMyBetsFilter === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
             >
-              <div className="flex items-center gap-1.5 mb-1">
-                <div
-                  className="h-5 w-5 rounded-full grid place-items-center text-[8px] font-bold flex-shrink-0"
-                  style={{ background: "var(--p-primary)", color: "var(--p-light-text-color)" }}
-                >
-                  {p.avatar}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[8px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>
-                    {p.user}
-                  </div>
-                  <div className="text-[7px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                    {p.action}
-                  </div>
-                </div>
-              </div>
-              <div className="text-[8px] truncate" style={{ color: "var(--p-primary)" }}>
-                {p.bet}
-              </div>
-              <div
-                className="flex justify-between mt-1 text-[7px]"
-                style={{ color: "var(--p-text-secondary-color)" }}
-              >
-                <span>
-                  @{p.odds} · {p.time}
-                </span>
-                <span>♥ {p.likes}</span>
-              </div>
-            </div>
+              {t}
+              {webMyBetsFilter === i && (
+                <span
+                  className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full"
+                  style={{ background: "var(--p-primary)" }}
+                />
+              )}
+            </button>
           ))}
         </div>
-      )}
-    </aside>
-  );
+
+        {/* Bet cards */}
+        <div className="flex-1 overflow-auto px-2 py-2 space-y-2">
+          {filtered.length === 0 && webMyBetsFilter === 3 && (
+            <div className="text-center py-6 text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              {strings.NO_P2P_BETS}
+            </div>
+          )}
+          {filtered.map((b, idx) => {
+            const statusC = b.status === "WON" ? "var(--p-won-color)" : b.status === "LOST" ? "var(--p-lost-color)" : "var(--p-primary)";
+            return (
+              <div
+                key={idx}
+                className="rounded-lg overflow-hidden"
+                style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+              >
+                <div className="p-2.5">
+                  {/* Score + odds + status */}
+                  <div className="flex items-start justify-between gap-1 mb-1">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-[10px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{b.score}</span>
+                        {b.kind !== "multi" && (
+                          <>
+                            <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>|</span>
+                            <span className="text-[10px] font-bold" style={{ color: "var(--p-primary)" }}>{b.odds}</span>
+                          </>
+                        )}
+                        {b.kind === "multi" && (
+                          <span className="text-[9px] font-bold" style={{ color: "var(--p-primary)" }}>| {b.odds}</span>
+                        )}
+                      </div>
+                      <div className="text-[8.5px] mt-0.5" style={{ color: statusC }}>{b.market}</div>
+                      {(b as any).marketSub && (
+                        <div className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>{(b as any).marketSub}</div>
+                      )}
+                    </div>
+                    {statusBadge(b.status)}
+                  </div>
+
+                  {/* Stake / payout */}
+                  {b.stake && (
+                    <div
+                      className="flex items-center justify-between text-[8.5px] py-1.5 border-y"
+                      style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+                    >
+                      <span style={{ color: "var(--p-text-secondary-color)" }}>STAKE</span>
+                      <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                        {effectiveCurrencySymbol} {b.stake}
+                      </span>
+                      <span style={{ color: "var(--p-text-secondary-color)" }}>|</span>
+                      <span className="font-bold" style={{ color: b.status === "WON" ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>
+                        {effectiveCurrencySymbol} {b.payout}
+                      </span>
+                      <span style={{ color: "var(--p-text-secondary-color)" }}>PAYOUT</span>
+                    </div>
+                  )}
+
+                  {/* Simple bet — home/away team row */}
+                  {b.kind === "simple" && (b as any).home && (
+                    <div className="flex items-center justify-between mt-2 text-[8px]">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <div className="h-5 w-5 rounded-full grid place-items-center flex-shrink-0" style={{ background: "var(--p-inactive-button-bg)" }}>
+                          <CircleDot className="h-2.5 w-2.5" style={{ color: "var(--p-text-secondary-color)" }} />
+                        </div>
+                        <span className="truncate" style={{ color: "var(--p-light-text-color)" }}>{(b as any).home}</span>
+                      </div>
+                      <div className="text-center flex-shrink-0 mx-1">
+                        <div className="font-bold" style={{ color: "var(--p-primary)" }}>{(b as any).date}</div>
+                        <div style={{ color: "var(--p-text-secondary-color)" }}>{(b as any).time}</div>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0 justify-end">
+                        <span className="truncate" style={{ color: "var(--p-light-text-color)" }}>{(b as any).away}</span>
+                        <div className="h-5 w-5 rounded-full grid place-items-center flex-shrink-0" style={{ background: "var(--p-inactive-button-bg)" }}>
+                          <CircleDot className="h-2.5 w-2.5" style={{ color: "var(--p-text-secondary-color)" }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Basketball quarter grid */}
+                  {b.kind === "basketball" && (b as any).rows && (
+                    <div className="mt-2">
+                      <div
+                        className="grid text-[7.5px] gap-x-0.5 mb-0.5"
+                        style={{ gridTemplateColumns: "1fr repeat(5, 22px)", color: "var(--p-text-secondary-color)" }}
+                      >
+                        <span />
+                        {["1","2","3","4","T"].map(q => (
+                          <span key={q} className="text-center font-semibold">{q}</span>
+                        ))}
+                      </div>
+                      {(b as any).rows.map((row: { team: string; q: number[] }) => (
+                        <div
+                          key={row.team}
+                          className="grid items-center gap-x-0.5 py-0.5"
+                          style={{ gridTemplateColumns: "1fr repeat(5, 22px)" }}
+                        >
+                          <div className="flex items-center gap-1 min-w-0">
+                            <TeamDot label={row.team} size={13} />
+                            <span className="text-[8px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>
+                              {row.team}
+                            </span>
+                          </div>
+                          {row.q.map((n, qi) => (
+                            <span
+                              key={qi}
+                              className="text-center text-[8px]"
+                              style={{
+                                color: qi === row.q.length - 1 ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                                fontWeight: qi === row.q.length - 1 ? 700 : 400,
+                              }}
+                            >
+                              {n || ""}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Multi-leg bet legs */}
+                  {b.kind === "multi" && (b as any).legs && (
+                    <div className="mt-2 space-y-1">
+                      {(b as any).legs.map((leg: any, li: number) => (
+                        <div key={li} className="rounded p-1.5" style={{ background: "var(--p-dark)" }}>
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <TeamDot label={leg.home} size={12} />
+                              <span className="text-[8px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>{leg.home}</span>
+                            </div>
+                            {leg.homeScores && (
+                              <div className="flex gap-1 text-[7.5px] font-semibold flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }}>
+                                {leg.homeScores.map((s: number, si: number) => <span key={si}>{s}</span>)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between gap-1 mt-0.5">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <TeamDot label={leg.away} size={12} />
+                              <span className="text-[8px] font-semibold truncate" style={{ color: "var(--p-light-text-color)" }}>{leg.away}</span>
+                            </div>
+                            {leg.awayScores && (
+                              <div className="flex gap-1 text-[7.5px] font-semibold flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }}>
+                                {leg.awayScores.map((s: number, si: number) => <span key={si}>{s}</span>)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ID + timestamp */}
+                  {(b as any).id && (
+                    <div
+                      className="flex items-center justify-between mt-2 pt-1.5 border-t text-[7px]"
+                      style={{ borderColor: "var(--p-border-and-gradient-bg)", color: "var(--p-text-secondary-color)" }}
+                    >
+                      <span className="font-mono truncate max-w-[120px]">{(b as any).id}</span>
+                      <span className="flex-shrink-0 ml-1">{(b as any).timestamp}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </aside>
+    );
+  };
+
+  /* Empty betslip panel — used for Feed/Discovery views */
+  const renderBetslipPanel = () => {
+    const primaryText = pickContrastText(palette.primary);
+    return (
+      <aside
+        className="w-[230px] border-l flex flex-col flex-shrink-0"
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
+      >
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-5 py-8">
+          <div
+            className="h-11 w-11 rounded-full grid place-items-center"
+            style={{ background: "color-mix(in oklab, var(--p-primary) 15%, transparent)" }}
+          >
+            <Zap className="h-5 w-5" style={{ color: "var(--p-primary)" }} />
+          </div>
+          <div
+            className="text-[12px] font-semibold text-center"
+            style={{ color: "var(--p-light-text-color)" }}
+          >
+            Betslip is empty
+          </div>
+          <button
+            className="w-full h-10 rounded-lg text-[12px] font-bold"
+            style={{ background: "var(--p-primary)", color: primaryText }}
+          >
+            Make Bets
+          </button>
+        </div>
+      </aside>
+    );
+  };
 
   /* Feed view (nav index 0) */
   const followersList = [
@@ -1526,96 +1719,111 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             </div>
           )}
         </main>
-        {renderRightPanel()}
+        {renderBetslipPanel()}
       </div>
     );
   };
 
 
-  /* All-Sports left sidebar (reused across schedule, detail, and main views) */
-  const renderSportsSidebar = () => (
-    <aside
-      className="w-[170px] border-r flex flex-col flex-shrink-0"
-      style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
-    >
-      <div className="px-2.5 py-2">
-        <div
-          className="flex items-center gap-1.5 px-2 h-6 rounded-md"
-          style={{
-            background: "var(--p-dark-container-background)",
-            border: "1px solid var(--p-border-and-gradient-bg)",
-          }}
-        >
-          <Search className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
-          <span className="text-[9px]" style={{ color: "var(--p-text-secondary-color)" }}>
-            {strings.SEARCH}
-          </span>
-        </div>
-      </div>
-      <div
-        className="px-3 pb-1 text-[9px] font-semibold"
-        style={{ color: "var(--p-text-secondary-color)" }}
+  const renderSportsSidebar = () => {
+    const sportIcons: Record<string, { color: string; emoji: string }> = {
+      [strings.SOCCER]:            { color: "#22c55e", emoji: "⚽" },
+      [strings.BASKETBALL]:        { color: "#f97316", emoji: "🏀" },
+      [strings.TENNIS]:            { color: "#84cc16", emoji: "🎾" },
+      [strings.VOLLEYBALL]:        { color: "#a855f7", emoji: "🏐" },
+      [strings.TABLE_TENNIS]:      { color: "#06b6d4", emoji: "🏓" },
+      [strings.ICE_HOCKEY]:        { color: "#60a5fa", emoji: "🏒" },
+      [strings.AMERICAN_FOOTBALL]: { color: "#d97706", emoji: "🏈" },
+      [strings.RUGBY]:             { color: "#ef4444", emoji: "🏉" },
+      "Golf":                      { color: "#34d399", emoji: "⛳" },
+      "Darts":                     { color: "#f43f5e", emoji: "🎯" },
+      "Boxing":                    { color: "#e11d48", emoji: "🥊" },
+      "Cricket":                   { color: "#eab308", emoji: "🏏" },
+      "Baseball":                  { color: "#0ea5e9", emoji: "⚾" },
+    };
+
+    return (
+      <aside
+        className="w-[250px] border-r flex flex-col flex-shrink-0"
+        style={{ borderColor: "var(--p-border-and-gradient-bg)", background: "var(--p-dark)" }}
       >
-        {strings.ALL_SPORTS}
-      </div>
-      <div className="flex-1 overflow-auto px-1.5">
-        {getSportsSidebar(strings).map((s, i) => {
-          const active = activeSportSidebar === i;
-          return (
-            <button
-              key={s.name}
-              onClick={() => {
-                setActiveSportSidebar(i);
-                if (s.name === strings.BASKETBALL) {
-                  setSelectedSportSchedule("nba");
-                  setSportsViewMode("schedule");
-                } else if (s.name === strings.SOCCER) {
-                  setSelectedSportSchedule("football");
-                  setSportsViewMode("schedule");
-                } else if (s.name === strings.TENNIS) {
-                  setSelectedSportSchedule("tennis");
-                  setSportsViewMode("schedule");
-                }
-              }}
-              className="w-full flex items-center gap-1.5 px-1.5 h-7 rounded-md mb-0.5 text-left transition-colors"
-              style={{
-                background: active
-                  ? "var(--p-active-secondary-gradient-color)"
-                  : "transparent",
-                border: active ? "1px solid var(--p-primary)" : "1px solid transparent",
-              }}
-            >
-              <span
-                className="h-3 w-3 rounded border"
-                style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
-              />
-              <span className="text-[10px]">{s.flag}</span>
-              <span
-                className="flex-1 text-[10px] font-medium"
+        <div className="px-3 py-2.5">
+          <div
+            className="flex items-center gap-2 px-2.5 h-8 rounded-md"
+            style={{
+              background: "var(--p-dark-container-background)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
+            }}
+          >
+            <Search className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }} />
+            <span className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
+              {strings.SEARCH}
+            </span>
+          </div>
+        </div>
+        <div
+          className="px-3 pb-1.5 text-[10px] font-bold"
+          style={{ color: "var(--p-light-text-color)" }}
+        >
+          {strings.ALL_SPORTS}
+        </div>
+        <div className="flex-1 overflow-auto px-2 pb-2">
+          {getSportsSidebar(strings).map((s, i) => {
+            const active = activeSportSidebar === i;
+            const icon = sportIcons[s.name] ?? { color: "var(--p-primary)", emoji: "🏆" };
+            return (
+              <button
+                key={s.name}
+                onClick={() => {
+                  setActiveSportSidebar(i);
+                  if (s.name === strings.BASKETBALL) {
+                    setSelectedSportSchedule("nba");
+                    setSportsViewMode("schedule");
+                  } else if (s.name === strings.SOCCER) {
+                    setSelectedSportSchedule("football");
+                    setSportsViewMode("schedule");
+                  } else if (s.name === strings.TENNIS) {
+                    setSelectedSportSchedule("tennis");
+                    setSportsViewMode("schedule");
+                  }
+                }}
+                className="w-full flex items-center gap-2.5 px-2 h-9 rounded-md mb-0.5 text-left transition-colors"
                 style={{
-                  color: active
-                    ? pickContrastText(palette.activeSecondaryGradientColor)
-                    : "var(--p-light-text-color)",
+                  background: active ? "color-mix(in oklab, var(--p-primary) 12%, transparent)" : "transparent",
                 }}
               >
-                {s.name}
-              </span>
-              <span
-                className="text-[9px] font-semibold"
-                style={{ color: "var(--p-text-secondary-color)" }}
-              >
-                {s.count}
-              </span>
-              <ChevronDown
-                className="h-2.5 w-2.5"
-                style={{ color: "var(--p-text-secondary-color)" }}
-              />
-            </button>
-          );
-        })}
-      </div>
-    </aside>
-  );
+                <span
+                  className="h-6 w-6 rounded-full grid place-items-center flex-shrink-0 text-[13px]"
+                  style={{
+                    background: active ? icon.color : `${icon.color}28`,
+                    boxShadow: active ? `0 0 0 1px ${icon.color}60` : "none",
+                  }}
+                >
+                  {icon.emoji}
+                </span>
+                <span
+                  className="flex-1 text-[11px] font-medium"
+                  style={{ color: active ? "var(--p-light-text-color)" : "var(--p-light-text-color)" }}
+                >
+                  {s.name}
+                </span>
+                <span
+                  className="text-[10px] font-semibold"
+                  style={{ color: "var(--p-text-secondary-color)" }}
+                >
+                  {s.count}
+                </span>
+                <ChevronDown
+                  className="h-3 w-3 flex-shrink-0"
+                  style={{ color: "var(--p-text-secondary-color)" }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+    );
+  };
 
   /* Live view helper components */
   const LockIcon = () => (
@@ -1851,11 +2059,11 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       {/* Center content */}
       <main className="flex-1 min-w-0 overflow-auto">
         <div className="px-3 py-2">
-          {/* Quick tiles - BetCorrect style: 6 large tiles, active has primary border */}
+          {/* Quick tiles - BetCorrect style */}
           <div className="flex gap-2 mb-3">
             {QUICK_TILE_ICONS.map((t) => {
               const Icon = t.icon;
-              const active = activeNav === t.nav;
+              const active = activeNav === t.nav && !(t.strKey === "TILE_LIVE_SPORTS" && (sportsViewMode as string) !== "live");
               return (
                 <button
                   key={t.strKey}
@@ -1863,16 +2071,25 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                     setActiveNav(t.nav);
                     if (t.strKey === "TILE_LIVE_SPORTS") setSportsViewMode("live");
                   }}
-                  className="flex flex-col items-center justify-center gap-1 w-[68px] h-[68px] rounded-lg flex-shrink-0 transition-colors"
+                  className="flex flex-col items-center justify-center gap-1.5 w-[68px] h-[68px] rounded-xl flex-shrink-0 transition-all"
                   style={{
                     background: "var(--p-dark)",
                     border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
                   }}
                 >
-                  <Icon
-                    className="h-4 w-4"
-                    style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
-                  />
+                  <span
+                    className="h-8 w-8 rounded-full grid place-items-center"
+                    style={{
+                      background: active
+                        ? "color-mix(in oklab, var(--p-primary) 20%, transparent)"
+                        : "var(--p-dark-container-background)",
+                    }}
+                  >
+                    <Icon
+                      className="h-4 w-4"
+                      style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
+                    />
+                  </span>
                   <span
                     className="text-[8px] font-medium text-center leading-tight px-1"
                     style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
@@ -1887,98 +2104,118 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {/* BetBuilder / P2P */}
           <div className="grid grid-cols-2 gap-2 mb-2">
             <button
-              className="h-8 rounded-md flex items-center justify-center gap-1.5 text-[10px] font-bold"
+              className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
               style={{
-                background: "var(--p-active-secondary-gradient-color)",
-                border: "1px solid var(--p-primary)",
-                color: pickContrastText(palette.activeSecondaryGradientColor),
+                background: "var(--p-dark)",
+                border: "1px solid var(--p-border-and-gradient-bg)",
+                color: "var(--p-light-text-color)",
               }}
             >
-              <Flame className="h-3 w-3" /> {strings.BET_BUILDER}
+              <span
+                className="text-[8px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+              >
+                SGP
+              </span>
+              <span className="flex-1 text-center">{strings.BETBUILDER}</span>
             </button>
             <button
               onClick={() => setActiveNav(4)}
-              className="h-8 rounded-md flex items-center justify-center gap-1.5 text-[10px] font-bold"
+              className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
               style={{
-                background: palette.secondary ? "var(--p-secondary)" : "var(--p-active-secondary-gradient-color)",
-                border: "1px solid var(--p-primary)",
-                color: palette.secondary ? pickContrastText(palette.secondary) : pickContrastText(palette.activeSecondaryGradientColor),
+                background: "var(--p-dark)",
+                border: "1px solid var(--p-border-and-gradient-bg)",
+                color: "var(--p-light-text-color)",
               }}
             >
-              <ArrowLeftRight className="h-3 w-3" /> {strings.PEER_TO_PEER_BTN}
+              <span
+                className="text-[8px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+              >
+                VS
+              </span>
+              <span className="flex-1 text-center">{strings.PEER_TO_PEER_BTN}</span>
             </button>
           </div>
 
-          {/* Welcome Bonus */}
+          {/* Welcome Bonus Banner — BetCorrect style */}
           <div
-            className="rounded-lg p-3 mb-3 relative overflow-hidden"
+            className="rounded-xl mb-3 relative overflow-hidden flex items-center"
             style={{
-              background: "linear-gradient(135deg, var(--p-primary-button), var(--p-box-gradient-color-end))",
+              background: `linear-gradient(115deg, color-mix(in oklab, var(--p-primary) 80%, black) 0%, color-mix(in oklab, var(--p-primary) 50%, black) 60%, color-mix(in oklab, var(--p-box-gradient-color-end, var(--p-secondary)) 60%, black) 100%)`,
+              minHeight: 72,
             }}
           >
-            <div
-              className="text-[9px] font-bold tracking-wider opacity-90"
-              style={{ color: pickContrastText(palette.primaryButton) }}
-            >
-              {strings.WELCOME_BONUS_PROMO}
+            <div className="px-4 py-3 flex-1 min-w-0">
+              <div
+                className="text-[8px] font-bold tracking-wider mb-0.5 opacity-80"
+                style={{ color: pickContrastText(palette.primaryButton) }}
+              >
+                GET A <span className="text-[10px]">100%</span> BONUS ON YOUR
+              </div>
+              <div
+                className="text-[11px] font-black leading-tight"
+                style={{ color: pickContrastText(palette.primaryButton) }}
+              >
+                FIRST DEPOSIT
+              </div>
+              <div
+                className="text-[8px] mt-1 opacity-75"
+                style={{ color: pickContrastText(palette.primaryButton) }}
+              >
+                {strings.WELCOME_BONUS_BODY_WEB}
+              </div>
             </div>
-            <div className="text-[9px] mt-1 opacity-80" style={{ color: pickContrastText(palette.primaryButton) }}>
-              {strings.WELCOME_BONUS_BODY_WEB}
+            {/* Decorative right area */}
+            <div
+              className="w-16 h-full flex-shrink-0 flex items-center justify-center opacity-30"
+              style={{ fontSize: 36 }}
+            >
+              🎁
             </div>
           </div>
 
-          {/* Discovery banner */}
-          {!matchDiscoveryBannerDismissed && (
-            <div
-              className="rounded-md mb-2 px-2.5 py-2 flex items-center gap-2"
-              style={{
-                background: "color-mix(in oklab, var(--p-primary) 12%, transparent)",
-                border: "1px solid color-mix(in oklab, var(--p-primary) 40%, transparent)",
-              }}
-            >
-              <ChevronRight
-                className="h-3 w-3 flex-shrink-0"
-                style={{ color: "var(--p-primary)" }}
-              />
-              <span
-                className="text-[9.5px] font-medium flex-1"
-                style={{ color: "var(--p-light-text-color)" }}
-              >
-                Click any match below to see your palette on the full detail screen — accordion markets, table buttons, SGP badges
-              </span>
-              <button
-                onClick={() => setMatchDiscoveryBannerDismissed(true)}
-                className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
-                style={{ color: "var(--p-text-secondary-color)", background: "transparent" }}
-                aria-label="Dismiss"
-              >
-                ×
-              </button>
-            </div>
-          )}
 
           {/* Live & upcoming */}
           <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
             {strings.LIVE_AND_UPCOMING_GAMES}
           </div>
-          <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {SPORT_TABS_KEYS.map((k, i) => (
-              <button
-                key={k}
-                onClick={() => setActiveSportRow(i)}
-                className="px-2.5 h-6 rounded-md text-[9px] font-semibold flex-shrink-0"
-                style={{
-                  background: activeSportRow === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border:
-                    activeSportRow === i
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeSportRow === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
-                }}
-              >
-                {strings[k]} ⚽
-              </button>
-            ))}
+          <div className="flex gap-1.5 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+            {[
+              { key: "SOCCER" as const, live: true, color: "#ef4444" },
+              { key: "BASKETBALL" as const, live: false, color: "" },
+              { key: "TENNIS" as const, live: true, color: "#22c55e" },
+              { label: strings.TABLE_TENNIS, live: true, color: "#ef4444" },
+              { label: strings.VOLLEYBALL, live: false, color: "" },
+              { label: "Baseball", live: false, color: "" },
+              { label: "Boxing", live: true, color: "#ef4444" },
+              { label: strings.RUGBY, live: false, color: "" },
+              { label: "Cricket", live: false, color: "" },
+              { label: "Darts", live: false, color: "" },
+            ].map((tab, i) => {
+              const label = (tab as any).key ? strings[(tab as any).key as "SOCCER" | "BASKETBALL" | "TENNIS"] : (tab as any).label;
+              const active = activeSportRow === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveSportRow(i)}
+                  className="flex items-center gap-1 px-2.5 h-6 rounded text-[9px] font-semibold flex-shrink-0 whitespace-nowrap"
+                  style={{
+                    background: active ? "color-mix(in oklab, var(--p-primary) 14%, transparent)" : "transparent",
+                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                    color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  }}
+                >
+                  {tab.live && (
+                    <span
+                      className="h-2 w-2 rounded-full flex-shrink-0"
+                      style={{ background: tab.color || "var(--p-lost-color)" }}
+                    />
+                  )}
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Live row */}
@@ -2017,40 +2254,38 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             ))}
           </div>
 
-          {/* Soccer tabs - now stateful */}
+          {/* Sport section tabs */}
           <div
-            className="flex items-center justify-between border-b mb-2"
+            className="flex border-b mb-2"
             style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
           >
-            <div className="flex">
-              {[strings.SOCCER, strings.BASKETBALL, strings.TENNIS, "TT Elite Series"].map(
-                (t, i) => (
-                  <button
-                    key={t}
-                    onClick={() => setActiveSoccerTab(i)}
-                    className="px-3 h-7 text-[10px] font-semibold relative"
-                    style={{
-                      color: activeSoccerTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
-                    }}
-                  >
-                    {t}
-                    {activeSoccerTab === i && (
-                      <span
-                        className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
-                        style={{ background: "var(--p-primary)" }}
-                      />
-                    )}
-                  </button>
-                ),
-              )}
-            </div>
+            {["Football", strings.BASKETBALL, strings.TENNIS, "Table Tennis"].map(
+              (t, i) => (
+                <button
+                  key={t}
+                  onClick={() => setActiveSoccerTab(i)}
+                  className="px-4 h-9 text-[11px] font-semibold relative"
+                  style={{
+                    color: activeSoccerTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  }}
+                >
+                  {t}
+                  {activeSoccerTab === i && (
+                    <span
+                      className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full"
+                      style={{ background: "var(--p-primary)" }}
+                    />
+                  )}
+                </button>
+              ),
+            )}
           </div>
 
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
-              <Trophy className="h-3 w-3" style={{ color: "var(--p-light-text-color)" }} />
-              <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                {strings.SOCCER}
+              <span style={{ fontSize: 14 }}>⚽</span>
+              <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                Football
               </span>
             </div>
             <button
@@ -2067,17 +2302,14 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               <button
                 key={l}
                 onClick={() => setActiveLeague(i)}
-                className="px-2.5 h-6 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
+                className="px-2.5 h-7 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5"
                 style={{
-                  background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border:
-                    activeLeague === i
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                  border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
-                <LeagueLogo label={l} size={12} /> {l}
+                <LeagueLogo label={l} size={13} /> {l}
               </button>
             ))}
           </div>
@@ -2088,51 +2320,16 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               <button
                 key={b}
                 onClick={() => setActiveBetType(i)}
-                className="px-2.5 h-6 rounded-md text-[9px] font-semibold flex-shrink-0"
+                className="px-2.5 h-7 rounded text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border:
-                    activeBetType === i
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                  border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
               </button>
             ))}
-          </div>
-
-          {/* Free Bet Promo Banner */}
-          <div style={{
-            marginTop: 8,
-            marginBottom: 4,
-            borderRadius: 8,
-            padding: "10px 12px",
-            background: "var(--p-free-bet-background)",
-            border: "1px solid color-mix(in oklab, var(--p-primary) 40%, transparent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-            <div>
-              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
-                Free Bet Available
-              </div>
-              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
-                Claim your $25 welcome bet
-              </div>
-            </div>
-            <button style={{
-              background: "var(--p-primary-button)",
-              color: pickContrastText(palette.primaryButton),
-              fontSize: 9,
-              fontWeight: 700,
-              padding: "4px 10px",
-              borderRadius: 4,
-              border: "none",
-              cursor: "pointer",
-            }}>Claim</button>
           </div>
 
           {/* Match cards (2-column grid) */}
@@ -2203,11 +2400,11 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                     {m.odds.map((o, j) => (
                       <button
                         key={j}
-                        className="w-9 h-9 rounded-md text-[10px] font-bold"
+                        className="w-9 h-9 rounded text-[10px] font-bold"
                         style={{
-                          background: "var(--p-active-secondary-gradient-color)",
-                          border: "1px solid var(--p-primary)",
-                          color: pickContrastText(palette.activeSecondaryGradientColor),
+                          background: "var(--p-dark-container-background)",
+                          border: "1px solid var(--p-border-and-gradient-bg)",
+                          color: "var(--p-primary)",
                         }}
                       >
                         {o}
@@ -2216,24 +2413,24 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   </div>
                 </div>
                 <div className="mt-1.5 flex items-center justify-between">
-                  <span className="text-[8px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                    {strings.STATS}
+                  <span
+                    className="text-[8px] font-semibold flex items-center gap-1"
+                    style={{ color: "var(--p-text-secondary-color)" }}
+                  >
+                    {strings.STATS} <span style={{ fontSize: 9 }}>📊</span>
                   </span>
                   <span
                     className="text-[8px] font-semibold flex items-center gap-0.5"
                     style={{ color: "var(--p-primary)" }}
                   >
+                    <span
+                      className="text-[7px] font-black px-1 py-[1px] rounded mr-0.5"
+                      style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+                    >
+                      SGP
+                    </span>
                     {strings.MORE_BETS} <ChevronRight className="h-2 w-2" />
                   </span>
-                  {/* discovery hint — only on first 2 cards to avoid noise */}
-                  {i < 2 && (
-                    <span
-                      className="text-[8px] font-medium ml-2"
-                      style={{ color: "var(--p-primary)", opacity: 0.7 }}
-                    >
-                      → click for full view
-                    </span>
-                  )}
                 </div>
               </div>
             ))}
@@ -2815,7 +3012,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           </div>
         </main>
 
-        {renderRightPanel()}
+        {renderBetslipPanel()}
       </div>
     );
   };
@@ -3542,46 +3739,67 @@ const MobilePreview = React.memo(function MobilePreview({
         {/* BetBuilder / P2P */}
         <div className="grid grid-cols-2 gap-2 mb-2">
           <button
-            className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
+            className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
             style={{
-              background: "var(--p-active-secondary-gradient-color)",
-              border: "1px solid var(--p-primary)",
-              color: pickContrastText(palette.activeSecondaryGradientColor),
+              background: "var(--p-dark)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
+              color: "var(--p-light-text-color)",
             }}
           >
-            <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
+            <span
+              className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
+              style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+            >
+              SGP
+            </span>
+            <span className="flex-1 text-center">{strings.BETBUILDER}</span>
           </button>
           <button
-            className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
+            className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
             style={{
-              background: palette.secondary ? "var(--p-secondary)" : "var(--p-active-secondary-gradient-color)",
-              border: "1px solid var(--p-primary)",
-              color: palette.secondary ? pickContrastText(palette.secondary) : pickContrastText(palette.activeSecondaryGradientColor),
+              background: "var(--p-dark)",
+              border: "1px solid var(--p-border-and-gradient-bg)",
+              color: "var(--p-light-text-color)",
             }}
           >
-            <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
+            <span
+              className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
+              style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+            >
+              VS
+            </span>
+            <span className="flex-1 text-center">{strings.PEER_TO_PEER_BTN}</span>
           </button>
         </div>
-        {/* Welcome Bonus */}
+        {/* Welcome Bonus Banner */}
         <div
-          className="rounded-lg p-3 mb-3 relative"
+          className="rounded-xl mb-3 relative overflow-hidden flex items-center"
           style={{
-            background: "linear-gradient(135deg, var(--p-primary-button), var(--p-box-gradient-color-end))",
-            border: "1px solid var(--p-primary)",
+            background: `linear-gradient(115deg, color-mix(in oklab, var(--p-primary) 80%, black) 0%, color-mix(in oklab, var(--p-primary) 40%, black) 100%)`,
+            minHeight: 64,
           }}
         >
-          <div className="text-[12px] font-black" style={{ color: pickContrastText(palette.primaryButton) }}>
-            {strings.WELCOME_BONUS_PROMO}
+          <div className="px-3 py-2.5 flex-1 min-w-0">
+            <div
+              className="text-[8px] font-bold tracking-wider opacity-85"
+              style={{ color: pickContrastText(palette.primaryButton) }}
+            >
+              GET A <span className="text-[10px]">100%</span> BONUS ON YOUR
+            </div>
+            <div
+              className="text-[11px] font-black"
+              style={{ color: pickContrastText(palette.primaryButton) }}
+            >
+              FIRST DEPOSIT
+            </div>
+            <div
+              className="text-[8px] mt-0.5 opacity-75 leading-tight"
+              style={{ color: pickContrastText(palette.primaryButton) }}
+            >
+              {strings.WELCOME_BONUS_BODY_MOBILE}
+            </div>
           </div>
-          <div className="text-[9.5px] mt-1 leading-tight" style={{ color: pickContrastText(palette.primaryButton) }}>
-            {strings.WELCOME_BONUS_BODY_MOBILE}
-          </div>
-          <div
-            className="mt-2 h-5 w-5 rounded-full grid place-items-center"
-            style={{ background: "rgba(0,0,0,0.3)" }}
-          >
-            <ChevronDown className="h-3 w-3" style={{ color: pickContrastText(palette.primaryButton) }} />
-          </div>
+          <div className="w-12 flex-shrink-0 text-center opacity-30" style={{ fontSize: 28 }}>🎁</div>
         </div>
         {/* Featured matches */}
         <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
@@ -3642,11 +3860,11 @@ const MobilePreview = React.memo(function MobilePreview({
                         <button
                           key={j}
                           onClick={() => toggleOdd(key)}
-                          className="w-10 h-10 rounded-md text-[11px] font-bold transition-colors"
+                          className="w-10 h-10 rounded text-[11px] font-bold transition-colors"
                           style={{
-                            background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
-                            border: "1px solid var(--p-primary)",
-                            color: sel ? "var(--p-light-text-color)" : pickContrastText(palette.activeSecondaryGradientColor),
+                            background: sel ? "var(--p-primary)" : "var(--p-dark-container-background)",
+                            border: sel ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                            color: sel ? pickContrastText(palette.primary) : "var(--p-primary)",
                           }}
                         >
                           {m.odds[j]}
@@ -3840,24 +4058,36 @@ const MobilePreview = React.memo(function MobilePreview({
         <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
           <div className="grid grid-cols-2 gap-2 my-2">
             <button
-              className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
+              className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
               style={{
-                background: "var(--p-active-secondary-gradient-color)",
-                border: "1px solid var(--p-primary)",
-                color: pickContrastText(palette.activeSecondaryGradientColor),
+                background: "var(--p-dark)",
+                border: "1px solid var(--p-border-and-gradient-bg)",
+                color: "var(--p-light-text-color)",
               }}
             >
-              <Flame className="h-3.5 w-3.5" /> {strings.BET_BUILDER}
+              <span
+                className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
+                style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
+              >
+                SGP
+              </span>
+              <span className="flex-1 text-center">{strings.BETBUILDER}</span>
             </button>
             <button
-              className="h-9 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-bold"
+              className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
               style={{
-                background: palette.secondary ? "var(--p-secondary)" : "var(--p-active-secondary-gradient-color)",
-                border: "1px solid var(--p-primary)",
-                color: palette.secondary ? pickContrastText(palette.secondary) : pickContrastText(palette.activeSecondaryGradientColor),
+                background: "var(--p-dark)",
+                border: "1px solid var(--p-border-and-gradient-bg)",
+                color: "var(--p-light-text-color)",
               }}
             >
-              <ArrowLeftRight className="h-3.5 w-3.5" /> {strings.PEER_TO_PEER_BTN}
+              <span
+                className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
+                style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+              >
+                VS
+              </span>
+              <span className="flex-1 text-center">{strings.PEER_TO_PEER_BTN}</span>
             </button>
           </div>
 
@@ -3871,12 +4101,11 @@ const MobilePreview = React.memo(function MobilePreview({
               <button
                 key={k}
                 onClick={() => setActiveSport(i)}
-                className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
+                className="px-2.5 h-6 rounded text-[10px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeSport === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border:
-                    activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeSport === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                  background: activeSport === i ? "var(--p-primary)" : "transparent",
+                  border: activeSport === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeSport === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {strings[k]}
@@ -3892,12 +4121,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
                 style={{
-                  background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border:
-                    activeLeague === i
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                  border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -3911,51 +4137,16 @@ const MobilePreview = React.memo(function MobilePreview({
               <button
                 key={b}
                 onClick={() => setActiveBetType(i)}
-                className="px-2.5 h-6 rounded-md text-[9.5px] font-semibold flex-shrink-0"
+                className="px-2.5 h-6 rounded text-[9.5px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                  border:
-                    activeBetType === i
-                      ? "1px solid var(--p-primary)"
-                      : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                  border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
               </button>
             ))}
-          </div>
-
-          {/* Free Bet Promo Banner */}
-          <div style={{
-            marginTop: 8,
-            marginBottom: 4,
-            borderRadius: 8,
-            padding: "10px 12px",
-            background: "var(--p-free-bet-background)",
-            border: "1px solid color-mix(in oklab, var(--p-primary) 40%, transparent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-            <div>
-              <div style={{ color: "var(--p-light-text-color)", fontSize: 11, fontWeight: 700 }}>
-                Free Bet Available
-              </div>
-              <div style={{ color: "var(--p-text-secondary-color)", fontSize: 9, marginTop: 2 }}>
-                Claim your $25 welcome bet
-              </div>
-            </div>
-            <button style={{
-              background: "var(--p-primary-button)",
-              color: pickContrastText(palette.primaryButton),
-              fontSize: 9,
-              fontWeight: 700,
-              padding: "4px 10px",
-              borderRadius: 4,
-              border: "none",
-              cursor: "pointer",
-            }}>Claim</button>
           </div>
 
           {/* Match cards */}
@@ -4015,11 +4206,11 @@ const MobilePreview = React.memo(function MobilePreview({
                           <button
                             key={j}
                             onClick={(e) => { e.stopPropagation(); toggleOdd(key); }}
-                            className="w-10 h-10 rounded-md text-[11px] font-bold transition-colors"
+                            className="w-10 h-10 rounded text-[11px] font-bold transition-colors"
                             style={{
-                              background: sel ? "var(--p-primary)" : "var(--p-active-secondary-gradient-color)",
-                              border: "1px solid var(--p-primary)",
-                              color: sel ? "var(--p-light-text-color)" : pickContrastText(palette.activeSecondaryGradientColor),
+                              background: sel ? "var(--p-primary)" : "var(--p-dark-container-background)",
+                              border: sel ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                              color: sel ? pickContrastText(palette.primary) : "var(--p-primary)",
                             }}
                           >
                             {m.odds[j]}
@@ -4518,63 +4709,88 @@ const MobilePreview = React.memo(function MobilePreview({
 
         {mobileProfileTab === 0 && (
           <>
-            {/* Filter pills row */}
-            <div className="flex gap-2 px-3 py-3">
-              {[strings.FILTER_ALL, strings.FILTER_PENDING, strings.FILTER_SETTLED, strings.FILTER_P2P].map((label, i) => {
+            {/* Filter tabs — underline style matching BetCorrect */}
+            <div
+              className="flex border-b"
+              style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+            >
+              {["All", "PENDING", "Settled", "P2P Bets"].map((label, i) => {
                 const active = mobileMyBetsFilter === i;
                 return (
                   <button
                     key={label}
                     onClick={() => setMobileMyBetsFilter(i)}
-                    className="flex-1 h-8 rounded-md text-[10px] font-bold"
-                    style={{
-                      background: active
-                        ? "linear-gradient(135deg, var(--p-primary), var(--p-secondary, var(--p-primary)))"
-                        : "var(--p-modal-background)",
-                      color: active ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
-                      border: active ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                    }}
+                    className="flex-1 h-9 relative text-[9px] font-semibold"
+                    style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
                   >
                     {label}
+                    {active && (
+                      <span
+                        className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full"
+                        style={{ background: "var(--p-primary)" }}
+                      />
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            <div className="px-3 pb-3 space-y-2">
-              {effectiveBetSlips.filter((b) => {
-                if (mobileMyBetsFilter === 0) return true;
-                if (mobileMyBetsFilter === 1) return b.status === "PENDING";
-                if (mobileMyBetsFilter === 2) return b.status === "WON" || b.status === "LOST";
-                return false;
-              }).map((b, i) => {
-                const ss = betStatusStyle(b.status);
+            <div className="px-3 py-3 space-y-2">
+              {/* BetCorrect-style bet cards — same data as web right panel */}
+              {[
+                { score: "1:2", odds: "2.70", market: "Correct match score", status: "LOST" as const, stake: "200", payout: "0" },
+                { score: "Detroit Pistons (...", odds: "2.01", market: "1st half · handicap", status: "WON" as const, stake: "1000", payout: "2010" },
+                { score: "19 Leg ...", odds: "Multi Odds", market: "draw · 4.20", status: "PENDING" as const, stake: "", payout: "" },
+                { score: "Orlando Magic", odds: "5.20", market: "Winner (incl. overtime)", status: "LOST" as const, stake: "", payout: "" },
+              ].filter((b) =>
+                mobileMyBetsFilter === 0 ? true
+                : mobileMyBetsFilter === 1 ? b.status === "PENDING"
+                : mobileMyBetsFilter === 2 ? b.status !== "PENDING"
+                : false
+              ).map((b, idx) => {
+                const statusC = b.status === "WON" ? "var(--p-won-color)" : b.status === "LOST" ? "var(--p-lost-color)" : "var(--p-primary)";
+                const badgeBg = b.status === "WON" ? "var(--p-won-color)" : b.status === "LOST" ? "var(--p-lost-color)" : "transparent";
+                const badgeBorder = b.status === "PENDING" ? `1px solid var(--p-primary)` : "none";
+                const badgeColor = b.status === "WON" ? "rgba(0,0,0,0.85)" : b.status === "LOST" ? "rgba(255,255,255,0.93)" : "var(--p-primary)";
                 return (
                   <div
-                    key={i}
-                    className="rounded-md p-2.5"
-                    style={{ background: ss.cardBg, border: ss.cardBorder }}
+                    key={idx}
+                    className="rounded-lg overflow-hidden"
+                    style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1.5">
-                        <TeamDot label={b.team} />
-                        <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-                          {b.team}
+                    <div className="p-3">
+                      <div className="flex items-start justify-between gap-1 mb-1">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{b.score}</span>
+                            <span className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>|</span>
+                            <span className="text-[11px] font-bold" style={{ color: "var(--p-primary)" }}>{b.odds}</span>
+                          </div>
+                          <div className="text-[9px] mt-0.5" style={{ color: statusC }}>{b.market}</div>
+                        </div>
+                        <span
+                          className="text-[9px] font-bold px-2 py-0.5 rounded flex-shrink-0"
+                          style={{ background: badgeBg, border: badgeBorder, color: badgeColor }}
+                        >
+                          {b.status}
                         </span>
-                        <span className="text-[11px] font-bold ml-1" style={{ color: ss.oddsColor }}>{b.odds}</span>
                       </div>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={ss.pillStyle}>
-                        {statusLabel(b.status)}
-                      </span>
-                    </div>
-                    <div className="text-[10px]" style={{ color: "var(--p-text-secondary-color)" }}>
-                      1x2 · odds <span style={{ color: ss.oddsColor, fontWeight: 700 }}>{b.odds}</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-1.5 pt-1.5 text-[10px]" style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}>
-                      <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
-                      <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>{effectiveCurrencySymbol}{b.stake}</span>
-                      <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
-                      <span className="font-bold" style={{ color: ss.payoutColor }}>{effectiveCurrencySymbol}{b.payout}</span>
+                      {b.stake && (
+                        <div
+                          className="flex items-center justify-between text-[9px] py-1.5 border-y"
+                          style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
+                        >
+                          <span style={{ color: "var(--p-text-secondary-color)" }}>STAKE</span>
+                          <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                            {effectiveCurrencySymbol} {b.stake}
+                          </span>
+                          <span style={{ color: "var(--p-text-secondary-color)" }}>|</span>
+                          <span className="font-bold" style={{ color: b.status === "WON" ? "var(--p-won-color)" : "var(--p-light-text-color)" }}>
+                            {effectiveCurrencySymbol} {b.payout}
+                          </span>
+                          <span style={{ color: "var(--p-text-secondary-color)" }}>PAYOUT</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -4855,10 +5071,9 @@ function SportsView({
               onClick={() => setActiveLeague(i)}
               className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
               style={{
-                background: activeLeague === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                border:
-                  activeLeague === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeLeague === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
               }}
             >
               <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -4871,12 +5086,11 @@ function SportsView({
             <button
               key={b}
               onClick={() => setActiveBetType(i)}
-              className="px-2.5 h-6 rounded-md text-[9.5px] font-semibold flex-shrink-0"
+              className="px-2.5 h-6 rounded text-[9.5px] font-semibold flex-shrink-0"
               style={{
-                background: activeBetType === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
-                border:
-                  activeBetType === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeBetType === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
               }}
             >
               {b}
@@ -4932,11 +5146,11 @@ function SportsView({
                   {m.odds.map((o, j) => (
                     <button
                       key={j}
-                      className="w-10 h-10 rounded-md text-[11px] font-bold"
+                      className="w-10 h-10 rounded text-[11px] font-bold"
                       style={{
-                        background: "var(--p-active-secondary-gradient-color)",
-                        border: "1px solid var(--p-primary)",
-                        color: pickContrastText(palette.activeSecondaryGradientColor),
+                        background: "var(--p-dark-container-background)",
+                        border: "1px solid var(--p-border-and-gradient-bg)",
+                        color: "var(--p-primary)",
                       }}
                     >
                       {o}
