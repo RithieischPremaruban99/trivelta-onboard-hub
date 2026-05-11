@@ -3837,13 +3837,13 @@ const MobilePreview = React.memo(function MobilePreview({
             onClick={() => setActiveNav(2)}
             className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
             style={{
-              background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)), var(--p-primary))",
+              background: "linear-gradient(135deg, var(--p-secondary), var(--p-primary))",
               color: pickContrastText(palette.primary),
             }}
           >
             <span
               className="text-[9px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: "rgba(0,0,0,0.25)", color: pickContrastText(palette.primary) }}
+              style={{ background: "rgba(0,0,0,0.3)", color: pickContrastText(palette.secondary || palette.primary) }}
             >
               VS
             </span>
@@ -4289,13 +4289,13 @@ const MobilePreview = React.memo(function MobilePreview({
               onClick={() => setActiveNav(2)}
               className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
               style={{
-                background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)), var(--p-primary))",
+                background: "linear-gradient(135deg, var(--p-secondary), var(--p-primary))",
                 color: pickContrastText(palette.primary),
               }}
             >
               <span
                 className="text-[9px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
-                style={{ background: "rgba(0,0,0,0.25)", color: pickContrastText(palette.primary) }}
+                style={{ background: "rgba(0,0,0,0.3)", color: pickContrastText(palette.secondary || palette.primary) }}
               >
                 VS
               </span>
@@ -5720,7 +5720,7 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
                 </div>
                 <span
                   className="mx-2 flex-shrink-0 text-[8px] font-bold"
-                  style={{ color: "var(--p-text-secondary-color)" }}
+                  style={{ color: "var(--p-secondary)" }}
                 >
                   VS
                 </span>
