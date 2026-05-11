@@ -17,7 +17,7 @@
  * Client can still edit these fields in Advanced Mode; they will be stored in
  * studio_config.palette and applied when the TCM runtime renders those features.
  */
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useStudio } from "@/contexts/StudioContext";
 import type { TCMStrings } from "@/lib/tcm-strings";
 import { SportsListing } from "./BettingAppPreview/SportsListing";
@@ -846,7 +846,7 @@ const LIVE_TABLE_TENNIS: LiveRacketMatch[] = [
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
 const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string }) {
-  const { strings: rawStrings, palette } = useStudio();
+  const { strings: rawStrings, palette, previewFocusField } = useStudio();
   const isKMK = clientId === KMK_CLIENT_ID;
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
@@ -857,6 +857,22 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const effectiveCurrencyName = isKMK ? "Ghana Cedi" : "Naira";
   const effectiveAppName = isKMK ? "MyBet.Africa" : appName;
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
+
+  // Web: auto-navigate to relevant view when Quick Edit field is focused
+  const WEB_FIELD_TO_NAV: Record<string, number> = {
+    primary: 1, primaryButton: 1, primaryButtonGradient: 1,
+    secondary: 4, activeSecondaryGradientColor: 1,
+    primaryBackgroundColor: 0, dark: 1, darkContainerBackground: 1,
+    modalBackground: 4, lightTextColor: 1, textSecondaryColor: 1,
+    navbarLabel: 0, wonColor: 4, lostColor: 4, payoutWonColor: 4,
+    borderAndGradientBg: 1, inactiveButtonBg: 1, inactiveTabUnderline: 1,
+    boxGradientColorStart: 0, boxGradientColorEnd: 0, notificationSectionBg: 4,
+  };
+  useEffect(() => {
+    if (!previewFocusField) return;
+    const nav = WEB_FIELD_TO_NAV[previewFocusField];
+    if (nav !== undefined) { setActiveNav(nav); setSportsViewMode("main"); }
+  }, [previewFocusField]);
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
   const [activeLeague, setActiveLeague] = useState(0);
@@ -3648,8 +3664,43 @@ const MobilePreview = React.memo(function MobilePreview({
   const [mobileLiveView, setMobileLiveView] = useState(false);
   const [mobileLiveActiveSportTab, setMobileLiveActiveSportTab] = useState(0);
 
-  const { strings: rawStrings, palette } = useStudio();
+  const { strings: rawStrings, palette, previewFocusField } = useStudio();
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
+
+  // Auto-navigate preview to the most relevant view when a Quick Edit field is focused
+  const FIELD_TO_NAV: Record<string, { nav: number; liveView?: boolean; profileTab?: number }> = {
+    primary:                      { nav: 1 },
+    primaryButton:                { nav: 1 },
+    primaryButtonGradient:        { nav: 1 },
+    secondary:                    { nav: 2 },
+    activeSecondaryGradientColor: { nav: 1 },
+    primaryBackgroundColor:       { nav: 0 },
+    dark:                         { nav: 1 },
+    darkContainerBackground:      { nav: 1 },
+    modalBackground:              { nav: 4 },
+    lightTextColor:               { nav: 1 },
+    textSecondaryColor:           { nav: 1 },
+    navbarLabel:                  { nav: 0 },
+    wonColor:                     { nav: 4 },
+    lostColor:                    { nav: 4 },
+    payoutWonColor:               { nav: 4 },
+    borderAndGradientBg:          { nav: 1 },
+    inactiveButtonBg:             { nav: 1 },
+    inactiveTabUnderline:         { nav: 1 },
+    boxGradientColorStart:        { nav: 0 },
+    boxGradientColorEnd:          { nav: 0 },
+    notificationSectionBg:        { nav: 4 },
+  };
+
+  useEffect(() => {
+    if (!previewFocusField) return;
+    const target = FIELD_TO_NAV[previewFocusField];
+    if (!target) return;
+    setMobileMatchId(null);
+    setMobileLiveView(false);
+    setActiveNav(target.nav);
+    if (target.liveView) setMobileLiveView(true);
+  }, [previewFocusField]);
   const statusLabel = (s: string) =>
     s === "WON" ? strings.STATUS_WON
     : s === "LOST" ? strings.STATUS_LOST

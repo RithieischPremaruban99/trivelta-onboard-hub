@@ -301,6 +301,10 @@ export interface StudioState {
 
   // Heading font - always "Sora"
   headingFont: string;
+
+  // Preview focus — set by Quick Edit to auto-navigate preview to relevant view
+  previewFocusField: string | null;
+  setPreviewFocusField: (field: string | null) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -374,6 +378,7 @@ export const StudioProvider: React.FC<{
     appName: initialAppName ?? initialAppLabels?.appName ?? defaultAppLabels.appName,
   });
   const [previewMode, setPreviewMode] = useState<"mobile" | "website">("mobile");
+  const [previewFocusField, setPreviewFocusField] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>(initialLanguage ?? "en");
 
   // appName is also exposed directly for convenience (mirrors appLabels.appName)
@@ -510,6 +515,8 @@ export const StudioProvider: React.FC<{
         locked,
         canLock,
         headingFont: "Sora",
+        previewFocusField,
+        setPreviewFocusField,
         paletteHistory,
         pushPaletteSnapshot,
         undoLastChange,

@@ -1,5 +1,5 @@
 import { useStudio } from "@/contexts/StudioContext";
-import { QUICK_EDIT_FIELDS, FIELD_LABELS } from "@/lib/tcm-palette";
+import { FIELD_LABELS } from "@/lib/tcm-palette";
 import { StudioColorField } from "./StudioColorField";
 import type { TCMPalette } from "@/lib/tcm-palette";
 
@@ -27,7 +27,7 @@ const SECTIONS: { label: string; fields: (keyof TCMPalette)[] }[] = [
 ];
 
 export function QuickEditPanel() {
-  const { locked } = useStudio();
+  const { locked, setPreviewFocusField } = useStudio();
 
   return (
     <div className="py-2">
@@ -38,12 +38,16 @@ export function QuickEditPanel() {
           </div>
           <div className="space-y-2 px-4">
             {section.fields.map((fieldName) => (
-              <StudioColorField
+              <div
                 key={fieldName}
-                fieldName={fieldName}
-                label={FIELD_LABELS[fieldName]}
-                readOnly={locked}
-              />
+                onFocus={() => setPreviewFocusField(fieldName)}
+              >
+                <StudioColorField
+                  fieldName={fieldName}
+                  label={FIELD_LABELS[fieldName]}
+                  readOnly={locked}
+                />
+              </div>
             ))}
           </div>
         </div>
