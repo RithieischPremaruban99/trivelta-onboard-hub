@@ -759,8 +759,8 @@ export const TeamDot = ({ label, size = 16 }: { label: string; size?: number }) 
 
 function getStatusPillStyle(status: string): React.CSSProperties {
   switch (status) {
-    case "WON":  return { background: "transparent", border: "1px solid var(--p-won-color)",  color: "var(--p-won-color)" };
-    case "LOST": return { background: "transparent", border: "1px solid var(--p-lost-color)", color: "var(--p-lost-color)" };
+    case "WON":  return { background: "var(--p-won-color)",  border: "none", color: "var(--p-dark)" };
+    case "LOST": return { background: "var(--p-lost-color)", border: "none", color: "#fff" };
     case "PENDING": return { background: "transparent", border: "1px solid var(--p-primary)", color: "var(--p-primary)" };
     default:     return { background: "transparent", border: "1px solid var(--p-text-secondary-color)", color: "var(--p-text-secondary-color)" };
   }
