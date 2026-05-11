@@ -1209,6 +1209,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             Betslip is empty
           </div>
           <button
+            onClick={() => setActiveNav(1)}
             className="w-full h-10 rounded-lg text-[12px] font-bold"
             style={{ background: "var(--p-primary)", color: primaryText }}
           >
@@ -2104,6 +2105,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {/* BetBuilder / P2P */}
           <div className="grid grid-cols-2 gap-2 mb-2">
             <button
+              onClick={() => { setActiveNav(1); setSportsViewMode("main"); }}
               className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
               style={{
                 background: "var(--p-dark)",
@@ -2790,6 +2792,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               Pick slip is empty
             </div>
             <button
+              onClick={() => setActiveNav(1)}
               className="w-full rounded-lg py-3 text-[11px] font-bold"
               style={{
                 background: "linear-gradient(135deg, var(--p-primary), var(--p-secondary))",
@@ -3167,7 +3170,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   1
                 </span>
               </div>
-              <button className="text-[8px] font-semibold flex items-center gap-0.5" style={{ color: "var(--p-primary)" }}>
+              <button onClick={() => setActiveNav(4)} className="text-[8px] font-semibold flex items-center gap-0.5" style={{ color: "var(--p-primary)" }}>
                 All Bonuses <ChevronRight className="h-2.5 w-2.5" />
               </button>
             </div>
@@ -3453,6 +3456,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
             <div className="grid grid-cols-2 gap-2">
               <button
+                onClick={() => setActiveNav(4)}
                 className="h-9 rounded-md text-[11px] font-bold"
                 style={{
                   background: "var(--p-modal-background)",
@@ -3463,6 +3467,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 Withdraw
               </button>
               <button
+                onClick={() => setActiveNav(4)}
                 className="h-9 rounded-md text-[11px] font-bold"
                 style={{
                   background: "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))",
@@ -3560,18 +3565,18 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             <EyeOff className="h-3 w-3" style={{ color: "var(--p-text-secondary-color)" }} />
           </div>
           {/* Plus / Deposit */}
-          <button className="h-7 w-7 rounded-md grid place-items-center"
+          <button onClick={() => setActiveNav(4)} className="h-7 w-7 rounded-md grid place-items-center"
             style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}>
             <Plus className="h-3.5 w-3.5" />
           </button>
           {/* Bell with notification dot */}
-          <button className="h-7 w-7 rounded-md grid place-items-center relative"
+          <button onClick={() => setActiveNav(4)} className="h-7 w-7 rounded-md grid place-items-center relative"
             style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-light-text-color)" }}>
             <Bell className="h-3.5 w-3.5" />
             <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-primary)" }}></span>
           </button>
           {/* Chat */}
-          <button className="h-7 w-7 rounded-md grid place-items-center"
+          <button onClick={() => setActiveNav(2)} className="h-7 w-7 rounded-md grid place-items-center"
             style={{ background: "var(--p-modal-background)", border: "1px solid var(--p-border-and-gradient-bg)", color: "var(--p-light-text-color)" }}>
             <MessageCircle className="h-3.5 w-3.5" />
           </button>
@@ -3760,6 +3765,7 @@ const MobilePreview = React.memo(function MobilePreview({
         {/* BetBuilder / P2P — orange filled on mobile (matches BetCorrect app) */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           <button
+            onClick={() => setActiveNav(1)}
             className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
             style={{
               background: "linear-gradient(135deg, var(--p-primary), color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)))",
@@ -3770,6 +3776,7 @@ const MobilePreview = React.memo(function MobilePreview({
             {strings.BETBUILDER}
           </button>
           <button
+            onClick={() => setActiveNav(2)}
             className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
             style={{
               background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)), var(--p-primary))",
@@ -3986,7 +3993,11 @@ const MobilePreview = React.memo(function MobilePreview({
             <Radio className="h-4 w-4" style={{ color: "var(--p-primary)" }} />
             <span className="text-[15px] font-bold" style={{ color: "var(--p-light-text-color)" }}>Live</span>
           </div>
-          <button className="h-8 w-8 grid place-items-center" style={{ color: "var(--p-light-text-color)" }}>
+          <button
+            onClick={() => setMobileLiveActiveSportTab((mobileLiveActiveSportTab + 1) % 4)}
+            className="h-8 w-8 grid place-items-center"
+            style={{ color: "var(--p-primary)" }}
+          >
             <Filter className="h-4 w-4" />
           </button>
         </div>
@@ -4206,6 +4217,7 @@ const MobilePreview = React.memo(function MobilePreview({
         <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
           <div className="grid grid-cols-2 gap-2 my-2">
             <button
+              onClick={() => setMobileSportsTab(0)}
               className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
               style={{
                 background: "linear-gradient(135deg, var(--p-primary), color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)))",
@@ -4216,6 +4228,7 @@ const MobilePreview = React.memo(function MobilePreview({
               {strings.BETBUILDER}
             </button>
             <button
+              onClick={() => setActiveNav(2)}
               className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
               style={{
                 background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)), var(--p-primary))",
@@ -4875,6 +4888,7 @@ const MobilePreview = React.memo(function MobilePreview({
               Refer your friends and build your network<span style={{ color: "var(--p-text-secondary-color)" }}>1friend at a time!</span>
             </div>
             <button
+              onClick={() => setActiveNav(2)}
               className="h-8 px-3 rounded-md text-[10px] font-bold flex-shrink-0"
               style={{
                 background: "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))",
