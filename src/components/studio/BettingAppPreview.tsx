@@ -3565,14 +3565,14 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 key={n.label}
                 onClick={() => setActiveNav(i)}
                 className="flex items-center gap-1.5 px-2.5 h-7 rounded-md transition-colors relative"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                style={{ color: active ? "var(--p-primary)" : "var(--p-navbar-label, var(--p-text-secondary-color))" }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span className="text-[10px] font-semibold">{n.label}</span>
                 {active && (
                   <span
                     className="absolute -bottom-[6px] left-2 right-2 h-[2px] rounded-full"
-                    style={{ background: "var(--p-primary)" }}
+                    style={{ background: "var(--p-inactive-tab-underline, var(--p-primary))" }}
                   />
                 )}
               </button>
@@ -3677,8 +3677,8 @@ const MobilePreview = React.memo(function MobilePreview({
   // Auto-navigate preview to the most relevant view when a Quick Edit field is focused
   const FIELD_TO_NAV: Record<string, { nav: number; liveView?: boolean; profileTab?: number }> = {
     primary:                      { nav: 1 },
-    primaryButton:                { nav: 1 },
-    primaryButtonGradient:        { nav: 1 },
+    primaryButton:                { nav: 0 },  // BetBuilder button on Home
+    primaryButtonGradient:        { nav: 0 },
     secondary:                    { nav: 1 },  // VS badge visible on match cards
     activeSecondaryGradientColor: { nav: 1 },
     primaryBackgroundColor:       { nav: 0 },
