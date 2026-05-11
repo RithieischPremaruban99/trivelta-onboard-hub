@@ -860,13 +860,20 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
 
   // Web: auto-navigate to relevant view when Quick Edit field is focused
   const WEB_FIELD_TO_NAV: Record<string, number> = {
+    // Sports view (nav 1) — match cards, odds buttons, My Bets panel, banner, tabs
     primary: 1, primaryButton: 1, primaryButtonGradient: 1,
-    secondary: 4, activeSecondaryGradientColor: 1,
-    primaryBackgroundColor: 0, dark: 1, darkContainerBackground: 1,
-    modalBackground: 4, lightTextColor: 1, textSecondaryColor: 1,
-    navbarLabel: 0, wonColor: 4, lostColor: 4, payoutWonColor: 4,
+    activeSecondaryGradientColor: 1,
+    dark: 1, darkContainerBackground: 1,
+    lightTextColor: 1, textSecondaryColor: 1,
+    wonColor: 1, lostColor: 1, payoutWonColor: 1,
     borderAndGradientBg: 1, inactiveButtonBg: 1, inactiveTabUnderline: 1,
-    boxGradientColorStart: 0, boxGradientColorEnd: 0, notificationSectionBg: 4,
+    boxGradientColorStart: 1, boxGradientColorEnd: 1,
+    // Feed view (nav 0) — app background, nav labels visible
+    primaryBackgroundColor: 0, navbarLabel: 0, notificationSectionBg: 0,
+    // P2P view (nav 4) — secondary color used for VS badge
+    secondary: 4,
+    // Profile panel (nav 4 on web shows P2P, bets shown in Sports right panel)
+    modalBackground: 1,
   };
   useEffect(() => {
     if (!previewFocusField) return;
@@ -3672,7 +3679,7 @@ const MobilePreview = React.memo(function MobilePreview({
     primary:                      { nav: 1 },
     primaryButton:                { nav: 1 },
     primaryButtonGradient:        { nav: 1 },
-    secondary:                    { nav: 2 },
+    secondary:                    { nav: 1 },  // VS badge visible on match cards
     activeSecondaryGradientColor: { nav: 1 },
     primaryBackgroundColor:       { nav: 0 },
     dark:                         { nav: 1 },
