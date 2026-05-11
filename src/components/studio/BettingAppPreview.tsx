@@ -3703,103 +3703,107 @@ const MobilePreview = React.memo(function MobilePreview({
   const renderHomeView = () => (
     <>
       {renderTopBar()}
-      {/* Quick tiles */}
-      <div className="grid grid-cols-5 gap-1.5 px-3 mb-2 flex-shrink-0">
-        {MOBILE_TILE_ICONS.map((t) => {
+      {/* Quick tiles — 6 tiles matching BetCorrect mobile */}
+      <div className="grid grid-cols-6 gap-1.5 px-3 mb-2 flex-shrink-0">
+        {[
+          { icon: LayoutGrid, label: strings.ALL_SPORTS, nav: 1 },
+          { icon: Radio,       label: strings.TILE_LIVE_SPORTS.replace(" Sports", ""), nav: 1, live: true },
+          { icon: CircleDot,   label: "Football", nav: 1 },
+          { icon: Code2,       label: "Load Co...", nav: 2 },
+          { icon: Clapperboard, label: strings.TILE_VIRTUALS, nav: 3 },
+          { icon: Joystick,    label: "Gamers...", nav: 3 },
+        ].map((t, idx) => {
           const Icon = t.icon;
-          const active = activeNav === t.nav;
+          const active = activeNav === t.nav && idx > 0;
           return (
             <button
-              key={t.strKey}
+              key={idx}
               onClick={() => {
                 setActiveNav(t.nav);
-                if (t.strKey === "MOBILE_TILE_LIVE_SPO") setMobileLiveView(true);
+                if (t.live) setMobileLiveView(true);
               }}
-              className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-md"
+              className="flex flex-col items-center justify-center gap-0.5 h-[60px] rounded-xl"
               style={{
                 background: "var(--p-dark)",
-                border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
               }}
             >
-              <Icon
-                className="h-4 w-4"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
-              />
               <span
-                className="text-[8px] font-medium"
+                className="h-7 w-7 rounded-full grid place-items-center"
+                style={{ background: "var(--p-dark-container-background)" }}
+              >
+                <Icon
+                  className="h-3.5 w-3.5"
+                  style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
+                />
+              </span>
+              <span
+                className="text-[7px] font-medium leading-none px-0.5 text-center truncate w-full"
                 style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
               >
-                {strings[t.strKey]}
+                {t.label}
               </span>
             </button>
           );
         })}
       </div>
       <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
-        {/* BetBuilder / P2P */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
+        {/* BetBuilder / P2P — orange filled on mobile (matches BetCorrect app) */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <button
-            className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
+            className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
             style={{
-              background: "var(--p-dark)",
-              border: "1px solid var(--p-border-and-gradient-bg)",
-              color: "var(--p-light-text-color)",
+              background: "linear-gradient(135deg, var(--p-primary), color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)))",
+              color: pickContrastText(palette.primary),
             }}
           >
-            <span
-              className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
-              style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
-            >
-              SGP
-            </span>
-            <span className="flex-1 text-center">{strings.BETBUILDER}</span>
+            <Flame className="h-4 w-4 flex-shrink-0" />
+            {strings.BETBUILDER}
           </button>
           <button
-            className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
+            className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
             style={{
-              background: "var(--p-dark)",
-              border: "1px solid var(--p-border-and-gradient-bg)",
-              color: "var(--p-light-text-color)",
+              background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)), var(--p-primary))",
+              color: pickContrastText(palette.primary),
             }}
           >
             <span
-              className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
-              style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+              className="text-[9px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: "rgba(0,0,0,0.25)", color: pickContrastText(palette.primary) }}
             >
               VS
             </span>
-            <span className="flex-1 text-center">{strings.PEER_TO_PEER_BTN}</span>
+            {strings.PEER_TO_PEER_BTN}
           </button>
         </div>
-        {/* Welcome Bonus Banner */}
+        {/* Welcome Bonus Banner — matches BetCorrect mobile exactly */}
         <div
-          className="rounded-xl mb-3 relative overflow-hidden flex items-center"
+          className="rounded-xl mb-3 relative overflow-hidden"
           style={{
-            background: `linear-gradient(115deg, color-mix(in oklab, var(--p-primary) 80%, black) 0%, color-mix(in oklab, var(--p-primary) 40%, black) 100%)`,
-            minHeight: 64,
+            background: `linear-gradient(125deg, color-mix(in oklab, var(--p-primary) 85%, black) 0%, color-mix(in oklab, var(--p-primary) 55%, var(--p-box-gradient-color-end, var(--p-secondary))) 100%)`,
+            border: "1px solid color-mix(in oklab, var(--p-primary) 60%, transparent)",
           }}
         >
-          <div className="px-3 py-2.5 flex-1 min-w-0">
+          <div className="px-4 py-3">
             <div
-              className="text-[8px] font-bold tracking-wider opacity-85"
+              className="text-[13px] font-black tracking-wide"
               style={{ color: pickContrastText(palette.primaryButton) }}
             >
-              GET A <span className="text-[10px]">100%</span> BONUS ON YOUR
+              WELCOME BONUS
             </div>
             <div
-              className="text-[11px] font-black"
-              style={{ color: pickContrastText(palette.primaryButton) }}
-            >
-              FIRST DEPOSIT
-            </div>
-            <div
-              className="text-[8px] mt-0.5 opacity-75 leading-tight"
+              className="text-[10px] mt-1 leading-snug opacity-90"
               style={{ color: pickContrastText(palette.primaryButton) }}
             >
               {strings.WELCOME_BONUS_BODY_MOBILE}
             </div>
+            <div
+              className="mt-2.5 h-6 w-6 rounded-full grid place-items-center"
+              style={{ background: "rgba(0,0,0,0.25)" }}
+            >
+              <ChevronDown className="h-3.5 w-3.5" style={{ color: pickContrastText(palette.primaryButton) }} />
+            </div>
           </div>
-          <div className="w-12 flex-shrink-0 text-center opacity-30" style={{ fontSize: 28 }}>🎁</div>
         </div>
         {/* Featured matches */}
         <div className="text-[12px] font-bold mb-1.5" style={{ color: "var(--p-light-text-color)" }}>
@@ -3817,12 +3821,23 @@ const MobilePreview = React.memo(function MobilePreview({
                 style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span
-                    className="text-[9px] font-semibold"
-                    style={{ color: m.live ? "var(--p-lost-color)" : "var(--p-primary)" }}
-                  >
-                    {m.date}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {m.live ? (
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-[2px] rounded text-[8px] font-bold"
+                        style={{ background: "rgba(239,68,68,0.15)", color: "var(--p-lost-color)" }}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-lost-color)" }} />
+                        LIVE
+                      </span>
+                    ) : null}
+                    <span
+                      className="text-[9px] font-semibold"
+                      style={{ color: m.live ? "var(--p-primary)" : "var(--p-primary)" }}
+                    >
+                      {m.date}
+                    </span>
+                  </div>
                   <div
                     className="flex gap-5 text-[9px] font-bold"
                     style={{ color: "var(--p-text-secondary-color)" }}
@@ -3836,12 +3851,22 @@ const MobilePreview = React.memo(function MobilePreview({
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center gap-1.5">
                       <TeamDot label={m.home} />
-                      <span
-                        className="text-[10.5px] font-medium truncate"
-                        style={{ color: "var(--p-light-text-color)" }}
-                      >
-                        {m.home}
-                      </span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          className="text-[10.5px] font-medium truncate"
+                          style={{ color: "var(--p-light-text-color)" }}
+                        >
+                          {m.home}
+                        </span>
+                        {m.live && (
+                          <span
+                            className="text-[8px] font-bold px-1 py-[1px] rounded flex-shrink-0"
+                            style={{ background: "var(--p-dark-container-background)", color: "var(--p-primary)" }}
+                          >
+                            1:0
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <TeamDot label={m.away} />
@@ -4058,36 +4083,29 @@ const MobilePreview = React.memo(function MobilePreview({
         <div className="flex-1 min-h-0 overflow-auto px-3 pb-2">
           <div className="grid grid-cols-2 gap-2 my-2">
             <button
-              className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
+              className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
               style={{
-                background: "var(--p-dark)",
-                border: "1px solid var(--p-border-and-gradient-bg)",
-                color: "var(--p-light-text-color)",
+                background: "linear-gradient(135deg, var(--p-primary), color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)))",
+                color: pickContrastText(palette.primary),
               }}
             >
-              <span
-                className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
-                style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
-              >
-                SGP
-              </span>
-              <span className="flex-1 text-center">{strings.BETBUILDER}</span>
+              <Flame className="h-4 w-4 flex-shrink-0" />
+              {strings.BETBUILDER}
             </button>
             <button
-              className="h-9 rounded-md flex items-center gap-2 px-3 text-[10px] font-bold"
+              className="h-11 rounded-xl flex items-center justify-center gap-2 text-[11px] font-bold"
               style={{
-                background: "var(--p-dark)",
-                border: "1px solid var(--p-border-and-gradient-bg)",
-                color: "var(--p-light-text-color)",
+                background: "linear-gradient(135deg, color-mix(in oklab, var(--p-primary) 70%, var(--p-secondary)), var(--p-primary))",
+                color: pickContrastText(palette.primary),
               }}
             >
               <span
-                className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
-                style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+                className="text-[9px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ background: "rgba(0,0,0,0.25)", color: pickContrastText(palette.primary) }}
               >
                 VS
               </span>
-              <span className="flex-1 text-center">{strings.PEER_TO_PEER_BTN}</span>
+              {strings.PEER_TO_PEER_BTN}
             </button>
           </div>
 
@@ -4095,22 +4113,32 @@ const MobilePreview = React.memo(function MobilePreview({
             {strings.LIVE_AND_UPCOMING}
           </div>
 
-          {/* Sport tabs */}
+          {/* Live & Upcoming sport filter — filled pill active, text+emoji inactive */}
           <div className="flex gap-2 mb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {SPORT_TABS_KEYS.map((k, i) => (
-              <button
-                key={k}
-                onClick={() => setActiveSport(i)}
-                className="px-2.5 h-6 rounded text-[10px] font-semibold flex-shrink-0"
-                style={{
-                  background: activeSport === i ? "var(--p-primary)" : "transparent",
-                  border: activeSport === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeSport === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
-                }}
-              >
-                {strings[k]}
-              </button>
-            ))}
+            {[
+              { label: "Football",     emoji: "⚽" },
+              { label: "Basketball",   emoji: "" },
+              { label: "Tennis",       emoji: "🎾" },
+              { label: "Table Tennis", emoji: "🏓" },
+            ].map((tab, i) => {
+              const active = activeSport === i;
+              return (
+                <button
+                  key={tab.label}
+                  onClick={() => setActiveSport(i)}
+                  className="px-3 h-7 rounded-full text-[10px] font-semibold flex-shrink-0 flex items-center gap-1"
+                  style={{
+                    background: active ? "var(--p-primary)" : "transparent",
+                    border: "none",
+                    color: active ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                    fontWeight: active ? 700 : 500,
+                  }}
+                >
+                  {tab.label}
+                  {tab.emoji && <span style={{ fontSize: 12 }}>{tab.emoji}</span>}
+                </button>
+              );
+            })}
           </div>
 
           {/* League pills */}
@@ -4163,12 +4191,23 @@ const MobilePreview = React.memo(function MobilePreview({
                   style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span
-                      className="text-[9px] font-semibold"
-                      style={{ color: m.live ? "var(--p-lost-color)" : "var(--p-primary)" }}
-                    >
-                      {m.date}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {m.live ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-1.5 py-[2px] rounded text-[8px] font-bold"
+                          style={{ background: "rgba(239,68,68,0.15)", color: "var(--p-lost-color)" }}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--p-lost-color)" }} />
+                          LIVE
+                        </span>
+                      ) : null}
+                      <span
+                        className="text-[9px] font-semibold"
+                        style={{ color: "var(--p-primary)" }}
+                      >
+                        {m.date}
+                      </span>
+                    </div>
                     <div
                       className="flex gap-5 text-[9px] font-bold"
                       style={{ color: "var(--p-text-secondary-color)" }}
@@ -4182,12 +4221,22 @@ const MobilePreview = React.memo(function MobilePreview({
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center gap-1.5">
                         <TeamDot label={m.home} />
-                        <span
-                          className="text-[10.5px] font-medium truncate"
-                          style={{ color: "var(--p-light-text-color)" }}
-                        >
-                          {m.home}
-                        </span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className="text-[10.5px] font-medium truncate"
+                            style={{ color: "var(--p-light-text-color)" }}
+                          >
+                            {m.home}
+                          </span>
+                          {m.live && (
+                            <span
+                              className="text-[8px] font-bold px-1 py-[1px] rounded flex-shrink-0"
+                              style={{ background: "var(--p-dark-container-background)", color: "var(--p-primary)" }}
+                            >
+                              1:0
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <TeamDot label={m.away} />
@@ -5175,49 +5224,48 @@ interface SocialPost {
   league?: string;
   status?: "PENDING" | "LIVE" | "WON" | "LOST";
   title: string;
+  oldOdds?: string;
   match?: { home: string; away: string; date: string; score?: string };
   pick?: { market: string; selection: string; odds: string };
-  legs?: Array<{ market: string; selection: string; vs: string; odds: string }>;
+  legs?: Array<{ market: string; selection: string; home: string; away: string; odds: string }>;
   stake: string;
   payout: string;
 }
 
 const FRIENDS_POSTS: SocialPost[] = [
   {
-    user: "Alex M.",
+    user: "adriano",
     initial: "A",
-    league: "Premier League",
+    boost: "5% PROFIT BOOST",
+    league: "Bundesliga, Serie A",
     status: "PENDING",
     title: "4 Selection Multi",
+    oldOdds: "4.93",
     stake: "500",
-    payout: "8,450",
-    pick: { market: "1X2", selection: "Man City Win", odds: "1.85" },
-  },
-  {
-    user: "Jordan K.",
-    initial: "J",
-    boost: "20% PROFIT BOOST",
-    league: "Champions League",
-    status: "WON",
-    title: "3 Selection Accumulator",
-    stake: "100",
-    payout: "1,750",
+    payout: "2,565",
     legs: [
-      { market: "1X2", selection: "Arsenal Win", vs: "Arsenal vs Chelsea", odds: "2.10" },
-      { market: "O/U", selection: "Over 2.5", vs: "Spurs vs Wolves", odds: "1.65" },
-      { market: "1X2", selection: "Liverpool Win", vs: "Liverpool vs Everton", odds: "1.55" },
+      { market: "Match Winner", selection: "TSG Hoffenheim", home: "TSG Hoffenheim", away: "Werder Bremen", odds: "1.55" },
+      { market: "Match Winner", selection: "Bayern Munich",  home: "VFL Wolfsburg",  away: "Bayern Munich",  odds: "1.59" },
+      { market: "Match Winner", selection: "Juventus Turin", home: "US Lecce",        away: "Juventus Turin", odds: "1.44" },
+      { market: "Match Winner", selection: "Manchester City",home: "Manchester City", away: "Brentford FC",   odds: "1.39" },
     ],
   },
   {
-    user: "Sam T.",
-    initial: "S",
-    league: "Bundesliga",
-    status: "LIVE",
-    title: "Single Bet",
+    user: "Ikharia1",
+    initial: "I",
+    boost: "3% PROFIT BOOST",
+    league: "Premier League, LaLiga",
+    status: "PENDING",
+    title: "11 Selection Multi",
+    oldOdds: "4.56",
     stake: "200",
-    payout: "420",
-    match: { home: "Bayern", away: "Dortmund", date: "LIVE", score: "1 - 1" },
-    pick: { market: "BTTS", selection: "Yes", odds: "1.75" },
+    payout: "934",
+    legs: [
+      { market: "Total", selection: "under 4.5", home: "Crystal Palace",    away: "Everton FC",      odds: "1.14" },
+      { market: "Total", selection: "over 1.5",  home: "Nottingham Forest", away: "Newcastle United", odds: "1.24" },
+      { market: "Total", selection: "under 4.5", home: "Burnley FC",        away: "Aston Villa",     odds: "1.18" },
+      { market: "Total", selection: "over 0.5",  home: "RCD Mallorca",      away: "Villarreal CF",   odds: "1.04" },
+    ],
   },
 ];
 
@@ -5297,37 +5345,24 @@ function AllSportsView() {
 }
 
 function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySymbol: string }) {
-  const { strings } = useStudio();
-  const statusLabel = (s: string) =>
-    s === "WON"
-      ? strings.STATUS_WON
-      : s === "LOST"
-        ? strings.STATUS_LOST
-        : s === "PENDING"
-          ? strings.STATUS_PENDING
-          : s === "LIVE"
-            ? strings.STATUS_LIVE
-            : s;
-  const statusBg =
-    post.status === "PENDING"
-      ? "rgba(0,0,0,0.5)"
-      : post.status === "LIVE"
-        ? "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))"
-        : post.status === "WON"
-          ? "linear-gradient(135deg, var(--p-won-gradient-1), var(--p-won-gradient-2))"
-          : post.status === "LOST"
-            ? "var(--p-secondary)"
-            : "transparent";
+  const { strings, palette } = useStudio();
+  const primaryText = pickContrastText(palette.primary);
+
+  // boosted odds = total of all leg odds multiplied (simplified display)
+  const boostedOdds = post.legs
+    ? post.legs.reduce((acc, l) => acc * parseFloat(l.odds), 1).toFixed(2)
+    : null;
+  const displayOdds = boostedOdds ?? (post.pick?.odds ?? "");
 
   return (
     <div
-      className="rounded-xl p-3 mb-2"
+      className="rounded-xl mb-3 overflow-hidden"
       style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
+      {/* Header row: avatar + username + boost badge */}
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
         <div
-          className="h-7 w-7 rounded-full grid place-items-center text-[11px] font-black"
+          className="h-8 w-8 rounded-full grid place-items-center text-[11px] font-black flex-shrink-0 overflow-hidden"
           style={{
             background: "linear-gradient(135deg, var(--p-primary-button), var(--p-primary-button-gradient))",
             color: "var(--p-light-text-color)",
@@ -5340,140 +5375,162 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
         </span>
         {post.boost && (
           <span
-            className="text-[8.5px] font-bold px-2 py-1 rounded-md"
-            style={{ background: "rgba(0,0,0,0.4)", color: "var(--p-primary)" }}
+            className="text-[8px] font-bold px-2 py-1 rounded-md flex-shrink-0"
+            style={{ background: "var(--p-modal-background)", color: "var(--p-light-text-color)" }}
           >
             {post.boost}
           </span>
         )}
       </div>
 
-      {/* League + status */}
-      {(post.league || post.status) && (
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Trophy className="h-3 w-3 flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }} />
-            <span className="text-[10px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>
-              {post.league}
-            </span>
-          </div>
-          {post.status && (
-            <span
-              className="text-[8.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
-              style={{ background: statusBg, color: "var(--p-light-text-color)" }}
-            >
-              {post.status === "LIVE" && <span className="h-1 w-1 rounded-full bg-white" />}
-              {statusLabel(post.status)}
-            </span>
-          )}
+      {/* League + status row */}
+      <div className="flex items-center justify-between px-3 mb-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <CircleDot className="h-3 w-3 flex-shrink-0" style={{ color: "var(--p-text-secondary-color)" }} />
+          <span className="text-[10px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>
+            {post.league}
+          </span>
         </div>
-      )}
-
-      {/* Title */}
-      <div className="text-[14px] font-bold mb-2" style={{ color: "var(--p-light-text-color)" }}>
-        {post.title}
+        {post.status && (
+          <span
+            className="text-[8.5px] font-black px-2.5 py-1 rounded-full flex-shrink-0"
+            style={{
+              background: post.status === "PENDING" ? "var(--p-primary)"
+                : post.status === "WON" ? "var(--p-won-color)"
+                : post.status === "LOST" ? "var(--p-lost-color)"
+                : "var(--p-primary)",
+              color: post.status === "WON" ? "rgba(0,0,0,0.85)" : primaryText,
+            }}
+          >
+            {post.status}
+          </span>
+        )}
       </div>
 
-      {/* Match w/ pick */}
-      {post.match && (
-        <div className="rounded-lg p-2 mb-2" style={{ background: "rgba(0,0,0,0.25)" }}>
-          <div
-            className="flex items-center justify-between text-[10px] mb-1"
-            style={{ color: "var(--p-text-secondary-color)" }}
-          >
-            <div className="flex items-center gap-1">
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive-button-bg)" }} />
-              <span style={{ color: "var(--p-light-text-color)" }}>{post.match.home}</span>
-            </div>
-            <span style={{ color: "var(--p-primary)" }}>{post.match.date}</span>
-            <div className="flex items-center gap-1">
-              <span style={{ color: "var(--p-light-text-color)" }}>{post.match.away}</span>
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--p-inactive-button-bg)" }} />
-            </div>
-          </div>
-          {post.match.score && (
-            <div className="text-center text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
-              {post.match.score}
-            </div>
-          )}
-          {post.pick && (
-            <div
-              className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5"
-              style={{ background: "var(--p-primary-background-color)", border: "1px solid var(--p-primary)" }}
-            >
-              <div className="min-w-0">
-                <div className="text-[8.5px] font-bold" style={{ color: "var(--p-primary)" }}>
-                  {post.pick.market}
-                </div>
-                <div className="text-[11px] font-bold truncate" style={{ color: "var(--p-light-text-color)" }}>
-                  {post.pick.selection}
-                </div>
-              </div>
-              <span className="text-[12px] font-black ml-2" style={{ color: "var(--p-primary)" }}>
-                {post.pick.odds}
-              </span>
-            </div>
-          )}
+      {/* Title + odds row */}
+      <div className="flex items-baseline justify-between px-3 mb-2.5">
+        <div className="text-[14px] font-black" style={{ color: "var(--p-light-text-color)" }}>
+          {post.title}
         </div>
-      )}
+        <div className="flex items-center gap-1.5">
+          {post.oldOdds && (
+            <span
+              className="text-[12px] line-through"
+              style={{ color: "var(--p-text-secondary-color)" }}
+            >
+              {post.oldOdds}
+            </span>
+          )}
+          <span className="text-[14px] font-black" style={{ color: "var(--p-light-text-color)" }}>
+            {displayOdds}
+          </span>
+          <Zap className="h-3.5 w-3.5" style={{ color: "var(--p-primary)" }} />
+        </div>
+      </div>
 
-      {/* Legs */}
+      {/* Leg cards — BetCorrect exact format */}
       {post.legs && post.legs.length > 0 && (
-        <div className="space-y-1.5 mb-2">
+        <div className="px-3 space-y-2 mb-2">
           {post.legs.map((leg, i) => (
-            <div key={i} className="rounded-md p-2" style={{ background: "rgba(0,0,0,0.25)" }}>
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <div
-                    className="text-[8.5px] font-bold mb-0.5"
-                    style={{ color: "var(--p-primary)" }}
-                  >
+            <div
+              key={i}
+              className="rounded-xl p-2.5"
+              style={{ background: "var(--p-primary-background-color)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+            >
+              {/* Top row: team logo + market + selection + odds */}
+              <div className="flex items-start gap-2 mb-1.5">
+                <div
+                  className="h-7 w-7 rounded-lg grid place-items-center flex-shrink-0"
+                  style={{ background: "color-mix(in oklab, var(--p-primary) 20%, transparent)" }}
+                >
+                  <TeamDot label={leg.home} size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-semibold" style={{ color: "var(--p-primary)" }}>
                     {leg.market}
                   </div>
-                  <div
-                    className="text-[11px] font-bold truncate"
-                    style={{ color: "var(--p-light-text-color)" }}
-                  >
+                  <div className="text-[11px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
                     {leg.selection}
                   </div>
-                  <div className="text-[8.5px] mt-0.5 truncate" style={{ color: "var(--p-text-secondary-color)" }}>
-                    <span style={{ color: "var(--p-secondary)" }}>vs</span>{" "}
-                    {leg.vs.split(" vs ")[1] ?? leg.vs}
-                  </div>
                 </div>
-                <span className="text-[12px] font-black ml-2" style={{ color: "var(--p-primary)" }}>
+                <span className="text-[12px] font-black flex-shrink-0" style={{ color: "var(--p-primary)" }}>
                   {leg.odds}
                 </span>
+              </div>
+              {/* VS row: home team | VS | away team */}
+              <div className="flex items-center justify-between text-[9px]">
+                <div className="flex items-center gap-1 min-w-0 flex-1">
+                  <TeamDot label={leg.home} size={13} />
+                  <span className="truncate" style={{ color: "var(--p-light-text-color)" }}>{leg.home}</span>
+                </div>
+                <span
+                  className="mx-2 flex-shrink-0 text-[8px] font-bold"
+                  style={{ color: "var(--p-text-secondary-color)" }}
+                >
+                  VS
+                </span>
+                <div className="flex items-center gap-1 min-w-0 flex-1 justify-end">
+                  <span className="truncate" style={{ color: "var(--p-light-text-color)" }}>{leg.away}</span>
+                  <TeamDot label={leg.away} size={13} />
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Stake/payout */}
+      {/* Single pick (non-multi) */}
+      {post.pick && !post.legs && (
+        <div
+          className="mx-3 rounded-xl p-2.5 mb-2"
+          style={{ background: "var(--p-primary-background-color)", border: "1px solid var(--p-border-and-gradient-bg)" }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <div className="text-[9px] font-semibold" style={{ color: "var(--p-primary)" }}>
+                {post.pick.market}
+              </div>
+              <div className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>
+                {post.pick.selection}
+              </div>
+            </div>
+            <span className="text-[14px] font-black ml-2" style={{ color: "var(--p-primary)" }}>
+              {post.pick.odds}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Stake / payout + actions */}
       <div
-        className="flex items-center justify-between text-[9px] pt-2 border-t"
+        className="flex items-center justify-between px-3 py-2 border-t"
         style={{ borderColor: "var(--p-border-and-gradient-bg)" }}
       >
-        <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.STAKE}</span>
-        <span className="font-bold" style={{ color: "var(--p-light-text-color)" }}>
+        <span style={{ fontSize: 11, color: "var(--p-text-secondary-color)" }}>
+          {strings.STAKE}
+        </span>
+        <span className="font-bold text-[11px]" style={{ color: "var(--p-light-text-color)" }}>
           {currencySymbol} {post.stake}
         </span>
-        <span className="font-bold" style={{ color: "var(--p-primary)" }}>
+        <span className="font-bold text-[11px]" style={{ color: "var(--p-light-text-color)" }}>
           {currencySymbol} {post.payout}
         </span>
-        <span style={{ color: "var(--p-text-secondary-color)" }}>{strings.PAYOUT}</span>
+        <span style={{ fontSize: 11, color: "var(--p-text-secondary-color)" }}>
+          {strings.PAYOUT}
+        </span>
       </div>
 
-      {/* Reactions */}
+      {/* Reaction row */}
       <div
-        className="flex items-center gap-3 mt-2 pt-2 text-[10px]"
+        className="flex items-center gap-4 px-3 pb-2.5 text-[11px]"
         style={{ color: "var(--p-text-secondary-color)" }}
       >
-        <span>♡ 0</span>
-        <span>💬 0</span>
-        <span style={{ color: "var(--p-primary)" }}>⚡ 0 Rebets</span>
-        <span className="ml-auto">⤴</span>
+        <Heart className="h-4 w-4" />
+        <MessageCircle className="h-4 w-4" />
+        <ArrowLeftRight className="h-4 w-4" />
+        <span className="ml-auto">
+          <Share2 className="h-4 w-4" />
+        </span>
       </div>
     </div>
   );
@@ -5489,7 +5546,25 @@ function SocialView({
   currencySymbol: string;
 }) {
   const { strings } = useStudio();
-  const posts: SocialPost[] = FRIENDS_POSTS;
+  const posts: SocialPost[] = socialTab === "explore" ? [
+    {
+      user: "Ikharia1",
+      initial: "I",
+      boost: "3% PROFIT BOOST",
+      league: "Premier League, LaLiga",
+      status: "PENDING",
+      title: "11 Selection Multi",
+      oldOdds: "4.56",
+      stake: "200",
+      payout: "934",
+      legs: [
+        { market: "Total", selection: "under 4.5", home: "Crystal Palace",    away: "Everton FC",      odds: "1.14" },
+        { market: "Total", selection: "over 1.5",  home: "Nottingham Forest", away: "Newcastle United", odds: "1.24" },
+        { market: "Total", selection: "under 4.5", home: "Burnley FC",        away: "Aston Villa",     odds: "1.18" },
+        { market: "Total", selection: "over 0.5",  home: "RCD Mallorca",      away: "Villarreal CF",   odds: "1.04" },
+      ],
+    },
+  ] : FRIENDS_POSTS;
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       {/* Header bar */}
