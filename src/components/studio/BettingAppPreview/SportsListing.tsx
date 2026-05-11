@@ -134,7 +134,7 @@ const cardBaseStyle: React.CSSProperties = {
 
 type Props = {
   sport: "nba" | "football" | "tennis";
-  onMatchClick: (matchId: string) => void;
+  onMatchClick: (matchId: string, home?: string, away?: string, date?: string, league?: string, odds?: string[]) => void;
   onBack: () => void;
   palette: TCMPalette;
   strings: TCMStrings;
@@ -448,7 +448,7 @@ export function SportsListing({
                   className="rounded-lg p-3 cursor-pointer"
                   style={cardBaseStyle}
                   {...cardHoverHandlers}
-                  onClick={() => onMatchClick(m.id)}
+                  onClick={() => onMatchClick(m.id, m.home, m.away, m.date)}
                 >
                   {/* Date + league */}
                   <div className="flex items-center justify-between mb-2">
@@ -645,7 +645,7 @@ function NbaTeamRow({
 
 type FootballMatchCardProps = {
   match: { id: string; date: string; home: string; away: string; odds: [string, string, string] };
-  onMatchClick: (id: string) => void;
+  onMatchClick: (matchId: string, home?: string, away?: string, date?: string, league?: string, odds?: string[]) => void;
   palette: TCMPalette;
   strings: TCMStrings;
   pickContrastText: (rgba: string) => string;
@@ -665,7 +665,7 @@ function FootballMatchCard({
       className="rounded-lg p-3 cursor-pointer"
       style={cardBaseStyle}
       {...cardHoverHandlers}
-      onClick={() => onMatchClick(match.id)}
+      onClick={() => onMatchClick(match.id, match.home, match.away, match.date, undefined, match.odds)}
     >
       {/* Date + 1/X/2 header */}
       <div className="flex items-center justify-between mb-2">

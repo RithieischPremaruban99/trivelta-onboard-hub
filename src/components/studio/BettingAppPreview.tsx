@@ -869,7 +869,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const [sportsViewMode, setSportsViewMode] = useState<"main" | "schedule" | "detail" | "live">("main");
   const [liveActiveSportTab, setLiveActiveSportTab] = useState(0); // 0=Soccer, 1=Table Tennis, 2=Tennis
   const [selectedSportSchedule, setSelectedSportSchedule] = useState<"nba" | "football" | "tennis">("football");
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<{ id: string; home: string; away: string; date: string; league: string; odds: string[] } | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [profileMainTab, setProfileMainTab] = useState(0); // 0=My Bets, 1=My Feed
   const [profileBetsFilter, setProfileBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
@@ -2017,10 +2017,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {renderSportsSidebar()}
           <SportsListing
             sport={selectedSportSchedule}
-            onMatchClick={(id) => {
-              // Detail view only supported for nba/football today; tennis is a no-op.
+            onMatchClick={(id, home, away, date, league, odds) => {
               if (selectedSportSchedule === "tennis") return;
-              setSelectedMatchId(id);
+              setSelectedMatchId({ id, home: home ?? "Home", away: away ?? "Away", date: date ?? "TOMORROW", league: league ?? "Premier League", odds: odds ?? ["1.80", "3.50", "4.00"] });
               setSportsViewMode("detail");
             }}
             onBack={() => setSportsViewMode("main")}
@@ -2039,7 +2038,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
         <div className="flex-1 min-h-0 flex">
           {renderSportsSidebar()}
           <GameDetail
-            matchId={selectedMatchId}
+            matchId={selectedMatchId.id}
+            matchData={selectedMatchId}
             sport={selectedSportSchedule as "nba" | "football"}
             onBack={() => setSportsViewMode("schedule")}
             palette={palette}
@@ -2289,6 +2289,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               </span>
             </div>
             <button
+              onClick={() => { setSelectedSportSchedule("football"); setSportsViewMode("schedule"); }}
               className="text-[9px] font-semibold flex items-center gap-0.5"
               style={{ color: "var(--p-primary)" }}
             >
@@ -2354,7 +2355,14 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   e.currentTarget.style.boxShadow = "none";
                 }}
                 onClick={() => {
-                  setSelectedMatchId(`pl-${i + 1}`);
+                  setSelectedMatchId({
+                    id: `web-${i}`,
+                    home: m.home,
+                    away: m.away,
+                    date: m.date,
+                    league: isKMK ? "GPL - Ghana" : "Premier League - England",
+                    odds: m.odds,
+                  });
                   setSelectedSportSchedule("football");
                   setSportsViewMode("detail");
                 }}
@@ -2419,7 +2427,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   >
                     {strings.STATS} <span style={{ fontSize: 9 }}>📊</span>
                   </span>
-                  <span
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedMatchId({ id: `web-${i}`, home: m.home, away: m.away, date: m.date, league: isKMK ? "GPL - Ghana" : "Premier League - England", odds: m.odds }); setSelectedSportSchedule("football"); setSportsViewMode("detail"); }}
                     className="text-[8px] font-semibold flex items-center gap-0.5"
                     style={{ color: "var(--p-primary)" }}
                   >
@@ -2430,7 +2439,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       SGP
                     </span>
                     {strings.MORE_BETS} <ChevronRight className="h-2 w-2" />
-                  </span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -3817,7 +3826,15 @@ const MobilePreview = React.memo(function MobilePreview({
             return (
               <div
                 key={i}
-                className="rounded-md p-2.5"
+                onClick={() => setMobileMatchId({
+                  id: `home-${i}`,
+                  home: m.home,
+                  away: m.away,
+                  date: m.date,
+                  league: isKMK ? "GPL - Ghana" : "Premier League - England",
+                  odds: m.odds,
+                })}
+                className="rounded-md p-2.5 cursor-pointer transition-opacity hover:opacity-90"
                 style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
                 <div className="flex items-center justify-between mb-1.5">
@@ -4030,7 +4047,11 @@ const MobilePreview = React.memo(function MobilePreview({
                   <span style={{ fontSize: 14 }}>{league.icon}</span>
                   <span className="text-[12px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{league.name}</span>
                 </div>
-                <button className="text-[9px] font-bold flex items-center gap-0.5" style={{ color: "var(--p-primary)" }}>
+                <button
+                  onClick={() => setMobileLiveView(false)}
+                  className="text-[9px] font-bold flex items-center gap-0.5"
+                  style={{ color: "var(--p-primary)" }}
+                >
                   SEE MORE <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
@@ -4108,12 +4129,13 @@ const MobilePreview = React.memo(function MobilePreview({
                     >
                       Stats <span style={{ fontSize: 10 }}>📊</span>
                     </span>
-                    <span
+                    <button
+                      onClick={() => setMobileMatchId({ id: m.id, home: m.home, away: m.away, date: `LIVE · ${m.status}`, league: "Live Sports", odds: m.odds })}
                       className="text-[9px] font-semibold flex items-center gap-0.5"
                       style={{ color: "var(--p-primary)" }}
                     >
                       MORE BETS <ChevronRight className="h-3 w-3" />
-                    </span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -4376,6 +4398,23 @@ const MobilePreview = React.memo(function MobilePreview({
                       })}
                     </div>
                   </div>
+                  {/* Stats / MORE BETS footer */}
+                  <div
+                    className="flex items-center justify-between mt-2 pt-2"
+                    style={{ borderTop: "1px solid var(--p-border-and-gradient-bg)" }}
+                  >
+                    <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: "var(--p-text-secondary-color)" }}>
+                      Stats <span style={{ fontSize: 10 }}>📊</span>
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMobileMatchId({ id: `sports-${i}`, home: m.home, away: m.away, date: m.date, league: isKMK ? "GPL - Ghana" : "Premier League - England", odds: m.odds }); }}
+                      className="text-[9px] font-semibold flex items-center gap-0.5"
+                      style={{ color: "var(--p-primary)" }}
+                    >
+                      <span className="text-[7px] font-black px-1 py-[1px] rounded mr-0.5" style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}>SGP</span>
+                      MORE BETS <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -4396,10 +4435,13 @@ const MobilePreview = React.memo(function MobilePreview({
             {strings.ALL_SPORTS} ({getSportsSidebar(strings).length})
           </div>
           <div className="px-2">
-            {getSportsSidebar(strings).map((s, i) => (
+            {getSportsSidebar(strings).map((s, idx) => (
               <button
                 key={s.name}
-                onClick={() => setMobileSportsTab(0)}
+                onClick={() => {
+                  setMobileSportsTab(0);
+                  setActiveSport(idx < 3 ? idx : 0);
+                }}
                 className="w-full flex items-center gap-2 px-2 h-10 rounded-md mb-0.5 text-left"
                 style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
               >
