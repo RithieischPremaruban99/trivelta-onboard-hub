@@ -12,7 +12,17 @@ import {
 } from "./sports-data";
 import type { NbaMatch, FootballMatch, BetMarket } from "./sports-data";
 
+interface MatchData {
+  id: string;
+  home: string;
+  away: string;
+  date: string;
+  league: string;
+  odds: string[];
+}
+
 interface GameDetailProps {
+  matchData?: MatchData;
   matchId: string;
   sport: "nba" | "football";
   onBack: () => void;
@@ -24,6 +34,7 @@ interface GameDetailProps {
 
 export function GameDetail({
   matchId,
+  matchData,
   sport,
   onBack,
   palette,
@@ -50,12 +61,13 @@ export function GameDetail({
     match = NBA_SCHEDULE.find((m) => m.id === matchId) ?? null;
   }
 
-  const heroHomeName = match?.home ?? "Home";
-  const heroAwayName = match?.away ?? "Away";
-  const heroDate = match?.date ?? (isFootball ? "TOMORROW 1:30 PM" : "TOMORROW 1:00 AM");
-  const heroLeague = isFootball
+  // matchData prop takes priority over ID-based lookup (fixes KMK/custom matches)
+  const heroHomeName  = matchData?.home   ?? match?.home   ?? "Home";
+  const heroAwayName  = matchData?.away   ?? match?.away   ?? "Away";
+  const heroDate      = matchData?.date   ?? match?.date   ?? (isFootball ? "TOMORROW 1:30 PM" : "TOMORROW 1:00 AM");
+  const heroLeague    = matchData?.league ?? (isFootball
     ? (match as (FootballMatch & { league?: string }) | null)?.league ?? "Premier League"
-    : (match as NbaMatch | null)?.league ?? "NBA";
+    : (match as NbaMatch | null)?.league ?? "NBA");
 
   const initialExpanded = new Set(markets.filter((m) => m.defaultExpanded).map((m) => m.id));
   const [expandedIds, setExpandedIds] = useState<Set<string>>(initialExpanded);
@@ -69,9 +81,9 @@ export function GameDetail({
     });
   };
 
-  const footballOdds = isFootball && match && "odds" in match
-    ? (match as FootballMatch).odds
-    : ["1.83", "3.90", "4.40"];
+  // Use matchData odds if provided (e.g. KMK Ghana matches), fall back to FOOTBALL_LEAGUES lookup
+  const footballOdds = matchData?.odds
+    ?? (isFootball && match && "odds" in match ? (match as FootballMatch).odds : ["1.83", "3.90", "4.40"]);
 
   const primaryText = pickContrastText(palette.primary);
 

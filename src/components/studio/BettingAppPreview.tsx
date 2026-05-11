@@ -3630,7 +3630,7 @@ const MobilePreview = React.memo(function MobilePreview({
   const [mobileMyBetsFilter, setMobileMyBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
   const [expandedBetCard, setExpandedBetCard] = useState(false);
   const [selectedOdds, setSelectedOdds] = useState<Set<string>>(new Set());
-  const [mobileMatchId, setMobileMatchId] = useState<string | null>(null);
+  const [mobileMatchId, setMobileMatchId] = useState<{ id: string; home: string; away: string; date: string; league: string; odds: string[] } | null>(null);
   const [mobileLiveView, setMobileLiveView] = useState(false);
   const [mobileLiveActiveSportTab, setMobileLiveActiveSportTab] = useState(0);
 
@@ -4287,7 +4287,14 @@ const MobilePreview = React.memo(function MobilePreview({
               return (
                 <div
                   key={i}
-                  onClick={() => setMobileMatchId(`pl-${i + 1}`)}
+                  onClick={() => setMobileMatchId({
+                    id: `match-${i}`,
+                    home: m.home,
+                    away: m.away,
+                    date: m.date,
+                    league: isKMK ? "GPL - Ghana" : "Premier League - England",
+                    odds: m.odds,
+                  })}
                   className="rounded-md p-2.5 cursor-pointer transition-colors hover:opacity-90"
                   style={{ background: "var(--p-dark)", border: "1px solid var(--p-border-and-gradient-bg)" }}
                 >
@@ -4983,7 +4990,8 @@ const MobilePreview = React.memo(function MobilePreview({
       {/* View switcher */}
       {mobileMatchId ? (
         <GameDetail
-          matchId={mobileMatchId}
+          matchId={mobileMatchId.id}
+          matchData={mobileMatchId}
           sport="football"
           onBack={() => setMobileMatchId(null)}
           palette={palette}
