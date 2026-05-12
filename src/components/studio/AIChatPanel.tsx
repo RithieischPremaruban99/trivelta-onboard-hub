@@ -78,14 +78,37 @@ export function AIChatPanel() {
     pushPaletteSnapshot,
   } = useStudio();
 
+  const {
+    setPalette,
+    addBrandPrompt,
+    brandPromptHistory,
+    palette,
+    manualOverrides,
+    locked,
+    language,
+    appIcons,
+    setAppIcons,
+    appName,
+    canUndo,
+    undoLastChange,
+    pushPaletteSnapshot,
+    chatMessages: persistedChatMessages,
+    setChatMessages,
+  } = useStudio();
+
   const hasLogo = !!(appIcons.appNameLogo || appIcons.topLeftAppIcon);
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    if (brandPromptHistory.length === 0) {
-      return [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
+    const welcome: ChatMessage = { role: "assistant", content: buildWelcomeMessage(hasLogo) };
+    // Prefer fully-persisted chat thread if available
+    if (persistedChatMessages && persistedChatMessages.length > 0) {
+      return [welcome, ...persistedChatMessages];
     }
-    // Reconstruct from persisted history (newest-first → reverse for chronological display)
-    const msgs: ChatMessage[] = [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
+    if (brandPromptHistory.length === 0) {
+      return [welcome];
+    }
+    // Legacy reconstruction from brandPromptHistory (newest-first → reverse)
+    const msgs: ChatMessage[] = [welcome];
     for (const entry of [...brandPromptHistory].reverse()) {
       msgs.push({ role: "user", content: entry.prompt });
       if (entry.logoVariants && entry.logoVariants.length > 0) {
