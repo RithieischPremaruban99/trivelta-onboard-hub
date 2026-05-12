@@ -218,11 +218,19 @@ export const defaultStudioAppIcons: StudioAppIcons = {
 // Saved config shape - expanded to hold both new and legacy formats
 // ---------------------------------------------------------------------------
 
+export interface PersistedChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  isError?: boolean;
+  suggestions?: string[];
+}
+
 export interface StudioSavedConfig {
   // New format (Phase 3+)
   palette?: Partial<TCMPalette>;
   manualOverrides?: (keyof TCMPalette)[];
   brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string; logoVariants?: LogoVariant[] }>;
+  chatMessages?: PersistedChatMessage[];
   // Legacy format (pre-Phase 3) - kept for backward compat reads
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
@@ -305,6 +313,10 @@ export interface StudioState {
   // Preview focus — set by Quick Edit to auto-navigate preview to relevant view
   previewFocusField: string | null;
   setPreviewFocusField: (field: string | null) => void;
+
+  // Persisted chat messages (excluding welcome and streaming entries).
+  chatMessages: PersistedChatMessage[];
+  setChatMessages: (msgs: PersistedChatMessage[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -330,6 +342,7 @@ export const StudioProvider: React.FC<{
   initialPalette?: TCMPalette;
   initialManualOverrides?: (keyof TCMPalette)[];
   initialBrandPromptHistory?: BrandPromptEntry[];
+  initialChatMessages?: PersistedChatMessage[];
   initialIcons?: StudioAppIcons;
   initialLanguage?: Language;
   initialAppName?: string;
@@ -342,6 +355,7 @@ export const StudioProvider: React.FC<{
   initialPalette,
   initialManualOverrides,
   initialBrandPromptHistory,
+  initialChatMessages,
   initialIcons,
   initialLanguage,
   initialAppName,
@@ -360,8 +374,9 @@ export const StudioProvider: React.FC<{
   const [brandPromptHistory, setBrandPromptHistory] = useState<BrandPromptEntry[]>(
     initialBrandPromptHistory ?? [],
   );
-
-  // ── Undo stack: snapshots taken before each AI refinement ─────────────────
+  const [chatMessages, setChatMessages] = useState<PersistedChatMessage[]>(
+    initialChatMessages ?? [],
+  );
   const [paletteHistory, setPaletteHistory] = useState<TCMPalette[]>([]);
   const MAX_HISTORY = 10;
 
@@ -529,6 +544,8 @@ export const StudioProvider: React.FC<{
         pushPaletteSnapshot,
         undoLastChange,
         canUndo: paletteHistory.length > 0,
+        chatMessages,
+        setChatMessages,
       }}
     >
       {children}

@@ -13,6 +13,29 @@ interface ChatMessage {
   isError?: boolean;
   logoVariants?: LogoVariant[];
   isStreaming?: boolean;
+  suggestions?: string[];
+}
+
+const MAX_PERSISTED_MESSAGES = 30;
+
+function getSuggestions(prompt: string): string[] {
+  const lower = prompt.toLowerCase();
+  const operators = ["bet365", "sportybet", "betway", "hollywoodbets", "caliente", "betano"];
+  const markets = ["nigeria", "ghana", "kenya", "mexico", "brazil", "south africa"];
+
+  if (operators.some((o) => lower.includes(o))) {
+    return ["Inspired by, not exact copy", "Darker version", "Add gold accent"];
+  }
+  if (markets.some((m) => lower.includes(m))) {
+    return ["More premium for this market", "Brighter & bolder", "Add gold accent"];
+  }
+  if (lower.includes("dark")) {
+    return ["Even darker", "Darken background only", "Keep this, try warmer tones"];
+  }
+  if (lower.includes("light") || lower.includes("bright")) {
+    return ["Slightly darker", "Add more contrast", "Keep this, try cooler tones"];
+  }
+  return ["Make it darker", "Add gold accent", "More contrast"];
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -53,16 +76,23 @@ export function AIChatPanel() {
     canUndo,
     undoLastChange,
     pushPaletteSnapshot,
+    chatMessages: persistedChatMessages,
+    setChatMessages,
   } = useStudio();
 
   const hasLogo = !!(appIcons.appNameLogo || appIcons.topLeftAppIcon);
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    if (brandPromptHistory.length === 0) {
-      return [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
+    const welcome: ChatMessage = { role: "assistant", content: buildWelcomeMessage(hasLogo) };
+    // Prefer fully-persisted chat thread if available
+    if (persistedChatMessages && persistedChatMessages.length > 0) {
+      return [welcome, ...persistedChatMessages];
     }
-    // Reconstruct from persisted history (newest-first → reverse for chronological display)
-    const msgs: ChatMessage[] = [{ role: "assistant", content: buildWelcomeMessage(hasLogo) }];
+    if (brandPromptHistory.length === 0) {
+      return [welcome];
+    }
+    // Legacy reconstruction from brandPromptHistory (newest-first → reverse)
+    const msgs: ChatMessage[] = [welcome];
     for (const entry of [...brandPromptHistory].reverse()) {
       msgs.push({ role: "user", content: entry.prompt });
       if (entry.logoVariants && entry.logoVariants.length > 0) {
@@ -89,6 +119,25 @@ export function AIChatPanel() {
   // Keep a ref so sendMessage can read current messages without a stale closure
   const messagesRef = useRef(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
+
+  // Persist chat thread to StudioContext (auto-saved by studio.tsx).
+  // Skip welcome (always regenerated), streaming entries, and logo variant blobs.
+  useEffect(() => {
+    const persisted = messages
+      .slice(1)
+      .filter((m) => !m.isStreaming)
+      .map((m) => {
+        const out: { role: "user" | "assistant"; content: string; isError?: boolean; suggestions?: string[] } = {
+          role: m.role,
+          content: m.content,
+        };
+        if (m.isError) out.isError = true;
+        if (m.suggestions && m.suggestions.length > 0) out.suggestions = m.suggestions;
+        return out;
+      })
+      .slice(-MAX_PERSISTED_MESSAGES);
+    setChatMessages(persisted);
+  }, [messages, setChatMessages]);
 
   // Update welcome message if logo is uploaded after initial mount
   const prevHasLogoRef = useRef(hasLogo);
@@ -405,12 +454,14 @@ export function AIChatPanel() {
               const displayText =
                 reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
 
+              const suggestions = getSuggestions(trimmed);
               setMessages((prev) => {
                 const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
                 updated[updated.length - 1] = {
                   role: "assistant",
                   content: displayText,
                   isStreaming: false,
+                  suggestions,
                 };
                 return updated;
               });
@@ -561,6 +612,34 @@ export function AIChatPanel() {
                 </div>
               )}
 
+              {/* Suggestion chips - one-time, palette-only, non-error */}
+              {msg.role === "assistant" &&
+                !msg.isError &&
+                !msg.isStreaming &&
+                !msg.logoVariants &&
+                msg.suggestions &&
+                msg.suggestions.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {msg.suggestions.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setMessages((prev) =>
+                            prev.map((m, idx) =>
+                              idx === i ? { ...m, suggestions: undefined } : m,
+                            ),
+                          );
+                          sendMessage(s);
+                        }}
+                        disabled={loading || locked}
+                        className="rounded-full border border-border bg-muted/30 px-3 py-1 text-xs transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
             </div>
           </div>
         ))}

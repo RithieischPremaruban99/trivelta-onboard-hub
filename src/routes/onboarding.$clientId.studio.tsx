@@ -15,6 +15,7 @@ import {
   type StudioSavedConfig,
   type StudioAppLabels,
   type BrandPromptEntry,
+  type PersistedChatMessage,
   type Language,
   LANGUAGE_NAMES,
 } from "@/contexts/StudioContext";
@@ -413,6 +414,7 @@ export function StudioInner({
     appName,
     setAppName,
     canLock,
+    chatMessages,
   } = useStudio();
 
   /* ── State ── */
@@ -461,6 +463,7 @@ export function StudioInner({
       palette,
       manualOverrides: Array.from(manualOverrides),
       brandPromptHistory,
+      chatMessages,
       icons: appIcons,
       language,
       appName,
@@ -472,7 +475,7 @@ export function StudioInner({
         { client_id: clientId, studio_config: payload as never },
         { onConflict: "client_id" },
       );
-  }, [clientId, palette, manualOverrides, brandPromptHistory, appIcons, language, appName, appLabels]);
+  }, [clientId, palette, manualOverrides, brandPromptHistory, chatMessages, appIcons, language, appName, appLabels]);
 
   const scheduleAutoSave = useCallback(
     (
@@ -480,6 +483,7 @@ export function StudioInner({
       overrides: Set<keyof TCMPalette>,
       history: BrandPromptEntry[],
       icons: StudioAppIcons,
+      chat: PersistedChatMessage[],
     ) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -495,6 +499,7 @@ export function StudioInner({
                   palette: pal,
                   manualOverrides: Array.from(overrides),
                   brandPromptHistory: history,
+                  chatMessages: chat,
                   icons,
                   language,
                   appName,
@@ -516,11 +521,11 @@ export function StudioInner({
   );
 
   useEffect(() => {
-    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons);
+    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons, chatMessages);
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [palette, manualOverrides, brandPromptHistory, appIcons, scheduleAutoSave]);
+  }, [palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, scheduleAutoSave]);
 
   /* ── Atomic palette POC test mode (?test_atomic=purple|cyan|green) ── */
   const TEST_ATOMIC_THEMES: Record<string, AtomicPalette> = {
@@ -633,6 +638,7 @@ export function StudioInner({
             palette,
             manualOverrides: Array.from(manualOverrides),
             brandPromptHistory,
+            chatMessages,
             icons: appIcons,
             language,
             appName,
@@ -1398,6 +1404,9 @@ function StudioPage() {
   const [initialBrandPromptHistory, setInitialBrandPromptHistory] = useState<
     BrandPromptEntry[] | undefined
   >(undefined);
+  const [initialChatMessages, setInitialChatMessages] = useState<
+    PersistedChatMessage[] | undefined
+  >(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
@@ -1456,6 +1465,7 @@ function StudioPage() {
           setInitialPalette({ ...DEFAULT_TCM_PALETTE, ...saved.palette });
           if (saved.manualOverrides) setInitialManualOverrides(saved.manualOverrides);
           if (saved.brandPromptHistory) setInitialBrandPromptHistory(saved.brandPromptHistory);
+          if (saved.chatMessages) setInitialChatMessages(saved.chatMessages);
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else if (saved.colors) {
           // Legacy format: has 'colors' key with old StudioThemeColors shape
@@ -1624,6 +1634,7 @@ function StudioPage() {
         initialPalette={initialPalette}
         initialManualOverrides={initialManualOverrides}
         initialBrandPromptHistory={initialBrandPromptHistory ?? []}
+        initialChatMessages={initialChatMessages ?? []}
         initialIcons={initialIcons}
         initialLanguage={initialLanguage}
         initialAppName={initialAppName}
