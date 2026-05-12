@@ -6,7 +6,7 @@ import type { TCMPalette } from "@/lib/tcm-palette";
 const SECTIONS: { label: string; fields: (keyof TCMPalette)[] }[] = [
   {
     label: "Brand",
-    fields: ["primary", "primaryButton", "primaryButtonGradient", "secondary", "activeSecondaryGradientColor"],
+    fields: ["primary", "primaryButton", "secondary", "activeSecondaryGradientColor"],
   },
   {
     label: "Backgrounds",
@@ -14,15 +14,15 @@ const SECTIONS: { label: string; fields: (keyof TCMPalette)[] }[] = [
   },
   {
     label: "Text",
-    fields: ["lightTextColor", "textSecondaryColor", "navbarLabel"],
+    fields: ["lightTextColor", "textSecondaryColor"],
   },
   {
     label: "Status",
-    fields: ["wonColor", "lostColor", "payoutWonColor"],
+    fields: ["wonColor", "lostColor"],
   },
   {
     label: "Accents",
-    fields: ["borderAndGradientBg", "inactiveButtonBg", "inactiveTabUnderline", "boxGradientColorStart", "boxGradientColorEnd", "notificationSectionBg"],
+    fields: ["borderAndGradientBg", "inactiveButtonBg", "inactiveTabUnderline", "boxGradientColorStart", "boxGradientColorEnd"],
   },
 ];
 

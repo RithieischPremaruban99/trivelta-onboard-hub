@@ -878,13 +878,11 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   useEffect(() => {
     if (!previewFocusField) return;
     const WEB_FIELD_TO_NAV: Record<string, number> = {
-      primary: 1, primaryButton: 1, primaryButtonGradient: 1,
-      activeSecondaryGradientColor: 1, dark: 1, darkContainerBackground: 1,
+      primary: 1, primaryButton: 1,       activeSecondaryGradientColor: 1, dark: 1, darkContainerBackground: 1,
       lightTextColor: 1, textSecondaryColor: 1, wonColor: 1, lostColor: 1,
       payoutWonColor: 1, borderAndGradientBg: 1, inactiveButtonBg: 1,
       inactiveTabUnderline: 1, boxGradientColorStart: 1, boxGradientColorEnd: 1,
-      primaryBackgroundColor: 0, navbarLabel: 0, notificationSectionBg: 0,
-      secondary: 1, modalBackground: 1,
+      primaryBackgroundColor: 0, navbarLabel: 0,       secondary: 1, modalBackground: 1,
     };
     const nav = WEB_FIELD_TO_NAV[previewFocusField];
     if (nav !== undefined) { setActiveNav(nav); setSportsViewMode("main"); }

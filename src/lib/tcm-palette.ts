@@ -797,31 +797,27 @@ export const DEFAULT_TCM_PALETTE: TCMPalette = {
 
 export const QUICK_EDIT_FIELDS: (keyof TCMPalette)[] = [
   // ── Brand ──────────────────────────────────────────
-  "primary",
-  "primaryButton",
-  "primaryButtonGradient",
-  "secondary",
-  "activeSecondaryGradientColor",
+  "primary",                      // 328 uses — all active states, odds, CTAs
+  "primaryButton",                // 18 uses  — button fill (BetBuilder, Deposit etc)
+  "secondary",                    // 27 uses  — SGP/VS/PENDING badges, brand accent
+  "activeSecondaryGradientColor", // 21 uses  — action button gradient (Deposit, Refer)
   // ── Backgrounds ────────────────────────────────────
-  "primaryBackgroundColor",
-  "dark",
-  "darkContainerBackground",
-  "modalBackground",
+  "primaryBackgroundColor",       // 16 uses  — app background
+  "dark",                         // 69 uses  — cards, nav bar, panels
+  "darkContainerBackground",      // 24 uses  — odds buttons, inner containers
+  "modalBackground",              // 36 uses  — secondary panels, wallet pill
   // ── Text ───────────────────────────────────────────
-  "lightTextColor",
-  "textSecondaryColor",
-  "navbarLabel",
+  "lightTextColor",               // 210 uses — primary text
+  "textSecondaryColor",           // 189 uses — secondary text, dates, labels
   // ── Status ─────────────────────────────────────────
-  "wonColor",
-  "lostColor",
-  "payoutWonColor",
+  "wonColor",                     // 25 uses  — WON badge + payout
+  "lostColor",                    // 27 uses  — LOST badge + live dot
   // ── Accents ────────────────────────────────────────
-  "borderAndGradientBg",
-  "inactiveButtonBg",
-  "inactiveTabUnderline",
-  "boxGradientColorStart",
-  "boxGradientColorEnd",
-  "notificationSectionBg",
+  "borderAndGradientBg",          // 140 uses — all card borders + dividers
+  "inactiveButtonBg",             // 12 uses  — team/sport icon dot backgrounds
+  "inactiveTabUnderline",         // 2 uses   — active tab underline indicator
+  "boxGradientColorStart",        // 2 uses   — welcome banner gradient start
+  "boxGradientColorEnd",          // 4 uses   — welcome banner + button gradient end
 ];
 
 // ---------------------------------------------------------------------------
@@ -1221,7 +1217,7 @@ export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
   primaryButtonGradient: "Button Fill (gradient end)",
   boxGradientColorStart: "Banner Color (start)",
   boxGradientColorEnd: "Banner Color (end)",
-  activeSecondaryGradientColor: "Selected / Active Color",
+  activeSecondaryGradientColor: "Action Button Color",
   lightTextColor: "Primary Text",
   textInputPlaceholderText: "Placeholder Text",
   navbarLabel: "Nav Item Labels",
@@ -1243,7 +1239,7 @@ export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
   layerBg2: "Layer BG 2",
   popoverBorder: "Popover Border",
   propCityBackground: "Prop City Background",
-  inactiveButtonBg: "Unselected Button Background",
+  inactiveButtonBg: "Icon & Dot Background",
   inactiveButtonTextPrimary: "Inactive Button Text Primary",
   inactiveButtonTextSecondary: "Inactive Button Text Secondary",
   darkInactiveButtonText: "Dark Inactive Button Text",
@@ -1360,7 +1356,7 @@ export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
   pokerFoldButtonGradient4: "Poker Fold Button 4",
   pokerFoldButtonGradient5: "Poker Fold Button 5",
   borderAndGradientBg: "Borders & Dividers",
-  inactiveTabUnderline: "Inactive Tab Underline",
+  inactiveTabUnderline: "Active Tab Indicator",
   scrollbarThumbBgColor: "Scrollbar Thumb",
   pamScrollbarThumbColor: "PAM Scrollbar Thumb",
   pamScrollbarBg: "PAM Scrollbar BG",
