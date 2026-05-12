@@ -1634,6 +1634,7 @@ function StudioPage() {
         initialPalette={initialPalette}
         initialManualOverrides={initialManualOverrides}
         initialBrandPromptHistory={initialBrandPromptHistory ?? []}
+        initialChatMessages={initialChatMessages ?? []}
         initialIcons={initialIcons}
         initialLanguage={initialLanguage}
         initialAppName={initialAppName}
