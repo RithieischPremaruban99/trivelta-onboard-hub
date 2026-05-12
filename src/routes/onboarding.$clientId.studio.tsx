@@ -413,6 +413,7 @@ export function StudioInner({
     appName,
     setAppName,
     canLock,
+    chatMessages,
   } = useStudio();
 
   /* ── State ── */
