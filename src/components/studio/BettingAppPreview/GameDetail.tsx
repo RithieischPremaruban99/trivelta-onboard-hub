@@ -151,7 +151,7 @@ export function GameDetail({
                 <span className="text-[13px] font-bold" style={{ color: "var(--p-light-text-color)" }}>{market.title}</span>
                 <div className="flex items-center gap-2">
                   {market.hasSGP && (
-                    <span className="text-[8px] font-extrabold px-1.5 py-[3px] rounded leading-none tracking-wider" style={{ background: "var(--p-primary)", color: primaryText }}>SGP</span>
+                    <span className="text-[8px] font-extrabold px-1.5 py-[3px] rounded leading-none tracking-wider" style={{ background: "var(--p-secondary, var(--p-primary))", color: primaryText }}>SGP</span>
                   )}
                   {isExpanded ? (
                     <ChevronUp className="h-4 w-4" style={{ color: "var(--p-text-secondary-color)" }} strokeWidth={2} />
