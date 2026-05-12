@@ -638,6 +638,7 @@ export function StudioInner({
             palette,
             manualOverrides: Array.from(manualOverrides),
             brandPromptHistory,
+            chatMessages,
             icons: appIcons,
             language,
             appName,
