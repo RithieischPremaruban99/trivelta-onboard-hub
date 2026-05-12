@@ -930,6 +930,7 @@ interface GeneratePaletteRequest {
   targetCountry?: string;       // ISO country code — STRICT, overrides text detection
   targetPersonality?: string;   // "modern-crypto" | "classic-casino" | "challenger" | "luxury-premium" — HINT
   targetPlatformType?: "sportsbook" | "casino" | "both";  // HINT
+  forceFullGeneration?: boolean;  // skip refinement routing, always use Sonnet
 }
 
 // ---------------------------------------------------------------------------
@@ -1736,6 +1737,32 @@ function validateAndEnforce(
     `mode=${isRefinement ? "refinement" : "fresh"}`
   );
 
+  // ── Semantic enforcement BEFORE derivePalette ─────────────────────────
+  // Enforce wonColor=green, lostColor=red on atomicBase so ALL 40+ derived
+  // win/loss fields (wonGradient1/2, winStatusGradient etc.) are correct.
+  function getHue(rgba: string): number | null {
+    const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return null;
+    const r = parseInt(m[1]) / 255, g = parseInt(m[2]) / 255, b = parseInt(m[3]) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    if (max === min) return 0;
+    let h = 0;
+    if (max === r) h = ((g - b) / (max - min) + 6) % 6;
+    else if (max === g) h = (b - r) / (max - min) + 2;
+    else h = (r - g) / (max - min) + 4;
+    return h * 60;
+  }
+  const wonHue = getHue(atomicBase.wonColor ?? "");
+  const lostHue = getHue(atomicBase.lostColor ?? "");
+  if (wonHue !== null && !(wonHue >= 90 && wonHue <= 160)) {
+    atomicBase.wonColor = DEFAULT_TCM_PALETTE.wonColor as string;
+    warnings.push(`wonColor hue ${wonHue.toFixed(0)}° outside green (90°-160°) — reset to default`);
+  }
+  if (lostHue !== null && !((lostHue >= 340 && lostHue <= 360) || lostHue <= 20)) {
+    atomicBase.lostColor = DEFAULT_TCM_PALETTE.lostColor as string;
+    warnings.push(`lostColor hue ${lostHue.toFixed(0)}° outside red (340°-20°) — reset to default`);
+  }
+
   // Derive full 344-field palette from validated atomic fields
   const palette = derivePalette(atomicBase as unknown as AtomicPalette);
 
@@ -2007,7 +2034,8 @@ Deno.serve(async (req: Request) => {
 
   const PRIMARY_MODEL = "claude-sonnet-4-6";
   const HAIKU_MODEL = "claude-haiku-4-5-20251001";
-  const isRefine = isSimpleRefinement(body.brandPrompt, !!body.currentPalette);
+  // forceFullGeneration overrides refinement routing (theme direction changes)
+  const isRefine = !body.forceFullGeneration && isSimpleRefinement(body.brandPrompt, !!body.currentPalette);
   const model = isRefine ? HAIKU_MODEL : PRIMARY_MODEL;
   const isPrimary = model === PRIMARY_MODEL;
   const maxTokens = isRefine ? 2000 : 8000;

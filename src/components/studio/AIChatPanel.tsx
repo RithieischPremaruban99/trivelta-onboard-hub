@@ -259,15 +259,22 @@ export function AIChatPanel() {
             role: m.role,
             content: m.role === "user"
               ? m.content.slice(0, 300)
-              : m.content.slice(0, 100),
+              // Strip JSON palette block (always starts on new line with {), keep only reasoning
+              : m.content.replace(/\n\{[\s\S]*$/, "").trim().slice(0, 100),
           }));
 
+        // ALWAYS send currentPalette when it exists — edge function needs it
+        // to restore manualOverrides regardless of fresh vs refinement.
+        // forceFullGeneration tells edge function to skip isSimpleRefinement
+        // and always use Sonnet — used for theme direction changes.
         const palettePayload = {
           brandPrompt: trimmed,
           language,
           logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
           currentPalette: hasExistingPalette ? palette : undefined,
           manualOverrides: Array.from(manualOverrides),
+          ...(isThemeChange && hasExistingPalette && { forceFullGeneration: true }),
+          ...(!isThemeChange && hasExistingPalette && { regenerationFeedback: trimmed }),
           ...(conversationHistory.length > 0 && { conversationHistory }),
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
