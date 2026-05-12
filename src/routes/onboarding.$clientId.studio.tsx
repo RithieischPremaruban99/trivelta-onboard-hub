@@ -462,6 +462,7 @@ export function StudioInner({
       palette,
       manualOverrides: Array.from(manualOverrides),
       brandPromptHistory,
+      chatMessages,
       icons: appIcons,
       language,
       appName,
@@ -473,7 +474,7 @@ export function StudioInner({
         { client_id: clientId, studio_config: payload as never },
         { onConflict: "client_id" },
       );
-  }, [clientId, palette, manualOverrides, brandPromptHistory, appIcons, language, appName, appLabels]);
+  }, [clientId, palette, manualOverrides, brandPromptHistory, chatMessages, appIcons, language, appName, appLabels]);
 
   const scheduleAutoSave = useCallback(
     (
@@ -481,6 +482,7 @@ export function StudioInner({
       overrides: Set<keyof TCMPalette>,
       history: BrandPromptEntry[],
       icons: StudioAppIcons,
+      chat: PersistedChatMessage[],
     ) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -496,6 +498,7 @@ export function StudioInner({
                   palette: pal,
                   manualOverrides: Array.from(overrides),
                   brandPromptHistory: history,
+                  chatMessages: chat,
                   icons,
                   language,
                   appName,
@@ -517,11 +520,11 @@ export function StudioInner({
   );
 
   useEffect(() => {
-    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons);
+    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons, chatMessages);
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [palette, manualOverrides, brandPromptHistory, appIcons, scheduleAutoSave]);
+  }, [palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, scheduleAutoSave]);
 
   /* ── Atomic palette POC test mode (?test_atomic=purple|cyan|green) ── */
   const TEST_ATOMIC_THEMES: Record<string, AtomicPalette> = {
