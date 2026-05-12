@@ -3,6 +3,14 @@ import { FIELD_LABELS } from "@/lib/tcm-palette";
 import { StudioColorField } from "./StudioColorField";
 import type { TCMPalette } from "@/lib/tcm-palette";
 
+// Background colors are fixed — the dark skin/layout cannot be changed by clients
+const LOCKED_FIELDS = new Set<keyof TCMPalette>([
+  "primaryBackgroundColor",
+  "dark",
+  "darkContainerBackground",
+  "modalBackground",
+]);
+
 const SECTIONS: { label: string; fields: (keyof TCMPalette)[] }[] = [
   {
     label: "Brand",
@@ -37,18 +45,26 @@ export function QuickEditPanel() {
             {section.label}
           </div>
           <div className="space-y-2 px-4">
-            {section.fields.map((fieldName) => (
-              <div
-                key={fieldName}
-                onFocus={() => setPreviewFocusField(fieldName)}
-              >
-                <StudioColorField
-                  fieldName={fieldName}
-                  label={FIELD_LABELS[fieldName]}
-                  readOnly={locked}
-                />
-              </div>
-            ))}
+            {section.fields.map((fieldName) => {
+              const isLayoutLocked = LOCKED_FIELDS.has(fieldName);
+              return (
+                <div
+                  key={fieldName}
+                  onFocus={() => !isLayoutLocked && setPreviewFocusField(fieldName)}
+                  title={isLayoutLocked ? "Fixed — dark layout cannot be changed" : undefined}
+                >
+                  <StudioColorField
+                    fieldName={fieldName}
+                    label={
+                      isLayoutLocked
+                        ? `${FIELD_LABELS[fieldName]} 🔒`
+                        : FIELD_LABELS[fieldName]
+                    }
+                    readOnly={locked || isLayoutLocked}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}
