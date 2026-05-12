@@ -313,6 +313,10 @@ export interface StudioState {
   // Preview focus — set by Quick Edit to auto-navigate preview to relevant view
   previewFocusField: string | null;
   setPreviewFocusField: (field: string | null) => void;
+
+  // Persisted chat messages (excluding welcome and streaming entries).
+  chatMessages: PersistedChatMessage[];
+  setChatMessages: (msgs: PersistedChatMessage[]) => void;
 }
 
 // ---------------------------------------------------------------------------
