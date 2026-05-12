@@ -884,6 +884,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       inactiveTabUnderline: 1, boxGradientColorStart: 1, boxGradientColorEnd: 1,
       primaryBackgroundColor: 0, navbarLabel: 0,       secondary: 1, modalBackground: 1,
     };
+    // Don't navigate for locked background fields
+    const LOCKED = new Set(["primaryBackgroundColor","dark","darkContainerBackground","modalBackground"]);
+    if (LOCKED.has(previewFocusField)) return;
     const nav = WEB_FIELD_TO_NAV[previewFocusField];
     if (nav !== undefined) { setActiveNav(nav); setSportsViewMode("main"); }
   }, [previewFocusField]);
@@ -3670,7 +3673,7 @@ const MobilePreview = React.memo(function MobilePreview({
     primary:                      { nav: 1 },
     primaryButton:                { nav: 0 },  // BetBuilder button on Home
     primaryButtonGradient:        { nav: 0 },
-    secondary:                    { nav: 1 },  // VS badge visible on match cards
+    secondary:                    { nav: 0 },  // P2P button gradient on Home (most visible)
     activeSecondaryGradientColor: { nav: 1 },
     primaryBackgroundColor:       { nav: 0 },
     dark:                         { nav: 1 },
@@ -3692,6 +3695,9 @@ const MobilePreview = React.memo(function MobilePreview({
 
   useEffect(() => {
     if (!previewFocusField) return;
+    // Don't navigate for locked background fields
+    const LOCKED = new Set(["primaryBackgroundColor","dark","darkContainerBackground","modalBackground"]);
+    if (LOCKED.has(previewFocusField)) return;
     const target = FIELD_TO_NAV[previewFocusField];
     if (!target) return;
     setMobileMatchId(null);
