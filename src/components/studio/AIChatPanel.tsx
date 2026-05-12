@@ -120,6 +120,25 @@ export function AIChatPanel() {
   const messagesRef = useRef(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
+  // Persist chat thread to StudioContext (auto-saved by studio.tsx).
+  // Skip welcome (always regenerated), streaming entries, and logo variant blobs.
+  useEffect(() => {
+    const persisted = messages
+      .slice(1)
+      .filter((m) => !m.isStreaming)
+      .map((m) => {
+        const out: { role: "user" | "assistant"; content: string; isError?: boolean; suggestions?: string[] } = {
+          role: m.role,
+          content: m.content,
+        };
+        if (m.isError) out.isError = true;
+        if (m.suggestions && m.suggestions.length > 0) out.suggestions = m.suggestions;
+        return out;
+      })
+      .slice(-MAX_PERSISTED_MESSAGES);
+    setChatMessages(persisted);
+  }, [messages, setChatMessages]);
+
   // Update welcome message if logo is uploaded after initial mount
   const prevHasLogoRef = useRef(hasLogo);
   useEffect(() => {
