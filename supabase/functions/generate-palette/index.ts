@@ -353,6 +353,57 @@ const ATOMIC_FIELDS: (keyof TCMPalette)[] = [
   "lostColor",
 ];
 
+
+// ---------------------------------------------------------------------------
+// Verified operator brand colors — research-based, used in system prompt
+// ---------------------------------------------------------------------------
+
+const VERIFIED_OPERATOR_COLORS: Record<string, {
+  primary: string;
+  background: string;
+  accent: string;
+  market: string;
+}> = {
+  // Africa
+  "bet9ja":          { primary: "rgba(0,131,62,1)",   background: "rgba(13,13,13,1)",  accent: "rgba(255,204,0,1)",  market: "Nigeria" },
+  "sportybet":       { primary: "rgba(227,6,19,1)",   background: "rgba(10,10,10,1)",  accent: "rgba(255,255,255,1)",market: "Nigeria/Ghana/Kenya" },
+  "betking":         { primary: "rgba(0,93,190,1)",   background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "Nigeria" },
+  "betway":          { primary: "rgba(0,166,81,1)",   background: "rgba(20,20,20,1)",  accent: "rgba(255,255,255,1)",market: "Pan-Africa" },
+  "hollywoodbets":   { primary: "rgba(116,0,142,1)",  background: "rgba(15,0,20,1)",   accent: "rgba(255,204,0,1)",  market: "South Africa" },
+  "supabets":        { primary: "rgba(255,204,0,1)",  background: "rgba(10,10,10,1)",  accent: "rgba(0,0,0,1)",      market: "South Africa" },
+  "betika":          { primary: "rgba(0,166,81,1)",   background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "Kenya" },
+  "sportpesa":       { primary: "rgba(0,82,165,1)",   background: "rgba(8,8,15,1)",    accent: "rgba(255,255,255,1)",market: "Kenya" },
+  "1xbet":           { primary: "rgba(26,46,142,1)",  background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "Global" },
+  // LatAm
+  "caliente":        { primary: "rgba(227,6,19,1)",   background: "rgba(26,26,26,1)",  accent: "rgba(255,204,0,1)",  market: "Mexico" },
+  "betano":          { primary: "rgba(255,95,0,1)",   background: "rgba(20,20,20,1)",  accent: "rgba(255,255,255,1)",market: "Brazil/LatAm" },
+  "pixbet":          { primary: "rgba(0,200,83,1)",   background: "rgba(10,10,10,1)",  accent: "rgba(255,20,147,1)", market: "Brazil" },
+  "codere":          { primary: "rgba(0,131,62,1)",   background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "Mexico/Spain" },
+  // Europe / Global
+  "bet365":          { primary: "rgba(0,141,72,1)",   background: "rgba(18,18,18,1)",  accent: "rgba(255,255,255,1)",market: "Global" },
+  "william hill":    { primary: "rgba(29,102,170,1)", background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "UK/Europe" },
+  "ladbrokes":       { primary: "rgba(209,0,0,1)",    background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "UK" },
+  "tipico":          { primary: "rgba(227,6,19,1)",   background: "rgba(10,10,10,1)",  accent: "rgba(255,255,255,1)",market: "Germany" },
+  "stake":           { primary: "rgba(5,193,104,1)",  background: "rgba(15,23,42,1)",  accent: "rgba(255,255,255,1)",market: "Crypto/Global" },
+  "unibet":          { primary: "rgba(0,154,68,1)",   background: "rgba(18,18,18,1)",  accent: "rgba(255,255,255,1)",market: "Europe" },
+  "bwin":            { primary: "rgba(0,174,239,1)",  background: "rgba(10,10,10,1)",  accent: "rgba(255,204,0,1)",  market: "Europe" },
+  "draftkings":      { primary: "rgba(83,195,77,1)",  background: "rgba(18,22,25,1)",  accent: "rgba(255,204,0,1)",  market: "USA" },
+  "fanduel":         { primary: "rgba(0,120,228,1)",  background: "rgba(10,18,28,1)",  accent: "rgba(255,172,0,1)",  market: "USA" },
+  "parimatch":       { primary: "rgba(255,210,0,1)",  background: "rgba(15,15,15,1)",  accent: "rgba(0,0,0,1)",      market: "CIS/Europe" },
+  "groupe partouche":{ primary: "rgba(196,43,43,1)",  background: "rgba(10,10,15,1)",  accent: "rgba(212,175,55,1)", market: "France/Europe" },
+  "partouche":       { primary: "rgba(196,43,43,1)",  background: "rgba(10,10,15,1)",  accent: "rgba(212,175,55,1)", market: "France/Europe" },
+};
+
+function findOperatorColors(prompt: string): { name: string; colors: typeof VERIFIED_OPERATOR_COLORS[string] } | null {
+  const lower = prompt.toLowerCase();
+  for (const [key, colors] of Object.entries(VERIFIED_OPERATOR_COLORS)) {
+    if (lower.includes(key)) {
+      return { name: key, colors };
+    }
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
@@ -568,13 +619,23 @@ than to guess.
 
 ═══ OPERATOR BRAND REFERENCES ═══
 
-When the user references a specific operator (Bet365, SportyBet, Caliente, Hollywoodbets, Stake, BetWay, Pixbet, Codere, Betano, 1xBet, Tipico, Ladbrokes, William Hill, Bet9ja, etc.) — DO NOT invent or guess hex values. Operator brand colors vary across markets and update over time; hardcoded values risk being wrong.
+When the user references a known operator, verified brand colors will be injected below as VERIFIED_OPERATOR_COLORS context.
 
-Instead, respond with this pattern:
+IF verified colors are injected for the referenced operator:
+- USE the exact primary and background values provided
+- State explicitly: "Applied [Operator]'s verified primary [hex/rgba]"
+- Build the full palette around those exact anchor values
+- Do NOT deviate from the provided primary unless user explicitly asks for inspiration rather than exact match
 
-"I don't have verified hex values for [Brand]. To match their exact identity, upload their logo to Brand Assets — I'll extract the colors directly from the image. Meanwhile, here's a palette inspired by their general direction: [generate inspired palette in 1 sentence describing the visual direction, then full palette]."
+IF no verified colors are provided (operator not in our database):
+- Say: "I don't have verified colors for [Brand] — upload their logo to Brand Assets for exact extraction. Here's an inspired direction:"
+- Generate a palette inspired by their general visual direction
+- Logo upload remains the most reliable path for unknown operators
 
-This applies to ALL operator names, no exceptions. Logo upload is the reliable path to brand-exact palettes.
+STYLE vs EXACT MATCH distinction:
+- "Bet365 style" or "like Bet365" → use verified primary as anchor but may adjust palette composition
+- "Bet365 palette" or "exactly like Bet365" → use all verified values as-is, minimal deviation
+- "inspired by Bet365" → use as reference point only, creative freedom allowed
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 LOGO HANDLING
@@ -1167,6 +1228,19 @@ The user explicitly chose to see DIFFERENT personality interpretations. Generati
   if (req.targetPlatformType) {
     const platCtx = getPlatformTypeContext(req.targetPlatformType);
     if (platCtx) parts.push(platCtx);
+  }
+
+  // Verified operator brand colors — inject when operator detected in prompt
+  const operatorMatch = findOperatorColors(req.brandPrompt);
+  if (operatorMatch) {
+    const { name, colors } = operatorMatch;
+    parts.push(
+      `VERIFIED_OPERATOR_COLORS for "${name}" (${colors.market}):\n` +
+      `  primary: ${colors.primary}\n` +
+      `  background: ${colors.background}\n` +
+      `  accent: ${colors.accent}\n\n` +
+      `These are verified brand colors. USE primary as the anchor unless user explicitly says "inspired by" or "style of".`
+    );
   }
 
   if (req.language) {
