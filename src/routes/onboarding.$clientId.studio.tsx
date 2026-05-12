@@ -1404,6 +1404,9 @@ function StudioPage() {
   const [initialBrandPromptHistory, setInitialBrandPromptHistory] = useState<
     BrandPromptEntry[] | undefined
   >(undefined);
+  const [initialChatMessages, setInitialChatMessages] = useState<
+    PersistedChatMessage[] | undefined
+  >(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
