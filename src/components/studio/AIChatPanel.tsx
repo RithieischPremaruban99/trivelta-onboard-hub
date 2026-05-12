@@ -612,6 +612,34 @@ export function AIChatPanel() {
                 </div>
               )}
 
+              {/* Suggestion chips - one-time, palette-only, non-error */}
+              {msg.role === "assistant" &&
+                !msg.isError &&
+                !msg.isStreaming &&
+                !msg.logoVariants &&
+                msg.suggestions &&
+                msg.suggestions.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {msg.suggestions.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setMessages((prev) =>
+                            prev.map((m, idx) =>
+                              idx === i ? { ...m, suggestions: undefined } : m,
+                            ),
+                          );
+                          sendMessage(s);
+                        }}
+                        disabled={loading || locked}
+                        className="rounded-full border border-border bg-muted/30 px-3 py-1 text-xs transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
             </div>
           </div>
         ))}
