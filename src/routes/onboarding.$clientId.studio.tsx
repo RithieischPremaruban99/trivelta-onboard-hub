@@ -15,6 +15,7 @@ import {
   type StudioSavedConfig,
   type StudioAppLabels,
   type BrandPromptEntry,
+  type PersistedChatMessage,
   type Language,
   LANGUAGE_NAMES,
 } from "@/contexts/StudioContext";
