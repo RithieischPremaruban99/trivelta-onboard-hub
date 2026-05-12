@@ -115,13 +115,18 @@ export function derivePalette(atomic: AtomicPalette): TCMPalette {
   palette.winStatusGradient1 = atomic.wonColor;
   palette.winStatusGradient2 = adjustLightness(atomic.wonColor, -10);
   palette.winStatusBorderGradient1 = withAlpha(atomic.wonColor, 0.5);
-  palette.payoutWonColor = atomic.wonColor;
+  palette.payoutWonColor = adjustLightness(atomic.wonColor, 10); // slightly brighter than wonColor
+
+  // Secondary accent propagation
+  palette.secondary = atomic.secondary;
+  palette.boxGradientColorStart = atomic.boxGradientColorStart;
+  palette.boxGradientColorEnd = atomic.boxGradientColorEnd;
 
   // Action icon box
   palette.actionIconBoxBg = withAlpha(atomic.primary, 0.15);
 
-  // VS color
-  palette.vsColor = withAlpha(atomic.lightTextColor, 0.4);
+  // VS color — uses secondary so it matches the P2P/Discovery accent
+  palette.vsColor = atomic.secondary;
 
   return palette;
 }

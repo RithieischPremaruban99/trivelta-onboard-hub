@@ -406,10 +406,18 @@ export const StudioProvider: React.FC<{
 
   /** Replace entire palette (called after successful generate-palette response). */
   const setPalette = useCallback((newPalette: TCMPalette) => {
-    setPaletteState(newPalette);
+    // Re-apply any manual overrides on top of the new AI palette.
+    // manualOverrides tracks which fields the user changed manually —
+    // those values must survive AI re-generation.
+    setPaletteState((prev) => {
+      const overrideValues: Partial<TCMPalette> = {};
+      manualOverrides.forEach((field) => {
+        overrideValues[field] = prev[field];
+      });
+      return { ...newPalette, ...overrideValues };
+    });
     lastAIPaletteRef.current = newPalette;
-    // manualOverrides intentionally NOT cleared - overrides persist across AI generations
-  }, []);
+  }, [manualOverrides]);
 
   /** Snapshot current palette before an AI refinement is applied. */
   const pushPaletteSnapshot = useCallback((snapshot: TCMPalette) => {
