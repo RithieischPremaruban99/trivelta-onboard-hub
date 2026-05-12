@@ -76,22 +76,6 @@ export function AIChatPanel() {
     canUndo,
     undoLastChange,
     pushPaletteSnapshot,
-  } = useStudio();
-
-  const {
-    setPalette,
-    addBrandPrompt,
-    brandPromptHistory,
-    palette,
-    manualOverrides,
-    locked,
-    language,
-    appIcons,
-    setAppIcons,
-    appName,
-    canUndo,
-    undoLastChange,
-    pushPaletteSnapshot,
     chatMessages: persistedChatMessages,
     setChatMessages,
   } = useStudio();
