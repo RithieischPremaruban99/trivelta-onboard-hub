@@ -761,7 +761,7 @@ function getStatusPillStyle(status: string): React.CSSProperties {
   switch (status) {
     case "WON":  return { background: "var(--p-won-color)",  border: "none", color: "var(--p-dark)" };
     case "LOST": return { background: "var(--p-lost-color)", border: "none", color: "#fff" };
-    case "PENDING": return { background: "transparent", border: "1px solid var(--p-secondary)", color: "var(--p-secondary)" };
+    case "PENDING": return { background: "transparent", border: "1px solid var(--p-primary)", color: "var(--p-primary)" };
     default:     return { background: "transparent", border: "1px solid var(--p-text-secondary-color)", color: "var(--p-text-secondary-color)" };
   }
 }
@@ -975,7 +975,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
       const styles: Record<string, React.CSSProperties> = {
         WON:     { background: "var(--p-won-color)",  color: "rgba(0,0,0,0.85)", border: "none" },
         LOST:    { background: "var(--p-lost-color)", color: "rgba(255,255,255,0.93)", border: "none" },
-        PENDING: { background: "transparent", border: "1px solid var(--p-secondary)", color: "var(--p-secondary)" },
+        PENDING: { background: "transparent", border: "1px solid var(--p-primary)", color: "var(--p-primary)" },
       };
       return (
         <span
@@ -2129,7 +2129,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
             >
               <span
                 className="text-[8px] font-black px-1.5 py-0.5 rounded flex-shrink-0"
-                style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+                style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
               >
                 SGP
               </span>
@@ -2450,7 +2450,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   >
                     <span
                       className="text-[7px] font-black px-1 py-[1px] rounded mr-0.5"
-                      style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}
+                      style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
                     >
                       SGP
                     </span>
@@ -4473,7 +4473,7 @@ const MobilePreview = React.memo(function MobilePreview({
                       className="text-[9px] font-semibold flex items-center gap-0.5"
                       style={{ color: "var(--p-primary)" }}
                     >
-                      <span className="text-[7px] font-black px-1 py-[1px] rounded mr-0.5" style={{ background: "var(--p-secondary)", color: pickContrastText(palette.secondary || palette.primary) }}>SGP</span>
+                      <span className="text-[7px] font-black px-1 py-[1px] rounded mr-0.5" style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}>SGP</span>
                       MORE BETS <ChevronRight className="h-3 w-3" />
                     </button>
                   </div>
@@ -5643,7 +5643,7 @@ function SocialPostCard({ post, currencySymbol }: { post: SocialPost; currencySy
           <span
             className="text-[8.5px] font-black px-2.5 py-1 rounded-full flex-shrink-0"
             style={{
-              background: post.status === "PENDING" ? "var(--p-secondary)"
+              background: post.status === "PENDING" ? "var(--p-primary)"
                 : post.status === "WON" ? "var(--p-won-color)"
                 : post.status === "LOST" ? "var(--p-lost-color)"
                 : "var(--p-primary)",

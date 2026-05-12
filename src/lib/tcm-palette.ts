@@ -1212,7 +1212,7 @@ export const ADVANCED_FIELD_GROUPS: Record<string, (keyof TCMPalette)[]> = {
 export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
   primaryBackgroundColor: "App Background",
   primary: "Primary Color",
-  secondary: "Secondary Color",
+  secondary: "Secondary Color (P2P gradient accent)",
   primaryButton: "Button Fill",
   primaryButtonGradient: "Button Fill (gradient end)",
   boxGradientColorStart: "Banner Color (start)",
