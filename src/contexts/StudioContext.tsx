@@ -544,6 +544,8 @@ export const StudioProvider: React.FC<{
         pushPaletteSnapshot,
         undoLastChange,
         canUndo: paletteHistory.length > 0,
+        chatMessages,
+        setChatMessages,
       }}
     >
       {children}
