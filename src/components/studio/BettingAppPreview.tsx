@@ -857,29 +857,6 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const effectiveCurrencyName = isKMK ? "Ghana Cedi" : "Naira";
   const effectiveAppName = isKMK ? "MyBet.Africa" : appName;
   const [activeNav, setActiveNav] = useState(1); // 0=Feed, 1=Sports, 2=Discovery, 3=Casino, 4=P2P
-
-  // Web: auto-navigate to relevant view when Quick Edit field is focused
-  const WEB_FIELD_TO_NAV: Record<string, number> = {
-    // Sports view (nav 1) — match cards, odds buttons, My Bets panel, banner, tabs
-    primary: 1, primaryButton: 1, primaryButtonGradient: 1,
-    activeSecondaryGradientColor: 1,
-    dark: 1, darkContainerBackground: 1,
-    lightTextColor: 1, textSecondaryColor: 1,
-    wonColor: 1, lostColor: 1, payoutWonColor: 1,
-    borderAndGradientBg: 1, inactiveButtonBg: 1, inactiveTabUnderline: 1,
-    boxGradientColorStart: 1, boxGradientColorEnd: 1,
-    // Feed view (nav 0) — app background, nav labels visible
-    primaryBackgroundColor: 0, navbarLabel: 0, notificationSectionBg: 0,
-    // P2P view (nav 4) — secondary color used for VS badge
-    secondary: 4,
-    // Profile panel (nav 4 on web shows P2P, bets shown in Sports right panel)
-    modalBackground: 1,
-  };
-  useEffect(() => {
-    if (!previewFocusField) return;
-    const nav = WEB_FIELD_TO_NAV[previewFocusField];
-    if (nav !== undefined) { setActiveNav(nav); setSportsViewMode("main"); }
-  }, [previewFocusField]);
   const [activeSportSidebar, setActiveSportSidebar] = useState(0);
   const [activeSoccerTab, setActiveSoccerTab] = useState(0);
   const [activeLeague, setActiveLeague] = useState(0);
@@ -896,6 +873,22 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
   const [showProfile, setShowProfile] = useState(false);
   const [profileMainTab, setProfileMainTab] = useState(0); // 0=My Bets, 1=My Feed
   const [profileBetsFilter, setProfileBetsFilter] = useState(0); // 0=All, 1=Pending, 2=Settled, 3=P2P
+
+  // Auto-navigate preview to relevant view when Quick Edit field is focused
+  useEffect(() => {
+    if (!previewFocusField) return;
+    const WEB_FIELD_TO_NAV: Record<string, number> = {
+      primary: 1, primaryButton: 1, primaryButtonGradient: 1,
+      activeSecondaryGradientColor: 1, dark: 1, darkContainerBackground: 1,
+      lightTextColor: 1, textSecondaryColor: 1, wonColor: 1, lostColor: 1,
+      payoutWonColor: 1, borderAndGradientBg: 1, inactiveButtonBg: 1,
+      inactiveTabUnderline: 1, boxGradientColorStart: 1, boxGradientColorEnd: 1,
+      primaryBackgroundColor: 0, navbarLabel: 0, notificationSectionBg: 0,
+      secondary: 1, modalBackground: 1,
+    };
+    const nav = WEB_FIELD_TO_NAV[previewFocusField];
+    if (nav !== undefined) { setActiveNav(nav); setSportsViewMode("main"); }
+  }, [previewFocusField]);
 
   const statusLabel = (s: string) =>
     s === "WON" ? strings.STATUS_WON
@@ -5231,6 +5224,7 @@ function SportsView({
   activeBetType,
   setActiveBetType,
   onOpenAllSports,
+  matches,
 }: {
   appName: string;
   currencySymbol: string;
@@ -5243,6 +5237,7 @@ function SportsView({
   setActiveBetType: (n: number) => void;
   onOpenAllSports: () => void;
   onOpenBetDetail: () => void;
+  matches: typeof MATCHES;
 }) {
   const { strings, palette } = useStudio();
   return (
@@ -5403,7 +5398,7 @@ function SportsView({
         </div>
 
         <div className="space-y-2">
-          {MATCHES.slice(0, 4).map((m, i) => (
+          {matches.slice(0, 4).map((m, i) => (
             <div
               key={i}
               className="rounded-md p-2.5"
