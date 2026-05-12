@@ -237,37 +237,42 @@ export function AIChatPanel() {
       setLoading(true);
 
       try {
-        // Refinement = there's history AND the prompt explicitly looks like a tweak.
-        // New brand directions ("luxury crypto for mexico" after "casino in nigeria")
-        // are NOT refinements — they should generate fresh palettes.
-        const refinementVerbs = /\b(more|less|darker|lighter|brighter|adjust|change|make it|tweak|refine|shift|deeper|softer|punchier|warmer|cooler|bolder|saturate|desaturate)\b/i;
-        const isRefinement = brandPromptHistory.length > 0 && refinementVerbs.test(trimmed);
+        // Always send currentPalette after first generation —
+        // refinement vs. fresh decision is made entirely in the edge function.
+        // Frontend verb-detection was causing incoherence with edge function logic.
+        const hasExistingPalette = brandPromptHistory.length > 0;
 
-        // Send only user turns (assistant reasoning is heavy and not needed —
-        // model has currentPalette for state). Keep last 6 user turns,
-        // truncated to 200 chars each, to bound request size and latency.
+        // Send last 8 turns (both user + assistant) so AI sees its own prior responses.
+        // AI messages truncated harder (100 chars) since they're context, not instructions.
+        // User messages truncated to 300 chars.
         const conversationHistory = messagesRef.current
           .slice(1)
-          .filter((m) => m.role === "user")
-          .slice(-6)
+          .slice(-8)
           .map((m) => ({
             role: m.role,
-            content: m.content.slice(0, 200),
+            content: m.role === "user"
+              ? m.content.slice(0, 300)
+              : m.content.slice(0, 100),
           }));
 
         const palettePayload = {
           brandPrompt: trimmed,
           language,
           logoUrl: appIcons.appNameLogo || appIcons.topLeftAppIcon || undefined,
-          currentPalette: isRefinement ? palette : undefined,
+          currentPalette: hasExistingPalette ? palette : undefined,
           manualOverrides: Array.from(manualOverrides),
-          ...(isRefinement && { regenerationFeedback: trimmed }),
           ...(conversationHistory.length > 0 && { conversationHistory }),
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
 
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) throw new Error("No active session — please sign in again");
+
+        // 90-second timeout — edge function should complete well within this
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => {
+          abortController.abort();
+        }, 90_000);
 
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-palette`, {
           method: "POST",
@@ -277,7 +282,9 @@ export function AIChatPanel() {
             Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify(palettePayload),
+          signal: abortController.signal,
         });
+        clearTimeout(timeoutId);
 
         if (!res.ok || !res.body) {
           console.error("[AIChatPanel] generate-palette HTTP error:", res.status, res.statusText);
@@ -421,13 +428,18 @@ export function AIChatPanel() {
         }
       } catch (err) {
         console.error("[AIChatPanel] generate-palette threw:", err);
-        const errMsg = err instanceof Error ? err.message : "Unknown error";
-        toast.error(`Palette generation failed: ${errMsg}`);
+        const isTimeout = err instanceof Error && err.name === "AbortError";
+        const errMsg = isTimeout
+          ? "Request timed out after 90s — please try again"
+          : err instanceof Error ? err.message : "Unknown error";
+        toast.error(isTimeout ? "Request timed out — please try again" : `Palette generation failed: ${errMsg}`);
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: "Something went wrong generating your palette. Please try again.",
+            content: isTimeout
+              ? "The request took too long to complete. This sometimes happens during peak load. Please try again."
+              : "Something went wrong generating your palette. Please try again.",
             isError: true,
           },
         ]);
