@@ -13,6 +13,29 @@ interface ChatMessage {
   isError?: boolean;
   logoVariants?: LogoVariant[];
   isStreaming?: boolean;
+  suggestions?: string[];
+}
+
+const MAX_PERSISTED_MESSAGES = 30;
+
+function getSuggestions(prompt: string): string[] {
+  const lower = prompt.toLowerCase();
+  const operators = ["bet365", "sportybet", "betway", "hollywoodbets", "caliente", "betano"];
+  const markets = ["nigeria", "ghana", "kenya", "mexico", "brazil", "south africa"];
+
+  if (operators.some((o) => lower.includes(o))) {
+    return ["Inspired by, not exact copy", "Darker version", "Add gold accent"];
+  }
+  if (markets.some((m) => lower.includes(m))) {
+    return ["More premium for this market", "Brighter & bolder", "Add gold accent"];
+  }
+  if (lower.includes("dark")) {
+    return ["Even darker", "Darken background only", "Keep this, try warmer tones"];
+  }
+  if (lower.includes("light") || lower.includes("bright")) {
+    return ["Slightly darker", "Add more contrast", "Keep this, try cooler tones"];
+  }
+  return ["Make it darker", "Add gold accent", "More contrast"];
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
