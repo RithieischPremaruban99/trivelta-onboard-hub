@@ -342,6 +342,7 @@ export const StudioProvider: React.FC<{
   initialPalette?: TCMPalette;
   initialManualOverrides?: (keyof TCMPalette)[];
   initialBrandPromptHistory?: BrandPromptEntry[];
+  initialChatMessages?: PersistedChatMessage[];
   initialIcons?: StudioAppIcons;
   initialLanguage?: Language;
   initialAppName?: string;
