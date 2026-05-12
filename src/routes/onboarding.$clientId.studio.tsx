@@ -1465,6 +1465,7 @@ function StudioPage() {
           setInitialPalette({ ...DEFAULT_TCM_PALETTE, ...saved.palette });
           if (saved.manualOverrides) setInitialManualOverrides(saved.manualOverrides);
           if (saved.brandPromptHistory) setInitialBrandPromptHistory(saved.brandPromptHistory);
+          if (saved.chatMessages) setInitialChatMessages(saved.chatMessages);
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else if (saved.colors) {
           // Legacy format: has 'colors' key with old StudioThemeColors shape
