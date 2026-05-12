@@ -454,12 +454,14 @@ export function AIChatPanel() {
               const displayText =
                 reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
 
+              const suggestions = getSuggestions(trimmed);
               setMessages((prev) => {
                 const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
                 updated[updated.length - 1] = {
                   role: "assistant",
                   content: displayText,
                   isStreaming: false,
+                  suggestions,
                 };
                 return updated;
               });
