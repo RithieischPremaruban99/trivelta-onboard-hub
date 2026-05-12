@@ -2323,9 +2323,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-7 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5"
                 style={{
-                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                  background: activeLeague === i ? "var(--p-secondary)" : "transparent",
                   border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  color: activeLeague === i ? pickContrastText(palette.secondary || palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={13} /> {l}
@@ -2341,9 +2341,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-7 rounded text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                  background: activeBetType === i ? "var(--p-secondary)" : "transparent",
                   border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  color: activeBetType === i ? pickContrastText(palette.secondary || palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
@@ -4315,9 +4315,9 @@ const MobilePreview = React.memo(function MobilePreview({
                   onClick={() => setActiveSport(i)}
                   className="px-3 h-7 rounded-full text-[10px] font-semibold flex-shrink-0 flex items-center gap-1"
                   style={{
-                    background: active ? "var(--p-primary)" : "transparent",
+                    background: active ? "var(--p-secondary)" : "transparent",
                     border: "none",
-                    color: active ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                    color: active ? pickContrastText(palette.secondary || palette.primary) : "var(--p-text-secondary-color)",
                     fontWeight: active ? 700 : 500,
                   }}
                 >
@@ -4336,9 +4336,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
                 style={{
-                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                  background: activeLeague === i ? "var(--p-secondary)" : "transparent",
                   border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  color: activeLeague === i ? pickContrastText(palette.secondary || palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -4354,9 +4354,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-6 rounded text-[9.5px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                  background: activeBetType === i ? "var(--p-secondary)" : "transparent",
                   border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  color: activeBetType === i ? pickContrastText(palette.secondary || palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
