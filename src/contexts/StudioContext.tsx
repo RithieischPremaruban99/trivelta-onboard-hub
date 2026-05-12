@@ -374,8 +374,9 @@ export const StudioProvider: React.FC<{
   const [brandPromptHistory, setBrandPromptHistory] = useState<BrandPromptEntry[]>(
     initialBrandPromptHistory ?? [],
   );
-
-  // ── Undo stack: snapshots taken before each AI refinement ─────────────────
+  const [chatMessages, setChatMessages] = useState<PersistedChatMessage[]>(
+    initialChatMessages ?? [],
+  );
   const [paletteHistory, setPaletteHistory] = useState<TCMPalette[]>([]);
   const MAX_HISTORY = 10;
 
