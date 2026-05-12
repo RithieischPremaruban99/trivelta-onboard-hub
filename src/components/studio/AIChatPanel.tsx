@@ -237,10 +237,17 @@ export function AIChatPanel() {
       setLoading(true);
 
       try {
-        // Always send currentPalette after first generation —
-        // refinement vs. fresh decision is made entirely in the edge function.
-        // Frontend verb-detection was causing incoherence with edge function logic.
-        const hasExistingPalette = brandPromptHistory.length > 0;
+        // Detect "theme direction change" — user wants a completely different look.
+        // These must trigger fresh Sonnet generation, NOT Haiku refinement.
+        // Key signals: named colors/themes ("blue theme", "dark green", "gold casino"),
+        // explicit new-direction language ("completely", "instead", "different"),
+        // or "theme" keyword which almost always means a new direction.
+        const themeChangeSignals = /\b(theme|completely|totally|instead|new (?:color|palette|look|direction|brand)|go with|switch to|change (?:it )?to|make (?:it )?(?:a |more )?\w+ theme)\b/i;
+        const isThemeChange = themeChangeSignals.test(trimmed);
+
+        // Send currentPalette only for true refinements (not theme direction changes).
+        // Edge function uses currentPalette presence to decide refinement vs fresh.
+        const hasExistingPalette = brandPromptHistory.length > 0 && !isThemeChange;
 
         // Send last 8 turns (both user + assistant) so AI sees its own prior responses.
         // AI messages truncated harder (100 chars) since they're context, not instructions.
