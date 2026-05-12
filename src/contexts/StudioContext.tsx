@@ -218,11 +218,19 @@ export const defaultStudioAppIcons: StudioAppIcons = {
 // Saved config shape - expanded to hold both new and legacy formats
 // ---------------------------------------------------------------------------
 
+export interface PersistedChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  isError?: boolean;
+  suggestions?: string[];
+}
+
 export interface StudioSavedConfig {
   // New format (Phase 3+)
   palette?: Partial<TCMPalette>;
   manualOverrides?: (keyof TCMPalette)[];
   brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string; logoVariants?: LogoVariant[] }>;
+  chatMessages?: PersistedChatMessage[];
   // Legacy format (pre-Phase 3) - kept for backward compat reads
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
