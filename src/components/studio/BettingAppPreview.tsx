@@ -6075,8 +6075,10 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
 
   const paletteStyle = useMemo(
     () => ({
-      ...paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
+      // MYBET_OVERRIDES = fallback defaults for KMK only.
+      // palette spread AFTER so Quick Edit changes always take effect.
       ...(isKMK ? MYBET_OVERRIDES : {}),
+      ...paletteToInlineStyle(palette, { fontFamily: headingFont + ", sans-serif" }),
     }),
     [palette, headingFont, isKMK],
   );

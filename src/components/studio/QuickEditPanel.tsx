@@ -3,7 +3,6 @@ import { FIELD_LABELS } from "@/lib/tcm-palette";
 import { StudioColorField } from "./StudioColorField";
 import type { TCMPalette } from "@/lib/tcm-palette";
 
-// Background colors are fixed — the dark skin/layout cannot be changed by clients
 const LOCKED_FIELDS = new Set<keyof TCMPalette>([
   "primaryBackgroundColor",
   "dark",
@@ -37,6 +36,12 @@ const SECTIONS: { label: string; fields: (keyof TCMPalette)[] }[] = [
 export function QuickEditPanel() {
   const { locked, setPreviewFocusField } = useStudio();
 
+  // Use timestamp trick so clicking the same field twice always re-triggers navigation
+  const focusField = (fieldName: string) => {
+    setPreviewFocusField(null);
+    requestAnimationFrame(() => setPreviewFocusField(fieldName));
+  };
+
   return (
     <div className="py-2">
       {SECTIONS.map((section) => (
@@ -50,16 +55,14 @@ export function QuickEditPanel() {
               return (
                 <div
                   key={fieldName}
-                  onFocus={() => !isLayoutLocked && setPreviewFocusField(fieldName)}
+                  // onClick fires reliably (onFocus on div is unreliable with native color pickers)
+                  onClick={() => !isLayoutLocked && focusField(fieldName)}
                   title={isLayoutLocked ? "Fixed — dark layout cannot be changed" : undefined}
+                  className={isLayoutLocked ? undefined : "cursor-pointer"}
                 >
                   <StudioColorField
-                    fieldName={fieldName}
-                    label={
-                      isLayoutLocked
-                        ? `${FIELD_LABELS[fieldName]} 🔒`
-                        : FIELD_LABELS[fieldName]
-                    }
+                    fieldName={fieldName as keyof TCMPalette}
+                    label={isLayoutLocked ? `${FIELD_LABELS[fieldName]} 🔒` : FIELD_LABELS[fieldName]}
                     readOnly={locked || isLayoutLocked}
                   />
                 </div>
