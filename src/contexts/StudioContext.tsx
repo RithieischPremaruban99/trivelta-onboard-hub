@@ -355,6 +355,7 @@ export const StudioProvider: React.FC<{
   initialPalette,
   initialManualOverrides,
   initialBrandPromptHistory,
+  initialChatMessages,
   initialIcons,
   initialLanguage,
   initialAppName,
