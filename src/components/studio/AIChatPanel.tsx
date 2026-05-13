@@ -55,9 +55,9 @@ function isLogoRequest(text: string): boolean {
 
 function buildWelcomeMessage(hasLogo: boolean): string {
   if (hasLogo) {
-    return "I can see your logo is uploaded — I've extracted your brand colors and applied them to the preview. Describe your brand direction to refine the palette, or ask for adjustments like \"make it darker\" or \"add a gold accent\".";
+    return "Your logo is uploaded. Describe your brand direction and I'll generate a complete color palette that uses your logo's colors as the anchor. Try: \"dark premium casino for France\" or \"energetic sportsbook for Nigeria\".";
   }
-  return "Describe your brand in 1-2 sentences and I'll generate a complete color palette for your platform. You can also upload your logo in Brand Assets — I'll extract the colors automatically.";
+  return "Describe your brand in 1-2 sentences and I'll generate a complete color palette for your platform. You can also upload your logo in Brand Assets — I'll use its colors as the foundation.";
 }
 
 /* ── Component ────────────────────────────────────────────────────────────── */
