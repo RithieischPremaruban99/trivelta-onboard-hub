@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useStudio, type LogoVariant } from "@/contexts/StudioContext";
 import { type TCMPalette } from "@/lib/tcm-palette";
 import { supabase } from "@/integrations/supabase/client";
+import { streamGeneratePalette } from "@/lib/generate-palette-stream";
 import { cn } from "@/lib/utils";
 
 interface ChatMessage {
