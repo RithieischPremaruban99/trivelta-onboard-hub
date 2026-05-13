@@ -158,6 +158,13 @@ function buildSection1(
     bulletedListItem(rt(`Lock Timestamp: ${dateHuman}`)),
     bulletedListItem(rt(`Account Manager: ${amName ?? "Not assigned"}`)),
     bulletedListItem(rt(`Submitted By: ${submitterLine}`)),
+    bulletedListItem([
+      { text: { content: "Studio Link: " }, annotations: { bold: true } },
+      ...rtLink(
+        `https://trivelta-onboard-hub.lovable.app/onboarding/${clientId}/studio`,
+        `Open Studio →`
+      ),
+    ] as RichTextEntry[]),
   ];
 }
 
@@ -298,26 +305,54 @@ function buildSection4(language: string): object[] {
 }
 
 /** SECTION 5: TCM Color Configuration - Human Readable */
+/** SECTION 5: Key Brand Colors — Quick Edit fields only (17 fields, highest visual impact) */
+const QUICK_EDIT_NOTION_FIELDS: Array<[string, string]> = [
+  // Brand
+  ["primary",                      "Primary Color"],
+  ["primaryButton",                "Button Fill"],
+  ["secondary",                    "Secondary Color (P2P accent)"],
+  ["activeSecondaryGradientColor", "Action Button Color"],
+  // Backgrounds (locked — dark skin, shown for reference)
+  ["primaryBackgroundColor",       "App Background 🔒"],
+  ["dark",                         "Card Background 🔒"],
+  ["darkContainerBackground",      "Odds Button Background 🔒"],
+  ["modalBackground",              "Panel Background 🔒"],
+  // Text
+  ["lightTextColor",               "Primary Text"],
+  ["textSecondaryColor",           "Secondary Text"],
+  // Status
+  ["wonColor",                     "Won ✓"],
+  ["lostColor",                    "Lost ✗"],
+  // Accents
+  ["borderAndGradientBg",          "Borders & Dividers"],
+  ["inactiveButtonBg",             "Icon & Dot Background"],
+  ["inactiveTabUnderline",         "Active Tab Indicator"],
+  ["boxGradientColorStart",        "Banner Color (start)"],
+  ["boxGradientColorEnd",          "Banner Color (end)"],
+];
+
 function buildSection5(palette: Record<string, string>): object[] {
   const blocks: object[] = [
-    heading2("5. TCM Color Configuration (Human Readable)"),
-    paragraph(rt("All 344 color fields organized by functional group.", { italic: true })),
+    heading2("5. Brand Colors — Key Fields"),
+    paragraph(rt("17 most impactful color fields. Locked fields (🔒) are fixed by the dark skin and cannot be changed.", { italic: true })),
   ];
 
-  for (const [groupName, fields] of Object.entries(ADVANCED_FIELD_GROUPS)) {
-    const fieldCount = fields.length;
-    blocks.push(heading3(`${groupName} (${fieldCount})`));
-
-    for (const fieldName of fields) {
-      const label = FIELD_LABELS[fieldName] ?? String(fieldName);
-      const value = palette[fieldName] ?? (DEFAULT_TCM_PALETTE as unknown as Record<string, string>)[fieldName] ?? "";
-      blocks.push(
-        paragraph([
-          { text: { content: label + ": " }, annotations: { bold: true } },
-          { text: { content: value }, annotations: { code: true } },
-        ] as RichTextEntry[])
-      );
-    }
+  for (const [fieldName, label] of QUICK_EDIT_NOTION_FIELDS) {
+    const value = palette[fieldName] ?? (DEFAULT_TCM_PALETTE as unknown as Record<string, string>)[fieldName] ?? "";
+    // Convert rgba to hex for readability
+    const hexMatch = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    const hex = hexMatch
+      ? "#" + [hexMatch[1], hexMatch[2], hexMatch[3]]
+          .map((n) => parseInt(n).toString(16).padStart(2, "0"))
+          .join("").toUpperCase()
+      : value;
+    blocks.push(
+      paragraph([
+        { text: { content: `${label}: ` }, annotations: { bold: true } },
+        { text: { content: hex }, annotations: { code: true } },
+        { text: { content: `  (${value})` }, annotations: { color: "gray" } },
+      ] as RichTextEntry[])
+    );
   }
 
   return blocks;
@@ -362,6 +397,45 @@ function buildSection7(config: StudioConfig): object[] {
 }
 
 /** Build the complete block list for the Notion page append */
+/** BRAND PROMPT HISTORY — what the operator told the AI Chat */
+function buildBrandPromptSection(config: StudioConfig): object[] {
+  const history = config.brandPromptHistory as unknown as Array<{
+    prompt: string;
+    reasoning?: string;
+    keyColorsSummary?: string;
+    createdAt?: string;
+  }> | undefined;
+
+  if (!history || history.length === 0) {
+    return [
+      heading2("Brand Direction (AI Chat)"),
+      paragraph(rt("No AI Chat prompts recorded.", { italic: true })),
+    ];
+  }
+
+  const blocks: object[] = [
+    heading2("Brand Direction (AI Chat)"),
+    paragraph(rt("What the operator described to the AI when generating their palette.", { italic: true })),
+  ];
+
+  // Most recent first, max 5
+  const recent = [...history].reverse().slice(0, 5);
+  for (const entry of recent) {
+    blocks.push(bulletedListItem([
+      { text: { content: "Prompt: " }, annotations: { bold: true } },
+      { text: { content: entry.prompt } },
+    ] as RichTextEntry[]));
+    if (entry.keyColorsSummary) {
+      blocks.push(bulletedListItem([
+        { text: { content: "AI Summary: " }, annotations: { bold: true, color: "gray" } },
+        { text: { content: entry.keyColorsSummary }, annotations: { color: "gray" } },
+      ] as RichTextEntry[]));
+    }
+  }
+
+  return blocks;
+}
+
 function buildAllBlocks(
   config: StudioConfig,
   lockedAt: string,
@@ -401,13 +475,16 @@ function buildAllBlocks(
     divider(),
     ...buildSection2(config),
     divider(),
-    ...buildSection3(config),
+    // Brand Prompt History — what the operator told the AI
+    ...buildBrandPromptSection(config),
     divider(),
-    ...buildSection4(language),
-    divider(),
+    // Key brand colors (17 Quick Edit fields) — human readable
     ...buildSection5(palette),
     divider(),
+    // Full palette JSON — for DevOps to paste into TCM runtime
     ...buildSection6(palette),
+    divider(),
+    ...buildSection3(config),
     divider(),
     ...buildSection7(config),
   ];
