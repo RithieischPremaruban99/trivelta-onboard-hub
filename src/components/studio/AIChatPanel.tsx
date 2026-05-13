@@ -55,9 +55,9 @@ function isLogoRequest(text: string): boolean {
 
 function buildWelcomeMessage(hasLogo: boolean): string {
   if (hasLogo) {
-    return "Hi! I'm your Trivelta Assistant. I can see your logo is already uploaded. Describe your brand direction and I'll generate a complete color palette that complements it. Want me to generate alternative logos too? Just ask.";
+    return "I can see your logo is uploaded — I've extracted your brand colors and applied them to the preview. Describe your brand direction to refine the palette, or ask for adjustments like \"make it darker\" or \"add a gold accent\".";
   }
-  return "Hi! I'm your Trivelta Assistant - your brand designer. Describe your platform in 1-2 sentences and I'll generate a complete color palette. I can also generate logos - just ask \"create a logo for BetNova\". Or upload your own logo in Brand Assets.";
+  return "Describe your brand in 1-2 sentences and I'll generate a complete color palette for your platform. You can also upload your logo in Brand Assets — I'll extract the colors automatically.";
 }
 
 /* ── Component ────────────────────────────────────────────────────────────── */
@@ -411,11 +411,78 @@ export function AIChatPanel() {
                 };
                 return updated;
               });
-            } else {
-              setMessages((prev) => [
-                ...prev,
-                { role: "assistant", content: "Response ended unexpectedly. Please try again.", isError: true },
-              ]);
+            } else if (evt.type === "conversational" && typeof evt.message === "string") {
+              // Conversational reply — no palette change
+              streamCompleted = true;
+              setLoading(false);
+              setMessages((prev) => {
+                const updated = streamingStarted
+                  ? [...prev]
+                  : [...prev, { role: "assistant" as const, content: "" }];
+                updated[updated.length - 1] = {
+                  role: "assistant",
+                  content: evt.message as string,
+                  isStreaming: false,
+                };
+                return updated;
+              });
+              reader.cancel().catch(() => {});
+              break outer;
+            } else if (evt.type === "complete" && evt.palette) {
+              streamCompleted = true;
+              pushPaletteSnapshot(palette);
+              setPalette(evt.palette as TCMPalette);
+              const reasoning =
+                typeof evt.reasoning === "string" ? evt.reasoning : undefined;
+              const keyColorsSummary =
+                typeof evt.keyColorsSummary === "string" ? evt.keyColorsSummary : undefined;
+              addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
+              const displayText =
+                reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
+
+              setMessages((prev) => {
+                const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
+                updated[updated.length - 1] = {
+                  role: "assistant",
+                  content: displayText,
+                  isStreaming: false,
+                };
+                return updated;
+              });
+
+              if (Array.isArray(evt.warnings) && evt.warnings.length > 0) {
+                // Show warnings as persistent chat message, not a disappearing toast
+                const warningText = evt.warnings
+                  .map((w: string) => `⚠️ ${w}`)
+                  .join("\n");
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    role: "assistant" as const,
+                    content: `Note: ${warningText}`,
+                    isError: false,
+                  },
+                ]);
+              }
+              reader.cancel().catch(() => {});
+              break outer;
+            } else if (evt.type === "error") {
+              streamCompleted = true;
+              const streamErr = typeof evt.message === "string" ? evt.message : JSON.stringify(evt);
+              console.error("[AIChatPanel] generate-palette stream error:", streamErr);
+              toast.error(`Palette generation failed: ${streamErr}`);
+              setMessages((prev) => {
+                const base = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
+                base[base.length - 1] = {
+                  role: "assistant",
+                  content: "Something went wrong generating your palette. Please try again.",
+                  isError: true,
+                  isStreaming: false,
+                };
+                return base;
+              });
+              reader.cancel().catch(() => {});
+              break outer;
             }
           },
         });
