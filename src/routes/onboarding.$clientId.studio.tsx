@@ -831,6 +831,7 @@ export function StudioInner({
               )}
             </div>
           )}
+          <InviteTeamDialog clientId={clientId} />
           {shouldShowPill && (
             <button
               onClick={locked ? () => setUnlockConfirmOpen(true) : handleAdminLock}
