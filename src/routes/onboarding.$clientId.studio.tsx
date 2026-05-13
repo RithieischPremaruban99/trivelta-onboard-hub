@@ -28,6 +28,7 @@ import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
 import { AdvancedModePanel } from "@/components/studio/AdvancedModePanel";
 import { AccordionSection } from "@/components/studio/AccordionSection";
 import { LandingPageGenerator } from "@/components/studio/LandingPageGenerator";
+import { InviteTeamDialog } from "@/components/studio/InviteTeamDialog";
 import { useStudioFeatures } from "@/hooks/useStudioFeatures";
 import {
   DEFAULT_STUDIO_FEATURES,
