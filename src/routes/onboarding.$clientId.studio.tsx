@@ -21,6 +21,7 @@ import {
 } from "@/contexts/StudioContext";
 import { type TCMPalette, DEFAULT_TCM_PALETTE } from "@/lib/tcm-palette";
 import { derivePalette, type AtomicPalette } from "@/lib/derive-palette";
+import { streamGeneratePalette } from "@/lib/generate-palette-stream";
 import BettingAppPreview from "@/components/studio/BettingAppPreview";
 import { AIChatPanel } from "@/components/studio/AIChatPanel";
 import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
