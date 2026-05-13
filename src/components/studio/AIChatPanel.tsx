@@ -328,169 +328,96 @@ export function AIChatPanel() {
         };
         console.log("[AIChatPanel] Calling generate-palette with:", palettePayload);
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) throw new Error("No active session — please sign in again");
-
-        // 90-second timeout — edge function should complete well within this
-        const abortController = new AbortController();
-        const timeoutId = setTimeout(() => {
-          abortController.abort();
-        }, 90_000);
-
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-palette`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify(palettePayload),
-          signal: abortController.signal,
-        });
-        clearTimeout(timeoutId);
-
-        if (!res.ok || !res.body) {
-          console.error("[AIChatPanel] generate-palette HTTP error:", res.status, res.statusText);
-          throw new Error(`HTTP ${res.status}`);
-        }
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
         let streamingStarted = false;
-        let streamedReasoning = "";
-        let streamCompleted = false;
 
-        outer: while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            // Stream closed without a complete/error/conversational event (network drop, edge crash)
-            if (!streamCompleted) {
-              if (streamingStarted) {
-                // Clear the dangling isStreaming cursor
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  updated[updated.length - 1] = {
-                    ...updated[updated.length - 1],
-                    content: updated[updated.length - 1].content.trim() || "Response ended unexpectedly. Please try again.",
-                    isStreaming: false,
-                    isError: !updated[updated.length - 1].content.trim(),
-                  };
-                  return updated;
-                });
-              } else {
-                setMessages((prev) => [
-                  ...prev,
-                  { role: "assistant", content: "Response ended unexpectedly. Please try again.", isError: true },
-                ]);
-              }
+        await streamGeneratePalette(palettePayload, {
+          onReasoningChunk: (_chunk, accumulated) => {
+            if (!streamingStarted) {
+              streamingStarted = true;
+              setLoading(false);
+              setMessages((prev) => [
+                ...prev,
+                { role: "assistant", content: "", isStreaming: true },
+              ]);
             }
-            break;
-          }
-
-          buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split("\n\n");
-          buffer = parts.pop() ?? "";
-
-          for (const part of parts) {
-            if (!part.startsWith("data: ")) continue;
-            const jsonStr = part.slice(6).trim();
-            if (!jsonStr) continue;
-
-            let evt: Record<string, unknown>;
-            try {
-              evt = JSON.parse(jsonStr);
-            } catch {
-              continue;
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: accumulated,
+              };
+              return updated;
+            });
+          },
+          onConversational: (message) => {
+            setLoading(false);
+            setMessages((prev) => {
+              const updated = streamingStarted
+                ? [...prev]
+                : [...prev, { role: "assistant" as const, content: "" }];
+              updated[updated.length - 1] = {
+                role: "assistant",
+                content: message,
+                isStreaming: false,
+              };
+              return updated;
+            });
+          },
+          onComplete: ({ palette: newPalette, reasoning, keyColorsSummary, warnings }) => {
+            pushPaletteSnapshot(palette);
+            setPalette(newPalette);
+            addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
+            const displayText =
+              reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
+            const suggestions = getSuggestions(trimmed);
+            setMessages((prev) => {
+              const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
+              updated[updated.length - 1] = {
+                role: "assistant",
+                content: displayText,
+                isStreaming: false,
+                suggestions,
+              };
+              return updated;
+            });
+            if (warnings && warnings.length > 0) {
+              toast.warning(warnings.join("; "), { duration: 4000 });
             }
-
-            if (evt.type === "thinking_chunk") {
-              // Extended thinking in progress — model is reasoning deeply, no UI action needed
-              // (loading spinner already visible; thinking content is internal reasoning, not shown)
-            } else if (evt.type === "reasoning_chunk" && typeof evt.text === "string") {
-              if (!streamingStarted) {
-                streamingStarted = true;
-                setLoading(false);
-                setMessages((prev) => [
-                  ...prev,
-                  { role: "assistant", content: "", isStreaming: true },
-                ]);
-              }
-              streamedReasoning += evt.text;
+          },
+          onError: (streamErr) => {
+            console.error("[AIChatPanel] generate-palette stream error:", streamErr);
+            toast.error(`Palette generation failed: ${streamErr}`);
+            setMessages((prev) => {
+              const base = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
+              base[base.length - 1] = {
+                role: "assistant",
+                content: "Something went wrong generating your palette. Please try again.",
+                isError: true,
+                isStreaming: false,
+              };
+              return base;
+            });
+          },
+          onStreamEndedUnexpectedly: (hadStarted) => {
+            if (hadStarted) {
               setMessages((prev) => {
                 const updated = [...prev];
                 updated[updated.length - 1] = {
                   ...updated[updated.length - 1],
-                  content: streamedReasoning,
+                  content: updated[updated.length - 1].content.trim() || "Response ended unexpectedly. Please try again.",
+                  isStreaming: false,
+                  isError: !updated[updated.length - 1].content.trim(),
                 };
                 return updated;
               });
-            } else if (evt.type === "conversational" && typeof evt.message === "string") {
-              // Conversational reply — no palette change
-              streamCompleted = true;
-              setLoading(false);
-              setMessages((prev) => {
-                const updated = streamingStarted
-                  ? [...prev]
-                  : [...prev, { role: "assistant" as const, content: "" }];
-                updated[updated.length - 1] = {
-                  role: "assistant",
-                  content: evt.message as string,
-                  isStreaming: false,
-                };
-                return updated;
-              });
-              reader.cancel().catch(() => {});
-              break outer;
-            } else if (evt.type === "complete" && evt.palette) {
-              streamCompleted = true;
-              pushPaletteSnapshot(palette);
-              setPalette(evt.palette as TCMPalette);
-              const reasoning =
-                typeof evt.reasoning === "string" ? evt.reasoning : undefined;
-              const keyColorsSummary =
-                typeof evt.keyColorsSummary === "string" ? evt.keyColorsSummary : undefined;
-              addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
-              const displayText =
-                reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
-
-              const suggestions = getSuggestions(trimmed);
-              setMessages((prev) => {
-                const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
-                updated[updated.length - 1] = {
-                  role: "assistant",
-                  content: displayText,
-                  isStreaming: false,
-                  suggestions,
-                };
-                return updated;
-              });
-
-              if (Array.isArray(evt.warnings) && evt.warnings.length > 0) {
-                toast.warning((evt.warnings as string[]).join("; "), { duration: 4000 });
-              }
-              reader.cancel().catch(() => {});
-              break outer;
-            } else if (evt.type === "error") {
-              streamCompleted = true;
-              const streamErr = typeof evt.message === "string" ? evt.message : JSON.stringify(evt);
-              console.error("[AIChatPanel] generate-palette stream error:", streamErr);
-              toast.error(`Palette generation failed: ${streamErr}`);
-              setMessages((prev) => {
-                const base = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
-                base[base.length - 1] = {
-                  role: "assistant",
-                  content: "Something went wrong generating your palette. Please try again.",
-                  isError: true,
-                  isStreaming: false,
-                };
-                return base;
-              });
-              reader.cancel().catch(() => {});
-              break outer;
+            } else {
+              setMessages((prev) => [
+                ...prev,
+                { role: "assistant", content: "Response ended unexpectedly. Please try again.", isError: true },
+              ]);
             }
-          }
-        }
+          },
+        });
       } catch (err) {
         console.error("[AIChatPanel] generate-palette threw:", err);
         const isTimeout = err instanceof Error && err.name === "AbortError";
