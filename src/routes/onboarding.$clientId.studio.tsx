@@ -21,6 +21,7 @@ import {
 } from "@/contexts/StudioContext";
 import { type TCMPalette, DEFAULT_TCM_PALETTE } from "@/lib/tcm-palette";
 import { derivePalette, type AtomicPalette } from "@/lib/derive-palette";
+import { streamGeneratePalette } from "@/lib/generate-palette-stream";
 import BettingAppPreview from "@/components/studio/BettingAppPreview";
 import { AIChatPanel } from "@/components/studio/AIChatPanel";
 import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
@@ -124,9 +125,50 @@ function AssetUploadZone({
   readOnly?: boolean;
   compact?: boolean;
 }) {
-  const { setAppIcons } = useStudio();
+  const { setAppIcons, setPalette, language } = useStudio();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [extractingPalette, setExtractingPalette] = useState(false);
+
+  const extractPaletteFromLogo = async (logoUrl: string) => {
+    setExtractingPalette(true);
+    const extractToast = toast.loading("Extracting brand colors from your logo...");
+    try {
+      await streamGeneratePalette(
+        {
+          brandPrompt:
+            "Extract the dominant brand colors from this logo and build a complete dark sportsbook palette around them. Use the logo's primary color as the exact anchor for the primary field.",
+          language,
+          logoUrl,
+        },
+        {
+          onComplete: ({ palette: newPalette }) => {
+            setPalette(newPalette);
+            toast.success("Brand colors extracted from logo ✓", { id: extractToast });
+          },
+          onError: () => {
+            toast.error(
+              "Could not extract colors — describe your brand in the AI Chat instead",
+              { id: extractToast },
+            );
+          },
+          onStreamEndedUnexpectedly: () => {
+            toast.error(
+              "Could not extract colors — describe your brand in the AI Chat instead",
+              { id: extractToast },
+            );
+          },
+        },
+      );
+    } catch {
+      toast.error(
+        "Could not extract colors — describe your brand in the AI Chat instead",
+        { id: extractToast },
+      );
+    } finally {
+      setExtractingPalette(false);
+    }
+  };
 
   const applyFile = (file: File) => {
     if (readOnly) return;
@@ -135,10 +177,13 @@ function AssetUploadZone({
       const url = ev.target?.result as string;
       if (type === "logo") {
         setAppIcons((prev) => ({ ...prev, appNameLogo: url, topLeftAppIcon: url }));
+        toast.success(`${label} applied`, { duration: 1500 });
+        // Auto-extract brand palette from logo (async, non-blocking)
+        void extractPaletteFromLogo(url);
       } else {
         setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
+        toast.success(`${label} applied`, { duration: 1500 });
       }
-      toast.success(`${label} applied`, { duration: 1500 });
     };
     reader.readAsDataURL(file);
   };
@@ -202,9 +247,14 @@ function AssetUploadZone({
               >
                 {label}
               </div>
-              {!readOnly && (
+              {extractingPalette && type === "logo" ? (
+                <div className="text-[10px] text-primary flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  Extracting brand colors…
+                </div>
+              ) : !readOnly ? (
                 <div className="text-[10px] text-muted-foreground">Click to replace</div>
-              )}
+              ) : null}
             </div>
           </div>
         ) : (
