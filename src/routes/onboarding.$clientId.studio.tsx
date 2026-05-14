@@ -73,6 +73,8 @@ import {
   AlertTriangle,
   FileText,
   Trophy,
+  Settings,
+
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
