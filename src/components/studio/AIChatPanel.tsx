@@ -306,11 +306,18 @@ export function AIChatPanel() {
         // explicit new-direction language ("completely", "instead", "different"),
         // or "theme" keyword which almost always means a new direction.
         const themeChangeSignals = /\b(theme|completely|totally|instead|new (?:color|palette|look|direction|brand)|go with|switch to|change (?:it )?to|make (?:it )?(?:a |more )?\w+ theme)\b/i;
-        const isThemeChange = themeChangeSignals.test(trimmed);
 
-        // Send currentPalette only for true refinements (not theme direction changes).
-        // Edge function uses currentPalette presence to decide refinement vs fresh.
-        const hasExistingPalette = brandPromptHistory.length > 0 && !isThemeChange;
+        // Operator references always force full Sonnet generation —
+        // operator color injection + existing palette is too complex for Haiku
+        const operatorNames = ["bet365","sportybet","betway","hollywoodbets","caliente",
+          "betano","bet9ja","1xbet","stake","unibet","partouche","tipico","betika",
+          "sportpesa","ladbrokes","william hill","draftkings","fanduel","parimatch",
+          "supabets","betking","pixbet","codere","bwin"];
+        const mentionsOperator = operatorNames.some(o => trimmed.toLowerCase().includes(o));
+
+        const isThemeChange = themeChangeSignals.test(trimmed) || mentionsOperator;
+
+        const hasExistingPalette = brandPromptHistory.length > 0;
 
         // Send last 8 turns (both user + assistant) so AI sees its own prior responses.
         // AI messages truncated harder (100 chars) since they're context, not instructions.
