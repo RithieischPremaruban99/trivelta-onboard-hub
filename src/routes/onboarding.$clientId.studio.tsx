@@ -119,12 +119,14 @@ function AssetUploadZone({
   currentUrl,
   readOnly = false,
   compact = false,
+  clientId,
 }: {
   label: string;
   type: "logo" | "icon";
   currentUrl: string | null;
   readOnly?: boolean;
   compact?: boolean;
+  clientId: string;
 }) {
   const { setAppIcons, setPalette, language } = useStudio();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -170,8 +172,6 @@ function AssetUploadZone({
       setExtractingPalette(false);
     }
   };
-
-  const { clientId } = useParams({ from: "/onboarding/$clientId/studio" });
 
   const uploadToStorage = async (file: File): Promise<string | null> => {
     try {
@@ -988,6 +988,7 @@ export function StudioInner({
                       currentUrl={appIcons.appNameLogo}
                       readOnly={locked}
                       compact
+                      clientId={clientId}
                     />
                     <AssetUploadZone
                       label="App Icon"
@@ -995,6 +996,7 @@ export function StudioInner({
                       currentUrl={appIcons.topLeftAppIcon}
                       readOnly={locked}
                       compact
+                      clientId={clientId}
                     />
                   </div>
                 </div>
