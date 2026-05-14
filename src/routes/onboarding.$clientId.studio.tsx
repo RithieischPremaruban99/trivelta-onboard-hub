@@ -516,7 +516,7 @@ export function StudioInner({
   const [locking, setLocking] = useState(false);
   const [unlockConfirmOpen, setUnlockConfirmOpen] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
-  type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | "sportCategories" | null;
+  type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | "sportCategories" | "appConfig" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
 
