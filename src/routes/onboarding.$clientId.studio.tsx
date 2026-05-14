@@ -499,6 +499,7 @@ export function StudioInner({
     setAppName,
     canLock,
     chatMessages,
+    sportCategories,
   } = useStudio();
 
   /* ── State ── */
