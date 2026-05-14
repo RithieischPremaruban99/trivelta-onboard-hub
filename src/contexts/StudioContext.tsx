@@ -191,6 +191,8 @@ export interface StudioAppLabels {
   socialCasino: string;
   profile: string;
   signIn: string;
+  welcomeBonusHeadline?: string;
+  welcomeBonusDescription?: string;
 }
 
 const defaultAppLabels: StudioAppLabels = {
