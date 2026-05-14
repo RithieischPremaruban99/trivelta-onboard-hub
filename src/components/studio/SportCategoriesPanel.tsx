@@ -101,8 +101,9 @@ function SortableRow({
   );
 }
 
-export function SportCategoriesPanel() {
-  const { sportCategories, setSportCategories, locked } = useStudio();
+export function SportCategoriesPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
+  const { sportCategories, setSportCategories, locked: ctxLocked } = useStudio();
+  const locked = ctxLocked || readOnly;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const enabledCount = sportCategories.filter((s) => s.enabled).length;
