@@ -727,6 +727,7 @@ export function StudioInner({
             manualOverrides: Array.from(manualOverrides),
             brandPromptHistory,
             chatMessages,
+            sportCategories,
             icons: appIcons,
             language,
             appName,
