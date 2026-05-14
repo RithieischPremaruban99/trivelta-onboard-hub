@@ -1573,6 +1573,7 @@ function StudioPage() {
           if (saved.manualOverrides) setInitialManualOverrides(saved.manualOverrides);
           if (saved.brandPromptHistory) setInitialBrandPromptHistory(saved.brandPromptHistory);
           if (saved.chatMessages) setInitialChatMessages(saved.chatMessages);
+          if (saved.sportCategories) setInitialSportCategories(saved.sportCategories);
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else if (saved.colors) {
           // Legacy format: has 'colors' key with old StudioThemeColors shape
