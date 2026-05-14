@@ -443,12 +443,22 @@ export const StudioProvider: React.FC<{
 
   // ── Strings ────────────────────────────────────────────────────────────────
   const strings = useMemo(
-    () =>
-      getStrings(language, {
+    () => {
+      const base = getStrings(language, {
         APP_NAME: appName,
-        CURRENCY_SYMBOL: defaultAppLabels.currencySymbol,
-      }),
-    [language, appName],
+        CURRENCY_SYMBOL: appLabels.currencySymbol || defaultAppLabels.currencySymbol,
+      });
+      const overrides: Partial<TCMStrings> = {};
+      if (appLabels.welcomeBonusHeadline) {
+        overrides.WELCOME_BONUS_PROMO = appLabels.welcomeBonusHeadline;
+      }
+      if (appLabels.welcomeBonusDescription) {
+        overrides.WELCOME_BONUS_BODY_WEB = appLabels.welcomeBonusDescription;
+        overrides.WELCOME_BONUS_BODY_MOBILE = appLabels.welcomeBonusDescription;
+      }
+      return { ...base, ...overrides };
+    },
+    [language, appName, appLabels.currencySymbol, appLabels.welcomeBonusHeadline, appLabels.welcomeBonusDescription],
   );
 
   // ── Palette helpers ────────────────────────────────────────────────────────
