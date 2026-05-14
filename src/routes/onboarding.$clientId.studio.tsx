@@ -28,6 +28,7 @@ import { AIChatPanel } from "@/components/studio/AIChatPanel";
 import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
 import { AdvancedModePanel } from "@/components/studio/AdvancedModePanel";
 import { SportCategoriesPanel } from "@/components/studio/SportCategoriesPanel";
+import { AppConfigPanel } from "@/components/studio/AppConfigPanel";
 import { AccordionSection } from "@/components/studio/AccordionSection";
 import { LandingPageGenerator } from "@/components/studio/LandingPageGenerator";
 import { InviteTeamDialog } from "@/components/studio/InviteTeamDialog";
