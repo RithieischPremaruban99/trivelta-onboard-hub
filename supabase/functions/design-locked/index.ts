@@ -206,10 +206,27 @@ function buildSection2(config: StudioConfig): object[] {
     blocks.push(bulletedListItem(rt("App Icon URL: Not uploaded")));
   }
 
+  if (iconUrl) {
+    // already handled above
+  }
+
+  // Sport Categories (operator-customised order, names, and visibility)
+  const sports = config.sportCategories;
+  if (sports && sports.length > 0) {
+    const enabled = sports.filter((s) => s.enabled);
+    blocks.push(bulletedListItem(rt(
+      `Sport Categories: ${enabled.length} of ${sports.length} enabled (operator-ordered)`,
+    )));
+    sports.forEach((s, idx) => {
+      const status = s.enabled ? "" : " — hidden";
+      blocks.push(bulletedListItem(rt(
+        `  ${idx + 1}. ${s.emoji} ${s.name} (${s.id})${status}`,
+      )));
+    });
+  }
+
   return blocks;
 }
-
-/** SECTION 3: App Labels Overrides */
 function buildSection3(config: StudioConfig): object[] {
   const blocks: object[] = [heading2("3. App Labels Overrides")];
   const appLabels = config.appLabels;
