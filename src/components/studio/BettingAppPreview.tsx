@@ -846,7 +846,8 @@ const LIVE_TABLE_TENNIS: LiveRacketMatch[] = [
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
 const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string }) {
-  const { strings: rawStrings, palette, previewFocusField } = useStudio();
+  const { strings: rawStrings, palette, previewFocusField, sportCategories } = useStudio();
+  const activeSports = sportCategories.filter(s => s.enabled).map(s => ({ name: s.name, count: s.count, flag: s.emoji }));
   const isKMK = clientId === KMK_CLIENT_ID;
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
