@@ -549,6 +549,7 @@ export function StudioInner({
       manualOverrides: Array.from(manualOverrides),
       brandPromptHistory,
       chatMessages,
+      sportCategories,
       icons: appIcons,
       language,
       appName,
@@ -560,7 +561,7 @@ export function StudioInner({
         { client_id: clientId, studio_config: payload as never },
         { onConflict: "client_id" },
       );
-  }, [clientId, palette, manualOverrides, brandPromptHistory, chatMessages, appIcons, language, appName, appLabels]);
+  }, [clientId, palette, manualOverrides, brandPromptHistory, chatMessages, sportCategories, appIcons, language, appName, appLabels]);
 
   const scheduleAutoSave = useCallback(
     (
