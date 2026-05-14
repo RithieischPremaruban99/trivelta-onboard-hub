@@ -171,22 +171,52 @@ function AssetUploadZone({
     }
   };
 
-  const applyFile = (file: File) => {
+  const { clientId } = useParams({ from: "/onboarding/$clientId/studio" });
+
+  const uploadToStorage = async (file: File): Promise<string | null> => {
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `logos/${clientId}/${Date.now()}-${safeName}`;
+      const { error } = await supabase.storage
+        .from("studio-assets")
+        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("studio-assets").getPublicUrl(path);
+      return data.publicUrl ?? null;
+    } catch (err) {
+      console.warn("[studio] storage upload failed, falling back to base64", err);
+      return null;
+    }
+  };
+
+  const readAsDataUri = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve(ev.target?.result as string);
+      reader.onerror = () => reject(new Error("read failed"));
+      reader.readAsDataURL(file);
+    });
+
+  const applyFile = async (file: File) => {
     if (readOnly) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const url = ev.target?.result as string;
-      if (type === "logo") {
-        setAppIcons((prev) => ({ ...prev, appNameLogo: url, topLeftAppIcon: url }));
-        toast.success(`${label} applied`, { duration: 1500 });
-        // Auto-extract brand palette from logo (async, non-blocking)
-        void extractPaletteFromLogo(url);
-      } else {
-        setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url }));
-        toast.success(`${label} applied`, { duration: 1500 });
+    let url = await uploadToStorage(file);
+    if (!url) {
+      try {
+        url = await readAsDataUri(file);
+      } catch {
+        toast.error(`Could not read ${label.toLowerCase()}`);
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+    }
+    if (type === "logo") {
+      setAppIcons((prev) => ({ ...prev, appNameLogo: url!, topLeftAppIcon: url! }));
+      toast.success(`${label} applied`, { duration: 1500 });
+      // Auto-extract brand palette from logo (async, non-blocking)
+      void extractPaletteFromLogo(url);
+    } else {
+      setAppIcons((prev) => ({ ...prev, topLeftAppIcon: url! }));
+      toast.success(`${label} applied`, { duration: 1500 });
+    }
   };
 
   return (
