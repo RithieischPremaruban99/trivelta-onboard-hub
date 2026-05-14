@@ -40,6 +40,14 @@ interface StudioIcons {
   [key: string]: string | undefined;
 }
 
+interface SportCategoryConfig {
+  id: string;
+  name: string;
+  emoji: string;
+  count?: number;
+  enabled: boolean;
+}
+
 interface StudioConfig {
   // New format (Phase 5+)
   palette?: Record<string, string>;
@@ -47,6 +55,7 @@ interface StudioConfig {
   appName?: string;
   appLabels?: Record<string, string>;
   icons?: StudioIcons;
+  sportCategories?: SportCategoryConfig[];
   // Internal-only (excluded from Notion)
   manualOverrides?: string[];
   brandPromptHistory?: string[];
