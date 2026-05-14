@@ -570,6 +570,7 @@ export function StudioInner({
       history: BrandPromptEntry[],
       icons: StudioAppIcons,
       chat: PersistedChatMessage[],
+      sports: SportCategory[],
     ) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -586,6 +587,7 @@ export function StudioInner({
                   manualOverrides: Array.from(overrides),
                   brandPromptHistory: history,
                   chatMessages: chat,
+                  sportCategories: sports,
                   icons,
                   language,
                   appName,
@@ -607,11 +609,11 @@ export function StudioInner({
   );
 
   useEffect(() => {
-    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons, chatMessages);
+    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, sportCategories);
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, scheduleAutoSave]);
+  }, [palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, sportCategories, scheduleAutoSave]);
 
   /* ── Atomic palette POC test mode (?test_atomic=purple|cyan|green) ── */
   const TEST_ATOMIC_THEMES: Record<string, AtomicPalette> = {
