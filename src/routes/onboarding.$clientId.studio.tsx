@@ -1088,6 +1088,19 @@ export function StudioInner({
               </AccordionSection>
             )}
 
+            {/* Panel - App Configuration (currency + welcome offer) */}
+            <AccordionSection
+              title="App Configuration"
+              icon={<Settings className="h-3.5 w-3.5" />}
+              subtitle="Currency · welcome offer"
+              active={activePanel === "appConfig"}
+              onClick={() =>
+                setActivePanel((prev) => (prev === "appConfig" ? null : "appConfig"))
+              }
+            >
+              <AppConfigPanel clientId={clientId} />
+            </AccordionSection>
+
             {/* Panel - Sport Categories */}
             <AccordionSection
               title="Sport Categories"
@@ -1098,7 +1111,7 @@ export function StudioInner({
                 setActivePanel((prev) => (prev === "sportCategories" ? null : "sportCategories"))
               }
             >
-              <SportCategoriesPanel />
+              <SportCategoriesPanel readOnly={clientId === "8e1aee03-7a76-4ad8-a336-6a8a1dae9fc0"} />
             </AccordionSection>
 
           </div>
