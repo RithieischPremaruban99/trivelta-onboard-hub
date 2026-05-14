@@ -4502,10 +4502,10 @@ const MobilePreview = React.memo(function MobilePreview({
             <ChevronLeft className="h-3.5 w-3.5" /> {strings.BACK_TO_SPORTS}
           </button>
           <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
-            {strings.ALL_SPORTS} ({getSportsSidebar(strings).length})
+            {strings.ALL_SPORTS} ({activeSports.length})
           </div>
           <div className="px-2">
-            {getSportsSidebar(strings).map((s, idx) => (
+            {activeSports.map((s, idx) => (
               <button
                 key={s.name}
                 onClick={() => {
