@@ -1743,6 +1743,7 @@ function StudioPage() {
         initialManualOverrides={initialManualOverrides}
         initialBrandPromptHistory={initialBrandPromptHistory ?? []}
         initialChatMessages={initialChatMessages ?? []}
+        initialSportCategories={initialSportCategories}
         initialIcons={initialIcons}
         initialLanguage={initialLanguage}
         initialAppName={initialAppName}
