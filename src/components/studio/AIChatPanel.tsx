@@ -383,7 +383,7 @@ export function AIChatPanel() {
             addBrandPrompt(trimmed, undefined, reasoning, keyColorsSummary);
             const displayText =
               reasoning || keyColorsSummary || "Palette applied - check the preview on the right.";
-            const suggestions = getSuggestions(trimmed);
+            const suggestions = getSuggestions(trimmed, brandPromptHistory.length);
             setMessages((prev) => {
               const updated = streamingStarted ? [...prev] : [...prev, { role: "assistant" as const, content: "" }];
               updated[updated.length - 1] = {
