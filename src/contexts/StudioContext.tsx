@@ -255,6 +255,7 @@ export interface StudioSavedConfig {
   manualOverrides?: (keyof TCMPalette)[];
   brandPromptHistory?: Array<{ prompt: string; timestamp: string; feedback?: string; reasoning?: string; keyColorsSummary?: string; logoVariants?: LogoVariant[] }>;
   chatMessages?: PersistedChatMessage[];
+  sportCategories?: SportCategory[];
   // Legacy format (pre-Phase 3) - kept for backward compat reads
   colors?: Partial<StudioThemeColors>;
   icons?: Partial<StudioAppIcons>;
