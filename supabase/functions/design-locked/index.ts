@@ -412,6 +412,7 @@ function buildSection7(config: StudioConfig): object[] {
   if (config.appName) dump.appName = config.appName;
   if (config.appLabels) dump.appLabels = config.appLabels;
   if (config.icons) dump.icons = config.icons;
+  if (config.sportCategories) dump.sportCategories = config.sportCategories;
 
   return [
     heading2("7. Full Studio Config (Raw)"),
