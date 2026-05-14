@@ -19,23 +19,36 @@ interface ChatMessage {
 
 const MAX_PERSISTED_MESSAGES = 30;
 
-function getSuggestions(prompt: string): string[] {
+function getSuggestions(prompt: string, historyLength: number): string[] {
   const lower = prompt.toLowerCase();
-  const operators = ["bet365", "sportybet", "betway", "hollywoodbets", "caliente", "betano"];
-  const markets = ["nigeria", "ghana", "kenya", "mexico", "brazil", "south africa"];
+  const isFirst = historyLength <= 1;
 
-  if (operators.some((o) => lower.includes(o))) {
-    return ["Inspired by, not exact copy", "Darker version", "Add gold accent"];
+  const knownOperators = [
+    "bet365", "sportybet", "betway", "hollywoodbets",
+    "caliente", "betano", "bet9ja", "1xbet", "stake",
+    "unibet", "partouche", "tipico",
+  ];
+  if (knownOperators.some((o) => lower.includes(o))) {
+    return ["Darker version", "Add gold accent", "More contrast on buttons"];
   }
-  if (markets.some((m) => lower.includes(m))) {
-    return ["More premium for this market", "Brighter & bolder", "Add gold accent"];
+
+  if (isFirst) {
+    return ["Make it darker", "Add gold accent", "More contrast"];
   }
-  if (lower.includes("dark")) {
-    return ["Even darker", "Darken background only", "Keep this, try warmer tones"];
+
+  if (lower.includes("dark") || lower.includes("darker")) {
+    return ["Even darker", "Adjust primary color only", "Try warmer tones"];
   }
+
   if (lower.includes("light") || lower.includes("bright")) {
-    return ["Slightly darker", "Add more contrast", "Keep this, try cooler tones"];
+    return ["Slightly darker", "More contrast on buttons", "Keep this, try cooler tones"];
   }
+
+  const markets = ["nigeria", "ghana", "kenya", "mexico", "brazil", "south africa", "france"];
+  if (markets.some((m) => lower.includes(m))) {
+    return ["More premium feel", "Bolder primary color", "Add gold accent"];
+  }
+
   return ["Make it darker", "Add gold accent", "More contrast"];
 }
 
