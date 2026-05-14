@@ -1511,6 +1511,9 @@ function StudioPage() {
   const [initialChatMessages, setInitialChatMessages] = useState<
     PersistedChatMessage[] | undefined
   >(undefined);
+  const [initialSportCategories, setInitialSportCategories] = useState<
+    SportCategory[] | undefined
+  >(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
