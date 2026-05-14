@@ -225,6 +225,30 @@ export interface PersistedChatMessage {
   suggestions?: string[];
 }
 
+export interface SportCategory {
+  id: string;
+  name: string;
+  emoji: string;
+  count: number;
+  enabled: boolean;
+}
+
+export const DEFAULT_SPORT_CATEGORIES: SportCategory[] = [
+  { id: "soccer",            name: "Soccer",            emoji: "⚽", count: 253, enabled: true },
+  { id: "basketball",        name: "Basketball",        emoji: "🏀", count: 66,  enabled: true },
+  { id: "tennis",            name: "Tennis",            emoji: "🎾", count: 11,  enabled: true },
+  { id: "volleyball",        name: "Volleyball",        emoji: "🏐", count: 19,  enabled: true },
+  { id: "table_tennis",      name: "Table Tennis",      emoji: "🏓", count: 3,   enabled: true },
+  { id: "ice_hockey",        name: "Ice Hockey",        emoji: "🏒", count: 21,  enabled: true },
+  { id: "american_football", name: "American Football", emoji: "🏈", count: 5,   enabled: true },
+  { id: "rugby",             name: "Rugby",             emoji: "🏉", count: 13,  enabled: true },
+  { id: "golf",              name: "Golf",              emoji: "⛳", count: 8,   enabled: true },
+  { id: "darts",             name: "Darts",             emoji: "🎯", count: 4,   enabled: true },
+  { id: "boxing",            name: "Boxing",            emoji: "🥊", count: 1,   enabled: true },
+  { id: "cricket",           name: "Cricket",           emoji: "🏏", count: 12,  enabled: true },
+  { id: "baseball",          name: "Baseball",          emoji: "⚾", count: 8,   enabled: true },
+];
+
 export interface StudioSavedConfig {
   // New format (Phase 3+)
   palette?: Partial<TCMPalette>;
