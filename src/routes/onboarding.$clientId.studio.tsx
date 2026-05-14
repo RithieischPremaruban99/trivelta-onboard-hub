@@ -1085,6 +1085,18 @@ export function StudioInner({
               </AccordionSection>
             )}
 
+            {/* Panel - Sport Categories */}
+            <AccordionSection
+              title="Sport Categories"
+              icon={<Trophy className="h-3.5 w-3.5" />}
+              subtitle="Reorder & rename"
+              active={activePanel === "sportCategories"}
+              onClick={() =>
+                setActivePanel((prev) => (prev === "sportCategories" ? null : "sportCategories"))
+              }
+            >
+              <SportCategoriesPanel />
+            </AccordionSection>
 
           </div>
           {/* end exclusive accordion */}
