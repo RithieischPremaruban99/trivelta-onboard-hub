@@ -370,6 +370,7 @@ export const StudioProvider: React.FC<{
   initialManualOverrides?: (keyof TCMPalette)[];
   initialBrandPromptHistory?: BrandPromptEntry[];
   initialChatMessages?: PersistedChatMessage[];
+  initialSportCategories?: SportCategory[];
   initialIcons?: StudioAppIcons;
   initialLanguage?: Language;
   initialAppName?: string;
