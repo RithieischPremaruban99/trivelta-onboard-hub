@@ -5210,7 +5210,26 @@ const MobilePreview = React.memo(function MobilePreview({
           );
         })}
       </div>
-      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        /* Smooth color transitions when Quick Edit / AI Chat changes palette */
+        .betting-preview * {
+          transition:
+            background-color 220ms ease,
+            background 220ms ease,
+            color 180ms ease,
+            border-color 180ms ease,
+            box-shadow 220ms ease,
+            fill 180ms ease,
+            stroke 180ms ease;
+        }
+        /* Exclude transitions on interactive states to keep UI snappy */
+        .betting-preview button:active *,
+        .betting-preview input *,
+        .betting-preview [data-no-transition] * {
+          transition: none !important;
+        }
+      `}</style>
     </div>
   );
 });
@@ -6070,6 +6089,20 @@ function paletteToInlineStyle(
   return { ...style, ...extraStyles } as React.CSSProperties;
 }
 
+// Transition applied to the preview root so all CSS var-driven colors animate smoothly
+// when Quick Edit or AI Chat changes a palette field.
+// background/color transitions cover 95%+ of elements; box-shadow covers borders/glows.
+const PALETTE_TRANSITION: React.CSSProperties = {
+  transition: [
+    "background-color 220ms ease",
+    "background 220ms ease",
+    "color 180ms ease",
+    "border-color 180ms ease",
+    "box-shadow 220ms ease",
+    "fill 180ms ease",
+  ].join(", "),
+};
+
 const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?: "mobile" | "web"; readOnly?: boolean; clientId?: string } = {}) => {
   const { palette, appIcons, previewMode, headingFont, strings, appLabels, sportCategories } = useStudio();
   const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
@@ -6099,8 +6132,8 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
 
   return (
     <div
-      className="flex flex-col items-center w-full h-full overflow-hidden"
-      style={paletteStyle}
+      className="betting-preview flex flex-col items-center w-full h-full overflow-hidden"
+      style={{ ...paletteStyle, ...PALETTE_TRANSITION }}
     >
       {/* Toolbar */}
       {!readOnly && (
