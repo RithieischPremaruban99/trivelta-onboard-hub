@@ -16,6 +16,7 @@ import {
   type StudioAppLabels,
   type BrandPromptEntry,
   type PersistedChatMessage,
+  type SportCategory,
   type Language,
   LANGUAGE_NAMES,
 } from "@/contexts/StudioContext";
@@ -26,6 +27,7 @@ import BettingAppPreview from "@/components/studio/BettingAppPreview";
 import { AIChatPanel } from "@/components/studio/AIChatPanel";
 import { QuickEditPanel } from "@/components/studio/QuickEditPanel";
 import { AdvancedModePanel } from "@/components/studio/AdvancedModePanel";
+import { SportCategoriesPanel } from "@/components/studio/SportCategoriesPanel";
 import { AccordionSection } from "@/components/studio/AccordionSection";
 import { LandingPageGenerator } from "@/components/studio/LandingPageGenerator";
 import { InviteTeamDialog } from "@/components/studio/InviteTeamDialog";
@@ -70,6 +72,7 @@ import {
   Settings2,
   AlertTriangle,
   FileText,
+  Trophy,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -496,6 +499,7 @@ export function StudioInner({
     setAppName,
     canLock,
     chatMessages,
+    sportCategories,
   } = useStudio();
 
   /* ── State ── */
@@ -509,7 +513,7 @@ export function StudioInner({
   const [locking, setLocking] = useState(false);
   const [unlockConfirmOpen, setUnlockConfirmOpen] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
-  type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | null;
+  type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | "sportCategories" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
 
@@ -545,6 +549,7 @@ export function StudioInner({
       manualOverrides: Array.from(manualOverrides),
       brandPromptHistory,
       chatMessages,
+      sportCategories,
       icons: appIcons,
       language,
       appName,
@@ -556,7 +561,7 @@ export function StudioInner({
         { client_id: clientId, studio_config: payload as never },
         { onConflict: "client_id" },
       );
-  }, [clientId, palette, manualOverrides, brandPromptHistory, chatMessages, appIcons, language, appName, appLabels]);
+  }, [clientId, palette, manualOverrides, brandPromptHistory, chatMessages, sportCategories, appIcons, language, appName, appLabels]);
 
   const scheduleAutoSave = useCallback(
     (
@@ -565,6 +570,7 @@ export function StudioInner({
       history: BrandPromptEntry[],
       icons: StudioAppIcons,
       chat: PersistedChatMessage[],
+      sports: SportCategory[],
     ) => {
       if (locked) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -581,6 +587,7 @@ export function StudioInner({
                   manualOverrides: Array.from(overrides),
                   brandPromptHistory: history,
                   chatMessages: chat,
+                  sportCategories: sports,
                   icons,
                   language,
                   appName,
@@ -602,11 +609,11 @@ export function StudioInner({
   );
 
   useEffect(() => {
-    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons, chatMessages);
+    scheduleAutoSave(palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, sportCategories);
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, scheduleAutoSave]);
+  }, [palette, manualOverrides, brandPromptHistory, appIcons, chatMessages, sportCategories, scheduleAutoSave]);
 
   /* ── Atomic palette POC test mode (?test_atomic=purple|cyan|green) ── */
   const TEST_ATOMIC_THEMES: Record<string, AtomicPalette> = {
@@ -720,6 +727,7 @@ export function StudioInner({
             manualOverrides: Array.from(manualOverrides),
             brandPromptHistory,
             chatMessages,
+            sportCategories,
             icons: appIcons,
             language,
             appName,
@@ -1077,6 +1085,18 @@ export function StudioInner({
               </AccordionSection>
             )}
 
+            {/* Panel - Sport Categories */}
+            <AccordionSection
+              title="Sport Categories"
+              icon={<Trophy className="h-3.5 w-3.5" />}
+              subtitle="Reorder & rename"
+              active={activePanel === "sportCategories"}
+              onClick={() =>
+                setActivePanel((prev) => (prev === "sportCategories" ? null : "sportCategories"))
+              }
+            >
+              <SportCategoriesPanel />
+            </AccordionSection>
 
           </div>
           {/* end exclusive accordion */}
@@ -1491,6 +1511,9 @@ function StudioPage() {
   const [initialChatMessages, setInitialChatMessages] = useState<
     PersistedChatMessage[] | undefined
   >(undefined);
+  const [initialSportCategories, setInitialSportCategories] = useState<
+    SportCategory[] | undefined
+  >(undefined);
   const [initialIcons, setInitialIcons] = useState<StudioAppIcons | undefined>(undefined);
   const [initialLanguage, setInitialLanguage] = useState<Language | undefined>(undefined);
   const [initialAppName, setInitialAppName] = useState<string | undefined>(undefined);
@@ -1550,6 +1573,7 @@ function StudioPage() {
           if (saved.manualOverrides) setInitialManualOverrides(saved.manualOverrides);
           if (saved.brandPromptHistory) setInitialBrandPromptHistory(saved.brandPromptHistory);
           if (saved.chatMessages) setInitialChatMessages(saved.chatMessages);
+          if (saved.sportCategories) setInitialSportCategories(saved.sportCategories);
           setInitialIcons({ ...defaultStudioAppIcons, ...(saved.icons ?? {}) });
         } else if (saved.colors) {
           // Legacy format: has 'colors' key with old StudioThemeColors shape
@@ -1719,6 +1743,7 @@ function StudioPage() {
         initialManualOverrides={initialManualOverrides}
         initialBrandPromptHistory={initialBrandPromptHistory ?? []}
         initialChatMessages={initialChatMessages ?? []}
+        initialSportCategories={initialSportCategories}
         initialIcons={initialIcons}
         initialLanguage={initialLanguage}
         initialAppName={initialAppName}

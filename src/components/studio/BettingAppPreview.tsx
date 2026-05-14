@@ -846,7 +846,8 @@ const LIVE_TABLE_TENNIS: LiveRacketMatch[] = [
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
 const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string }) {
-  const { strings: rawStrings, palette, previewFocusField } = useStudio();
+  const { strings: rawStrings, palette, previewFocusField, sportCategories } = useStudio();
+  const activeSports = sportCategories.filter(s => s.enabled).map(s => ({ name: s.name, count: s.count, flag: s.emoji }));
   const isKMK = clientId === KMK_CLIENT_ID;
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
@@ -1786,7 +1787,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {strings.ALL_SPORTS}
         </div>
         <div className="flex-1 overflow-auto px-2 pb-2">
-          {getSportsSidebar(strings).map((s, i) => {
+          {activeSports.map((s, i) => {
             const active = activeSportSidebar === i;
             const icon = sportIcons[s.name] ?? { color: "var(--p-primary)", emoji: "🏆" };
             return (
@@ -3665,7 +3666,8 @@ const MobilePreview = React.memo(function MobilePreview({
   const [mobileLiveView, setMobileLiveView] = useState(false);
   const [mobileLiveActiveSportTab, setMobileLiveActiveSportTab] = useState(0);
 
-  const { strings: rawStrings, palette, previewFocusField } = useStudio();
+  const { strings: rawStrings, palette, previewFocusField, sportCategories } = useStudio();
+  const activeSports = sportCategories.filter(s => s.enabled).map(s => ({ name: s.name, count: s.count, flag: s.emoji }));
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
 
   // Auto-navigate preview to the most relevant view when a Quick Edit field is focused
@@ -4500,10 +4502,10 @@ const MobilePreview = React.memo(function MobilePreview({
             <ChevronLeft className="h-3.5 w-3.5" /> {strings.BACK_TO_SPORTS}
           </button>
           <div className="px-3 pb-1 text-[9px] font-semibold" style={{ color: "var(--p-text-secondary-color)" }}>
-            {strings.ALL_SPORTS} ({getSportsSidebar(strings).length})
+            {strings.ALL_SPORTS} ({activeSports.length})
           </div>
           <div className="px-2">
-            {getSportsSidebar(strings).map((s, idx) => (
+            {activeSports.map((s, idx) => (
               <button
                 key={s.name}
                 onClick={() => {
@@ -5524,8 +5526,8 @@ const FRIENDS_POSTS: SocialPost[] = [
 ];
 
 function AllSportsView() {
-  const { strings, palette } = useStudio();
-  const ALL_SPORTS_LIST = getSportsSidebar(strings).map((s) => ({ ...s, icon: s.flag }));
+  const { strings, palette, sportCategories } = useStudio();
+  const ALL_SPORTS_LIST = sportCategories.filter(s => s.enabled).map((s) => ({ name: s.name, count: s.count, flag: s.emoji, icon: s.emoji }));
   return (
     <div className="flex-1 min-h-0 overflow-auto">
       {/* Search bar */}

@@ -40,6 +40,14 @@ interface StudioIcons {
   [key: string]: string | undefined;
 }
 
+interface SportCategoryConfig {
+  id: string;
+  name: string;
+  emoji: string;
+  count?: number;
+  enabled: boolean;
+}
+
 interface StudioConfig {
   // New format (Phase 5+)
   palette?: Record<string, string>;
@@ -47,6 +55,7 @@ interface StudioConfig {
   appName?: string;
   appLabels?: Record<string, string>;
   icons?: StudioIcons;
+  sportCategories?: SportCategoryConfig[];
   // Internal-only (excluded from Notion)
   manualOverrides?: string[];
   brandPromptHistory?: string[];
@@ -195,6 +204,21 @@ function buildSection2(config: StudioConfig): object[] {
     ] as RichTextEntry[]));
   } else {
     blocks.push(bulletedListItem(rt("App Icon URL: Not uploaded")));
+  }
+
+  // Sport Categories (operator-customised order, names, and visibility)
+  const sports = config.sportCategories;
+  if (sports && sports.length > 0) {
+    const enabled = sports.filter((s) => s.enabled);
+    blocks.push(bulletedListItem(rt(
+      `Sport Categories: ${enabled.length} of ${sports.length} enabled (operator-ordered)`,
+    )));
+    sports.forEach((s, idx) => {
+      const status = s.enabled ? "" : " — hidden";
+      blocks.push(bulletedListItem(rt(
+        `  ${idx + 1}. ${s.emoji} ${s.name} (${s.id})${status}`,
+      )));
+    });
   }
 
   return blocks;
@@ -388,6 +412,7 @@ function buildSection7(config: StudioConfig): object[] {
   if (config.appName) dump.appName = config.appName;
   if (config.appLabels) dump.appLabels = config.appLabels;
   if (config.icons) dump.icons = config.icons;
+  if (config.sportCategories) dump.sportCategories = config.sportCategories;
 
   return [
     heading2("7. Full Studio Config (Raw)"),
