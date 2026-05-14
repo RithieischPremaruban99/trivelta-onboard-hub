@@ -406,6 +406,9 @@ export const StudioProvider: React.FC<{
   const [chatMessages, setChatMessages] = useState<PersistedChatMessage[]>(
     initialChatMessages ?? [],
   );
+  const [sportCategories, setSportCategories] = useState<SportCategory[]>(
+    initialSportCategories ?? DEFAULT_SPORT_CATEGORIES,
+  );
   const [paletteHistory, setPaletteHistory] = useState<TCMPalette[]>([]);
   const MAX_HISTORY = 10;
 
