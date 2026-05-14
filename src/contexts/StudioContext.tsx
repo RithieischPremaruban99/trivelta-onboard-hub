@@ -342,6 +342,8 @@ export interface StudioState {
   // Persisted chat messages (excluding welcome and streaming entries).
   chatMessages: PersistedChatMessage[];
   setChatMessages: (msgs: PersistedChatMessage[]) => void;
+  sportCategories: SportCategory[];
+  setSportCategories: (cats: SportCategory[]) => void;
 }
 
 // ---------------------------------------------------------------------------
