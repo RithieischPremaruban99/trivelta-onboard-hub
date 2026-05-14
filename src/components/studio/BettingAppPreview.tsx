@@ -3666,7 +3666,8 @@ const MobilePreview = React.memo(function MobilePreview({
   const [mobileLiveView, setMobileLiveView] = useState(false);
   const [mobileLiveActiveSportTab, setMobileLiveActiveSportTab] = useState(0);
 
-  const { strings: rawStrings, palette, previewFocusField } = useStudio();
+  const { strings: rawStrings, palette, previewFocusField, sportCategories } = useStudio();
+  const activeSports = sportCategories.filter(s => s.enabled).map(s => ({ name: s.name, count: s.count, flag: s.emoji }));
   const strings = isKMK ? { ...rawStrings, ...MYBET_STRINGS_OVERRIDES } : rawStrings;
 
   // Auto-navigate preview to the most relevant view when a Quick Edit field is focused
