@@ -2021,6 +2021,37 @@ Deno.serve(async (req: Request) => {
 
   const startMs = Date.now();
 
+  // ── JWT verification — blocks bots and unauthenticated requests ────────────
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  const jwt = authHeader.slice(7);
+  const jwtSecret = Deno.env.get("SUPABASE_JWT_SECRET");
+  if (jwtSecret) {
+    try {
+      const [headerB64, payloadB64, sigB64] = jwt.split(".");
+      if (!headerB64 || !payloadB64 || !sigB64) throw new Error("Malformed JWT");
+      const key = await crypto.subtle.importKey(
+        "raw", new TextEncoder().encode(jwtSecret),
+        { name: "HMAC", hash: "SHA-256" }, false, ["verify"],
+      );
+      const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+      const sig = Uint8Array.from(atob(sigB64.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+      const valid = await crypto.subtle.verify("HMAC", key, sig, data);
+      if (!valid) throw new Error("Invalid signature");
+      const payload = JSON.parse(atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")));
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) throw new Error("Token expired");
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Unauthorized", detail: (e as Error).message }), {
+        status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   // ── API key check ──────────────────────────────────────────────────────────
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {

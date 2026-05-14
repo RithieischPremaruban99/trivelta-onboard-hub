@@ -845,7 +845,7 @@ const LIVE_TABLE_TENNIS: LiveRacketMatch[] = [
 
 /* ─── WEB VERSION ─────────────────────────────────────────────────────── */
 
-const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string }) {
+const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySymbol, clientId, welcomeHeadline, welcomeBody }: { appName: string; logoUrl?: string | null; currencySymbol?: string; clientId?: string; welcomeHeadline?: string | null; welcomeBody?: string | null }) {
   const { strings: rawStrings, palette, previewFocusField, sportCategories } = useStudio();
   const activeSports = sportCategories.filter(s => s.enabled).map(s => ({ name: s.name, count: s.count, flag: s.emoji }));
   const isKMK = clientId === KMK_CLIENT_ID;
@@ -2171,13 +2171,13 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 className="text-[8px] font-bold tracking-wider mb-0.5 opacity-80"
                 style={{ color: pickContrastText(palette.primaryButton) }}
               >
-                {strings.WELCOME_BONUS_HEADLINE}
+                {welcomeHeadline || strings.WELCOME_BONUS_HEADLINE}
               </div>
               <div
                 className="text-[8px] mt-1 opacity-75"
                 style={{ color: pickContrastText(palette.primaryButton) }}
               >
-                {strings.WELCOME_BONUS_BODY_WEB}
+                {welcomeBody || strings.WELCOME_BONUS_BODY_WEB}
               </div>
             </div>
             {/* Decorative right area */}
@@ -3195,7 +3195,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               }}
             >
               <div className="text-[10px] font-bold leading-tight" style={{ color: "var(--p-light-text-color)" }}>
-{strings.WELCOME_BONUS_HEADLINE}
+{welcomeHeadline || strings.WELCOME_BONUS_HEADLINE}
               </div>
               <div className="text-[8px] mt-1.5 leading-snug" style={{ color: "var(--p-text-secondary-color)" }}>
                 Enjoy 100% welcome bonus on your first deposit and double your starting stake.
@@ -3633,11 +3633,15 @@ const MobilePreview = React.memo(function MobilePreview({
   currencySymbol,
   logoUrl,
   clientId,
+  welcomeHeadline,
+  welcomeBody,
 }: {
   appName: string;
   currencySymbol: string;
   logoUrl?: string | null;
   clientId?: string;
+  welcomeHeadline?: string | null;
+  welcomeBody?: string | null;
 }) {
   const isKMK = clientId === KMK_CLIENT_ID;
   const effectiveMatches = isKMK ? MYBET_MATCHES : MATCHES;
@@ -3862,7 +3866,7 @@ const MobilePreview = React.memo(function MobilePreview({
               className="text-[10px] mt-1 leading-snug opacity-90"
               style={{ color: pickContrastText(palette.primaryButton) }}
             >
-              {strings.WELCOME_BONUS_BODY_MOBILE}
+              {welcomeBody || strings.WELCOME_BONUS_BODY_MOBILE}
             </div>
             <div
               className="mt-2.5 h-6 w-6 rounded-full grid place-items-center"
@@ -6067,13 +6071,16 @@ function paletteToInlineStyle(
 }
 
 const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?: "mobile" | "web"; readOnly?: boolean; clientId?: string } = {}) => {
-  const { palette, appIcons, previewMode, headingFont, strings, appLabels } = useStudio();
+  const { palette, appIcons, previewMode, headingFont, strings, appLabels, sportCategories } = useStudio();
   const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
   const isKMK = clientId === KMK_CLIENT_ID;
   const effectiveStrings = isKMK ? { ...strings, ...MYBET_STRINGS_OVERRIDES } : strings;
   const effectiveAppName = isKMK ? "MyBet.Africa" : strings.APP_NAME;
   // Currency from appLabels — operator can change via Studio
   const effectiveCurrency = isKMK ? "GH₵" : (appLabels.currencySymbol ?? "₦");
+  // Welcome banner overrides from appLabels
+  const welcomeHeadlineOverride = (appLabels as unknown as Record<string, string>).welcomeBonusHeadline || null;
+  const welcomeBodyOverride = (appLabels as unknown as Record<string, string>).welcomeBonusBody || null;
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -6214,6 +6221,8 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
             currencySymbol={effectiveCurrency}
             logoUrl={appIcons.appNameLogo}
             clientId={clientId}
+            welcomeHeadline={welcomeHeadlineOverride}
+            welcomeBody={welcomeBodyOverride}
           />
         </div>
       ) : (
@@ -6226,7 +6235,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
             background: "var(--p-primary-background-color)",
           }}
         >
-          <WebPreview appName={effectiveAppName} logoUrl={appIcons.appNameLogo} currencySymbol={effectiveCurrency} clientId={clientId} />
+          <WebPreview appName={effectiveAppName} logoUrl={appIcons.appNameLogo} currencySymbol={effectiveCurrency} clientId={clientId} welcomeHeadline={welcomeHeadlineOverride} welcomeBody={welcomeBodyOverride} />
         </div>
       )}
       </div>
