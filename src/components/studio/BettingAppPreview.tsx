@@ -1787,7 +1787,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           {strings.ALL_SPORTS}
         </div>
         <div className="flex-1 overflow-auto px-2 pb-2">
-          {getSportsSidebar(strings).map((s, i) => {
+          {activeSports.map((s, i) => {
             const active = activeSportSidebar === i;
             const icon = sportIcons[s.name] ?? { color: "var(--p-primary)", emoji: "🏆" };
             return (
