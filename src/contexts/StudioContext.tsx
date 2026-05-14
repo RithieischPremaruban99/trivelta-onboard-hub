@@ -578,6 +578,8 @@ export const StudioProvider: React.FC<{
         canUndo: paletteHistory.length > 0,
         chatMessages,
         setChatMessages,
+        sportCategories,
+        setSportCategories,
       }}
     >
       {children}
