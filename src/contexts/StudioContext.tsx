@@ -384,6 +384,7 @@ export const StudioProvider: React.FC<{
   initialManualOverrides,
   initialBrandPromptHistory,
   initialChatMessages,
+  initialSportCategories,
   initialIcons,
   initialLanguage,
   initialAppName,
