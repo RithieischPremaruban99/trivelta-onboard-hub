@@ -2171,13 +2171,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 className="text-[8px] font-bold tracking-wider mb-0.5 opacity-80"
                 style={{ color: pickContrastText(palette.primaryButton) }}
               >
-                GET A <span className="text-[10px]">100%</span> BONUS ON YOUR
-              </div>
-              <div
-                className="text-[11px] font-black leading-tight"
-                style={{ color: pickContrastText(palette.primaryButton) }}
-              >
-                FIRST DEPOSIT
+                {strings.WELCOME_BONUS_HEADLINE}
               </div>
               <div
                 className="text-[8px] mt-1 opacity-75"
@@ -3201,7 +3195,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               }}
             >
               <div className="text-[10px] font-bold leading-tight" style={{ color: "var(--p-light-text-color)" }}>
-                GET A <span style={{ color: "var(--p-primary)" }}>100%</span> BONUS ON YOUR FIRST DEPOSIT
+{strings.WELCOME_BONUS_HEADLINE}
               </div>
               <div className="text-[8px] mt-1.5 leading-snug" style={{ color: "var(--p-text-secondary-color)" }}>
                 Enjoy 100% welcome bonus on your first deposit and double your starting stake.
@@ -6073,11 +6067,13 @@ function paletteToInlineStyle(
 }
 
 const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?: "mobile" | "web"; readOnly?: boolean; clientId?: string } = {}) => {
-  const { palette, appIcons, previewMode, headingFont, strings } = useStudio();
+  const { palette, appIcons, previewMode, headingFont, strings, appLabels } = useStudio();
   const isMobile = viewMode !== undefined ? viewMode === "mobile" : previewMode === "mobile";
   const isKMK = clientId === KMK_CLIENT_ID;
   const effectiveStrings = isKMK ? { ...strings, ...MYBET_STRINGS_OVERRIDES } : strings;
   const effectiveAppName = isKMK ? "MyBet.Africa" : strings.APP_NAME;
+  // Currency from appLabels — operator can change via Studio
+  const effectiveCurrency = isKMK ? "GH₵" : (appLabels.currencySymbol ?? "₦");
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -6215,7 +6211,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
         >
           <MobilePreview
             appName={effectiveAppName}
-            currencySymbol={effectiveStrings.CURRENCY_SYMBOL}
+            currencySymbol={effectiveCurrency}
             logoUrl={appIcons.appNameLogo}
             clientId={clientId}
           />
@@ -6230,7 +6226,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
             background: "var(--p-primary-background-color)",
           }}
         >
-          <WebPreview appName={effectiveAppName} logoUrl={appIcons.appNameLogo} currencySymbol={effectiveStrings.CURRENCY_SYMBOL} clientId={clientId} />
+          <WebPreview appName={effectiveAppName} logoUrl={appIcons.appNameLogo} currencySymbol={effectiveCurrency} clientId={clientId} />
         </div>
       )}
       </div>

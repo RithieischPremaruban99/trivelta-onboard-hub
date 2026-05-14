@@ -45,6 +45,7 @@ export interface TCMStrings {
   MAKE_BETS: string;
   // ── Welcome bonus ─────────────────────────────────────────────────────────
   WELCOME_BONUS: string;
+  WELCOME_BONUS_HEADLINE: string;
   WELCOME_BONUS_PROMO: string;
   WELCOME_BONUS_BODY_WEB: string;
   WELCOME_BONUS_BODY_MOBILE: string;
@@ -180,6 +181,7 @@ export const DEFAULT_STRINGS: TCMStrings = {
   PLACE_A_BET: "Place Bet",
   MAKE_BETS: "Make Bets",
   WELCOME_BONUS: "WELCOME BONUS",
+  WELCOME_BONUS_HEADLINE: "GET A 100% BONUS ON YOUR FIRST DEPOSIT",
   WELCOME_BONUS_PROMO: "GET A 100% BONUS ON YOUR FIRST DEPOSIT",
   WELCOME_BONUS_BODY_WEB:
     "Enjoy 100% welcome bonus on your first deposit and double your starting stake.",
