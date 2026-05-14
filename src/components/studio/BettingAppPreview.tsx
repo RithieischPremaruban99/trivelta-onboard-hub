@@ -5526,8 +5526,8 @@ const FRIENDS_POSTS: SocialPost[] = [
 ];
 
 function AllSportsView() {
-  const { strings, palette } = useStudio();
-  const ALL_SPORTS_LIST = getSportsSidebar(strings).map((s) => ({ ...s, icon: s.flag }));
+  const { strings, palette, sportCategories } = useStudio();
+  const ALL_SPORTS_LIST = sportCategories.filter(s => s.enabled).map((s) => ({ name: s.name, count: s.count, flag: s.emoji, icon: s.emoji }));
   return (
     <div className="flex-1 min-h-0 overflow-auto">
       {/* Search bar */}
