@@ -803,6 +803,40 @@
   }
 }
 
+/* Studio left panel — iPad / touch friendliness */
+@layer components {
+  .studio-left-panel,
+  .studio-left-panel * {
+    touch-action: manipulation;
+  }
+  .studio-left-panel .studio-scroll,
+  .studio-left-panel [class*="overflow-y-auto"] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  /* Prevent iOS Safari from zooming the layout when focusing inputs */
+  .studio-left-panel input[type="text"],
+  .studio-left-panel input[type="search"],
+  .studio-left-panel input[type="email"],
+  .studio-left-panel input[type="number"],
+  .studio-left-panel input:not([type]),
+  .studio-left-panel textarea,
+  .studio-left-panel select {
+    font-size: 16px;
+  }
+  /* Touch-friendly tap targets in the studio panel */
+  @media (hover: none) and (pointer: coarse) {
+    .studio-left-panel button,
+    .studio-left-panel [role="button"],
+    .studio-left-panel summary {
+      min-height: 36px;
+    }
+    .studio-left-panel .studio-color-row {
+      min-height: 40px;
+    }
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

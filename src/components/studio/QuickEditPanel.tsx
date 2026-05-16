@@ -58,7 +58,7 @@ export function QuickEditPanel() {
                   // onClick fires reliably (onFocus on div is unreliable with native color pickers)
                   onClick={() => !isLayoutLocked && focusField(fieldName)}
                   title={isLayoutLocked ? "Fixed — dark layout cannot be changed" : undefined}
-                  className={isLayoutLocked ? undefined : "cursor-pointer"}
+                  className={isLayoutLocked ? "studio-color-row" : "studio-color-row cursor-pointer"}
                 >
                   <StudioColorField
                     fieldName={fieldName as keyof TCMPalette}

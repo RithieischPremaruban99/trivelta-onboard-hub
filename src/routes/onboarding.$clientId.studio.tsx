@@ -75,7 +75,8 @@ import {
   FileText,
   Trophy,
   Settings,
-
+  Menu,
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -519,6 +520,16 @@ export function StudioInner({
   type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | "sportCategories" | "appConfig" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+
+  // On mount, pick the preview mode that fits the viewport best.
+  // Below 1100px (iPad portrait, narrow laptops) → mobile preview fits better.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setPreviewMode(window.innerWidth < 1100 ? "mobile" : "website");
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the preview container div for instant CSS var updates before React re-render
@@ -817,7 +828,16 @@ export function StudioInner({
     <div className="flex h-screen flex-col overflow-hidden">
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
-        <div className="flex w-[35%] shrink-0 items-center">
+        <div className="flex w-[35%] shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMobilePanelOpen(true)}
+            aria-label="Open controls"
+            className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground md:hidden"
+            style={{ touchAction: "manipulation" }}
+          >
+            <Menu className="h-4 w-4" />
+          </button>
           <TriveltaLogo size="xl" withSubtitle product="AI · Studio" />
         </div>
         <div className="flex flex-1 items-center justify-center gap-2">
@@ -926,16 +946,41 @@ export function StudioInner({
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         {/* ══ LEFT PANEL ═══════════════════════════════════════════════ */}
-        <div className="flex flex-col overflow-hidden border-r border-border bg-card w-[35%] min-w-[300px] max-w-[440px]">
+        {/* Mobile drawer scrim */}
+        {mobilePanelOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            onClick={() => setMobilePanelOpen(false)}
+            aria-hidden
+          />
+        )}
+        <div
+          className={cn(
+            "studio-left-panel flex flex-col overflow-hidden border-r border-border bg-card",
+            // Drawer behavior below md
+            "fixed inset-y-0 left-0 z-50 w-[300px] shadow-2xl transition-transform duration-200 md:static md:z-auto md:shadow-none md:translate-x-0",
+            mobilePanelOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+            // Responsive widths
+            "md:w-[280px] lg:w-[320px] xl:w-[35%] xl:min-w-[300px] xl:max-w-[440px]",
+          )}
+        >
 
           {/* Always-visible identity strip */}
           <div className="shrink-0 flex items-center gap-2 border-b border-border px-3 py-2">
             <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/15">
               <Sparkles className="h-3 w-3 text-primary" />
             </div>
-            <span className="truncate text-[11px] font-bold text-foreground">
+            <span className="truncate text-[11px] font-bold text-foreground flex-1">
               {welcomeInfo?.clientName ?? "Studio"}
             </span>
+            <button
+              type="button"
+              onClick={() => setMobilePanelOpen(false)}
+              aria-label="Close controls"
+              className="md:hidden grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           {/* ── Brand Assets (compact, collapsible) ─────────────────── */}
