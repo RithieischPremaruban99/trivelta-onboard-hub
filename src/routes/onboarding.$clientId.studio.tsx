@@ -970,9 +970,17 @@ export function StudioInner({
             <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/15">
               <Sparkles className="h-3 w-3 text-primary" />
             </div>
-            <span className="truncate text-[11px] font-bold text-foreground">
+            <span className="truncate text-[11px] font-bold text-foreground flex-1">
               {welcomeInfo?.clientName ?? "Studio"}
             </span>
+            <button
+              type="button"
+              onClick={() => setMobilePanelOpen(false)}
+              aria-label="Close controls"
+              className="md:hidden grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           {/* ── Brand Assets (compact, collapsible) ─────────────────── */}
