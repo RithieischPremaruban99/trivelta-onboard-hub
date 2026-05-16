@@ -828,7 +828,16 @@ export function StudioInner({
     <div className="flex h-screen flex-col overflow-hidden">
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
-        <div className="flex w-[35%] shrink-0 items-center">
+        <div className="flex w-[35%] shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMobilePanelOpen(true)}
+            aria-label="Open controls"
+            className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground md:hidden"
+            style={{ touchAction: "manipulation" }}
+          >
+            <Menu className="h-4 w-4" />
+          </button>
           <TriveltaLogo size="xl" withSubtitle product="AI · Studio" />
         </div>
         <div className="flex flex-1 items-center justify-center gap-2">
