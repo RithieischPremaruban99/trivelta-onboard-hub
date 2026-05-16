@@ -946,7 +946,24 @@ export function StudioInner({
       {/* ── BODY ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         {/* ══ LEFT PANEL ═══════════════════════════════════════════════ */}
-        <div className="flex flex-col overflow-hidden border-r border-border bg-card w-[35%] min-w-[300px] max-w-[440px]">
+        {/* Mobile drawer scrim */}
+        {mobilePanelOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            onClick={() => setMobilePanelOpen(false)}
+            aria-hidden
+          />
+        )}
+        <div
+          className={cn(
+            "studio-left-panel flex flex-col overflow-hidden border-r border-border bg-card",
+            // Drawer behavior below md
+            "fixed inset-y-0 left-0 z-50 w-[300px] shadow-2xl transition-transform duration-200 md:static md:z-auto md:shadow-none md:translate-x-0",
+            mobilePanelOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+            // Responsive widths
+            "md:w-[280px] lg:w-[320px] xl:w-[35%] xl:min-w-[300px] xl:max-w-[440px]",
+          )}
+        >
 
           {/* Always-visible identity strip */}
           <div className="shrink-0 flex items-center gap-2 border-b border-border px-3 py-2">
