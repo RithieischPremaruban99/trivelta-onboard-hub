@@ -520,6 +520,16 @@ export function StudioInner({
   type ActivePanel = "landingPages" | "chat" | "quickEdit" | "advanced" | "sportCategories" | "appConfig" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+
+  // On mount, pick the preview mode that fits the viewport best.
+  // Below 1100px (iPad portrait, narrow laptops) → mobile preview fits better.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setPreviewMode(window.innerWidth < 1100 ? "mobile" : "website");
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref to the preview container div for instant CSS var updates before React re-render
