@@ -809,7 +809,8 @@
   .studio-left-panel * {
     touch-action: manipulation;
   }
-  .studio-left-panel .studio-scroll {
+  .studio-left-panel .studio-scroll,
+  .studio-left-panel [class*="overflow-y-auto"] {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
