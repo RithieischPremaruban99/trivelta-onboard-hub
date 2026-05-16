@@ -640,6 +640,7 @@ export function AIChatPanel() {
         <input
           ref={inputRef}
           className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ fontSize: "16px", touchAction: "manipulation" }}
           placeholder={
             locked
               ? "Design is locked"

@@ -57,7 +57,7 @@ export function BrandContentPanel() {
                   setAppLabels((prev) => ({ ...prev, currencySymbol: e.target.value }));
                 }
               }}
-              className="w-full bg-muted/30 border border-border rounded px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-primary/40"
+              className="w-full bg-muted/30 border border-border rounded px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-primary/40" style={{ fontSize: "16px" }}
             >
               {CURRENCIES.map((c) => (
                 <option key={c.symbol} value={c.symbol}>
@@ -94,7 +94,7 @@ export function BrandContentPanel() {
           placeholder="GET A 100% BONUS ON YOUR FIRST DEPOSIT"
           defaultValue={(appLabels as unknown as Record<string, string>).welcomeBonusHeadline ?? ""}
           onChange={(e) => setWelcomeHeadline(e.target.value)}
-          className="w-full bg-muted/30 border border-border rounded px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-primary/40 disabled:opacity-50"
+          className="w-full bg-muted/30 border border-border rounded px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-primary/40 disabled:opacity-50" style={{ fontSize: "16px" }}
         />
         <p className="text-[9px] text-muted-foreground/50">Max 60 chars · shows on Sports banner</p>
       </div>
@@ -111,7 +111,7 @@ export function BrandContentPanel() {
           placeholder="Enjoy 100% on your first deposit and double your starting stake."
           defaultValue={(appLabels as unknown as Record<string, string>).welcomeBonusBody ?? ""}
           onChange={(e) => setWelcomeBody(e.target.value)}
-          className="w-full bg-muted/30 border border-border rounded px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-primary/40 disabled:opacity-50 resize-none"
+          className="w-full bg-muted/30 border border-border rounded px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-primary/40 disabled:opacity-50 resize-none" style={{ fontSize: "16px" }}
         />
         <p className="text-[9px] text-muted-foreground/50">Max 80 chars</p>
       </div>

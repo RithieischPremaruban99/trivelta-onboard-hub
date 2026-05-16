@@ -83,7 +83,7 @@ function SortableRow({
           if (debounceRef.current) clearTimeout(debounceRef.current);
           debounceRef.current = setTimeout(() => onNameChange(cat.id, v), 300);
         }}
-        className="h-6 px-1.5 text-[11px] flex-1 min-w-0 bg-transparent border-transparent hover:border-input focus-visible:border-input"
+        className="h-8 px-1.5 text-[11px] flex-1 min-w-0 bg-transparent border-transparent hover:border-input focus-visible:border-input" style={{ fontSize: "16px" }}
       />
       <button
         type="button"

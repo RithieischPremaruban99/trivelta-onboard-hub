@@ -6262,7 +6262,7 @@ const BettingAppPreview = ({ viewMode, readOnly = false, clientId }: { viewMode?
         <div
           className="relative overflow-hidden rounded-xl shadow-2xl w-full"
           style={{
-            maxWidth: 1100,
+            maxWidth: "min(1100px, 100%)",
             height: "min(680px, calc(100vh - 220px))",
             border: "1px solid rgba(255,255,255,0.08)",
             background: "var(--p-primary-background-color)",

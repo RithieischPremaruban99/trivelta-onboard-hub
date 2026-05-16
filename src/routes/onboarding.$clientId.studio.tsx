@@ -828,7 +828,7 @@ export function StudioInner({
     <div className="flex h-screen flex-col overflow-hidden">
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
-        <div className="flex w-[35%] shrink-0 items-center gap-2">
+        <div className="flex w-auto md:w-[30%] lg:w-[35%] shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setMobilePanelOpen(true)}
@@ -853,7 +853,7 @@ export function StudioInner({
             <Sparkles className="h-2.5 w-2.5" /> Platform Studio
           </span>
         </div>
-        <div className="flex w-[35%] shrink-0 items-center justify-end gap-3">
+        <div className="flex w-auto md:w-[30%] lg:w-[35%] shrink-0 items-center justify-end gap-3">
           {showStudioDebug && (
             <span className="hidden max-w-[260px] truncate rounded-md border border-border bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground lg:inline-flex">
               [DEBUG: role={role ?? "null"}, canShowPill={String(shouldShowPill)}]
@@ -1215,8 +1215,9 @@ export function StudioInner({
             <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/[0.07] px-4 py-2.5">
               <button
                 onClick={() => setPreviewMode("mobile")}
+                style={{ touchAction: "manipulation" }}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
+                  "flex items-center gap-2 rounded-lg px-5 py-2.5 text-[13px] font-semibold transition-all",
                   previewMode === "mobile"
                     ? "bg-white/10 text-white ring-1 ring-white/20"
                     : "text-white/35 hover:text-white/65",
@@ -1226,8 +1227,9 @@ export function StudioInner({
               </button>
               <button
                 onClick={() => setPreviewMode("website")}
+                style={{ touchAction: "manipulation" }}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold transition-all",
+                  "flex items-center gap-2 rounded-lg px-5 py-2.5 text-[13px] font-semibold transition-all",
                   previewMode === "website"
                     ? "bg-white/10 text-white ring-1 ring-white/20"
                     : "text-white/35 hover:text-white/65",
