@@ -949,7 +949,7 @@ export function StudioInner({
         {/* Mobile drawer scrim */}
         {mobilePanelOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
             onClick={() => setMobilePanelOpen(false)}
             aria-hidden
           />
@@ -957,11 +957,11 @@ export function StudioInner({
         <div
           className={cn(
             "studio-left-panel flex flex-col overflow-hidden border-r border-border bg-card",
-            // Drawer behavior below md
-            "fixed inset-y-0 left-0 z-50 w-[300px] shadow-2xl transition-transform duration-200 md:static md:z-auto md:shadow-none md:translate-x-0",
-            mobilePanelOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-            // Responsive widths
-            "md:w-[280px] lg:w-[320px] xl:w-[35%] xl:min-w-[300px] xl:max-w-[440px]",
+            // Drawer behavior below lg (iPad portrait + landscape use drawer)
+            "fixed inset-y-0 left-0 z-50 w-[320px] shadow-2xl transition-transform duration-200 lg:static lg:z-auto lg:shadow-none lg:translate-x-0",
+            mobilePanelOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+            // Responsive widths (lg+ shows static panel)
+            "lg:w-[320px] xl:w-[35%] xl:min-w-[300px] xl:max-w-[440px]",
           )}
         >
 
@@ -977,7 +977,7 @@ export function StudioInner({
               type="button"
               onClick={() => setMobilePanelOpen(false)}
               aria-label="Close controls"
-              className="md:hidden grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+              className="lg:hidden grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </button>
