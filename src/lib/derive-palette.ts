@@ -105,7 +105,7 @@ export function derivePalette(atomic: AtomicPalette): TCMPalette {
   palette.primaryButtonGradient = adjustLightness(atomic.primaryButton, 15);
 
   // Inactive buttons
-  palette.inactiveButtonBg = desaturate(adjustLightness(atomic.primary, -40), 0.6);
+  palette.inactiveButtonBg = adjustLightness(atomic.dark, 8);
   palette.inactiveButtonTextPrimary = desaturate(adjustLightness(atomic.primary, 30), 0.4);
   palette.inactiveButtonTextSecondary = withAlpha(palette.inactiveButtonTextPrimary, 0.4);
 
