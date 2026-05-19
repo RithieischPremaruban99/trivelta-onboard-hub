@@ -828,12 +828,12 @@ export function StudioInner({
     <div className="flex h-screen flex-col overflow-hidden">
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-border bg-background/90 backdrop-blur-xl px-5">
-        <div className="flex w-auto md:w-[30%] lg:w-[35%] shrink-0 items-center gap-2">
+        <div className="flex w-auto lg:w-[30%] xl:w-[35%] shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setMobilePanelOpen(true)}
             aria-label="Open controls"
-            className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground md:hidden"
+            className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground lg:hidden"
             style={{ touchAction: "manipulation" }}
           >
             <Menu className="h-4 w-4" />
@@ -853,7 +853,7 @@ export function StudioInner({
             <Sparkles className="h-2.5 w-2.5" /> Platform Studio
           </span>
         </div>
-        <div className="flex w-auto md:w-[30%] lg:w-[35%] shrink-0 items-center justify-end gap-3">
+        <div className="flex w-auto lg:w-[30%] xl:w-[35%] shrink-0 items-center justify-end gap-3">
           {showStudioDebug && (
             <span className="hidden max-w-[260px] truncate rounded-md border border-border bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground lg:inline-flex">
               [DEBUG: role={role ?? "null"}, canShowPill={String(shouldShowPill)}]
