@@ -5375,10 +5375,10 @@ function SportsView({
               onClick={() => setActiveSport(i)}
               className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
               style={{
-                background: activeSport === i ? "var(--p-active-secondary-gradient-color)" : "transparent",
+                background: activeSport === i ? "var(--p-primary)" : "transparent",
                 border:
                   activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeSport === i ? pickContrastText(palette.activeSecondaryGradientColor) : "var(--p-text-secondary-color)",
+                color: activeSport === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
               }}
             >
               {strings[k]}
