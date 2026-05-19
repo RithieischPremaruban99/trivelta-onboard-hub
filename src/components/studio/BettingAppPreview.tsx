@@ -1930,7 +1930,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   {/* Sub-tabs */}
                   <div className="flex gap-0 px-2 py-1" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
                     {["Games", "Spreads", "Totals"].map((st, si) => (
-                      <span key={st} className="text-[8px] px-2 py-0.5 rounded-sm font-semibold" style={{ background: si === 0 ? "var(--p-active-secondary-gradient-color)" : "transparent", color: si === 0 ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}>{st}</span>
+                      <span key={st} className="text-[8px] px-2 py-0.5 rounded-sm font-semibold" style={{ background: si === 0 ? "var(--p-primary)" : "transparent", color: si === 0 ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)" }}>{st}</span>
                     ))}
                   </div>
                   {/* Match card */}
@@ -1978,7 +1978,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   {/* Sub-tabs */}
                   <div className="flex gap-0 px-2 py-1" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
                     {["Games", "Spreads", "Totals"].map((st, si) => (
-                      <span key={st} className="text-[8px] px-2 py-0.5 rounded-sm font-semibold" style={{ background: si === 0 ? "var(--p-active-secondary-gradient-color)" : "transparent", color: si === 0 ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}>{st}</span>
+                      <span key={st} className="text-[8px] px-2 py-0.5 rounded-sm font-semibold" style={{ background: si === 0 ? "var(--p-primary)" : "transparent", color: si === 0 ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)" }}>{st}</span>
                     ))}
                   </div>
                   {/* Match card */}
@@ -4519,7 +4519,7 @@ const MobilePreview = React.memo(function MobilePreview({
                 </span>
                 <span
                   className="text-[9px] font-bold px-1.5 py-[1px] rounded-full"
-                  style={{ background: "var(--p-active-secondary-gradient-color)", color: pickContrastText(palette.activeSecondaryGradientColor) }}
+                  style={{ background: "var(--p-primary)", color: pickContrastText(palette.primary) }}
                 >
                   {s.count}
                 </span>
