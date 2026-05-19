@@ -36,6 +36,8 @@ function buildAllowlist(): string[] {
 function isAllowed(origin: string): boolean {
   // Lovable preview/production URLs  (*.lovable.app)
   if (/^https:\/\/[^/]+\.lovable\.app$/.test(origin)) return true;
+  // Trivelta production subdomains (studio.trivelta.com, suite.trivelta.com, etc.)
+  if (/^https:\/\/([^/]+\.)?trivelta\.com$/.test(origin)) return true;
   // Supabase Studio / preview functions
   if (/^https?:\/\/[^/]+\.supabase\.(co|green)$/.test(origin)) return true;
   return buildAllowlist().includes(origin);
