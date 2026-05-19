@@ -16,6 +16,7 @@
 const PRODUCTION_ORIGINS = [
   "https://trivelta-onboard-hub.lovable.app",
   "https://suite.trivelta.com",
+  "https://studio.trivelta.com",
 ];
 
 const DEV_ORIGINS = [
