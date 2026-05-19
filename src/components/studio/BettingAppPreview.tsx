@@ -2215,8 +2215,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   onClick={() => setActiveSportRow(i)}
                   className="flex items-center gap-1 px-2.5 h-6 rounded text-[9px] font-semibold flex-shrink-0 whitespace-nowrap"
                   style={{
-                    background: active ? "color-mix(in oklab, var(--p-primary) 14%, transparent)" : "transparent",
-                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                    background: active ? "var(--p-filter-active-bg)" : "transparent",
+                    border: active ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
                     color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                   }}
                 >
@@ -2287,7 +2287,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   {activeSoccerTab === i && (
                     <span
                       className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full"
-                      style={{ background: "var(--p-primary)" }}
+                      style={{ background: "var(--p-filter-active-bg)" }}
                     />
                   )}
                 </button>
@@ -2319,9 +2319,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-7 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5"
                 style={{
-                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
-                  border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  background: activeLeague === i ? "var(--p-filter-active-bg)" : "transparent",
+                  border: activeLeague === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={13} /> {l}
@@ -2337,9 +2337,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-7 rounded text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
-                  border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  background: activeBetType === i ? "var(--p-filter-active-bg)" : "transparent",
+                  border: activeBetType === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
@@ -4319,9 +4319,9 @@ const MobilePreview = React.memo(function MobilePreview({
                   onClick={() => setActiveSport(i)}
                   className="px-3 h-7 rounded-full text-[10px] font-semibold flex-shrink-0 flex items-center gap-1"
                   style={{
-                    background: active ? "var(--p-primary)" : "transparent",
+                    background: active ? "var(--p-filter-active-bg)" : "transparent",
                     border: "none",
-                    color: active ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                    color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                     fontWeight: active ? 700 : 500,
                   }}
                 >
@@ -4340,9 +4340,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
                 style={{
-                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
-                  border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  background: activeLeague === i ? "var(--p-filter-active-bg)" : "transparent",
+                  border: activeLeague === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -4358,9 +4358,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-6 rounded text-[9.5px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
-                  border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  background: activeBetType === i ? "var(--p-filter-active-bg)" : "transparent",
+                  border: activeBetType === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}

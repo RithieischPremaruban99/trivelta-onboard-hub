@@ -55,6 +55,7 @@ export interface TCMPalette {
 
   // ── Buttons ───────────────────────────────────────────────────────────────
   inactiveButtonBg: string;
+  filterActiveBg: string;  // active filter pills (league, bet type, sport tabs) — neutral, not primary
   inactiveButtonTextPrimary: string;
   inactiveButtonTextSecondary: string;
   darkInactiveButtonText: string;
@@ -449,6 +450,7 @@ export const DEFAULT_TCM_PALETTE: TCMPalette = {
 
   // ── Buttons ───────────────────────────────────────────────────────────────
   inactiveButtonBg: "rgba(95, 41, 24, 1)",
+  filterActiveBg: "rgba(40, 48, 62, 1)",
   inactiveButtonTextPrimary: "rgba(184, 82, 30, 1)",
   inactiveButtonTextSecondary: "rgba(129, 60, 30, 1)",
   darkInactiveButtonText: "rgba(67, 67, 77, 1)",
@@ -1240,6 +1242,7 @@ export const FIELD_LABELS: Record<keyof TCMPalette, string> = {
   popoverBorder: "Popover Border",
   propCityBackground: "Prop City Background",
   inactiveButtonBg: "Icon & Dot Background",
+  filterActiveBg: "Filter Active Background",
   inactiveButtonTextPrimary: "Inactive Button Text Primary",
   inactiveButtonTextSecondary: "Inactive Button Text Secondary",
   darkInactiveButtonText: "Dark Inactive Button Text",

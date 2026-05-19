@@ -106,6 +106,8 @@ export function derivePalette(atomic: AtomicPalette): TCMPalette {
 
   // Inactive buttons
   palette.inactiveButtonBg = adjustLightness(atomic.dark, 8);
+  // Filter pill active state — neutral, not primary
+  palette.filterActiveBg = adjustLightness(atomic.dark, 14);
   palette.inactiveButtonTextPrimary = desaturate(adjustLightness(atomic.primary, 30), 0.4);
   palette.inactiveButtonTextSecondary = withAlpha(palette.inactiveButtonTextPrimary, 0.4);
 
