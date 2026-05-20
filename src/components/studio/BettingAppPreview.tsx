@@ -1925,7 +1925,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       <Volleyball className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
                       <span className="text-[8.5px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{m.league}</span>
                     </div>
-                    <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>SEE MORE →</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE →</span>
                   </div>
                   {/* Sub-tabs */}
                   <div className="flex gap-0 px-2 py-1" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
@@ -1973,7 +1973,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       <Target className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
                       <span className="text-[8.5px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{m.league}</span>
                     </div>
-                    <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>SEE MORE →</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE →</span>
                   </div>
                   {/* Sub-tabs */}
                   <div className="flex gap-0 px-2 py-1" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
@@ -2093,25 +2093,25 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   className="flex flex-col items-center justify-center gap-1.5 w-[68px] h-[68px] rounded-xl flex-shrink-0 transition-all"
                   style={{
                     background: "var(--p-dark)",
-                    border: active ? "1.5px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                    border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
                   }}
                 >
                   <span
                     className="h-8 w-8 rounded-full grid place-items-center"
                     style={{
                       background: active
-                        ? "var(--p-filter-active-bg)"
+                        ? "color-mix(in oklab, var(--p-primary) 20%, transparent)"
                         : "var(--p-dark-container-background)",
                     }}
                   >
                     <Icon
                       className="h-4 w-4"
-                      style={{ color: active ? "var(--p-light-text-color)" : "var(--p-light-text-color)" }}
+                      style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
                     />
                   </span>
                   <span
                     className="text-[8px] font-medium text-center leading-tight px-1"
-                    style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
+                    style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
                   >
                     {strings[t.strKey]}
                   </span>
@@ -2215,8 +2215,8 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   onClick={() => setActiveSportRow(i)}
                   className="flex items-center gap-1 px-2.5 h-6 rounded text-[9px] font-semibold flex-shrink-0 whitespace-nowrap"
                   style={{
-                    background: active ? "var(--p-filter-active-bg)" : "transparent",
-                    border: active ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                    background: active ? "color-mix(in oklab, var(--p-primary) 14%, transparent)" : "transparent",
+                    border: active ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
                     color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
                   }}
                 >
@@ -2287,7 +2287,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   {activeSoccerTab === i && (
                     <span
                       className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full"
-                      style={{ background: "var(--p-filter-active-bg)" }}
+                      style={{ background: "var(--p-primary)" }}
                     />
                   )}
                 </button>
@@ -2319,9 +2319,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-7 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5"
                 style={{
-                  background: activeLeague === i ? "var(--p-filter-active-bg)" : "transparent",
-                  border: activeLeague === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                  border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={13} /> {l}
@@ -2337,9 +2337,9 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-7 rounded text-[9px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-filter-active-bg)" : "transparent",
-                  border: activeBetType === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                  border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
@@ -4219,7 +4219,7 @@ const MobilePreview = React.memo(function MobilePreview({
                 >
                   <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
                     <span className="text-[9px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>{m.league}</span>
-                    <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>SEE MORE &gt;</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE &gt;</span>
                   </div>
                   <div className="px-3 pb-2.5">
                     {[m.playerA, m.playerB].map((p, pi) => (
@@ -4319,9 +4319,9 @@ const MobilePreview = React.memo(function MobilePreview({
                   onClick={() => setActiveSport(i)}
                   className="px-3 h-7 rounded-full text-[10px] font-semibold flex-shrink-0 flex items-center gap-1"
                   style={{
-                    background: active ? "var(--p-filter-active-bg)" : "transparent",
+                    background: active ? "var(--p-primary)" : "transparent",
                     border: "none",
-                    color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                    color: active ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                     fontWeight: active ? 700 : 500,
                   }}
                 >
@@ -4340,9 +4340,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveLeague(i)}
                 className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
                 style={{
-                  background: activeLeague === i ? "var(--p-filter-active-bg)" : "transparent",
-                  border: activeLeague === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeLeague === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  background: activeLeague === i ? "var(--p-primary)" : "transparent",
+                  border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -4358,9 +4358,9 @@ const MobilePreview = React.memo(function MobilePreview({
                 onClick={() => setActiveBetType(i)}
                 className="px-2.5 h-6 rounded text-[9.5px] font-semibold flex-shrink-0"
                 style={{
-                  background: activeBetType === i ? "var(--p-filter-active-bg)" : "transparent",
-                  border: activeBetType === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
-                  color: activeBetType === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  background: activeBetType === i ? "var(--p-primary)" : "transparent",
+                  border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
+                  color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
                 }}
               >
                 {b}
