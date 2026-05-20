@@ -198,7 +198,7 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
                   background: active
                     ? "var(--p-active-secondary-gradient-color, var(--p-primary))"
                     : "var(--p-modal-background)",
-                  border: `1px solid ${active ? "var(--p-primary)" : "var(--p-border-color)"}`,
+                  border: `1px solid ${active ? "var(--p-border-and-gradient-bg)" : "var(--p-border-color)"}`,
                   color: "var(--p-light-text-color)",
                 }}
               >
@@ -207,8 +207,8 @@ function CasinoContent({ variant }: { variant: "web" | "mobile" }) {
               <span
                 className="text-[9px] font-medium whitespace-nowrap"
                 style={{
-                  color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)",
-                  borderBottom: active ? "1.5px solid var(--p-primary)" : "1.5px solid transparent",
+                  color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
+                  borderBottom: active ? "1.5px solid var(--p-border-and-gradient-bg)" : "1.5px solid transparent",
                   paddingBottom: 1,
                 }}
               >
@@ -1809,7 +1809,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 }}
                 className="w-full flex items-center gap-2.5 px-2 h-9 rounded-md mb-0.5 text-left transition-colors"
                 style={{
-                  background: active ? "color-mix(in oklab, var(--p-primary) 12%, transparent)" : "transparent",
+                  background: active ? "color-mix(in oklab, var(--p-border-and-gradient-bg) 30%, transparent)" : "transparent",
                 }}
               >
                 <span
@@ -1908,10 +1908,10 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   key={tab.label}
                   onClick={() => setLiveActiveSportTab(i)}
                   className="px-3 h-8 text-[9px] font-semibold relative flex-shrink-0"
-                  style={{ color: liveActiveSportTab === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                  style={{ color: liveActiveSportTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
                 >
                   {tab.label}
-                  {liveActiveSportTab === i && <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full" style={{ background: "var(--p-primary)" }} />}
+                  {liveActiveSportTab === i && <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full" style={{ background: "var(--p-border-and-gradient-bg)" }} />}
                 </button>
               ))}
             </div>
@@ -3555,14 +3555,14 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                 key={n.label}
                 onClick={() => setActiveNav(i)}
                 className="flex items-center gap-1.5 px-2.5 h-7 rounded-md transition-colors relative"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-navbar-label, var(--p-text-secondary-color))" }}
+                style={{ color: active ? "var(--p-light-text-color)" : "var(--p-navbar-label, var(--p-text-secondary-color))" }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span className="text-[10px] font-semibold">{n.label}</span>
                 {active && (
                   <span
                     className="absolute -bottom-[6px] left-2 right-2 h-[2px] rounded-full"
-                    style={{ background: "var(--p-inactive-tab-underline, var(--p-primary))" }}
+                    style={{ background: "var(--p-inactive-tab-underline, var(--p-border-and-gradient-bg))" }}
                   />
                 )}
               </button>
@@ -4255,13 +4255,13 @@ const MobilePreview = React.memo(function MobilePreview({
             key={t}
             onClick={() => setMobileSportsTab(i)}
             className="flex-1 h-8 text-[10px] font-semibold relative"
-            style={{ color: mobileSportsTab === i ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+            style={{ color: mobileSportsTab === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
           >
             {t}
             {mobileSportsTab === i && (
               <span
                 className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full"
-                style={{ background: "var(--p-inactive-tab-underline, var(--p-primary))" }}
+                style={{ background: "var(--p-inactive-tab-underline, var(--p-border-and-gradient-bg))" }}
               />
             )}
           </button>
@@ -5181,7 +5181,7 @@ const MobilePreview = React.memo(function MobilePreview({
                       ? "linear-gradient(135deg, var(--p-active-secondary-gradient-color, var(--p-primary)), var(--p-primary))"
                       : "color-mix(in oklab, var(--p-primary) 20%, transparent)",
                     color: active ? pickContrastText(palette.primary) : "var(--p-primary)",
-                    boxShadow: active ? "0 0 0 1px var(--p-primary)" : "none",
+                    boxShadow: active ? "0 0 0 1px var(--p-border-and-gradient-bg)" : "none",
                   }}
                 >
                   {handle}
@@ -5197,13 +5197,13 @@ const MobilePreview = React.memo(function MobilePreview({
                 >
                   <Icon
                     className="h-4 w-4"
-                    style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                    style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
                   />
                 </div>
               )}
               <span
                 className="text-[9px] font-medium"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-navbar-label, var(--p-text-secondary-color))" }}
+                style={{ color: active ? "var(--p-light-text-color)" : "var(--p-navbar-label, var(--p-text-secondary-color))" }}
               >
                 {labels[i]}
               </span>
