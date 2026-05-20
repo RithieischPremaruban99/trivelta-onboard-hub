@@ -121,10 +121,10 @@ export function derivePalette(atomic: AtomicPalette): TCMPalette {
 
   // Secondary accent propagation
   palette.secondary = atomic.secondary;
-  // Banner gradient follows primary brand color
-  // Slightly lighter start, slightly darker end for depth
-  palette.boxGradientColorStart = adjustLightness(atomic.primary, 8);
-  palette.boxGradientColorEnd = adjustLightness(atomic.primary, -12);
+  // Banner gradient — start slightly lighter and warmer, end slightly darker
+  // Both derived from primary so they always match the brand color
+  palette.boxGradientColorStart = adjustLightness(atomic.primary, 12);
+  palette.boxGradientColorEnd = adjustLightness(atomic.primary, -8);
 
   // Action icon box
   palette.actionIconBoxBg = withAlpha(atomic.primary, 0.15);

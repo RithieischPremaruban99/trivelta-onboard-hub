@@ -2163,7 +2163,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
           <div
             className="rounded-xl mb-3 relative overflow-hidden flex items-center"
             style={{
-              background: `linear-gradient(115deg, var(--p-box-gradient-color-start, color-mix(in oklab, var(--p-primary) 80%, black)) 0%, color-mix(in oklab, var(--p-primary) 50%, black) 60%, color-mix(in oklab, var(--p-box-gradient-color-end, var(--p-secondary)) 60%, black) 100%)`,
+              background: `linear-gradient(115deg, var(--p-box-gradient-color-start) 0%, var(--p-box-gradient-color-end) 100%)`,
               minHeight: 72,
             }}
           >
@@ -3854,7 +3854,7 @@ const MobilePreview = React.memo(function MobilePreview({
         <div
           className="rounded-xl mb-3 relative overflow-hidden"
           style={{
-            background: `linear-gradient(125deg, var(--p-box-gradient-color-start, color-mix(in oklab, var(--p-primary) 85%, black)) 0%, color-mix(in oklab, var(--p-primary) 55%, var(--p-box-gradient-color-end, var(--p-secondary))) 100%)`,
+            background: `linear-gradient(125deg, var(--p-box-gradient-color-start) 0%, var(--p-box-gradient-color-end) 100%)`,
             border: "1px solid color-mix(in oklab, var(--p-primary) 60%, transparent)",
           }}
         >
@@ -3971,7 +3971,7 @@ const MobilePreview = React.memo(function MobilePreview({
                           style={{
                             background: sel ? "var(--p-primary)" : "var(--p-dark-container-background)",
                             border: sel ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                            color: sel ? pickContrastText(palette.primary) : "var(--p-primary)",
+                            color: sel ? pickContrastText(palette.primary) : "var(--p-light-text-color)",
                           }}
                         >
                           {m.odds[j]}
@@ -4462,7 +4462,7 @@ const MobilePreview = React.memo(function MobilePreview({
                             style={{
                               background: sel ? "var(--p-primary)" : "var(--p-dark-container-background)",
                               border: sel ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                              color: sel ? pickContrastText(palette.primary) : "var(--p-primary)",
+                              color: sel ? pickContrastText(palette.primary) : "var(--p-light-text-color)",
                             }}
                           >
                             {m.odds[j]}
