@@ -17,6 +17,7 @@
  * Client can still edit these fields in Advanced Mode; they will be stored in
  * studio_config.palette and applied when the TCM runtime renders those features.
  */
+
 import React, { useState, useMemo, useEffect } from "react";
 import { useStudio } from "@/contexts/StudioContext";
 import type { TCMStrings } from "@/lib/tcm-strings";
