@@ -2318,11 +2318,12 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
               <button
                 key={l}
                 onClick={() => setActiveLeague(i)}
-                className="px-2.5 h-7 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5"
+                className={`pill-filter${activeLeague === i ? " pill-active" : ""} px-2.5 h-7 rounded-full text-[9px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5`}
                 style={{
                   background: activeLeague === i ? "var(--p-primary)" : "transparent",
                   border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
                   color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  transition: "background 150ms ease, color 150ms ease",
                 }}
               >
                 <LeagueLogo label={l} size={13} /> {l}
@@ -2341,6 +2342,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   background: activeBetType === i ? "var(--p-primary)" : "transparent",
                   border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
                   color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  transition: "background 150ms ease, color 150ms ease",
                 }}
               >
                 {b}
@@ -4344,6 +4346,7 @@ const MobilePreview = React.memo(function MobilePreview({
                   background: activeLeague === i ? "var(--p-primary)" : "transparent",
                   border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
                   color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  transition: "background 150ms ease, color 150ms ease",
                 }}
               >
                 <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -4362,6 +4365,7 @@ const MobilePreview = React.memo(function MobilePreview({
                   background: activeBetType === i ? "var(--p-primary)" : "transparent",
                   border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
                   color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  transition: "background 150ms ease, color 150ms ease",
                 }}
               >
                 {b}
@@ -5229,6 +5233,16 @@ const MobilePreview = React.memo(function MobilePreview({
         .betting-preview input *,
         .betting-preview [data-no-transition] * {
           transition: none !important;
+        }
+        /* Hover states on filter pills */
+        .betting-preview .pill-filter:not(.pill-active):hover {
+          background: color-mix(in oklab, var(--p-primary) 15%, transparent) !important;
+          color: var(--p-light-text-color) !important;
+          cursor: pointer;
+        }
+        .betting-preview .quick-tile:not(.tile-active):hover {
+          border-color: color-mix(in oklab, var(--p-primary) 50%, var(--p-border-and-gradient-bg)) !important;
+          cursor: pointer;
         }
       `}</style>
     </div>
