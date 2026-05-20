@@ -761,7 +761,7 @@ function getStatusPillStyle(status: string): React.CSSProperties {
   switch (status) {
     case "WON":  return { background: "var(--p-won-color)",  border: "none", color: "var(--p-dark)" };
     case "LOST": return { background: "var(--p-lost-color)", border: "none", color: "#fff" };
-    case "PENDING": return { background: "transparent", border: "1px solid var(--p-primary)", color: "var(--p-primary)" };
+    case "PENDING": return { background: "transparent", border: "1px solid var(--p-text-secondary-color)", color: "var(--p-text-secondary-color)" };
     default:     return { background: "transparent", border: "1px solid var(--p-text-secondary-color)", color: "var(--p-text-secondary-color)" };
   }
 }
@@ -770,7 +770,7 @@ function getStatusOddsColor(status: string): string {
   switch (status) {
     case "WON":  return "var(--p-won-color)";
     case "LOST": return "var(--p-lost-color)";
-    case "PENDING": return "var(--p-primary)";
+    case "PENDING": return "var(--p-text-secondary-color)";
     default: return "var(--p-light-text-color)";
   }
 }
@@ -1925,7 +1925,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       <Volleyball className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
                       <span className="text-[8.5px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{m.league}</span>
                     </div>
-                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE →</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>SEE MORE →</span>
                   </div>
                   {/* Sub-tabs */}
                   <div className="flex gap-0 px-2 py-1" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
@@ -1973,7 +1973,7 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                       <Target className="h-3 w-3" style={{ color: "var(--p-primary)" }} />
                       <span className="text-[8.5px] font-semibold" style={{ color: "var(--p-light-text-color)" }}>{m.league}</span>
                     </div>
-                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE →</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>SEE MORE →</span>
                   </div>
                   {/* Sub-tabs */}
                   <div className="flex gap-0 px-2 py-1" style={{ borderBottom: "1px solid var(--p-border-and-gradient-bg)" }}>
@@ -2093,25 +2093,25 @@ const WebPreview = React.memo(function WebPreview({ appName, logoUrl, currencySy
                   className="flex flex-col items-center justify-center gap-1.5 w-[68px] h-[68px] rounded-xl flex-shrink-0 transition-all"
                   style={{
                     background: "var(--p-dark)",
-                    border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                    border: active ? "1.5px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
                   }}
                 >
                   <span
                     className="h-8 w-8 rounded-full grid place-items-center"
                     style={{
                       background: active
-                        ? "color-mix(in oklab, var(--p-primary) 20%, transparent)"
+                        ? "var(--p-filter-active-bg)"
                         : "var(--p-dark-container-background)",
                     }}
                   >
                     <Icon
                       className="h-4 w-4"
-                      style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
+                      style={{ color: active ? "var(--p-light-text-color)" : "var(--p-light-text-color)" }}
                     />
                   </span>
                   <span
                     className="text-[8px] font-medium text-center leading-tight px-1"
-                    style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                    style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
                   >
                     {strings[t.strKey]}
                   </span>
@@ -4219,7 +4219,7 @@ const MobilePreview = React.memo(function MobilePreview({
                 >
                   <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
                     <span className="text-[9px] truncate" style={{ color: "var(--p-text-secondary-color)" }}>{m.league}</span>
-                    <span className="text-[8px] font-bold" style={{ color: "var(--p-primary)" }}>SEE MORE &gt;</span>
+                    <span className="text-[8px] font-bold" style={{ color: "var(--p-text-secondary-color)" }}>SEE MORE &gt;</span>
                   </div>
                   <div className="px-3 pb-2.5">
                     {[m.playerA, m.playerB].map((p, pi) => (
