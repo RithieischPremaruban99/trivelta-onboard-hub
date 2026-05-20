@@ -3795,7 +3795,7 @@ const MobilePreview = React.memo(function MobilePreview({
               className="flex flex-col items-center justify-center gap-0.5 h-[60px] rounded-xl"
               style={{
                 background: "var(--p-dark)",
-                border: active ? "1.5px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
+                border: active ? "1.5px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
               }}
             >
               <span
@@ -3804,12 +3804,12 @@ const MobilePreview = React.memo(function MobilePreview({
               >
                 <Icon
                   className="h-3.5 w-3.5"
-                  style={{ color: active ? "var(--p-primary)" : "var(--p-light-text-color)" }}
+                  style={{ color: active ? "var(--p-light-text-color)" : "var(--p-light-text-color)" }}
                 />
               </span>
               <span
                 className="text-[7px] font-medium leading-none px-0.5 text-center truncate w-full"
-                style={{ color: active ? "var(--p-primary)" : "var(--p-text-secondary-color)" }}
+                style={{ color: active ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)" }}
               >
                 {t.label}
               </span>
@@ -4117,7 +4117,7 @@ const MobilePreview = React.memo(function MobilePreview({
                 <button
                   onClick={() => setMobileLiveView(false)}
                   className="text-[9px] font-bold flex items-center gap-0.5"
-                  style={{ color: "var(--p-primary)" }}
+                  style={{ color: "var(--p-text-secondary-color)" }}
                 >
                   SEE MORE <ChevronRight className="h-3 w-3" />
                 </button>
@@ -5376,10 +5376,10 @@ function SportsView({
               onClick={() => setActiveSport(i)}
               className="px-2.5 h-6 rounded-md text-[10px] font-semibold flex-shrink-0"
               style={{
-                background: activeSport === i ? "var(--p-primary)" : "transparent",
+                background: activeSport === i ? "var(--p-dark-container-background)" : "transparent",
                 border:
-                  activeSport === i ? "1px solid var(--p-primary)" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeSport === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                  activeSport === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeSport === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
               }}
             >
               {strings[k]}
@@ -5394,9 +5394,9 @@ function SportsView({
               onClick={() => setActiveLeague(i)}
               className="px-2.5 h-6 rounded-full text-[9.5px] font-semibold flex-shrink-0 inline-flex items-center gap-1"
               style={{
-                background: activeLeague === i ? "var(--p-primary)" : "transparent",
-                border: activeLeague === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeLeague === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                background: activeLeague === i ? "var(--p-dark-container-background)" : "transparent",
+                border: activeLeague === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeLeague === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
               }}
             >
               <LeagueLogo label={l} size={12} /> {l.split(" - ")[0]}
@@ -5411,9 +5411,9 @@ function SportsView({
               onClick={() => setActiveBetType(i)}
               className="px-2.5 h-6 rounded text-[9.5px] font-semibold flex-shrink-0"
               style={{
-                background: activeBetType === i ? "var(--p-primary)" : "transparent",
-                border: activeBetType === i ? "none" : "1px solid var(--p-border-and-gradient-bg)",
-                color: activeBetType === i ? pickContrastText(palette.primary) : "var(--p-text-secondary-color)",
+                background: activeBetType === i ? "var(--p-dark-container-background)" : "transparent",
+                border: activeBetType === i ? "1px solid var(--p-border-and-gradient-bg)" : "1px solid var(--p-border-and-gradient-bg)",
+                color: activeBetType === i ? "var(--p-light-text-color)" : "var(--p-text-secondary-color)",
               }}
             >
               {b}
